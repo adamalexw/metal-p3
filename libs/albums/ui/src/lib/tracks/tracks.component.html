@@ -1,0 +1,56 @@
+<ng-container *ngIf="tracksLoading; else tracksTemplate">
+  <mat-spinner></mat-spinner>
+</ng-container>
+
+<ng-template #tracksTemplate>
+  <mat-table [dataSource]="dataSource">
+    <ng-container matColumnDef="trackNumber">
+      <mat-header-cell *matHeaderCellDef>#</mat-header-cell>
+      <mat-cell *matCellDef="let element" [formGroup]="element">
+        <mat-form-field floatLabel="never" class="w-full pr-4">
+          <input matInput placeholder="No." formControlName="trackNumber" required />
+        </mat-form-field>
+      </mat-cell>
+    </ng-container>
+
+    <ng-container matColumnDef="title">
+      <mat-header-cell *matHeaderCellDef>Track</mat-header-cell>
+      <mat-cell *matCellDef="let element" [formGroup]="element">
+        <mat-form-field floatLabel="never" class="w-full pr-4">
+          <input matInput placeholder="Title" formControlName="title" required />
+        </mat-form-field>
+      </mat-cell>
+    </ng-container>
+
+    <ng-container matColumnDef="duration">
+      <mat-header-cell *matHeaderCellDef>Duration</mat-header-cell>
+      <mat-cell *matCellDef="let element" [formGroup]="element">
+        {{ element.get('duration')?.value * 1000 | date: 'mm:ss':'UTC' }}
+      </mat-cell>
+    </ng-container>
+
+    <ng-container matColumnDef="bitrate">
+      <mat-header-cell *matHeaderCellDef>Bitrate</mat-header-cell>
+      <mat-cell *matCellDef="let element" [formGroup]="element">
+        {{ element.get('bitrate')?.value | bitrate }}
+      </mat-cell>
+    </ng-container>
+
+    <ng-container matColumnDef="lyrics">
+      <mat-header-cell *matHeaderCellDef>Lyrics</mat-header-cell>
+      <mat-cell *matCellDef="let element" [formGroup]="element">
+        <mat-icon *ngIf="element.get('lyrics')?.value" (click)="viewLyrics(element.get('lyrics')?.value)">article</mat-icon>
+      </mat-cell>
+    </ng-container>
+
+    <ng-container matColumnDef="trackSaving">
+      <mat-header-cell *matHeaderCellDef></mat-header-cell>
+      <mat-cell *matCellDef="let element" [formGroup]="element">
+        <mat-spinner *ngIf="element.get('trackSaving')?.value" diameter="24"></mat-spinner>
+      </mat-cell>
+    </ng-container>
+
+    <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+    <mat-row *matRowDef="let row; columns: displayedColumns"></mat-row>
+  </mat-table>
+</ng-template>

@@ -1,0 +1,9 @@
+<ng-container *ngIf="loading; else coverTemplate">
+  <mat-spinner></mat-spinner>
+</ng-container>
+
+<ng-template #coverTemplate>
+  <div *ngIf="cover" appCoverDnd (coverUrl)="coverUrl.emit($event)" [style.width.px]="width" [style.height.px]="height">
+    <img [src]="cover" class="w-100 h-100" />
+  </div>
+</ng-template>

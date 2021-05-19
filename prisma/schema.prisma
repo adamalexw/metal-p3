@@ -1,0 +1,62 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["microsoftSqlServer"]
+}
+
+datasource db {
+  provider = "sqlserver"
+  url      = env("DATABASE_URL")
+}
+
+model Album {
+  AlbumId         Int             @id @default(autoincrement())
+  BandId          Int?
+  Folder          String?         @db.VarChar(256)
+  Name            String?         @db.VarChar(256)
+  Year            Int?
+  MetalArchiveUrl String?         @db.VarChar(2083)
+  Lyrics          Boolean?
+  LyricsDate      DateTime?       @db.DateTime
+  Transferred     Boolean?
+  TransferredDate DateTime?       @db.DateTime
+  Created         DateTime        @default(now()) @db.DateTime
+  Band            Band?           @relation(fields: [BandId], references: [BandId])
+  LyricsError     LyricsError[]
+  LyricsHistory   LyricsHistory[]
+}
+
+model Band {
+  BandId          Int      @id @default(autoincrement())
+  Name            String?  @db.VarChar(256)
+  Genre           String?  @db.VarChar(256)
+  Country         String?  @db.VarChar(256)
+  MetalArchiveUrl String?  @db.VarChar(2083)
+  Created         DateTime @default(now()) @db.DateTime
+  Album           Album[]
+}
+
+model LyricsError {
+  LyricsErrorId Int     @id @default(autoincrement())
+  AlbumId       Int
+  Url           String? @db.VarChar(2083)
+  Error         String? @db.VarChar(Max)
+  Album         Album   @relation(fields: [AlbumId], references: [AlbumId])
+}
+
+model LyricsHistory {
+  LyricsHistoryId  Int          @id @default(autoincrement())
+  AlbumId          Int
+  Url              String?      @db.VarChar(2083)
+  NumTracks        Int?
+  NumLyrics        Int?
+  NumLyricsHistory Int?
+  Checked          Boolean?
+  Priority         Boolean?
+  Album            Album        @relation(fields: [AlbumId], references: [AlbumId])
+  SavedLyrics      SavedLyrics?
+}
+
+model SavedLyrics {
+  LyricsHistoryId Int           @id
+  LyricsHistory   LyricsHistory @relation(fields: [LyricsHistoryId], references: [LyricsHistoryId])
+}

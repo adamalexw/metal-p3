@@ -25,7 +25,8 @@
     "@nrwl/angular:library": {
       "style": "scss",
       "linter": "eslint",
-      "unitTestRunner": "jest"
+      "unitTestRunner": "jest",
+      "strict": true
     },
     "@nrwl/angular:component": {
       "style": "scss"
@@ -36,7 +37,7 @@
       "projectType": "application",
       "root": "apps/ui",
       "sourceRoot": "apps/ui/src",
-      "prefix": "metal-p3",
+      "prefix": "app",
       "architect": {
         "build": {
           "builder": "@angular-devkit/build-angular:browser",
@@ -200,6 +201,116 @@
           "builder": "@nrwl/linter:eslint",
           "options": {
             "lintFilePatterns": ["libs/api-interfaces/**/*.ts"]
+          }
+        }
+      }
+    },
+    "albums-feature-shell": {
+      "projectType": "library",
+      "root": "libs/albums/feature-shell",
+      "sourceRoot": "libs/albums/feature-shell/src",
+      "prefix": "app",
+      "architect": {
+        "lint": {
+          "builder": "@nrwl/linter:eslint",
+          "options": {
+            "lintFilePatterns": ["libs/albums/feature-shell/src/**/*.ts", "libs/albums/feature-shell/src/**/*.html"]
+          }
+        },
+        "test": {
+          "builder": "@nrwl/jest:jest",
+          "outputs": ["coverage/libs/albums/feature-shell"],
+          "options": {
+            "jestConfig": "libs/albums/feature-shell/jest.config.js",
+            "passWithNoTests": true
+          }
+        }
+      }
+    },
+    "albums-data-access": {
+      "projectType": "library",
+      "root": "libs/albums/data-access",
+      "sourceRoot": "libs/albums/data-access/src",
+      "prefix": "app",
+      "architect": {
+        "lint": {
+          "builder": "@nrwl/linter:eslint",
+          "options": {
+            "lintFilePatterns": ["libs/albums/data-access/src/**/*.ts", "libs/albums/data-access/src/**/*.html"]
+          }
+        },
+        "test": {
+          "builder": "@nrwl/jest:jest",
+          "outputs": ["coverage/libs/albums/data-access"],
+          "options": {
+            "jestConfig": "libs/albums/data-access/jest.config.js",
+            "passWithNoTests": true
+          }
+        }
+      }
+    },
+    "albums-ui": {
+      "projectType": "library",
+      "root": "libs/albums/ui",
+      "sourceRoot": "libs/albums/ui/src",
+      "prefix": "app",
+      "architect": {
+        "lint": {
+          "builder": "@nrwl/linter:eslint",
+          "options": {
+            "lintFilePatterns": ["libs/albums/ui/src/**/*.ts", "libs/albums/ui/src/**/*.html"]
+          }
+        },
+        "test": {
+          "builder": "@nrwl/jest:jest",
+          "outputs": ["coverage/libs/albums/ui"],
+          "options": {
+            "jestConfig": "libs/albums/ui/jest.config.js",
+            "passWithNoTests": true
+          }
+        }
+      }
+    },
+    "shared-utils": {
+      "projectType": "library",
+      "root": "libs/shared/utils",
+      "sourceRoot": "libs/shared/utils/src",
+      "prefix": "app",
+      "architect": {
+        "lint": {
+          "builder": "@nrwl/linter:eslint",
+          "options": {
+            "lintFilePatterns": ["libs/shared/utils/src/**/*.ts", "libs/shared/utils/src/**/*.html"]
+          }
+        },
+        "test": {
+          "builder": "@nrwl/jest:jest",
+          "outputs": ["coverage/libs/shared/utils"],
+          "options": {
+            "jestConfig": "libs/shared/utils/jest.config.js",
+            "passWithNoTests": true
+          }
+        }
+      }
+    },
+    "albums-domain": {
+      "projectType": "library",
+      "root": "libs/albums/domain",
+      "sourceRoot": "libs/albums/domain/src",
+      "prefix": "app",
+      "architect": {
+        "lint": {
+          "builder": "@nrwl/linter:eslint",
+          "options": {
+            "lintFilePatterns": ["libs/albums/domain/src/**/*.ts", "libs/albums/domain/src/**/*.html"]
+          }
+        },
+        "test": {
+          "builder": "@nrwl/jest:jest",
+          "outputs": ["coverage/libs/albums/domain"],
+          "options": {
+            "jestConfig": "libs/albums/domain/jest.config.js",
+            "passWithNoTests": true
           }
         }
       }

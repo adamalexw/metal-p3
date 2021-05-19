@@ -1,0 +1,9 @@
+<ng-container *ngIf="album">
+  <ng-container *ngIf="album?.cover">
+    <div [routerLink]="['album', album.id]">
+      <app-cover [cover]="album.cover"></app-cover>
+    </div>
+  </ng-container>
+  <div class="text-gray-50">{{ album.artist }}</div>
+  <div class="text-gray-50">{{ album.album }}</div>
+</ng-container>

@@ -1,0 +1,13 @@
+<app-list-toolbar (searchRequest)="onSearch($event)"></app-list-toolbar>
+
+<ng-container *ngIf="albumsLoading$ | async; else listTemplate">
+  <mat-spinner></mat-spinner>
+</ng-container>
+
+<ng-template #listTemplate>
+  <div class="flex flex-row flex-wrap" appAddAlbum (albumAdded)="onAlbumAdded($event)">
+    <div class="p-2" *ngFor="let album of albums$ | async; trackBy: identify">
+      <app-list-item [album]="album" (getCover)="onGetCover(album.id, album.folder)"></app-list-item>
+    </div>
+  </div>
+</ng-template>

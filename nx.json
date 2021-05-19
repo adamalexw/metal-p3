@@ -1,36 +1,17 @@
 {
-  "implicitDependencies": {
-    "package.json": {
-      "dependencies": "*",
-      "devDependencies": "*"
-    },
-    ".eslintrc.json": "*"
-  },
-  "affected": {
-    "defaultBase": "master"
-  },
+  "implicitDependencies": { "package.json": { "dependencies": "*", "devDependencies": "*" }, ".eslintrc.json": "*" },
+  "affected": { "defaultBase": "master" },
   "npmScope": "metal-p3",
-  "tasksRunnerOptions": {
-    "default": {
-      "runner": "@nrwl/workspace/tasks-runners/default",
-      "options": {
-        "cacheableOperations": ["build", "lint", "test", "e2e"]
-      }
-    }
-  },
+  "tasksRunnerOptions": { "default": { "runner": "@nrwl/workspace/tasks-runners/default", "options": { "cacheableOperations": ["build", "lint", "test", "e2e"] } } },
   "projects": {
-    "ui": {
-      "tags": []
-    },
-    "ui-e2e": {
-      "tags": [],
-      "implicitDependencies": ["ui"]
-    },
-    "api": {
-      "tags": []
-    },
-    "api-interfaces": {
-      "tags": []
-    }
+    "ui": { "tags": [] },
+    "ui-e2e": { "tags": [], "implicitDependencies": ["ui"] },
+    "api": { "tags": [] },
+    "api-interfaces": { "tags": [] },
+    "albums-feature-shell": { "tags": ["scope:albums", "type:feature"] },
+    "albums-data-access": { "tags": ["scope:albums", "type:data-access"] },
+    "albums-ui": { "tags": ["scope:albums", "tags:ui"] },
+    "shared-utils": { "tags": ["scope:shared", "type:util"] },
+    "albums-domain": { "tags": [] }
   }
 }
