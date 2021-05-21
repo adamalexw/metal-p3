@@ -1,4 +1,4 @@
-import { MetalArchivesAlbumTrack, MetalArchivesSearchResponse } from '@metal-p3/api-interfaces';
+import { BandProps, MetalArchivesAlbumTrack, MetalArchivesSearchResponse } from '@metal-p3/api-interfaces';
 import { HttpService, Injectable } from '@nestjs/common';
 import { parse } from 'node-html-parser';
 import { Observable } from 'rxjs';
@@ -15,7 +15,7 @@ export class MetalArchivesService {
   }
 
   getTracks(url: string): Observable<MetalArchivesAlbumTrack[]> {
-    return this.albumPage(url).pipe(map((html) => this.extractTracks(html)));
+    return this.downloadPage(url).pipe(map((html) => this.extractTracks(html)));
   }
 
   private extractTracks(html: string): MetalArchivesAlbumTrack[] {
@@ -67,7 +67,29 @@ export class MetalArchivesService {
     return this.httpService.get<string>(`${this.baseUrl}release/ajax-view-lyrics/id/${trackId}`).pipe(map((response) => response.data.trim()));
   }
 
-  private albumPage(url: string): Observable<string> {
+  private downloadPage(url: string): Observable<string> {
     return this.httpService.get<string>(url).pipe(map((response) => response.data));
+  }
+
+  getBandProps(url: string): Observable<BandProps> {
+    return this.downloadPage(url).pipe(map((html) => this.extractBandProps(html)));
+  }
+
+  private extractBandProps(html: string): BandProps {
+    const props: BandProps = {
+      country: '',
+      genre: '',
+    };
+
+    const root = parse(html);
+
+    const statsTable = root.querySelector('#band_stats');
+    const row1 = statsTable.querySelector('dl.float_left');
+    const row2 = statsTable.querySelector('dl.float_right');
+
+    props.country = row1.querySelector('dd > a').textContent;
+    props.genre = row2.querySelector('dd').textContent;
+
+    return props;
   }
 }

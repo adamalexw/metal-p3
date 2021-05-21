@@ -1,13 +1,14 @@
-import { BandDto } from '@metal-p3/api-interfaces';
+import { BandDto, BandProps } from '@metal-p3/api-interfaces';
 import { Injectable } from '@nestjs/common';
 import { Band, Prisma } from '@prisma/client';
 import { from, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { DbService } from '../shared/db.service';
+import { MetalArchivesService } from '../shared/metal-archives.service';
 
 @Injectable()
 export class BandService {
-  constructor(private readonly dbService: DbService) {}
+  constructor(private readonly dbService: DbService, private readonly metalArchivesService: MetalArchivesService) {}
 
   getBands(request: { criteria?: string }): Observable<BandDto[]> {
     let where: Prisma.BandWhereInput;
@@ -46,5 +47,9 @@ export class BandService {
       Country: bandDto.country,
       MetalArchiveUrl: bandDto.metalArchiveUrl,
     };
+  }
+
+  getBandProps(url: string): Observable<BandProps> {
+    return this.metalArchivesService.getBandProps(url);
   }
 }

@@ -1,4 +1,4 @@
-import { BandDto } from '@metal-p3/api-interfaces';
+import { BandDto, BandProps } from '@metal-p3/api-interfaces';
 import { Body, Controller, Get, HttpCode, HttpStatus, Patch, Query } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { BandService } from './band.service';
@@ -15,6 +15,11 @@ export class BandController {
   @Get()
   album(@Query('id') id: number): Observable<BandDto> {
     return this.bandService.getBand(id);
+  }
+
+  @Get('props')
+  props(@Query('url') url: string): Observable<BandProps> {
+    return this.bandService.getBandProps(url);
   }
 
   @Patch()

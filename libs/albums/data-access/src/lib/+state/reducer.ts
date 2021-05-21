@@ -104,9 +104,8 @@ const albumReducer = createReducer(
   on(AlbumActions.saveAlbumSuccess, (state, { update }) => {
     return adapter.updateOne(update, state);
   }),
-  on(AlbumActions.saveTrack, (state, { id, track }) => {
-    console.log(id, track);
-    return adapter.mapOne(
+  on(AlbumActions.saveTrack, (state, { id, track }) =>
+    adapter.mapOne(
       {
         id,
         map: (album) => ({
@@ -115,8 +114,8 @@ const albumReducer = createReducer(
         }),
       },
       state
-    );
-  }),
+    )
+  ),
   on(AlbumActions.saveTrackSuccess, (state, { id, track }) =>
     adapter.mapOne(
       {
@@ -159,10 +158,34 @@ const albumReducer = createReducer(
       state
     )
   ),
-  on(AlbumActions.renameTracks, (state, { id }) => {
-    return adapter.updateOne({ id, changes: { renamingTracks: true } }, state);
+  on(AlbumActions.renameTrack, (state, { id, track }) =>
+    adapter.mapOne(
+      {
+        id,
+        map: (album) => ({
+          ...album,
+          tracks: trackAdapter.updateOne({ id: track.id, changes: { ...track, trackSaving: true } }, album.tracks),
+        }),
+      },
+      state
+    )
+  ),
+  on(AlbumActions.renameTrackSuccess, (state, { id, track }) =>
+    adapter.mapOne(
+      {
+        id,
+        map: (album) => ({
+          ...album,
+          tracks: trackAdapter.updateOne({ id: track.id, changes: { ...track, trackSaving: false } }, album.tracks),
+        }),
+      },
+      state
+    )
+  ),
+  on(AlbumActions.getBandProps, (state, { id }) => {
+    return adapter.updateOne({ id, changes: { gettingBandProps: true } }, state);
   }),
-  on(AlbumActions.renameTracksSuccess, (state, { update }) => {
+  on(AlbumActions.getBandPropsSuccess, (state, { update }) => {
     return adapter.updateOne(update, state);
   })
 );

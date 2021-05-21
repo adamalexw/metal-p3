@@ -55,6 +55,7 @@ export class TracksComponent implements OnChanges {
       duration: [track.duration?.toString()],
       bitrate: [track.bitrate?.toString()],
       lyrics: [track.lyrics],
+      folder: [track.folder],
       fullPath: [track.fullPath],
       trackSaving: [track.trackSaving],
     });

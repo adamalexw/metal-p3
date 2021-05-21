@@ -1,19 +1,20 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Inject, Injectable } from '@angular/core';
 import { ApplyLyrics, SearchRequest } from '@metal-p3/albums/domain';
-import { AlbumDto, BandDto, MetalArchivesAlbumTrack, MetalArchivesSearchResponse, Track } from '@metal-p3/api-interfaces';
-import { environment } from '@metal-p3/env';
+import { AlbumDto, BandDto, BandProps, MetalArchivesAlbumTrack, MetalArchivesSearchResponse, Track } from '@metal-p3/api-interfaces';
+import { createToObjectUrl, mapBlobToBase64 } from '@metal-p3/shared/utils';
 import { Observable } from 'rxjs';
-import { filter, map } from 'rxjs/operators';
+import { map, switchMap } from 'rxjs/operators';
+import { BASE_PATH } from '../index';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AlbumsService {
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, @Inject(BASE_PATH) private readonly basePath: string) {}
 
   getFolders(): Observable<string[]> {
-    return this.http.get<string[]>(`/api/folders?folder=${environment.baseFolderLocation}`);
+    return this.http.get<string[]>(`/api/folders?folder=${this.basePath}`);
   }
 
   getAlbums(request: Partial<SearchRequest>): Observable<AlbumDto[]> {
@@ -29,14 +30,15 @@ export class AlbumsService {
   }
 
   getCover(location: string): Observable<string> {
-    return this.http.get(`/api/cover?location=${location}`, { responseType: 'text' }).pipe(
-      filter(Boolean),
-      map((cover) => `data:image/png;base64,${cover}`)
-    );
+    return this.http.get(`/api/cover?location=${encodeURIComponent(location)}`, { responseType: 'text' }).pipe(map(createToObjectUrl));
   }
 
   downloadCover(url: string): Observable<string> {
-    return this.http.get(`/api/cover/download?url=${url}`, { responseType: 'text' }).pipe(map((cover) => `data:image/png;base64,${cover}`));
+    return this.http.get(`/api/cover/download?url=${encodeURIComponent(url)}`, { responseType: 'text' }).pipe(map(createToObjectUrl));
+  }
+
+  getCoverDto(blobUrl: string): Observable<unknown> {
+    return this.http.get(blobUrl, { responseType: 'blob' }).pipe(switchMap((blob) => mapBlobToBase64(blob)));
   }
 
   getTrack(file: string): Observable<Track> {
@@ -75,7 +77,15 @@ export class AlbumsService {
     return this.http.patch<AlbumDto>('/api/applyLyrics', { id, lyrics });
   }
 
+  renameTrack(track: Track): Observable<string> {
+    return this.http.patch<string>('/api/track/rename', track, { responseType: 'text' as 'json' });
+  }
+
   openFolder(folder: string): Observable<never> {
     return this.http.get<never>(`/api/album/openFolder?folder=${folder}`);
+  }
+
+  getBandProps(url: string): Observable<BandProps> {
+    return this.http.get<BandProps>(`/api/band/props?url=${encodeURIComponent(url)}`);
   }
 }

@@ -19,6 +19,9 @@ export class CoverComponent {
   @Input()
   height = 250;
 
+  @Input()
+  matCover = false;
+
   @Output()
   coverUrl = new EventEmitter<string>();
 }

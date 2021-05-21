@@ -1,9 +1,18 @@
-<ng-container *ngIf="album">
-  <ng-container *ngIf="album?.cover">
-    <div [routerLink]="['album', album.id]">
-      <app-cover [cover]="album.cover"></app-cover>
-    </div>
-  </ng-container>
-  <div class="text-gray-50">{{ album.artist }}</div>
-  <div class="text-gray-50">{{ album.album }}</div>
-</ng-container>
+<mat-card *ngIf="album">
+  <mat-card-header>
+    <mat-card-title>{{ album.artist }}</mat-card-title>
+    <mat-card-subtitle>{{ album.album }}</mat-card-subtitle>
+  </mat-card-header>
+
+  <div [routerLink]="['album', album.id]">
+    <app-cover [cover]="album.cover" [matCover]="true"></app-cover>
+  </div>
+
+  <mat-card-content>
+    <p>
+      {{ album.genre }}
+      {{ album.year }}
+    </p>
+  </mat-card-content>
+  <mat-card-actions> </mat-card-actions>
+</mat-card>

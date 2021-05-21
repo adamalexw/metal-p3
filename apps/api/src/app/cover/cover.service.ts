@@ -36,7 +36,7 @@ export class CoverService {
   }
 
   private getCoverFromAudioFile(location: string): Observable<string> {
-    return this.trackService.getMetadata(location).pipe(map((metadata) => metadata.common.picture.length && this.toBase64Image(metadata.common.picture[0].data)));
+    return this.trackService.getMetadata(location).pipe(map((metadata) => metadata.common.picture?.length && this.toBase64Image(metadata.common.picture[0].data)));
   }
 
   private getCoverFromImageFile(location: string): Observable<string> {

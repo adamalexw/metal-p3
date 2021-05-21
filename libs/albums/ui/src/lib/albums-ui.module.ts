@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
+import { MatCardModule } from '@angular/material/card';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
@@ -25,7 +26,20 @@ import { LyricsToolbarComponent } from './lyrics-toolbar/lyrics-toolbar.componen
 import { LyricsComponent } from './lyrics/lyrics.component';
 import { TracksComponent } from './tracks/tracks.component';
 
-const materialModules = [MatCheckboxModule, MatProgressSpinnerModule, MatToolbarModule, MatIconModule, MatButtonModule, MatFormFieldModule, MatInputModule, MatTableModule, MatSelectModule, CdkTableModule, MatListModule];
+const materialModules = [
+  MatCardModule,
+  MatCheckboxModule,
+  MatProgressSpinnerModule,
+  MatToolbarModule,
+  MatIconModule,
+  MatButtonModule,
+  MatFormFieldModule,
+  MatInputModule,
+  MatTableModule,
+  MatSelectModule,
+  CdkTableModule,
+  MatListModule,
+];
 
 @NgModule({
   imports: [CommonModule, RouterModule, FormsModule, ReactiveFormsModule, SafePipeModule, materialModules, SharedUtilsModule],

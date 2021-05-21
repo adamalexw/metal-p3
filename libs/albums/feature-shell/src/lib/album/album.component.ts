@@ -6,15 +6,18 @@ import {
   downloadCover,
   findMaUrl,
   getAlbum,
+  getBandProps,
   getCover,
   getLyrics,
   getMaTracks,
   getTracks,
+  renameTrack,
   saveAlbum,
   saveBand,
   saveTrack,
   selectAlbum,
   selectAlbumSaving,
+  selectBandProps,
   selectCover,
   selectCoverLoading,
   selectFindingUrl,
@@ -59,6 +62,9 @@ export class AlbumShellComponent implements OnInit {
 
   gettingMaTracks$ = this.store.pipe(select(selectGettingMaTracks));
   maTracks$ = this.store.pipe(select(selectMaTracks));
+
+  gettingBandProps$ = this.store.pipe(select(selectBandProps));
+  bandProps$ = this.store.pipe(select(selectBandProps));
 
   constructor(private readonly store: Store, private readonly service: AlbumsService, private readonly router: Router) {}
 
@@ -107,6 +113,17 @@ export class AlbumShellComponent implements OnInit {
     this.store.dispatch(saveBand({ band: this.getBandDto(album) }));
     this.store.dispatch(saveAlbum({ album }));
 
+    if (album.cover) {
+      this.service
+        .getCoverDto(album.cover)
+        .pipe(tap((cover) => this.dispatchTracks({ ...album, cover: cover as string }, tracks)))
+        .subscribe();
+    } else {
+      this.dispatchTracks(album, tracks);
+    }
+  }
+
+  private dispatchTracks(album: Album, tracks: Track[]) {
     tracks.forEach((albumTrack) => {
       const track = this.getTrack(album, albumTrack);
       this.store.dispatch(saveTrack({ id: album.id, track }));
@@ -140,6 +157,7 @@ export class AlbumShellComponent implements OnInit {
   onLyrics(id: number, url: string): void {
     this.maTracks$
       .pipe(
+        untilDestroyed(this),
         tap((maTracks) => {
           if (!maTracks) {
             this.onMaTracks(id, url);
@@ -155,11 +173,28 @@ export class AlbumShellComponent implements OnInit {
       .subscribe();
   }
 
+  onRenameTracks(id: number, tracks: Track[]) {
+    tracks.forEach((track) => {
+      this.store.dispatch(renameTrack({ id, track }));
+    });
+  }
+
   onOpenFolder(folder: string) {
     this.service.openFolder(folder).subscribe();
   }
 
   onRefreshTracks(id: number, folder: string) {
     this.store.dispatch(getTracks({ id, folder }));
+  }
+
+  onFindBandProps(id: number, url: string) {
+    this.bandProps$
+      .pipe(
+        untilDestroyed(this),
+        filter((props) => !props),
+        tap(() => this.store.dispatch(getBandProps({ id, url }))),
+        take(1)
+      )
+      .subscribe();
   }
 }

@@ -29,12 +29,15 @@ export interface Track extends AlbumBase {
   trackSaving?: boolean;
 }
 
-export interface BandDto {
+export interface BandDto extends BandProps {
   id: number;
   name: string;
+  metalArchiveUrl?: string;
+}
+
+export interface BandProps {
   genre?: string;
   country?: string;
-  metalArchiveUrl?: string;
 }
 
 export interface MetalArchivesSearchResponse {

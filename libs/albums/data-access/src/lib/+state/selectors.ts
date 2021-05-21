@@ -15,11 +15,14 @@ export const selectAlbumsLoaded = createSelector(selectAlbumState, (state: Album
 export const selectAlbums = createSelector(selectAlbumState, (state: AlbumState) => selectAll(state));
 
 export const selectAlbum = createSelector(selectAlbumEntities, selectRouteParams, (albums, { id }) => albums && albums[id]);
+export const selectBandProps = createSelector(selectAlbum, (album) => album?.bandProps);
+export const selectGettingBandProps = createSelector(selectAlbum, (album) => album?.gettingBandProps);
 export const selectTracks = createSelector(selectAlbum, (album) => album && album.tracks && trackAdapter.getSelectors().selectAll(album.tracks));
 export const selectAlbumSaving = createSelector(selectAlbum, selectTracks, (album, tracks) => album?.saving || tracks?.some((track) => track.trackSaving));
 
 export const selectCoverLoading = createSelector(selectAlbum, (album) => album?.coverLoading);
 export const selectCover = createSelector(selectAlbum, (album) => album?.cover);
+export const selectBlobCovers = createSelector(selectAlbums, (albums) => albums?.filter((album) => album.cover && album.cover.startsWith('blob')).map((album) => album.cover) || []);
 
 export const selectTracksLoading = createSelector(selectAlbum, (album) => album?.tracksLoading);
 

@@ -1,7 +1,9 @@
-import { AlbumDto, MetalArchivesAlbumTrack, Track } from '@metal-p3/api-interfaces';
+import { AlbumDto, BandProps, MetalArchivesAlbumTrack, Track } from '@metal-p3/api-interfaces';
 import { EntityState } from '@ngrx/entity';
 
 export interface Album extends AlbumDto {
+  bandProps?: BandProps;
+  gettingBandProps?: boolean;
   tracks: EntityState<Track>;
   tracksLoading?: boolean;
   coverLoading?: boolean;

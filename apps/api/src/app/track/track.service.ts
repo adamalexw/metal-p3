@@ -5,9 +5,12 @@ import { read, Tags, update } from 'node-id3';
 import * as path from 'path';
 import { EMPTY, from, Observable } from 'rxjs';
 import { concatAll, map, toArray } from 'rxjs/operators';
+import { FileSystemService } from '../shared/file-system.service';
 
 @Injectable()
 export class TrackService {
+  constructor(private readonly fileSystemService: FileSystemService) {}
+
   getTracks(files: string[]): Observable<Track[]> {
     if (files.length) {
       const tags = files.map((file, index) => this.trackDetails(file, index));
@@ -86,7 +89,7 @@ export class TrackService {
           name: 'front cover',
         },
         description: 'front cover',
-        imageBuffer: Buffer.from(track.cover, 'base64'),
+        imageBuffer: Buffer.from(track.cover.replace('data:image/png;base64,', ''), 'base64'),
       };
 
       baseTags = { ...baseTags, image };
@@ -103,5 +106,13 @@ export class TrackService {
 
   updateTrack(tags: Tags, location: string) {
     update(tags, location);
+  }
+
+  renameTrack(track: Track): string {
+    const newName = `${track.folder}/${track.trackNumber} - ${this.fileSystemService.filenameValidator(track.title)}.mp3`;
+
+    this.fileSystemService.renameFile(track.fullPath, newName);
+
+    return newName;
   }
 }

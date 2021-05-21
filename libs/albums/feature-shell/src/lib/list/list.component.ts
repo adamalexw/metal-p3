@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
-import { addNewAlbum, Album, getCover, loadAlbums, selectAlbums, selectAlbumsLoaded, selectAlbumsLoading } from '@metal-p3/albums/data-access';
+import { addNewAlbum, Album, clearCovers, getCover, loadAlbums, selectAlbums, selectAlbumsLoaded, selectAlbumsLoading } from '@metal-p3/albums/data-access';
 import { SearchRequest } from '@metal-p3/albums/domain';
 import { select, Store } from '@ngrx/store';
 import { filter, take, tap } from 'rxjs/operators';
@@ -36,6 +36,7 @@ export class ListComponent implements OnInit {
   }
 
   onSearch(request: SearchRequest) {
+    this.store.dispatch(clearCovers());
     this.store.dispatch(loadAlbums({ request }));
   }
 

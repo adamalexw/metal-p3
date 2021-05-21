@@ -30,7 +30,6 @@ export class ListToolbarComponent implements OnInit {
         untilDestroyed(this),
         debounceTime(500),
         distinctUntilChanged(),
-        tap(console.log),
         tap((request: SearchRequest) => this.searchRequest.emit(request))
       )
       .subscribe();

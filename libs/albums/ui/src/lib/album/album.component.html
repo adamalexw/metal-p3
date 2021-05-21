@@ -9,6 +9,7 @@
       (imageSearch)="onImageSearch()"
       (findUrl)="onFindUrl()"
       (maTracks)="onMaTracks()"
+      (renameTracks)="onRenameTracks()"
       (lyrics)="onLyrics()"
       (openFolder)="openFolder.emit(album.fullPath)"
       (refreshTracks)="refreshTracks.emit({ id: album.id, folder: album.folder })"
@@ -34,18 +35,14 @@
           <mat-form-field class="w-full">
             <mat-label>Genre</mat-label>
             <input matInput formControlName="genre" />
-          </mat-form-field>
-        </mat-list-item>
-        <mat-list-item class="my-2">
-          <mat-form-field class="w-10">
-            <mat-label>Year</mat-label>
-            <input matInput formControlName="year" />
+            <mat-icon *ngIf="artistUrl" matSuffix (click)="getBandProps(artistUrl)">music_note</mat-icon>
           </mat-form-field>
         </mat-list-item>
         <mat-list-item class="my-2">
           <mat-form-field class="w-full">
             <mat-label>Country</mat-label>
             <input matInput formControlName="country" />
+            <mat-icon *ngIf="artistUrl" matSuffix (click)="getBandProps(artistUrl)">flag</mat-icon>
           </mat-form-field>
         </mat-list-item>
         <mat-list-item class="my-2">
@@ -55,11 +52,17 @@
             <mat-icon *ngIf="albumUrl" matSuffix (click)="openLink(albumUrl)">link</mat-icon>
           </mat-form-field>
         </mat-list-item>
-        <mat-list-item class="mt-2">
+        <mat-list-item class="my-2">
           <mat-form-field class="w-full">
             <mat-label>Artist Url</mat-label>
             <input matInput formControlName="artistUrl" />
             <mat-icon *ngIf="artistUrl" matSuffix (click)="openLink(artistUrl)">link</mat-icon>
+          </mat-form-field>
+        </mat-list-item>
+        <mat-list-item class="mt-2">
+          <mat-form-field class="w-10">
+            <mat-label>Year</mat-label>
+            <input matInput formControlName="year" />
           </mat-form-field>
         </mat-list-item>
         <mat-list-item>

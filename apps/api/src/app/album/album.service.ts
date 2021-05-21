@@ -51,6 +51,8 @@ export class AlbumService {
   }
 
   async addAlbum(folder: string): Promise<AlbumDto> {
+    this.fileSystemService.moveFilesToTheRoot(folder, folder);
+
     const files = this.fileSystemService.getFiles(folder);
 
     for (let index = 0; index < files.length; index++) {

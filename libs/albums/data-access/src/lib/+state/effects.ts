@@ -1,21 +1,25 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { Inject, Injectable } from '@angular/core';
 import { MetalArchivesSearchResponse } from '@metal-p3/api-interfaces';
-import { environment } from '@metal-p3/env';
 import { extractUrl } from '@metal-p3/shared/utils';
 import { WINDOW } from '@ng-web-apis/common';
-import { Actions, createEffect, ofType } from '@ngrx/effects';
-import { Store } from '@ngrx/store';
-import { EMPTY } from 'rxjs';
+import { Actions, concatLatestFrom, createEffect, ofType } from '@ngrx/effects';
+import { select, Store } from '@ngrx/store';
+import { EMPTY, of, throwError } from 'rxjs';
 import { catchError, filter, map, mergeMap, tap } from 'rxjs/operators';
+import { BASE_PATH } from '../..';
 import { Album, AlbumDtoToAlbum } from '../album';
 import { AlbumsService } from '../albums.service';
 import {
   addAlbum,
   addNewAlbum,
+  clearCovers,
   downloadCover,
   findMaUrl,
   findMaUrlSuccess,
   getAlbum,
+  getBandProps,
+  getBandPropsSuccess,
   getCover,
   getCoverSuccess,
   getLyrics,
@@ -26,6 +30,8 @@ import {
   getTracksSuccess,
   loadAlbums,
   loadAlbumsSuccess,
+  renameTrack,
+  renameTrackSuccess,
   saveAlbum,
   saveAlbumSuccess,
   saveBand,
@@ -33,6 +39,7 @@ import {
   saveTrackSuccess,
   updateAlbum,
 } from './actions';
+import { selectBlobCovers } from './selectors';
 
 @Injectable()
 export class AlbumEffects {
@@ -43,7 +50,10 @@ export class AlbumEffects {
         this.albumsService.getAlbums(request).pipe(
           map((albums) => albums as Album[]),
           map((albums) => loadAlbumsSuccess({ albums })),
-          catchError(() => EMPTY)
+          catchError((error) => {
+            console.error(error);
+            return EMPTY;
+          })
         )
       )
     )
@@ -53,7 +63,7 @@ export class AlbumEffects {
     this.actions$.pipe(
       ofType(getCover),
       mergeMap(({ id, folder }) =>
-        this.albumsService.getCover(`${environment.baseFolderLocation}/${folder}`).pipe(
+        this.albumsService.getCover(`${this.basePath}/${folder}`).pipe(
           map((cover) => getCoverSuccess({ update: { id, changes: { cover, coverLoading: false } } })),
           catchError((error) => {
             console.error(error);
@@ -79,6 +89,21 @@ export class AlbumEffects {
     )
   );
 
+  clearCovers$ = createEffect(
+    () =>
+      this.actions$.pipe(
+        ofType(clearCovers),
+        concatLatestFrom(() => this.store.pipe(select(selectBlobCovers))),
+        filter(([_, covers]) => covers.length > 0),
+        tap(([_, covers]) =>
+          covers.forEach((cover) => {
+            typeof cover === 'string' ? URL.revokeObjectURL(cover) : '';
+          })
+        )
+      ),
+    { dispatch: false }
+  );
+
   getAlbum$ = createEffect(() =>
     this.actions$.pipe(
       ofType(getAlbum),
@@ -99,7 +124,7 @@ export class AlbumEffects {
     this.actions$.pipe(
       ofType(addNewAlbum),
       mergeMap(({ folder }) =>
-        this.albumsService.addNewAlbum(`${environment.baseFolderLocation}/${folder}`).pipe(
+        this.albumsService.addNewAlbum(`${this.basePath}/${folder}`).pipe(
           map((album) => AlbumDtoToAlbum(album) as Album),
           map((album) => addAlbum({ album })),
           catchError((error) => {
@@ -115,7 +140,7 @@ export class AlbumEffects {
     this.actions$.pipe(
       ofType(getTracks),
       mergeMap(({ id, folder }) =>
-        this.albumsService.getTracks(`${environment.baseFolderLocation}/${folder}`).pipe(
+        this.albumsService.getTracks(`${this.basePath}/${folder}`).pipe(
           map((tracks) => getTracksSuccess({ id, tracks })),
           catchError((error) => {
             console.error(error);
@@ -181,10 +206,17 @@ export class AlbumEffects {
       ofType(findMaUrl),
       mergeMap(({ id, artist, album }) =>
         this.albumsService.findMaUrl(artist, album).pipe(
-          tap((response) => {
+          mergeMap((response) => {
             if (response.iTotalRecords > 1) {
               this.windowRef.open(`https://www.metal-archives.com/search/advanced/searching/albums?bandName=${encodeURI(artist)}&releaseTitle=${encodeURI(album)}`);
+              return throwError('too many results');
             }
+            if (response.iTotalRecords === 0) {
+              this.windowRef.open(`https://www.metal-archives.com/search/advanced/searching/albums?bandName=${encodeURI(artist)}`);
+              return throwError('no results');
+            }
+
+            return of(response);
           }),
           filter((response) => response.iTotalRecords === 1),
           map((response: MetalArchivesSearchResponse) => {
@@ -193,7 +225,7 @@ export class AlbumEffects {
           map(({ artistUrl, albumUrl }) => findMaUrlSuccess({ update: { id, changes: { artistUrl, albumUrl, findingUrl: false } } })),
           catchError((error) => {
             console.error(error);
-            return EMPTY;
+            return of(findMaUrlSuccess({ update: { id, changes: { findingUrl: false } } }));
           })
         )
       )
@@ -230,5 +262,41 @@ export class AlbumEffects {
     )
   );
 
-  constructor(private actions$: Actions, private albumsService: AlbumsService, private store: Store, @Inject(WINDOW) readonly windowRef: Window) {}
+  renameTrack$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(renameTrack),
+      mergeMap(({ id, track }) =>
+        this.albumsService.renameTrack(track).pipe(
+          map((newName) => renameTrackSuccess({ id, track: { ...track, fullPath: newName } })),
+          catchError((error) => {
+            console.error(error);
+            return EMPTY;
+          })
+        )
+      )
+    )
+  );
+
+  getBandProps$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(getBandProps),
+      mergeMap(({ id, url }) =>
+        this.albumsService.getBandProps(url).pipe(
+          map((band) => getBandPropsSuccess({ update: { id, changes: { bandProps: band, gettingBandProps: false } } })),
+          catchError((error) => {
+            console.error(error);
+            return EMPTY;
+          })
+        )
+      )
+    )
+  );
+
+  constructor(
+    private actions$: Actions,
+    private albumsService: AlbumsService,
+    private store: Store,
+    @Inject(WINDOW) readonly windowRef: Window,
+    @Inject(BASE_PATH) private readonly basePath: string
+  ) {}
 }

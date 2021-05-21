@@ -24,6 +24,11 @@ export class TrackController {
     this.trackService.saveTrack(track);
   }
 
+  @Patch('rename')
+  rename(@Body() track: Track): string {
+    return this.trackService.renameTrack(track);
+  }
+
   @Get('openFolder')
   @HttpCode(HttpStatus.ACCEPTED)
   openFolder(@Query('folder') folder: string): void {
