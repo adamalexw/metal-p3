@@ -9,6 +9,7 @@ export interface Album extends AlbumDto {
   coverLoading?: boolean;
   findingUrl?: boolean;
   saving?: boolean;
+  savingCover?: boolean;
   renamingTracks?: boolean;
   refreshing?: boolean;
   gettingLyrics?: boolean;

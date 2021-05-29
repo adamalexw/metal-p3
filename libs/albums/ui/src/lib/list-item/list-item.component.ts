@@ -12,7 +12,10 @@ export class ListItemComponent implements OnChanges {
   album: Album | undefined;
 
   @Output()
-  getCover = new EventEmitter<void>();
+  readonly getCover = new EventEmitter<void>();
+
+  @Output()
+  readonly renameFolder = new EventEmitter<void>();
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes.album && this.album && !this.album.coverLoading && !this.album.cover) {

@@ -75,7 +75,7 @@
     </section>
 
     <section class="mt-2 w-1/2">
-      <app-tracks [form]="form" [tracksLoading]="tracksLoading" [tracks]="tracks"></app-tracks>
+      <app-tracks [form]="form" [tracksLoading]="tracksLoading" [tracks]="tracks" (transferTrack)="onTransferTrack($event)"></app-tracks>
     </section>
   </form>
 </ng-container>

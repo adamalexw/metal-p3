@@ -25,9 +25,13 @@ export const getCoverSuccess = createAction('[Albums] Get Cover Success', props<
 export const downloadCover = createAction('[Albums] Download Cover', props<{ id: number; url: string }>());
 export const clearCovers = createAction('[Albums] Clear Covers');
 export const clearCoversSuccess = createAction('[Albums] Clear Covers Success');
+export const saveCover = createAction('[Albums] Save Cover', props<{ id: number; folder: string; cover: string }>());
+export const saveCoverSuccess = createAction('[Albums] Save Cover Success', props<{ update: Update<Album> }>());
 
 export const addNewAlbum = createAction('[Albums] Add New Album', props<{ folder: string }>());
 export const getAlbum = createAction('[Albums] Get Album', props<{ id: number }>());
+export const renameFolder = createAction('[Albums] Rename Folder', props<{ id: number; folder: string }>());
+export const renameFolderSuccess = createAction('[Albums] Rename Folder Success', props<{ update: Update<Album> }>());
 
 export const getTracks = createAction('[Albums] Get Tracks', props<{ id: number; folder: string }>());
 export const getTracksSuccess = createAction('[Albums] Get Tracks Success', props<{ id: number; tracks: Track[] }>());
@@ -37,6 +41,8 @@ export const renameTrack = createAction('[Albums] Rename Track', props<{ id: num
 export const renameTrackSuccess = createAction('[Albums] Rename Track Success', props<{ id: number; track: Track }>());
 export const getMaTracks = createAction('[Albums] Get MA Tracks', props<{ id: number; url: string }>());
 export const getMaTracksSuccess = createAction('[Albums] Get MA Tracks Success', props<{ id: number; maTracks: MetalArchivesAlbumTrack[] }>());
+export const transferTrack = createAction('[Albums] Transfer Track', props<{ id: number; trackId: number }>());
+export const transferTrackSuccess = createAction('[Albums] Transfer Track Success', props<{ id: number; track: Track }>());
 
 export const getLyrics = createAction('[Albums] Get Lyrics', props<{ id: number; trackId: number }>());
 export const getLyricsSuccess = createAction('[Albums] Get Lyrics Success', props<{ id: number; trackId: number; lyrics: string }>());

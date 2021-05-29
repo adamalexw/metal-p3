@@ -37,3 +37,4 @@ export const selectMaTracks = createSelector(selectAlbum, (album) => album && al
 
 export const selectAlbumById = (id: number) => createSelector(selectAlbumEntities, (entities) => entities && entities[id]);
 export const selectCoverLoadingByAlbumId = (id: number) => createSelector(selectAlbumById(id), (album) => album?.coverLoading);
+export const selectTrack = (id: number, trackId: number) => createSelector(selectAlbumById(id), (album) => album?.tracks.entities[trackId]);

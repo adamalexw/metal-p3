@@ -104,6 +104,12 @@ const albumReducer = createReducer(
   on(AlbumActions.saveAlbumSuccess, (state, { update }) => {
     return adapter.updateOne(update, state);
   }),
+  on(AlbumActions.saveCover, (state, { id }) => {
+    return adapter.updateOne({ id: id, changes: { savingCover: true } }, state);
+  }),
+  on(AlbumActions.saveCoverSuccess, (state, { update }) => {
+    return adapter.updateOne(update, state);
+  }),
   on(AlbumActions.saveTrack, (state, { id, track }) =>
     adapter.mapOne(
       {

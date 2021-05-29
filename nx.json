@@ -46,6 +46,27 @@
     },
     "albums-domain": {
       "tags": []
+    },
+    "cover-api": {
+      "tags": []
+    },
+    "track-api": {
+      "tags": []
+    },
+    "shared-adb": {
+      "tags": []
+    },
+    "shared-database": {
+      "tags": []
+    },
+    "shared-metal-archives": {
+      "tags": []
+    },
+    "shared-file-system": {
+      "tags": []
+    },
+    "band-api": {
+      "tags": []
     }
   }
 }

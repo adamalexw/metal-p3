@@ -1,16 +1,21 @@
 import { AlbumDto, MetalArchivesAlbumTrack, MetalArchivesSearchResponse, Track } from '@metal-p3/api-interfaces';
+import { FileSystemService } from '@metal-p3/shared/file-system';
+import { MetalArchivesService } from '@metal-p3/shared/metal-archives';
+import { TrackService } from '@metal-p3/track-api';
 import { Body, Controller, Get, HttpCode, HttpStatus, Patch, Post, Query } from '@nestjs/common';
 import { join } from 'path';
 import { Observable, of } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
-import { FileSystemService } from '../shared/file-system.service';
-import { MetalArchivesService } from '../shared/metal-archives.service';
-import { TrackService } from '../track/track.service';
 import { AlbumService } from './album.service';
 
 @Controller('album')
 export class AlbumController {
-  constructor(private readonly albumService: AlbumService, private readonly trackService: TrackService, private readonly metalArchivesService: MetalArchivesService, private readonly fileSystemService: FileSystemService) {}
+  constructor(
+    private readonly albumService: AlbumService,
+    private readonly trackService: TrackService,
+    private readonly metalArchivesService: MetalArchivesService,
+    private readonly fileSystemService: FileSystemService
+  ) {}
 
   @Get('search')
   albums(@Query('take') take?: number, @Query('criteria') criteria?: string): Observable<AlbumDto[]> {
@@ -60,5 +65,11 @@ export class AlbumController {
   @HttpCode(HttpStatus.ACCEPTED)
   openFolder(@Query('folder') folder: string): void {
     return this.fileSystemService.openFolder(folder);
+  }
+
+  @Get('rename')
+  @HttpCode(HttpStatus.ACCEPTED)
+  rename(@Query('id') id: number, @Query('src') src: string, @Query('dest') dest: string): Promise<string> {
+    return this.albumService.renameFolder(id, src, dest);
   }
 }

@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { Inject, Injectable } from '@angular/core';
-import { MetalArchivesSearchResponse } from '@metal-p3/api-interfaces';
+import { MetalArchivesSearchResponse, Track } from '@metal-p3/api-interfaces';
 import { extractUrl } from '@metal-p3/shared/utils';
 import { WINDOW } from '@ng-web-apis/common';
 import { Actions, concatLatestFrom, createEffect, ofType } from '@ngrx/effects';
@@ -30,16 +30,22 @@ import {
   getTracksSuccess,
   loadAlbums,
   loadAlbumsSuccess,
+  renameFolder,
+  renameFolderSuccess,
   renameTrack,
   renameTrackSuccess,
   saveAlbum,
   saveAlbumSuccess,
   saveBand,
+  saveCover,
+  saveCoverSuccess,
   saveTrack,
   saveTrackSuccess,
+  transferTrack,
+  transferTrackSuccess,
   updateAlbum,
 } from './actions';
-import { selectBlobCovers } from './selectors';
+import { selectAlbumById, selectBlobCovers, selectTrack } from './selectors';
 
 @Injectable()
 export class AlbumEffects {
@@ -170,6 +176,21 @@ export class AlbumEffects {
     )
   );
 
+  saveCover$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(saveCover),
+      mergeMap(({ id, folder, cover }) =>
+        this.albumsService.saveCover(folder, cover).pipe(
+          map(() => saveCoverSuccess({ update: { id, changes: { savingCover: false } } })),
+          catchError((error) => {
+            console.error(error);
+            return EMPTY;
+          })
+        )
+      )
+    )
+  );
+
   saveTrack$ = createEffect(() =>
     this.actions$.pipe(
       ofType(saveTrack),
@@ -277,12 +298,45 @@ export class AlbumEffects {
     )
   );
 
+  renameFolder$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(renameFolder),
+      concatLatestFrom(({ id }) => this.store.select(selectAlbumById(id))),
+      map(([{ id }, album]) => ({ id, src: album?.fullPath, dest: `${album?.artist} - ${album?.album}` })),
+      mergeMap(({ id, src, dest }) =>
+        this.albumsService.renameFolder(id, src || '', dest).pipe(
+          map((newFullPath) => renameFolderSuccess({ update: { id, changes: { fullPath: newFullPath } } })),
+          catchError((error) => {
+            console.error(error);
+            return EMPTY;
+          })
+        )
+      )
+    )
+  );
+
   getBandProps$ = createEffect(() =>
     this.actions$.pipe(
       ofType(getBandProps),
       mergeMap(({ id, url }) =>
         this.albumsService.getBandProps(url).pipe(
           map((band) => getBandPropsSuccess({ update: { id, changes: { bandProps: band, gettingBandProps: false } } })),
+          catchError((error) => {
+            console.error(error);
+            return EMPTY;
+          })
+        )
+      )
+    )
+  );
+
+  transferTrack$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(transferTrack),
+      concatLatestFrom(({ id, trackId }) => this.store.select(selectTrack(id, trackId))),
+      mergeMap(([{ id }, track]) =>
+        this.albumsService.transferTrack(track?.fullPath || '').pipe(
+          map(() => transferTrackSuccess({ id, track: { ...(track as Track), trackTransfering: false } })),
           catchError((error) => {
             console.error(error);
             return EMPTY;

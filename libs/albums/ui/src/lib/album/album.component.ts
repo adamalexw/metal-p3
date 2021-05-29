@@ -83,6 +83,9 @@ export class AlbumComponent implements OnChanges {
   @Output()
   readonly findCountry = new EventEmitter<{ id: number; url: string }>();
 
+  @Output()
+  readonly transferTrack = new EventEmitter<{ id: number; trackId: number }>();
+
   get albumUrl(): string {
     return this.form.get('albumUrl')?.value;
   }
@@ -186,5 +189,9 @@ export class AlbumComponent implements OnChanges {
 
   getBandProps(url: string) {
     this.findBandProps.emit({ id: this.albumId, url });
+  }
+
+  onTransferTrack(trackId: number) {
+    this.transferTrack.emit({ id: this.albumId, trackId });
   }
 }

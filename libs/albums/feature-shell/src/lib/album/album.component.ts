@@ -14,6 +14,7 @@ import {
   renameTrack,
   saveAlbum,
   saveBand,
+  saveCover,
   saveTrack,
   selectAlbum,
   selectAlbumSaving,
@@ -29,6 +30,7 @@ import {
   selectRouteParams,
   selectTracks,
   selectTracksLoading,
+  transferTrack,
 } from '@metal-p3/albums/data-access';
 import { BandDto, Track } from '@metal-p3/api-interfaces';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
@@ -116,7 +118,11 @@ export class AlbumShellComponent implements OnInit {
     if (album.cover) {
       this.service
         .getCoverDto(album.cover)
-        .pipe(tap((cover) => this.dispatchTracks({ ...album, cover: cover as string }, tracks)))
+        .pipe(
+          map((cover) => cover as string),
+          tap((cover) => this.dispatchTracks({ ...album, cover }, tracks)),
+          tap((cover) => this.store.dispatch(saveCover({ id: album.id, folder: album.fullPath, cover })))
+        )
         .subscribe();
     } else {
       this.dispatchTracks(album, tracks);
@@ -196,5 +202,9 @@ export class AlbumShellComponent implements OnInit {
         take(1)
       )
       .subscribe();
+  }
+
+  onTransferTrack(id: number, trackId: number) {
+    this.store.dispatch(transferTrack({ id, trackId }));
   }
 }

@@ -37,9 +37,21 @@
     </ng-container>
 
     <ng-container matColumnDef="lyrics">
-      <mat-header-cell *matHeaderCellDef>Lyrics</mat-header-cell>
+      <mat-header-cell *matHeaderCellDef>Actions</mat-header-cell>
       <mat-cell *matCellDef="let element" [formGroup]="element">
-        <mat-icon *ngIf="element.get('lyrics')?.value" (click)="viewLyrics(element.get('lyrics')?.value)">article</mat-icon>
+        <button mat-icon-button [matMenuTriggerFor]="menu" aria-label="Example icon-button with a menu">
+          <mat-icon>more_vert</mat-icon>
+        </button>
+        <mat-menu #menu="matMenu">
+          <button mat-menu-item (click)="transferTrack.emit(element.get('id')?.value)">
+            <mat-icon>adb</mat-icon>
+            <span>Transfer</span>
+          </button>
+          <button mat-menu-item *ngIf="element.get('lyrics')?.value" (click)="viewLyrics(element.get('lyrics')?.value)">
+            <mat-icon>article</mat-icon>
+            <span>Lyrics</span>
+          </button>
+        </mat-menu>
       </mat-cell>
     </ng-container>
 

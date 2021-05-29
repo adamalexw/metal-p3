@@ -65,6 +65,10 @@ export class AlbumsService {
     return this.http.get<MetalArchivesAlbumTrack[]>(`/api/album/maTracks?url=${encodeURI(url)}`);
   }
 
+  saveCover(folder: string, cover: string): Observable<never> {
+    return this.http.post<never>('/api/cover', { folder, cover });
+  }
+
   saveTrack(track: Track): Observable<never> {
     return this.http.patch<never>('/api/track', track);
   }
@@ -81,11 +85,19 @@ export class AlbumsService {
     return this.http.patch<string>('/api/track/rename', track, { responseType: 'text' as 'json' });
   }
 
+  renameFolder(id: number, src: string, dest: string): Observable<string> {
+    return this.http.get<string>(`/api/album/rename?id=${id}&src=${src}&dest=${dest}`);
+  }
+
   openFolder(folder: string): Observable<never> {
     return this.http.get<never>(`/api/album/openFolder?folder=${folder}`);
   }
 
   getBandProps(url: string): Observable<BandProps> {
     return this.http.get<BandProps>(`/api/band/props?url=${encodeURIComponent(url)}`);
+  }
+
+  transferTrack(file: string): Observable<never> {
+    return this.http.get<never>(`/api/track/transferTrack?file=${file}`);
   }
 }

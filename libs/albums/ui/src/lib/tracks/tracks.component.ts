@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Input, OnChanges, SimpleChanges } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { AbstractControl, FormArray, FormBuilder, FormGroup } from '@angular/forms';
 import { MatTableDataSource } from '@angular/material/table';
 import { Track } from '@metal-p3/api-interfaces';
@@ -18,6 +18,9 @@ export class TracksComponent implements OnChanges {
 
   @Input()
   tracks: Track[] = [];
+
+  @Output()
+  transferTrack = new EventEmitter<number>();
 
   displayedColumns = ['trackNumber', 'title', 'duration', 'bitrate', 'lyrics', 'trackSaving'];
   dataSource: MatTableDataSource<AbstractControl> = new MatTableDataSource();

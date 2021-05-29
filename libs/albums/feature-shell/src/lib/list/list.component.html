@@ -7,7 +7,7 @@
 <ng-template #listTemplate>
   <div class="flex flex-row flex-wrap" appAddAlbum (albumAdded)="onAlbumAdded($event)">
     <div class="p-2" *ngFor="let album of albums$ | async; trackBy: identify">
-      <app-list-item [album]="album" (getCover)="onGetCover(album.id, album.folder)"></app-list-item>
+      <app-list-item [album]="album" (getCover)="onGetCover(album.id, album.folder)" (renameFolder)="onRenameFolder(album.id, album.folder)"></app-list-item>
     </div>
   </div>
 </ng-template>

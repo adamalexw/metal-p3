@@ -27,6 +27,7 @@ export interface Track extends AlbumBase {
   duration?: number;
   lyrics?: string;
   trackSaving?: boolean;
+  trackTransfering?: boolean;
 }
 
 export interface BandDto extends BandProps {

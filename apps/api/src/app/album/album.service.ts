@@ -1,4 +1,7 @@
 import { AlbumDto } from '@metal-p3/api-interfaces';
+import { DbService } from '@metal-p3/shared/database';
+import { FileSystemService } from '@metal-p3/shared/file-system';
+import { TrackService } from '@metal-p3/track-api';
 import { Injectable } from '@nestjs/common';
 import { Album, Band, Prisma } from '@prisma/client';
 import { Tags } from 'node-id3';
@@ -6,9 +9,6 @@ import * as path from 'path';
 import { from, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
-import { DbService } from '../shared/db.service';
-import { FileSystemService } from '../shared/file-system.service';
-import { TrackService } from '../track/track.service';
 
 @Injectable()
 export class AlbumService {
@@ -113,5 +113,16 @@ export class AlbumService {
       Name: albumDto.album,
       Transferred: albumDto.transferred,
     };
+  }
+
+  async renameFolder(id: number, src: string, dest: string): Promise<string> {
+    const folder = this.fileSystemService.filenameValidator(this.fileSystemService.getFilename(dest));
+    const newDest = `${environment.basePath}/${folder}`;
+
+    this.fileSystemService.renameFolder(src, newDest);
+
+    this.dbService.updateAlbum({ where: { AlbumId: +id }, data: { Folder: folder } });
+
+    return newDest;
   }
 }
