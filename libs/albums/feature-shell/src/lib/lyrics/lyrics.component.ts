@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
-import { getAlbum, getLyrics, getMaTracks, getTracks, saveTrack, selectAlbum, selectGettingMaTracks, selectMaTracks, selectRouteParams, selectTracks } from '@metal-p3/albums/data-access';
 import { ApplyLyrics } from '@metal-p3/albums/domain';
+import { getAlbum, getLyrics, getMaTracks, getTracks, saveTrack, selectAlbum, selectGettingMaTracks, selectMaTracks, selectRouteParams, selectTracks } from '@metal-p3/shared/data-access';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { select, Store } from '@ngrx/store';
 import { combineLatest } from 'rxjs';

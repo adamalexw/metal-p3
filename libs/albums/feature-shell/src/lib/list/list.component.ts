@@ -1,6 +1,6 @@
-import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
-import { addNewAlbum, Album, clearCovers, getCover, loadAlbums, renameFolder, selectAlbums, selectAlbumsLoaded, selectAlbumsLoading } from '@metal-p3/albums/data-access';
+import { ChangeDetectionStrategy, Component, EventEmitter, OnInit, Output } from '@angular/core';
 import { SearchRequest } from '@metal-p3/albums/domain';
+import { addNewAlbum, Album, clearCovers, getCover, loadAlbums, renameFolder, selectAlbums, selectAlbumsLoaded, selectAlbumsLoading } from '@metal-p3/shared/data-access';
 import { select, Store } from '@ngrx/store';
 import { filter, take, tap } from 'rxjs/operators';
 
@@ -15,6 +15,9 @@ export class ListComponent implements OnInit {
   albumsLoaded$ = this.store.pipe(select(selectAlbumsLoaded));
   albums$ = this.store.pipe(select(selectAlbums));
 
+  @Output()
+  readonly openAlbum = new EventEmitter<number>();
+
   constructor(private readonly store: Store) {}
 
   ngOnInit(): void {
@@ -22,7 +25,7 @@ export class ListComponent implements OnInit {
       .pipe(
         filter((loaded) => !loaded),
         take(1),
-        tap(() => this.store.dispatch(loadAlbums({ request: { take: '30' } })))
+        tap(() => this.store.dispatch(loadAlbums({ request: { take: '10' } })))
       )
       .subscribe();
   }

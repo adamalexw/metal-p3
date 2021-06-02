@@ -1,0 +1,9 @@
+<mat-sidenav-container fullscreen>
+  <mat-sidenav-content>
+    <app-list (openAlbum)="onOpenAlbum($event)"></app-list>
+  </mat-sidenav-content>
+
+  <mat-sidenav #sidenav mode="side" position="end">
+    <app-album-shell (closeAlbum)="onCloseAlbum()"></app-album-shell>
+  </mat-sidenav>
+</mat-sidenav-container>

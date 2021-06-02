@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Inject, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
-import { Album, AlbumWithoutTracks } from '@metal-p3/albums/data-access';
 import { AlbumDto, BandProps, MetalArchivesAlbumTrack, MetalArchivesUrl, Track } from '@metal-p3/api-interfaces';
+import { Album, AlbumWithoutTracks } from '@metal-p3/shared/data-access';
 import { WINDOW } from '@ng-web-apis/common';
 
 @Component({
@@ -53,6 +53,9 @@ export class AlbumComponent implements OnChanges {
   @Input()
   bandProps: BandProps | null = null;
 
+  @Input()
+  routeId: number | undefined;
+
   @Output()
   readonly save = new EventEmitter<{ album: AlbumDto; tracks: Track[] }>();
 
@@ -85,6 +88,9 @@ export class AlbumComponent implements OnChanges {
 
   @Output()
   readonly transferTrack = new EventEmitter<{ id: number; trackId: number }>();
+
+  @Output()
+  readonly closeAlbum = new EventEmitter<void>();
 
   get albumUrl(): string {
     return this.form.get('albumUrl')?.value;

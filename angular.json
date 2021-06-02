@@ -447,7 +447,7 @@
       }
     },
     "band-api": {
-      "root": "libs/band-api",
+      "root": "libs/band/api",
       "sourceRoot": "libs/band/api/src",
       "projectType": "library",
       "architect": {
@@ -463,6 +463,248 @@
           "options": {
             "jestConfig": "libs/band/api/jest.config.js",
             "passWithNoTests": true
+          }
+        }
+      }
+    },
+    "shared-error": {
+      "projectType": "library",
+      "root": "libs/shared/error",
+      "sourceRoot": "libs/shared/error/src",
+      "prefix": "metal-p3",
+      "architect": {
+        "test": {
+          "builder": "@nrwl/jest:jest",
+          "outputs": ["coverage/libs/shared/error"],
+          "options": {
+            "jestConfig": "libs/shared/error/jest.config.js",
+            "passWithNoTests": true
+          }
+        },
+        "lint": {
+          "builder": "@nrwl/linter:eslint",
+          "options": {
+            "lintFilePatterns": ["libs/shared/error/src/**/*.ts", "libs/shared/error/src/**/*.html"]
+          }
+        }
+      }
+    },
+    "shared-feedback": {
+      "projectType": "library",
+      "root": "libs/shared/feedback",
+      "sourceRoot": "libs/shared/feedback/src",
+      "prefix": "metal-p3",
+      "architect": {
+        "test": {
+          "builder": "@nrwl/jest:jest",
+          "outputs": ["coverage/libs/shared/feedback"],
+          "options": {
+            "jestConfig": "libs/shared/feedback/jest.config.js",
+            "passWithNoTests": true
+          }
+        },
+        "lint": {
+          "builder": "@nrwl/linter:eslint",
+          "options": {
+            "lintFilePatterns": ["libs/shared/feedback/src/**/*.ts", "libs/shared/feedback/src/**/*.html"]
+          }
+        }
+      }
+    },
+    "cover-data-access": {
+      "projectType": "library",
+      "root": "libs/cover/data-access",
+      "sourceRoot": "libs/cover/data-access/src",
+      "prefix": "metal-p3",
+      "architect": {
+        "test": {
+          "builder": "@nrwl/jest:jest",
+          "outputs": ["coverage/libs/cover/data-access"],
+          "options": {
+            "jestConfig": "libs/cover/data-access/jest.config.js",
+            "passWithNoTests": true
+          }
+        },
+        "lint": {
+          "builder": "@nrwl/linter:eslint",
+          "options": {
+            "lintFilePatterns": ["libs/cover/data-access/src/**/*.ts", "libs/cover/data-access/src/**/*.html"]
+          }
+        }
+      }
+    },
+    "cover-feature-shell": {
+      "projectType": "library",
+      "root": "libs/cover/feature-shell",
+      "sourceRoot": "libs/cover/feature-shell/src",
+      "prefix": "metal-p3",
+      "architect": {
+        "test": {
+          "builder": "@nrwl/jest:jest",
+          "outputs": ["coverage/libs/cover/feature-shell"],
+          "options": {
+            "jestConfig": "libs/cover/feature-shell/jest.config.js",
+            "passWithNoTests": true
+          }
+        },
+        "lint": {
+          "builder": "@nrwl/linter:eslint",
+          "options": {
+            "lintFilePatterns": ["libs/cover/feature-shell/src/**/*.ts", "libs/cover/feature-shell/src/**/*.html"]
+          }
+        }
+      }
+    },
+    "cover-ui": {
+      "projectType": "library",
+      "root": "libs/cover/ui",
+      "sourceRoot": "libs/cover/ui/src",
+      "prefix": "metal-p3",
+      "architect": {
+        "test": {
+          "builder": "@nrwl/jest:jest",
+          "outputs": ["coverage/libs/cover/ui"],
+          "options": {
+            "jestConfig": "libs/cover/ui/jest.config.js",
+            "passWithNoTests": true
+          }
+        },
+        "lint": {
+          "builder": "@nrwl/linter:eslint",
+          "options": {
+            "lintFilePatterns": ["libs/cover/ui/src/**/*.ts", "libs/cover/ui/src/**/*.html"]
+          }
+        }
+      }
+    },
+    "shared-data-access": {
+      "projectType": "library",
+      "root": "libs/shared/data-access",
+      "sourceRoot": "libs/shared/data-access/src",
+      "prefix": "metal-p3",
+      "architect": {
+        "test": {
+          "builder": "@nrwl/jest:jest",
+          "outputs": ["coverage/libs/shared/data-access"],
+          "options": {
+            "jestConfig": "libs/shared/data-access/jest.config.js",
+            "passWithNoTests": true
+          }
+        },
+        "lint": {
+          "builder": "@nrwl/linter:eslint",
+          "options": {
+            "lintFilePatterns": ["libs/shared/data-access/src/**/*.ts", "libs/shared/data-access/src/**/*.html"]
+          }
+        }
+      }
+    },
+    "track-data-access": {
+      "projectType": "library",
+      "root": "libs/track/data-access",
+      "sourceRoot": "libs/track/data-access/src",
+      "prefix": "metal-p3",
+      "architect": {
+        "test": {
+          "builder": "@nrwl/jest:jest",
+          "outputs": ["coverage/libs/track/data-access"],
+          "options": {
+            "jestConfig": "libs/track/data-access/jest.config.js",
+            "passWithNoTests": true
+          }
+        },
+        "lint": {
+          "builder": "@nrwl/linter:eslint",
+          "options": {
+            "lintFilePatterns": ["libs/track/data-access/src/**/*.ts", "libs/track/data-access/src/**/*.html"]
+          }
+        }
+      }
+    },
+    "band-data-access": {
+      "projectType": "library",
+      "root": "libs/band/data-access",
+      "sourceRoot": "libs/band/data-access/src",
+      "prefix": "metal-p3",
+      "architect": {
+        "test": {
+          "builder": "@nrwl/jest:jest",
+          "outputs": ["coverage/libs/band/data-access"],
+          "options": {
+            "jestConfig": "libs/band/data-access/jest.config.js",
+            "passWithNoTests": true
+          }
+        },
+        "lint": {
+          "builder": "@nrwl/linter:eslint",
+          "options": {
+            "lintFilePatterns": ["libs/band/data-access/src/**/*.ts", "libs/band/data-access/src/**/*.html"]
+          }
+        }
+      }
+    },
+    "track-ui": {
+      "projectType": "library",
+      "root": "libs/track/ui",
+      "sourceRoot": "libs/track/ui/src",
+      "prefix": "metal-p3",
+      "architect": {
+        "test": {
+          "builder": "@nrwl/jest:jest",
+          "outputs": ["coverage/libs/track/ui"],
+          "options": {
+            "jestConfig": "libs/track/ui/jest.config.js",
+            "passWithNoTests": true
+          }
+        },
+        "lint": {
+          "builder": "@nrwl/linter:eslint",
+          "options": {
+            "lintFilePatterns": ["libs/track/ui/src/**/*.ts", "libs/track/ui/src/**/*.html"]
+          }
+        }
+      }
+    },
+    "track-util": {
+      "projectType": "library",
+      "root": "libs/track/util",
+      "sourceRoot": "libs/track/util/src",
+      "prefix": "app",
+      "architect": {
+        "test": {
+          "builder": "@nrwl/jest:jest",
+          "outputs": ["coverage/libs/track/util"],
+          "options": {
+            "jestConfig": "libs/track/util/jest.config.js",
+            "passWithNoTests": true
+          }
+        },
+        "lint": {
+          "builder": "@nrwl/linter:eslint",
+          "options": {
+            "lintFilePatterns": ["libs/track/util/src/**/*.ts", "libs/track/util/src/**/*.html"]
+          }
+        }
+      }
+    },
+    "shared-ngrx-store": {
+      "projectType": "library",
+      "root": "libs/shared/ngrx-store",
+      "sourceRoot": "libs/shared/ngrx-store/src",
+      "prefix": "metal-p3",
+      "architect": {
+        "test": {
+          "builder": "@nrwl/jest:jest",
+          "outputs": ["coverage/libs/shared/ngrx-store"],
+          "options": {
+            "jestConfig": "libs/shared/ngrx-store/jest.config.js",
+            "passWithNoTests": true
+          }
+        },
+        "lint": {
+          "builder": "@nrwl/linter:eslint",
+          "options": {
+            "lintFilePatterns": ["libs/shared/ngrx-store/src/**/*.ts", "libs/shared/ngrx-store/src/**/*.html"]
           }
         }
       }

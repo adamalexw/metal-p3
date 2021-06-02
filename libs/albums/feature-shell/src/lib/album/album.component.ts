@@ -1,8 +1,11 @@
-import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import { ChangeDetectionStrategy, Component, EventEmitter, OnInit, Output } from '@angular/core';
 import { Router } from '@angular/router';
+import { AlbumService } from '@metal-p3/albums/data-access';
+import { BandDto, Track } from '@metal-p3/api-interfaces';
+import { CoverService } from '@metal-p3/cover/data-access';
 import {
   Album,
-  AlbumsService,
   downloadCover,
   findMaUrl,
   getAlbum,
@@ -21,6 +24,7 @@ import {
   selectBandProps,
   selectCover,
   selectCoverLoading,
+  selectedAlbum,
   selectFindingUrl,
   selectGettingLyrics,
   selectGettingMaTracks,
@@ -30,9 +34,10 @@ import {
   selectRouteParams,
   selectTracks,
   selectTracksLoading,
+  selectTracksRequired,
   transferTrack,
-} from '@metal-p3/albums/data-access';
-import { BandDto, Track } from '@metal-p3/api-interfaces';
+  viewAlbum,
+} from '@metal-p3/shared/data-access';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { select, Store } from '@ngrx/store';
 import { combineLatest } from 'rxjs';
@@ -46,6 +51,9 @@ import { filter, map, take, tap, withLatestFrom } from 'rxjs/operators';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AlbumShellComponent implements OnInit {
+  @Output()
+  readonly closeAlbum = new EventEmitter<void>();
+
   album$ = this.store.pipe(select(selectAlbum));
   albumSaving$ = this.store.pipe(select(selectAlbumSaving));
 
@@ -68,30 +76,48 @@ export class AlbumShellComponent implements OnInit {
   gettingBandProps$ = this.store.pipe(select(selectBandProps));
   bandProps$ = this.store.pipe(select(selectBandProps));
 
-  constructor(private readonly store: Store, private readonly service: AlbumsService, private readonly router: Router) {}
+  routeId$ = this.store.pipe(
+    untilDestroyed(this),
+    select(selectRouteParams),
+    map((params) => params?.id),
+    filter((id) => !!id)
+  );
+
+  constructor(private readonly store: Store, private readonly albumService: AlbumService, private readonly coverService: CoverService, private readonly router: Router) {}
 
   ngOnInit(): void {
     this.setState();
   }
 
   private setState(): void {
+    const albumId$ = this.routeId$.pipe(
+      withLatestFrom(this.store.pipe(select(selectedAlbum))),
+      filter(([routeId, selectedId]) => routeId !== selectedId),
+      tap(([routeId, _albumId]) => this.store.dispatch(viewAlbum({ id: routeId }))),
+      map(([routeId, _albumId]) => routeId),
+      take(1)
+    );
+
     this.album$
       .pipe(
         untilDestroyed(this),
         filter((album) => !album),
         take(1),
-        withLatestFrom(this.store.pipe(select(selectRouteParams))),
-        filter(([_id, params]) => params?.id),
-        tap(([_id, params]) => this.store.dispatch(getAlbum({ id: params.id })))
+        withLatestFrom(albumId$),
+        tap(console.log),
+        filter(([_album, id]) => !!id),
+        tap(([_album, id]) => {
+          this.store.dispatch(getAlbum({ id }));
+          this.store.dispatch(viewAlbum({ id }));
+        })
       )
       .subscribe();
 
-    combineLatest([this.album$, this.tracks$])
+    combineLatest([this.album$, this.store.pipe(select(selectTracksRequired))])
       .pipe(
         untilDestroyed(this),
-        filter(([album, tracks]) => album && !album.tracks && !tracks),
+        filter(([album, required]) => album && !album.tracksLoading && required),
         map(([album]) => ({ id: album?.id, folder: album?.folder })),
-        take(1),
         tap(({ id, folder }) => this.store.dispatch(getTracks({ id, folder })))
       )
       .subscribe();
@@ -116,7 +142,7 @@ export class AlbumShellComponent implements OnInit {
     this.store.dispatch(saveAlbum({ album }));
 
     if (album.cover) {
-      this.service
+      this.coverService
         .getCoverDto(album.cover)
         .pipe(
           map((cover) => cover as string),
@@ -186,7 +212,7 @@ export class AlbumShellComponent implements OnInit {
   }
 
   onOpenFolder(folder: string) {
-    this.service.openFolder(folder).subscribe();
+    this.albumService.openFolder(folder).subscribe();
   }
 
   onRefreshTracks(id: number, folder: string) {

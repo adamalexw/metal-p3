@@ -15,17 +15,16 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatTableModule } from '@angular/material/table';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { RouterModule } from '@angular/router';
-import { SharedUtilsModule } from '@metal-p3/shared/utils';
+import { CoverUiModule } from '@metal-p3/cover/ui';
+import { TrackUiModule } from '@metal-p3/track/ui';
 import { SafePipeModule } from 'safe-pipe';
+import { AlbumHeaderComponent } from './album-header/album-header.component';
 import { AlbumToolbarComponent } from './album-toolbar/album-toolbar.component';
 import { AlbumComponent } from './album/album.component';
-import { CoverDragDirective } from './cover/cover-dnd.directive';
-import { CoverComponent } from './cover/cover.component';
 import { ListItemComponent } from './list-item/list-item.component';
 import { ListToolbarComponent } from './list-toolbar/list-toolbar.component';
 import { LyricsToolbarComponent } from './lyrics-toolbar/lyrics-toolbar.component';
 import { LyricsComponent } from './lyrics/lyrics.component';
-import { TracksComponent } from './tracks/tracks.component';
 
 const materialModules = [
   MatCardModule,
@@ -44,8 +43,8 @@ const materialModules = [
 ];
 
 @NgModule({
-  imports: [CommonModule, RouterModule, FormsModule, ReactiveFormsModule, SafePipeModule, materialModules, SharedUtilsModule],
-  declarations: [ListItemComponent, AlbumComponent, CoverComponent, CoverDragDirective, AlbumToolbarComponent, TracksComponent, LyricsComponent, LyricsToolbarComponent, ListToolbarComponent],
+  imports: [CommonModule, RouterModule, FormsModule, ReactiveFormsModule, SafePipeModule, materialModules, CoverUiModule, TrackUiModule],
+  declarations: [ListItemComponent, AlbumComponent, AlbumToolbarComponent, LyricsComponent, LyricsToolbarComponent, ListToolbarComponent, AlbumHeaderComponent],
   exports: [ListItemComponent, ListToolbarComponent, AlbumComponent, LyricsComponent],
 })
 export class AlbumsUiModule {}

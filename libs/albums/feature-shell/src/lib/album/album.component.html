@@ -13,6 +13,7 @@
   [gettingLyrics]="gettingLyrics$ | async"
   [gettingBandProps]="gettingBandProps$ | async"
   [bandProps]="bandProps$ | async"
+  [routeId]="routeId$ | async"
   (coverUrl)="onDownloadCover($event.id, $event.url)"
   (save)="onSave($event.album, $event.tracks)"
   (findUrl)="onFindUrl($event.id, $event.artist, $event.album)"
@@ -23,4 +24,5 @@
   (refreshTracks)="onRefreshTracks($event.id, $event.folder)"
   (findBandProps)="onFindBandProps($event.id, $event.url)"
   (transferTrack)="onTransferTrack($event.id, $event.trackId)"
+  (closeAlbum)="closeAlbum.emit()"
 ></app-album>

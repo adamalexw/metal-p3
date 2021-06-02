@@ -67,6 +67,39 @@
     },
     "band-api": {
       "tags": []
+    },
+    "shared-error": {
+      "tags": []
+    },
+    "shared-feedback": {
+      "tags": []
+    },
+    "cover-data-access": {
+      "tags": []
+    },
+    "cover-feature-shell": {
+      "tags": []
+    },
+    "cover-ui": {
+      "tags": []
+    },
+    "shared-data-access": {
+      "tags": []
+    },
+    "track-data-access": {
+      "tags": []
+    },
+    "band-data-access": {
+      "tags": []
+    },
+    "track-ui": {
+      "tags": []
+    },
+    "track-util": {
+      "tags": []
+    },
+    "shared-ngrx-store": {
+      "tags": []
     }
   }
 }

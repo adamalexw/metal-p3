@@ -1,7 +1,7 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { AlbumShellComponent } from './album/album.component';
-import { ListComponent } from './list/list.component';
+import { HomeComponent } from './home/home.component';
 import { LyricsShellComponent } from './lyrics/lyrics.component';
 
 const routes: Routes = [
@@ -15,7 +15,7 @@ const routes: Routes = [
   },
   {
     path: '',
-    component: ListComponent,
+    component: HomeComponent,
   },
 ];
 @NgModule({

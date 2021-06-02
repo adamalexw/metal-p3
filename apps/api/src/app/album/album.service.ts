@@ -1,7 +1,7 @@
 import { AlbumDto } from '@metal-p3/api-interfaces';
 import { DbService } from '@metal-p3/shared/database';
 import { FileSystemService } from '@metal-p3/shared/file-system';
-import { TrackService } from '@metal-p3/track-api';
+import { TrackService } from '@metal-p3/track/api';
 import { Injectable } from '@nestjs/common';
 import { Album, Band, Prisma } from '@prisma/client';
 import { Tags } from 'node-id3';

@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
-import { Album } from '@metal-p3/albums/data-access';
+import { Album } from '@metal-p3/shared/data-access';
 
 @Component({
   selector: 'app-list-item',
@@ -10,6 +10,9 @@ import { Album } from '@metal-p3/albums/data-access';
 export class ListItemComponent implements OnChanges {
   @Input()
   album: Album | undefined;
+
+  @Output()
+  readonly openAlbum = new EventEmitter<number>();
 
   @Output()
   readonly getCover = new EventEmitter<void>();

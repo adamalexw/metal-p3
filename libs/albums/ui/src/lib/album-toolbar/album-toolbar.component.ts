@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
+import { CloseFunctionality } from '@metal-p3/albums/domain';
 
 @Component({
   selector: 'app-album-toolbar',
@@ -22,27 +23,36 @@ export class AlbumToolbarComponent {
   @Input()
   gettingLyrics = false;
 
-  @Output()
-  save = new EventEmitter<void>();
+  @Input()
+  folder = '';
+
+  @Input()
+  closeFunctionality: CloseFunctionality = 'close';
 
   @Output()
-  imageSearch = new EventEmitter<void>();
+  readonly save = new EventEmitter<void>();
 
   @Output()
-  findUrl = new EventEmitter<void>();
+  readonly imageSearch = new EventEmitter<void>();
 
   @Output()
-  renameTracks = new EventEmitter<void>();
+  readonly findUrl = new EventEmitter<void>();
 
   @Output()
-  maTracks = new EventEmitter<void>();
+  readonly renameTracks = new EventEmitter<void>();
 
   @Output()
-  lyrics = new EventEmitter<void>();
+  readonly maTracks = new EventEmitter<void>();
 
   @Output()
-  openFolder = new EventEmitter<void>();
+  readonly lyrics = new EventEmitter<void>();
 
   @Output()
-  refreshTracks = new EventEmitter<void>();
+  readonly openFolder = new EventEmitter<void>();
+
+  @Output()
+  readonly refreshTracks = new EventEmitter<void>();
+
+  @Output()
+  readonly closeAlbum = new EventEmitter<void>();
 }

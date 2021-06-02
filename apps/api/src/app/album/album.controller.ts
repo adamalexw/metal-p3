@@ -1,7 +1,7 @@
 import { AlbumDto, MetalArchivesAlbumTrack, MetalArchivesSearchResponse, Track } from '@metal-p3/api-interfaces';
 import { FileSystemService } from '@metal-p3/shared/file-system';
 import { MetalArchivesService } from '@metal-p3/shared/metal-archives';
-import { TrackService } from '@metal-p3/track-api';
+import { TrackService } from '@metal-p3/track/api';
 import { Body, Controller, Get, HttpCode, HttpStatus, Patch, Post, Query } from '@nestjs/common';
 import { join } from 'path';
 import { Observable, of } from 'rxjs';

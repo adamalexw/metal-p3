@@ -23,4 +23,8 @@
   <button mat-icon-button (click)="refreshTracks.emit()">
     <mat-icon title="refresh">refresh</mat-icon>
   </button>
+
+  <div class="w-full flex flex-row-reverse">
+    <app-album-header [folder]="folder" [closeFunctionality]="closeFunctionality" (closeAlbum)="closeAlbum.emit()"></app-album-header>
+  </div>
 </mat-toolbar>

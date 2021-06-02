@@ -85,4 +85,8 @@ export class FileSystemService {
       return;
     }
   }
+
+  // createAlbumFromRootFiles(folder: string): Promise<string[]> {
+  //   return readdir(folder, (err, files) => files.filter((e) => extname(e).toLowerCase() === '.mp3'));
+  // }
 }

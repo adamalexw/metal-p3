@@ -1,7 +1,9 @@
 <mat-card *ngIf="album">
   <mat-card-header>
     <mat-card-title>{{ album.artist }}</mat-card-title>
-    <mat-card-subtitle>{{ album.album }}</mat-card-subtitle>
+    <mat-card-subtitle (click)="openAlbum.emit(album.id)"
+      ><span class="cursor-pointer">{{ album.album }}</span></mat-card-subtitle
+    >
   </mat-card-header>
 
   <div [routerLink]="['album', album.id]">
