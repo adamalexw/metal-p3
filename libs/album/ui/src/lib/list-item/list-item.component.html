@@ -1,0 +1,33 @@
+<mat-card *ngIf="album">
+  <mat-card-header>
+    <mat-card-title>{{ album.artist }}</mat-card-title>
+    <mat-card-subtitle (click)="openAlbum.emit(album.id)"
+      ><span class="cursor-pointer">{{ album.album }}</span></mat-card-subtitle
+    >
+  </mat-card-header>
+
+  <div [routerLink]="['album', album.id]">
+    <app-cover [cover]="album.cover" [matCover]="true" [loading]="album.coverLoading || false"></app-cover>
+  </div>
+
+  <mat-card-content>
+    <div class="flex items-center">
+      <div class="flex-grow">{{ album.year }} - {{ album.genre }}</div>
+      <button mat-icon-button [matMenuTriggerFor]="menu" class="place-self-end">
+        <mat-icon>more_vert</mat-icon>
+      </button>
+    </div>
+
+    <mat-menu #menu="matMenu">
+      <button mat-menu-item (click)="renameFolder.emit()">
+        <mat-icon>folder</mat-icon>
+        <span>Rename Folder</span>
+      </button>
+      <button mat-menu-item (click)="transferTrack.emit(element.get('id')?.value)">
+        <mat-icon>adb</mat-icon>
+        <span>Transfer</span>
+      </button>
+    </mat-menu>
+  </mat-card-content>
+  <mat-card-actions> </mat-card-actions>
+</mat-card>

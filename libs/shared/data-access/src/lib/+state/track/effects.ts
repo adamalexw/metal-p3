@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { Inject, Injectable } from '@angular/core';
-import { BASE_PATH } from '@metal-p3/albums/domain';
+import { BASE_PATH } from '@metal-p3/album/domain';
 import { Track } from '@metal-p3/api-interfaces';
 import { TrackService } from '@metal-p3/track/data-access';
 import { Actions, concatLatestFrom, createEffect, ofType } from '@ngrx/effects';

@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { SearchRequest } from '@metal-p3/albums/domain';
+import { SearchRequest } from '@metal-p3/album/domain';
 import { MetalArchivesAlbumTrack, Track } from '@metal-p3/api-interfaces';
 import { createEntityAdapter, EntityAdapter, EntityState } from '@ngrx/entity';
 import { createReducer, on } from '@ngrx/store';
@@ -40,7 +40,7 @@ import {
   upsertAlbum,
   upsertAlbums,
 } from './actions';
-import { viewAlbum } from './album/actions';
+import { createNew, createNewSuccess, renameFolder, renameFolderSuccess, viewAlbum } from './album/actions';
 import { Album } from './model';
 
 export const ALBUMS_FEATURE_KEY = 'albums';
@@ -50,6 +50,7 @@ export interface AlbumState extends EntityState<Album> {
   loaded: boolean;
   searchRequest?: SearchRequest;
   error?: HttpErrorResponse | Error;
+  creatingNew?: boolean;
   selectedAlbum?: number;
 }
 
@@ -124,6 +125,10 @@ export const reducer = createReducer(
   on(saveAlbumSuccess, (state, { update }) => {
     return adapter.updateOne(update, state);
   }),
+  on(createNew, (state) => ({ ...state, creatingNew: true })),
+  on(createNewSuccess, (state) => ({ ...state, creatingNew: false })),
+  on(renameFolder, (state, { id }) => adapter.updateOne({ id, changes: { renamingFolder: true } }, state)),
+  on(renameFolderSuccess, (state, { update }) => adapter.updateOne(update, state)),
 
   /** COVER */
   on(getCover, (state, { id }) => {

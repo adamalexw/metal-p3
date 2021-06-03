@@ -1,4 +1,4 @@
-import { ApplyLyrics } from '@metal-p3/albums/domain';
+import { ApplyLyrics } from '@metal-p3/album/domain';
 import { MetalArchivesAlbumTrack, Track } from '@metal-p3/api-interfaces';
 import { Album } from '@metal-p3/shared/data-access';
 import { Update } from '@ngrx/entity';

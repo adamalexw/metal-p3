@@ -1,0 +1,11 @@
+<mat-toolbar>
+  <form [formGroup]="form">
+    <mat-form-field>
+      <input matInput placeholder="Search" formControlName="criteria" />
+    </mat-form-field>
+  </form>
+
+  <button mat-icon-button [disabled]="creatingNew" (click)="createNew.emit()">
+    <mat-icon title="createNew">create_new_folder</mat-icon>
+  </button>
+</mat-toolbar>

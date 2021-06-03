@@ -1,4 +1,4 @@
-import { SearchRequest } from '@metal-p3/albums/domain';
+import { SearchRequest } from '@metal-p3/album/domain';
 import { EntityMap, EntityMapOne, Predicate, Update } from '@ngrx/entity';
 import { createAction, props } from '@ngrx/store';
 import { Album } from '../model';
@@ -23,7 +23,7 @@ export const viewAlbum = createAction('[Albums] View Album', props<{ id: number 
 
 export const addNewAlbum = createAction('[Albums] Add New Album', props<{ folder: string }>());
 export const getAlbum = createAction('[Albums] Get Album', props<{ id: number }>());
-export const renameFolder = createAction('[Albums] Rename Folder', props<{ id: number; folder: string }>());
+export const renameFolder = createAction('[Albums] Rename Folder', props<{ id: number; src: string; artist: string; album: string }>());
 export const renameFolderSuccess = createAction('[Albums] Rename Folder Success', props<{ update: Update<Album> }>());
 
 export const saveAlbum = createAction('[Albums] Save Album', props<{ album: Album }>());
@@ -31,3 +31,6 @@ export const saveAlbumSuccess = createAction('[Albums] Save Album Success', prop
 
 export const findMaUrl = createAction('[Albums] Find Metal Archives Url', props<{ id: number; artist: string; album: string }>());
 export const findMaUrlSuccess = createAction('[Albums] Find Metal Archives Success', props<{ update: Update<Album> }>());
+
+export const createNew = createAction('[Albums] Create New');
+export const createNewSuccess = createAction('[Albums] Create New Success');

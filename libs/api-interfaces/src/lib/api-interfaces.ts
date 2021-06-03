@@ -61,3 +61,8 @@ export interface MetalArchivesAlbumTrack {
   hasLyrics?: boolean;
   lyrics?: string;
 }
+
+export interface RenameFolder {
+  fullPath: string;
+  folder: string;
+}

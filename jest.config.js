@@ -25,5 +25,6 @@ module.exports = {
     '<rootDir>/libs/track/ui',
     '<rootDir>/libs/track/util',
     '<rootDir>/libs/shared/ngrx-store',
+    '<rootDir>/libs/albums/api',
   ],
 };

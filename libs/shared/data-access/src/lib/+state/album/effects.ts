@@ -1,17 +1,30 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { Inject, Injectable } from '@angular/core';
-import { AlbumService } from '@metal-p3/albums/data-access';
-import { BASE_PATH } from '@metal-p3/albums/domain';
+import { AlbumService } from '@metal-p3/album/data-access';
+import { BASE_PATH } from '@metal-p3/album/domain';
 import { MetalArchivesSearchResponse } from '@metal-p3/api-interfaces';
 import { extractUrl } from '@metal-p3/shared/utils';
 import { WINDOW } from '@ng-web-apis/common';
-import { Actions, concatLatestFrom, createEffect, ofType } from '@ngrx/effects';
+import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
 import { EMPTY, of, throwError } from 'rxjs';
 import { catchError, filter, map, mergeMap } from 'rxjs/operators';
 import { Album, AlbumDtoToAlbum } from '../model';
-import { addAlbum, addNewAlbum, findMaUrl, findMaUrlSuccess, getAlbum, loadAlbums, loadAlbumsSuccess, renameFolder, renameFolderSuccess, saveAlbum, saveAlbumSuccess } from './actions';
-import { selectAlbumById } from './selectors';
+import {
+  addAlbum,
+  addNewAlbum,
+  createNew,
+  createNewSuccess,
+  findMaUrl,
+  findMaUrlSuccess,
+  getAlbum,
+  loadAlbums,
+  loadAlbumsSuccess,
+  renameFolder,
+  renameFolderSuccess,
+  saveAlbum,
+  saveAlbumSuccess,
+} from './actions';
 
 @Injectable()
 export class AlbumEffects {
@@ -116,11 +129,31 @@ export class AlbumEffects {
   renameFolder$ = createEffect(() =>
     this.actions$.pipe(
       ofType(renameFolder),
-      concatLatestFrom(({ id }) => this.store.select(selectAlbumById(id))),
-      map(([{ id }, album]) => ({ id, src: album?.fullPath, dest: `${album?.artist} - ${album?.album}` })),
+      map(({ id, src, artist, album }) => ({ id, src, dest: `${artist} - ${album}` })),
       mergeMap(({ id, src, dest }) =>
-        this.service.renameFolder(id, src || '', dest).pipe(
-          map((newFullPath) => renameFolderSuccess({ update: { id, changes: { fullPath: newFullPath } } })),
+        this.service.renameFolder(id, src, dest).pipe(
+          map(({ fullPath, folder }) => renameFolderSuccess({ update: { id, changes: { fullPath, folder, renamingFolder: false } } })),
+          catchError((error) => {
+            console.error(error);
+            return EMPTY;
+          })
+        )
+      )
+    )
+  );
+
+  createNew$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(createNew),
+      mergeMap(() =>
+        this.service.createAlbumFromRootFiles().pipe(
+          map((newAlbums) => {
+            if (newAlbums.length) {
+              newAlbums.forEach((folder) => this.store.dispatch(addNewAlbum({ folder })));
+            }
+
+            return createNewSuccess();
+          }),
           catchError((error) => {
             console.error(error);
             return EMPTY;

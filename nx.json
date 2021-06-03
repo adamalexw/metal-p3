@@ -100,6 +100,9 @@
     },
     "shared-ngrx-store": {
       "tags": []
+    },
+    "albums-api": {
+      "tags": []
     }
   }
 }

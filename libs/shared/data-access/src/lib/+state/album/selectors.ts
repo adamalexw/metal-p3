@@ -17,3 +17,6 @@ export const selectAlbumsLoaded = createSelector(selectAlbumState, (state: Album
 
 export const selectFindingUrl = createSelector(selectAlbum, (album) => album?.findingUrl);
 export const selectMaUrls = createSelector(selectAlbum, (album) => ({ artistUrl: album?.artistUrl, albumUrl: album?.albumUrl }));
+
+export const selectCreatingNew = createSelector(selectAlbumState, (state) => state.creatingNew);
+export const selectRenamingFolder = createSelector(selectAlbumState, (state) => state.creatingNew);

@@ -11,6 +11,7 @@ export interface Album extends AlbumDto {
   saving?: boolean;
   savingCover?: boolean;
   renamingTracks?: boolean;
+  renamingFolder?: boolean;
   refreshing?: boolean;
   gettingLyrics?: boolean;
   gettingMaTracks?: boolean;

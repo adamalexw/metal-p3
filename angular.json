@@ -708,6 +708,27 @@
           }
         }
       }
+    },
+    "albums-api": {
+      "root": "libs/albums/api",
+      "sourceRoot": "libs/albums/api/src",
+      "projectType": "library",
+      "architect": {
+        "lint": {
+          "builder": "@nrwl/linter:eslint",
+          "options": {
+            "lintFilePatterns": ["libs/albums/api/**/*.ts"]
+          }
+        },
+        "test": {
+          "builder": "@nrwl/jest:jest",
+          "outputs": ["coverage/libs/albums/api"],
+          "options": {
+            "jestConfig": "libs/albums/api/jest.config.js",
+            "passWithNoTests": true
+          }
+        }
+      }
     }
   }
 }

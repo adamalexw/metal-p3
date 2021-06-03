@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { ApplyLyrics } from '@metal-p3/albums/domain';
+import { ApplyLyrics } from '@metal-p3/album/domain';
 import { AlbumDto, MetalArchivesAlbumTrack, Track } from '@metal-p3/api-interfaces';
 import { Observable } from 'rxjs';
 
