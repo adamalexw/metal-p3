@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatSnackBar, MatSnackBarRef, TextOnlySnackBar } from '@angular/material/snack-bar';
 
 @Injectable({ providedIn: 'root' })
 export class NotificationService {
@@ -11,5 +11,9 @@ export class NotificationService {
 
   showComplete(message: string, action?: string | undefined) {
     this.snackBar.open(message, action, { duration: 300 });
+  }
+
+  showProgress(message: string, action?: string | undefined): MatSnackBarRef<TextOnlySnackBar> {
+    return this.snackBar.open(message, action);
   }
 }

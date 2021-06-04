@@ -1,3 +1,6 @@
+import { Track } from '@metal-p3/api-interfaces';
+import { PlaylistItem } from '@metal-p3/player/domain';
+import { UUID } from 'angular2-uuid';
 import { from } from 'rxjs';
 
 export function extractUrl(url: string): string | undefined {
@@ -40,4 +43,8 @@ export const mapBlobToBase64 = (blob: Blob) => {
       reader.onerror = () => reject(reader.error);
     })
   );
+};
+
+export const mapTrackToPlaylistItem = (track: Track): PlaylistItem => {
+  return { ...track, id: UUID.UUID() };
 };

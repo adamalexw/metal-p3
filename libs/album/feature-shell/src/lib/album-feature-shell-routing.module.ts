@@ -14,6 +14,10 @@ const routes: Routes = [
     component: LyricsShellComponent,
   },
   {
+    path: 'player',
+    loadChildren: () => import('@metal-p3/player/feature-shell').then((m) => m.PlayerFeatureShellModule),
+  },
+  {
     path: '',
     component: HomeComponent,
   },
@@ -22,4 +26,4 @@ const routes: Routes = [
   imports: [RouterModule.forRoot(routes)],
   exports: [RouterModule],
 })
-export class AlbumsFeatureShellRoutingModule {}
+export class AlbumFeatureShellRoutingModule {}

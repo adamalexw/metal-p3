@@ -12,6 +12,8 @@
         (openAlbum)="openAlbum.emit($event)"
         (getCover)="onGetCover(album.id, album.folder)"
         (renameFolder)="onRenameFolder(album.id, album.fullPath, album.artist, album.album)"
+        (transferAlbum)="onTransferAlbum(album.id, album.fullPath)"
+        (addToPlaylist)="onAddToPlaylist(album.id, album.fullPath)"
       ></app-list-item>
     </div>
   </div>

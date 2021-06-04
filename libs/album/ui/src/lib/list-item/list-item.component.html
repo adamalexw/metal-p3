@@ -7,7 +7,7 @@
   </mat-card-header>
 
   <div [routerLink]="['album', album.id]">
-    <app-cover [cover]="album.cover" [matCover]="true" [loading]="album.coverLoading || false"></app-cover>
+    <app-cover [cover]="album.cover" [loading]="album.coverLoading || false"></app-cover>
   </div>
 
   <mat-card-content>
@@ -23,9 +23,13 @@
         <mat-icon>folder</mat-icon>
         <span>Rename Folder</span>
       </button>
-      <button mat-menu-item (click)="transferTrack.emit(element.get('id')?.value)">
+      <button mat-menu-item (click)="transferAlbum.emit()">
         <mat-icon>adb</mat-icon>
         <span>Transfer</span>
+      </button>
+      <button mat-menu-item (click)="addToPlaylist.emit()">
+        <mat-icon>playlist_add</mat-icon>
+        <span>Add To Playlist</span>
       </button>
     </mat-menu>
   </mat-card-content>

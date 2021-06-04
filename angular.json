@@ -729,6 +729,94 @@
           }
         }
       }
+    },
+    "player-feature-shell": {
+      "projectType": "library",
+      "root": "libs/player/feature-shell",
+      "sourceRoot": "libs/player/feature-shell/src",
+      "prefix": "metal-p3",
+      "architect": {
+        "test": {
+          "builder": "@nrwl/jest:jest",
+          "outputs": ["coverage/libs/player/feature-shell"],
+          "options": {
+            "jestConfig": "libs/player/feature-shell/jest.config.js",
+            "passWithNoTests": true
+          }
+        },
+        "lint": {
+          "builder": "@nrwl/linter:eslint",
+          "options": {
+            "lintFilePatterns": ["libs/player/feature-shell/src/**/*.ts", "libs/player/feature-shell/src/**/*.html"]
+          }
+        }
+      }
+    },
+    "player-data-access": {
+      "projectType": "library",
+      "root": "libs/player/data-access",
+      "sourceRoot": "libs/player/data-access/src",
+      "prefix": "metal-p3",
+      "architect": {
+        "test": {
+          "builder": "@nrwl/jest:jest",
+          "outputs": ["coverage/libs/player/data-access"],
+          "options": {
+            "jestConfig": "libs/player/data-access/jest.config.js",
+            "passWithNoTests": true
+          }
+        },
+        "lint": {
+          "builder": "@nrwl/linter:eslint",
+          "options": {
+            "lintFilePatterns": ["libs/player/data-access/src/**/*.ts", "libs/player/data-access/src/**/*.html"]
+          }
+        }
+      }
+    },
+    "player-ui": {
+      "projectType": "library",
+      "root": "libs/player/ui",
+      "sourceRoot": "libs/player/ui/src",
+      "prefix": "metal-p3",
+      "architect": {
+        "test": {
+          "builder": "@nrwl/jest:jest",
+          "outputs": ["coverage/libs/player/ui"],
+          "options": {
+            "jestConfig": "libs/player/ui/jest.config.js",
+            "passWithNoTests": true
+          }
+        },
+        "lint": {
+          "builder": "@nrwl/linter:eslint",
+          "options": {
+            "lintFilePatterns": ["libs/player/ui/src/**/*.ts", "libs/player/ui/src/**/*.html"]
+          }
+        }
+      }
+    },
+    "player-domain": {
+      "projectType": "library",
+      "root": "libs/player/domain",
+      "sourceRoot": "libs/player/domain/src",
+      "prefix": "metal-p3",
+      "architect": {
+        "test": {
+          "builder": "@nrwl/jest:jest",
+          "outputs": ["coverage/libs/player/domain"],
+          "options": {
+            "jestConfig": "libs/player/domain/jest.config.js",
+            "passWithNoTests": true
+          }
+        },
+        "lint": {
+          "builder": "@nrwl/linter:eslint",
+          "options": {
+            "lintFilePatterns": ["libs/player/domain/src/**/*.ts", "libs/player/domain/src/**/*.html"]
+          }
+        }
+      }
     }
   }
 }

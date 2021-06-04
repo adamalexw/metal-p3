@@ -1,8 +1,8 @@
 import { ApplyLyrics } from '@metal-p3/album/domain';
 import { MetalArchivesAlbumTrack, Track } from '@metal-p3/api-interfaces';
-import { Album } from '@metal-p3/shared/data-access';
 import { Update } from '@ngrx/entity';
 import { createAction, props } from '@ngrx/store';
+import { Album } from '../model';
 
 export const getTracks = createAction('[Tracks] Get Tracks', props<{ id: number; folder: string }>());
 export const getTracksSuccess = createAction('[Tracks] Get Tracks Success', props<{ id: number; tracks: Track[] }>());

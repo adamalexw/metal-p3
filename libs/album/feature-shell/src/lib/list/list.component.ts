@@ -1,9 +1,33 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, OnInit, Output } from '@angular/core';
 import { SearchRequest } from '@metal-p3/album/domain';
-import { addNewAlbum, Album, clearCovers, createNew, getCover, loadAlbums, renameFolder, selectAlbums, selectAlbumsLoaded, selectAlbumsLoading, selectCreatingNew } from '@metal-p3/shared/data-access';
+import { Track } from '@metal-p3/api-interfaces';
+import { addTracksToPlaylist } from '@metal-p3/player/data-access';
+import {
+  addNewAlbum,
+  Album,
+  clearCovers,
+  createNew,
+  getCover,
+  getTracks,
+  loadAlbums,
+  renameFolder,
+  selectAlbums,
+  selectAlbumsLoaded,
+  selectAlbumsLoading,
+  selectCreatingNew,
+  selectTracks,
+  selectTracksRequired,
+  transferTrack,
+  viewAlbum,
+} from '@metal-p3/shared/data-access';
+import { NotificationService } from '@metal-p3/shared/feedback';
+import { mapTrackToPlaylistItem } from '@metal-p3/shared/utils';
+import { UntilDestroy } from '@ngneat/until-destroy';
 import { select, Store } from '@ngrx/store';
-import { filter, take, tap } from 'rxjs/operators';
+import { Observable } from 'rxjs';
+import { filter, map, take, tap } from 'rxjs/operators';
 
+@UntilDestroy()
 @Component({
   selector: 'app-list',
   templateUrl: './list.component.html',
@@ -20,7 +44,7 @@ export class ListComponent implements OnInit {
   @Output()
   readonly openAlbum = new EventEmitter<number>();
 
-  constructor(private readonly store: Store) {}
+  constructor(private readonly store: Store, private notificationService: NotificationService) {}
 
   ngOnInit(): void {
     this.albumsLoaded$
@@ -38,6 +62,47 @@ export class ListComponent implements OnInit {
 
   onRenameFolder(id: number, src: string, artist: string, album: string) {
     this.store.dispatch(renameFolder({ id, src, artist, album }));
+  }
+
+  onTransferAlbum(id: number, folder: string) {
+    const tracks$ = this.getTracks(id, folder);
+
+    tracks$
+      .pipe(
+        tap((tracks: Track[]) => tracks.forEach((track) => this.store.dispatch(transferTrack({ id, trackId: track.id })))),
+        take(1)
+      )
+      .subscribe();
+  }
+
+  onAddToPlaylist(id: number, folder: string) {
+    const tracks$ = this.getTracks(id, folder);
+
+    tracks$
+      .pipe(
+        map((tracks: Track[]) => tracks.map(mapTrackToPlaylistItem)),
+        tap((tracks) => this.store.dispatch(addTracksToPlaylist({ tracks }))),
+        take(1)
+      )
+      .subscribe();
+  }
+
+  private getTracks(id: number, folder: string): Observable<Track[] | undefined> {
+    this.store.dispatch(viewAlbum({ id }));
+
+    this.store
+      .pipe(select(selectTracksRequired))
+      .pipe(
+        take(1),
+        filter((required) => !!required),
+        tap(() => this.store.dispatch(getTracks({ id, folder })))
+      )
+      .subscribe();
+
+    return this.store.pipe(
+      select(selectTracks),
+      filter((tracks) => !!tracks)
+    );
   }
 
   identify(index: number, item: Album) {

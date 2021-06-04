@@ -103,6 +103,18 @@
     },
     "albums-api": {
       "tags": []
+    },
+    "player-feature-shell": {
+      "tags": []
+    },
+    "player-data-access": {
+      "tags": []
+    },
+    "player-ui": {
+      "tags": []
+    },
+    "player-domain": {
+      "tags": []
     }
   }
 }

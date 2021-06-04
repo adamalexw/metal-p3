@@ -1,0 +1,5 @@
+<app-cover></app-cover>
+
+<app-player-controls [currentItem]="selectedTrack$ | async"></app-player-controls>
+
+<app-playlist [playlist]="playlist$ | async" [currentItem]="selectedTrack$ | async" (playItem)="onPlayItem($event)"></app-playlist>

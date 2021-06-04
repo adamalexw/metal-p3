@@ -1,1 +1,1 @@
-export * from './lib/albums-feature-shell.module';
+export * from './lib/album-feature-shell.module';

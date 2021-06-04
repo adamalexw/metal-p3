@@ -40,7 +40,11 @@
       "@metal-p3/track/ui": ["libs/track/ui/src/index.ts"],
       "@metal-p3/track/util": ["libs/track/util/src/index.ts"],
       "@metal-p3/shared/ngrx-store": ["libs/shared/ngrx-store/src/index.ts"],
-      "@metal-p3/album/api": ["libs/album/api/src/index.ts"]
+      "@metal-p3/album/api": ["libs/album/api/src/index.ts"],
+      "@metal-p3/player/feature-shell": ["libs/player/feature-shell/src/index.ts"],
+      "@metal-p3/player/data-access": ["libs/player/data-access/src/index.ts"],
+      "@metal-p3/player/ui": ["libs/player/ui/src/index.ts"],
+      "@metal-p3/player/domain": ["libs/player/domain/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]

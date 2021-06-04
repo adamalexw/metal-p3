@@ -53,6 +53,7 @@
     "@ngrx/store-devtools": "12.0.0",
     "@nrwl/angular": "12.3.4",
     "@prisma/client": "^2.22.1",
+    "angular2-uuid": "^1.1.1",
     "autoprefixer": "^10.2.5",
     "bluebird": "^3.7.2",
     "lowdb": "^1.0.0",
