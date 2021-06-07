@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, OnInit, Output } from '@angular/core';
 import { SearchRequest } from '@metal-p3/album/domain';
 import { Track } from '@metal-p3/api-interfaces';
-import { addTracksToPlaylist } from '@metal-p3/player/data-access';
+import { addTracksToPlaylist, clearPlaylist, selectPlaylist } from '@metal-p3/player/data-access';
 import {
   addNewAlbum,
   Album,
@@ -39,6 +39,8 @@ export class ListComponent implements OnInit {
   albumsLoaded$ = this.store.pipe(select(selectAlbumsLoaded));
   albums$ = this.store.pipe(select(selectAlbums));
 
+  showPlayer$ = this.store.pipe(select(selectPlaylist)).pipe(map((playlist) => playlist?.length));
+
   creatingNew$ = this.store.pipe(select(selectCreatingNew));
 
   @Output()
@@ -75,12 +77,17 @@ export class ListComponent implements OnInit {
       .subscribe();
   }
 
+  onPlayAlbum(id: number, folder: string) {
+    this.store.dispatch(clearPlaylist());
+    this.onAddToPlaylist(id, folder);
+  }
+
   onAddToPlaylist(id: number, folder: string) {
     const tracks$ = this.getTracks(id, folder);
 
     tracks$
       .pipe(
-        map((tracks: Track[]) => tracks.map(mapTrackToPlaylistItem)),
+        map((tracks: Track[]) => tracks.map((track) => mapTrackToPlaylistItem(track, id))),
         tap((tracks) => this.store.dispatch(addTracksToPlaylist({ tracks }))),
         take(1)
       )

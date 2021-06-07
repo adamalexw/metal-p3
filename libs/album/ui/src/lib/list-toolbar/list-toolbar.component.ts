@@ -21,6 +21,9 @@ export class ListToolbarComponent implements OnInit {
   @Output()
   readonly createNew = new EventEmitter<void>();
 
+  @Output()
+  readonly viewPlayer = new EventEmitter<void>();
+
   form: FormGroup;
 
   constructor(fb: FormBuilder) {

@@ -24,6 +24,9 @@ export class ListItemComponent implements OnChanges {
   readonly transferAlbum = new EventEmitter<void>();
 
   @Output()
+  readonly playAlbum = new EventEmitter<void>();
+
+  @Output()
   readonly addToPlaylist = new EventEmitter<void>();
 
   ngOnChanges(changes: SimpleChanges): void {

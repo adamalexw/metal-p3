@@ -27,11 +27,14 @@
         <mat-icon>adb</mat-icon>
         <span>Transfer</span>
       </button>
+      <button mat-menu-item (click)="playAlbum.emit()">
+        <mat-icon>playlist_play</mat-icon>
+        <span>Play</span>
+      </button>
       <button mat-menu-item (click)="addToPlaylist.emit()">
         <mat-icon>playlist_add</mat-icon>
         <span>Add To Playlist</span>
       </button>
     </mat-menu>
   </mat-card-content>
-  <mat-card-actions> </mat-card-actions>
 </mat-card>

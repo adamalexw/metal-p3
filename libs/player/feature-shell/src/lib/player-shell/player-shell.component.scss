@@ -1,0 +1,11 @@
+.mini-mode {
+  max-height: 64px;
+}
+
+.full-mode {
+  z-index: 999;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 50vw;
+}

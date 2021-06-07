@@ -25,7 +25,7 @@
     <ng-container matColumnDef="duration">
       <mat-header-cell *matHeaderCellDef>Duration</mat-header-cell>
       <mat-cell *matCellDef="let element" [formGroup]="element">
-        {{ element.get('duration')?.value * 1000 | date: 'mm:ss':'UTC' }}
+        {{ element.get('duration')?.value | time }}
       </mat-cell>
     </ng-container>
 
@@ -50,6 +50,14 @@
           <button mat-menu-item *ngIf="element.get('lyrics')?.value" (click)="viewLyrics(element.get('lyrics')?.value)">
             <mat-icon>article</mat-icon>
             <span>Lyrics</span>
+          </button>
+          <button mat-menu-item (click)="onPlayTrack(element.get('id')?.value)">
+            <mat-icon>play_arrow</mat-icon>
+            <span>Play</span>
+          </button>
+          <button mat-menu-item (click)="onAddTrackToPlaylist(element.get('id')?.value)">
+            <mat-icon>playlist_add</mat-icon>
+            <span>Add To Playlist</span>
           </button>
         </mat-menu>
       </mat-cell>

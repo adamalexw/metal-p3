@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { exec } from 'child_process';
-import { lstatSync, readdirSync, renameSync, rmdirSync } from 'fs';
+import { lstatSync, readdirSync, renameSync, rmdirSync, statSync } from 'fs';
 import { basename, dirname, join } from 'path';
 
 @Injectable()
@@ -42,6 +42,10 @@ export class FileSystemService {
 
   renameFolder(src: string, dest: string) {
     renameSync(src, dest);
+  }
+
+  getFileStats(file: string) {
+    return statSync(file);
   }
 
   moveFilesToTheRoot(folder: string, rootFolder: string) {

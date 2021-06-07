@@ -8,26 +8,17 @@
   <button mat-icon-button [disabled]="findingUrl" (click)="findUrl.emit()">
     <mat-icon title="ma search">pageview</mat-icon>
   </button>
-  <button mat-icon-button [disabled]="renamingTracks" (click)="renameTracks.emit()">
-    <mat-icon title="rename tracks">drive_file_rename_outline</mat-icon>
-  </button>
-  <button mat-icon-button [disabled]="gettingMaTracks" (click)="maTracks.emit()">
-    <mat-icon title="ma tracks">format_list_numbered</mat-icon>
-  </button>
-  <button mat-icon-button (click)="lyrics.emit()">
-    <mat-icon title="lyrics">article</mat-icon>
-  </button>
   <button mat-icon-button [disabled]="renamingFolder" (click)="renameFolder.emit()">
     <mat-icon title="rename folder">source</mat-icon>
   </button>
   <button mat-icon-button (click)="openFolder.emit()">
     <mat-icon title="open folder">folder</mat-icon>
   </button>
-  <button mat-icon-button (click)="refreshTracks.emit()">
-    <mat-icon title="refresh">refresh</mat-icon>
+  <button mat-icon-button (click)="transfer.emit()">
+    <mat-icon title="transfer">adb</mat-icon>
   </button>
 
   <div class="w-full flex flex-row-reverse">
-    <app-album-header [folder]="folder" [closeFunctionality]="closeFunctionality" (closeAlbum)="closeAlbum.emit()"></app-album-header>
+    <app-album-header [folder]="folder" [routerLink]="['/']"></app-album-header>
   </div>
 </mat-toolbar>

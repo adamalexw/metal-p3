@@ -1,4 +1,6 @@
-<app-list-toolbar [creatingNew]="creatingNew$ | async" (searchRequest)="onSearch($event)" (createNew)="onCreateNew()"></app-list-toolbar>
+<app-list-toolbar [creatingNew]="creatingNew$ | async" (searchRequest)="onSearch($event)" (createNew)="onCreateNew()">
+  <app-player-toolbar></app-player-toolbar>
+</app-list-toolbar>
 
 <ng-container *ngIf="albumsLoading$ | async; else listTemplate">
   <mat-spinner></mat-spinner>
@@ -12,8 +14,9 @@
         (openAlbum)="openAlbum.emit($event)"
         (getCover)="onGetCover(album.id, album.folder)"
         (renameFolder)="onRenameFolder(album.id, album.fullPath, album.artist, album.album)"
-        (transferAlbum)="onTransferAlbum(album.id, album.fullPath)"
-        (addToPlaylist)="onAddToPlaylist(album.id, album.fullPath)"
+        (transferAlbum)="onTransferAlbum(album.id, album.folder)"
+        (playAlbum)="onPlayAlbum(album.id, album.folder)"
+        (addToPlaylist)="onAddToPlaylist(album.id, album.folder)"
       ></app-list-item>
     </div>
   </div>

@@ -22,6 +22,12 @@ export class TracksComponent implements OnChanges {
   @Output()
   transferTrack = new EventEmitter<number>();
 
+  @Output()
+  playTrack = new EventEmitter<Track>();
+
+  @Output()
+  addTrackToPlaylist = new EventEmitter<Track>();
+
   displayedColumns = ['trackNumber', 'title', 'duration', 'bitrate', 'lyrics', 'trackSaving'];
   dataSource: MatTableDataSource<AbstractControl> = new MatTableDataSource();
 
@@ -64,4 +70,12 @@ export class TracksComponent implements OnChanges {
   }
 
   viewLyrics(lyrics: string) {}
+
+  onPlayTrack(id: number) {
+    this.playTrack.emit(this.tracks.find((t) => t.id === id));
+  }
+
+  onAddTrackToPlaylist(id: number) {
+    this.addTrackToPlaylist.emit(this.tracks.find((t) => t.id === id));
+  }
 }

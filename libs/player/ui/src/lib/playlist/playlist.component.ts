@@ -17,5 +17,8 @@ export class PlaylistComponent {
   @Output()
   readonly playItem = new EventEmitter<string>();
 
-  displayedColumns = ['trackNumber', 'title', 'duration', 'action'];
+  @Output()
+  readonly clearPlaylist = new EventEmitter<void>();
+
+  displayedColumns = ['trackNumber', 'title', 'artist', 'duration', 'action'];
 }

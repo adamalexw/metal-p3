@@ -3,20 +3,14 @@
     <app-album-toolbar
       [saving]="albumSaving"
       [findingUrl]="findingUrl"
-      [renamingTracks]="renamingTracks"
       [renamingFolder]="renamingFolder"
-      [gettingLyrics]="gettingLyrics"
       [folder]="album?.folder"
-      [closeFunctionality]="routeId ? 'back' : 'close'"
       (save)="onSave()"
       (imageSearch)="onImageSearch()"
       (findUrl)="onFindUrl()"
-      (maTracks)="onMaTracks()"
-      (renameTracks)="onRenameTracks()"
       (renameFolder)="onRenameFolder()"
-      (lyrics)="onLyrics()"
       (openFolder)="openFolder.emit(album.fullPath)"
-      (refreshTracks)="refreshTracks.emit({ id: album.id, folder: album.folder })"
+      (transfer)="onTransferAlbum()"
       (closeAlbum)="closeAlbum.emit()"
     ></app-album-toolbar>
   </nav>
@@ -80,7 +74,25 @@
     </section>
 
     <section class="mt-2">
-      <app-tracks [form]="form" [tracksLoading]="tracksLoading" [tracks]="tracks" (transferTrack)="onTransferTrack($event)"></app-tracks>
+      <app-tracks-toolbar
+        [renamingTracks]="renamingTracks"
+        [gettingLyrics]="gettingLyrics"
+        (maTracks)="onMaTracks()"
+        (renameTracks)="onRenameTracks()"
+        (lyrics)="onLyrics()"
+        (refreshTracks)="refreshTracks.emit({ id: album.id, folder: album.folder })"
+        (playAlbum)="playAlbum.emit(this.albumId)"
+        (addAlbumToPlaylist)="addAlbumToPlaylist.emit(this.albumId)"
+      >
+      </app-tracks-toolbar>
+      <app-tracks
+        [form]="form"
+        [tracksLoading]="tracksLoading"
+        [tracks]="tracks"
+        (transferTrack)="onTransferTrack($event)"
+        (playTrack)="playTrack.emit({ track: $event, albumId: albumId })"
+        (addTrackToPlaylist)="addTrackToPlaylist.emit({ track: $event, albumId: albumId })"
+      ></app-tracks>
     </section>
   </form>
 </ng-container>

@@ -1,21 +1,47 @@
-<mat-toolbar color="primary">
-  <mat-toolbar-row>
-    {{ currentItem?.duration }}
-    <!-- <mat-slider class="time-slider" min="0" [max]="state?.duration" step="1" [value]="state?.currentTime" (input)="onSliderChangeEnd($event)" [disabled]="state?.error || currentFile.index === undefined"></mat-slider> -->
-    {{ currentItem?.duration }}
+<mat-toolbar color="primary" class="h-full w-full">
+  <mat-toolbar-row *ngIf="!miniMode">
+    <ng-container *ngTemplateOutlet="sliderTemplate"></ng-container>
   </mat-toolbar-row>
-  <mat-toolbar-row>
-    <button mat-button [disabled]="isFirstPlaying" (click)="previous.emit()">
+  <mat-toolbar-row class="justify-center">
+    <button mat-icon-button [disabled]="isFirstItemPlaying" (click)="previous.emit()">
       <mat-icon mat-list-icon>skip_previous</mat-icon>
     </button>
-    <button mat-button (click)="play.emit()" *ngIf="!currentItem?.playing">
-      <mat-icon mat-list-icon>play_circle_filled</mat-icon>
+    <button mat-icon-button (click)="playItem.emit()" *ngIf="!currentItem?.playing">
+      <mat-icon mat-list-icon>play_arrow</mat-icon>
     </button>
-    <button mat-button (click)="pause.emit()" *ngIf="currentItem?.playing">
+    <button mat-icon-button (click)="pauseItem.emit()" *ngIf="currentItem?.playing">
       <mat-icon mat-list-icon>pause</mat-icon>
     </button>
-    <button mat-button [disabled]="isLastPlaying" (click)="next.emit()">
+    <button mat-icon-button [disabled]="isLastItemPlaying" (click)="next.emit()">
       <mat-icon mat-list-icon>skip_next</mat-icon>
     </button>
+    <ng-container *ngIf="miniMode">
+      <span class="text-xs">{{ currentItem?.title }}</span>
+    </ng-container>
+    <button mat-icon-button (click)="toggleView.emit()">
+      <mat-icon mat-list-icon>{{ toggleIcon }}</mat-icon>
+    </button>
   </mat-toolbar-row>
+  <ng-container *ngIf="!miniMode">
+    <mat-toolbar-row>
+      <div class="w-full text-center" *ngIf="currentItem">{{ currentItem.trackNumber }} - {{ currentItem.title }}</div>
+    </mat-toolbar-row>
+    <mat-toolbar-row class="flex-col">
+      <ng-container *ngIf="currentItem">
+        <div class="text-sm">{{ currentItem.artist }} - {{ currentItem.album }}</div>
+        <div class="text-sm">{{ currentItem.year }} - {{ currentItem.genre }}</div>
+      </ng-container>
+    </mat-toolbar-row>
+  </ng-container>
 </mat-toolbar>
+
+<ng-template #sliderTemplate>
+  <div class="w-full">
+    <div class="flex flex-row items-end pt-5">
+      <span class="text-xs">{{ elapsedTime | time }}</span>
+      <span class="flex-grow"></span>
+      <span class="text-xs">{{ currentItem?.duration | time }}</span>
+    </div>
+    <mat-slider class="w-full p-0 h-10" min="0" [max]="currentItem?.duration" step="1" [value]="elapsedTime" (input)="onSliderChangeEnd($event.value)" [disabled]="!currentItem"></mat-slider>
+  </div>
+</ng-template>

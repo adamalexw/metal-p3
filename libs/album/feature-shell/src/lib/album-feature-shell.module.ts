@@ -4,6 +4,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { AlbumsUiModule } from '@metal-p3/album/ui';
+import { PlayerFeatureShellModule } from '@metal-p3/player/feature-shell';
 import { SharedFeedbackModule } from '@metal-p3/shared/feedback';
 import { AlbumFeatureShellRoutingModule } from './album-feature-shell-routing.module';
 import { AlbumShellComponent } from './album/album.component';
@@ -13,8 +14,8 @@ import { ListComponent } from './list/list.component';
 import { LyricsShellComponent } from './lyrics/lyrics.component';
 
 @NgModule({
-  imports: [CommonModule, AlbumsUiModule, AlbumFeatureShellRoutingModule, MatSidenavModule, MatIconModule, MatProgressSpinnerModule, SharedFeedbackModule],
+  imports: [CommonModule, AlbumsUiModule, AlbumFeatureShellRoutingModule, PlayerFeatureShellModule, MatSidenavModule, MatIconModule, MatProgressSpinnerModule, SharedFeedbackModule],
   declarations: [ListComponent, AlbumShellComponent, LyricsShellComponent, AddAlbumDirective, HomeComponent],
-  exports: [ListComponent],
+  exports: [HomeComponent],
 })
 export class AlbumFeatureShellModule {}

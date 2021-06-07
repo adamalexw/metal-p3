@@ -1,5 +1,7 @@
 <mat-toolbar>
-  <form [formGroup]="form">
+  <ng-content></ng-content>
+
+  <form [formGroup]="form" class="ml-3">
     <mat-form-field>
       <input matInput placeholder="Search" formControlName="criteria" />
     </mat-form-field>
@@ -7,9 +9,5 @@
 
   <button mat-icon-button [disabled]="creatingNew" (click)="createNew.emit()">
     <mat-icon title="createNew">create_new_folder</mat-icon>
-  </button>
-
-  <button mat-icon-button [routerLink]="['player']">
-    <mat-icon title="player">library_music</mat-icon>
   </button>
 </mat-toolbar>

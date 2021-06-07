@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { AlbumService } from '@metal-p3/album/data-access';
 import { BandDto, Track } from '@metal-p3/api-interfaces';
 import { CoverService } from '@metal-p3/cover/data-access';
+import { addTracksToPlaylist, addTrackToPlaylist, clearPlaylist, playItem } from '@metal-p3/player/data-access';
 import {
   Album,
   downloadCover,
@@ -40,6 +41,7 @@ import {
   transferTrack,
   viewAlbum,
 } from '@metal-p3/shared/data-access';
+import { mapTrackToPlaylistItem } from '@metal-p3/shared/utils';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { select, Store } from '@ngrx/store';
 import { combineLatest } from 'rxjs';
@@ -236,7 +238,38 @@ export class AlbumShellComponent implements OnInit {
       .subscribe();
   }
 
+  onTransferAlbum(tracks: { id: number; trackId: number }[]) {
+    tracks.forEach((track) => this.onTransferTrack(track.id, track.trackId));
+  }
+
   onTransferTrack(id: number, trackId: number) {
     this.store.dispatch(transferTrack({ id, trackId }));
+  }
+
+  onPlayAlbum(albumId: number) {
+    this.store.dispatch(clearPlaylist());
+    this.onAddAlbumToPlaylist(albumId);
+  }
+
+  onAddAlbumToPlaylist(albumId: number) {
+    this.tracks$
+      .pipe(
+        take(1),
+        map((tracks) => tracks?.map((track) => mapTrackToPlaylistItem(track, albumId))),
+        tap((tracks) => this.store.dispatch(addTracksToPlaylist({ tracks })))
+      )
+      .subscribe();
+  }
+
+  onPlayTrack(track: Track, albumId: number) {
+    this.store.dispatch(clearPlaylist());
+    const id = this.onAddTrackToPlaylist(track, albumId);
+    this.store.dispatch(playItem({ id }));
+  }
+
+  onAddTrackToPlaylist(track: Track, albumId: number): string {
+    const playlistItem = mapTrackToPlaylistItem(track, albumId);
+    this.store.dispatch(addTrackToPlaylist({ track: playlistItem }));
+    return playlistItem.id;
   }
 }

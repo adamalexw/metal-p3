@@ -27,3 +27,11 @@ body {
   border-radius: 10px;
   background: mat-color($app-primary);
 }
+
+.mat-column-trackNumber {
+  max-width: 60px;
+}
+
+.mat-column-duration {
+  max-width: 150px;
+}

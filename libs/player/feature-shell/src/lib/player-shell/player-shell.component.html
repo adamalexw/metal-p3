@@ -1,5 +1,34 @@
-<app-cover></app-cover>
+<div [class]="divClass$ | async">
+  <div class="flex w-full">
+    <app-cover [cover]="cover$ | async" [width]="coverSize$ | async" [height]="coverSize$ | async"></app-cover>
 
-<app-player-controls [currentItem]="selectedTrack$ | async"></app-player-controls>
+    <audio #audio [src]="playingItem$ | async | safe: 'resourceUrl'" waMediaElementAudioSourceNode autoplay>
+      <!-- <ng-container #node="AudioNode" waDelayNode [delayTime]="delayTime">
+      <ng-container waGainNode [gain]="gain">
+        <ng-container [waOutput]="node"></ng-container>
+        <ng-container waAudioDestinationNode></ng-container>
+      </ng-container>
+    </ng-container> -->
+      <ng-container waAudioDestinationNode></ng-container>
+    </audio>
 
-<app-playlist [playlist]="playlist$ | async" [currentItem]="selectedTrack$ | async" (playItem)="onPlayItem($event)"></app-playlist>
+    <app-player-controls
+      [miniMode]="miniMode$ | async"
+      [isFirstItemPlaying]="isFirstItemPlaying$ | async"
+      [isLastItemPlaying]="isLastItemPlaying$ | async"
+      [currentItem]="activeItem$ | async"
+      [elapsedTime]="elapsedTime$ | async"
+      [toggleIcon]="toggleIcon$ | async"
+      (playItem)="onPlay()"
+      (pauseItem)="onPause()"
+      (seekTo)="onSeekTo($event)"
+      (previous)="onPrevious()"
+      (next)="onNext()"
+      (toggleView)="onToogleView()"
+    ></app-player-controls>
+  </div>
+
+  <ng-container *ngIf="!(miniMode$ | async)">
+    <app-playlist [playlist]="playlist$ | async" [currentItem]="activeItem$ | async" (playItem)="onPlayItem($event)" (clearPlaylist)="onClearPlaylist()"></app-playlist>
+  </ng-container>
+</div>

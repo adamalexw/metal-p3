@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, ViewChild } from '@angular/core';
 import { MatSidenav } from '@angular/material/sidenav';
-import { viewAlbum } from '@metal-p3/shared/data-access';
-import { Store } from '@ngrx/store';
+import { sideNavOpen } from '@metal-p3/shared/data-access';
+import { select, Store } from '@ngrx/store';
 
 @Component({
   selector: 'app-home',
@@ -12,15 +12,7 @@ import { Store } from '@ngrx/store';
 export class HomeComponent {
   @ViewChild('sidenav') sideNav!: MatSidenav;
 
+  sideNavOpen$ = this.store.pipe(select(sideNavOpen));
+
   constructor(private store: Store) {}
-
-  onOpenAlbum(id: number) {
-    this.sideNav.open();
-    this.store.dispatch(viewAlbum({ id }));
-  }
-
-  onCloseAlbum() {
-    this.sideNav.close();
-    this.store.dispatch(viewAlbum({ id: 0 }));
-  }
 }

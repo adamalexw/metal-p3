@@ -42,4 +42,8 @@ export class TrackService {
   transferTrack(file: string): Observable<never> {
     return this.http.get<never>(`${this.baseUrl}/transferTrack?file=${file}`);
   }
+
+  playTrack(file: string): Observable<unknown> {
+    return this.http.get(`${this.baseUrl}/playTrack?file=${encodeURIComponent(file)}`, { responseType: 'blob' });
+  }
 }

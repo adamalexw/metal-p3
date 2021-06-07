@@ -26,13 +26,15 @@ model Album {
 }
 
 model Band {
-  BandId          Int      @id @default(autoincrement())
-  Name            String?  @db.VarChar(256)
-  Genre           String?  @db.VarChar(256)
-  Country         String?  @db.VarChar(256)
-  MetalArchiveUrl String?  @db.VarChar(2083)
-  Created         DateTime @default(now()) @db.DateTime
+  BandId          Int             @id @default(autoincrement())
+  Name            String?         @db.VarChar(256)
+  Genre           String?         @db.VarChar(256)
+  Country         String?         @db.VarChar(256)
+  MetalArchiveUrl String?         @db.VarChar(2083)
+  Created         DateTime        @default(now()) @db.DateTime
   Album           Album[]
+  NewAlbum        NewAlbum[]
+  NewAlbumError   NewAlbumError[]
 }
 
 model LyricsError {
@@ -59,4 +61,28 @@ model LyricsHistory {
 model SavedLyrics {
   LyricsHistoryId Int           @id
   LyricsHistory   LyricsHistory @relation(fields: [LyricsHistoryId], references: [LyricsHistoryId])
+}
+
+model iPhoneTracks {
+  iPhoneTrackId Int       @id @default(autoincrement())
+  Band          String?   @db.VarChar(256)
+  Album         String?   @db.VarChar(256)
+  Track         String?   @db.VarChar(256)
+  DateAdded     DateTime? @db.DateTime
+}
+
+model NewAlbum {
+  NewAlbumId      Int     @id @default(autoincrement())
+  BandId          Int
+  Album           String? @db.VarChar(256)
+  Year            Int?
+  MetalArchiveUrl String? @db.VarChar(2083)
+  Band            Band    @relation(fields: [BandId], references: [BandId])
+}
+
+model NewAlbumError {
+  NewAlbumErrorId Int     @id @default(autoincrement())
+  BandId          Int
+  Error           String? @db.VarChar(Max)
+  Band            Band    @relation(fields: [BandId], references: [BandId])
 }

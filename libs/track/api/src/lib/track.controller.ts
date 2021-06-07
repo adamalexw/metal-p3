@@ -1,6 +1,6 @@
 import { Track } from '@metal-p3/api-interfaces';
 import { FileSystemService } from '@metal-p3/shared/file-system';
-import { Body, Controller, Get, HttpCode, HttpStatus, Patch, Query } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, Patch, Query, Res } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { TrackService } from './track.service';
 
@@ -38,5 +38,15 @@ export class TrackController {
   @Get('transferTrack')
   transferTrack(@Query('file') file: string): Promise<void> {
     return this.trackService.transferTrack(file);
+  }
+
+  @Get('playTrack')
+  playTrack(@Query('file') file: string, @Res() res) {
+    const stats = this.fileSystemService.getFileStats(file);
+    res.writeHead(200, {
+      'Content-Type': 'audio/mpeg',
+      'Content-Length': stats.size,
+    });
+    this.trackService.playTrack(file).pipe(res);
   }
 }

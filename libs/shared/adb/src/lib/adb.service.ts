@@ -8,7 +8,7 @@ export class AdbService {
   private client: Adb.Client;
 
   constructor(private readonly fileSystemService: FileSystemService) {
-    this.client = new Adb.Client();
+    this.client = new Adb.Client({ bin: 'C://platform-tools//adb.exe', port: 5037 });
   }
 
   async getDevices() {

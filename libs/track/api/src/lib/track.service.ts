@@ -2,8 +2,10 @@ import { Track } from '@metal-p3/api-interfaces';
 import { AdbService } from '@metal-p3/shared/adb';
 import { FileSystemService } from '@metal-p3/shared/file-system';
 import { Injectable } from '@nestjs/common';
+import { createReadStream } from 'fs';
 import * as mm from 'music-metadata';
 import { read, Tags, update } from 'node-id3';
+import { ReadStream } from 'node:fs';
 import * as path from 'path';
 import { EMPTY, from, Observable } from 'rxjs';
 import { concatAll, map, toArray } from 'rxjs/operators';
@@ -119,5 +121,9 @@ export class TrackService {
 
   async transferTrack(file: string): Promise<void> {
     await this.adbService.transferFile(file);
+  }
+
+  playTrack(file: string): ReadStream {
+    return createReadStream(file);
   }
 }

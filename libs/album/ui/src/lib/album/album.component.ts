@@ -56,9 +56,6 @@ export class AlbumComponent implements OnChanges {
   @Input()
   bandProps: BandProps | null = null;
 
-  @Input()
-  routeId: number | undefined;
-
   @Output()
   readonly save = new EventEmitter<{ album: AlbumDto; tracks: Track[] }>();
 
@@ -93,7 +90,22 @@ export class AlbumComponent implements OnChanges {
   readonly findCountry = new EventEmitter<{ id: number; url: string }>();
 
   @Output()
+  readonly transferAlbum = new EventEmitter<{ id: number; trackId: number }[]>();
+
+  @Output()
   readonly transferTrack = new EventEmitter<{ id: number; trackId: number }>();
+
+  @Output()
+  readonly playAlbum = new EventEmitter<number>();
+
+  @Output()
+  readonly addAlbumToPlaylist = new EventEmitter<number>();
+
+  @Output()
+  readonly playTrack = new EventEmitter<{ track: Track; albumId: number }>();
+
+  @Output()
+  readonly addTrackToPlaylist = new EventEmitter<{ track: Track; albumId: number }>();
 
   @Output()
   readonly closeAlbum = new EventEmitter<void>();
@@ -123,10 +135,9 @@ export class AlbumComponent implements OnChanges {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes.album && this.album && !this.album.saving) {
+    if (changes.album && changes.album.currentValue && !changes.album.previousValue) {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { tracks, maTracks, ...rest } = this.album;
-
+      const { tracks, maTracks, ...rest } = changes.album.currentValue;
       this.patchForm(rest);
     }
 
@@ -205,6 +216,11 @@ export class AlbumComponent implements OnChanges {
 
   getBandProps(url: string) {
     this.findBandProps.emit({ id: this.albumId, url });
+  }
+
+  onTransferAlbum() {
+    const tracks = this.tracks.map((track) => ({ id: this.albumId, trackId: track.id }));
+    this.transferAlbum.emit(tracks);
   }
 
   onTransferTrack(trackId: number) {
