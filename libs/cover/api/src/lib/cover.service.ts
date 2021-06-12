@@ -8,7 +8,7 @@ import { map } from 'rxjs/operators';
 
 @Injectable()
 export class CoverService {
-  constructor(private readonly trackService: TrackService, private fileSystemService: FileSystemService, private readonly httpService: HttpService) {}
+  constructor(private readonly trackService: TrackService, private readonly fileSystemService: FileSystemService, private readonly httpService: HttpService) {}
 
   getCover(location: string): Observable<string> {
     if (path.extname(location) == '.mp3') {

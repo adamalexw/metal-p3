@@ -1,3 +1,15 @@
 .summary-list {
   width: calc(100% - 500px);
 }
+
+:host {
+  display: block;
+  height: 100vh;
+  overflow: hidden;
+}
+
+app-tracks {
+  display: block;
+  height: calc(100vh - 128px - 500px);
+  overflow: auto;
+}

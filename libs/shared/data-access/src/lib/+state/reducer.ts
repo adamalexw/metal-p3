@@ -10,6 +10,7 @@ import {
   deleteAlbum,
   deleteAlbums,
   deleteAlbumsByPredicate,
+  downloadCoverSuccess,
   findMaUrl,
   findMaUrlSuccess,
   getBandProps,
@@ -42,6 +43,7 @@ import {
 } from './actions';
 import { createNew, createNewSuccess, renameFolder, renameFolderSuccess, viewAlbum } from './album/actions';
 import { Album } from './model';
+import { updateTracks } from './track/actions';
 
 export const ALBUMS_FEATURE_KEY = 'albums';
 
@@ -143,6 +145,9 @@ export const reducer = createReducer(
   on(saveCoverSuccess, (state, { update }) => {
     return adapter.updateOne(update, state);
   }),
+  on(downloadCoverSuccess, (state, { update }) => {
+    return adapter.updateOne(update, state);
+  }),
 
   /** TRACK */
   on(getTracks, (state, { id }) => {
@@ -233,6 +238,18 @@ export const reducer = createReducer(
         map: (album) => ({
           ...album,
           tracks: trackAdapter.updateOne({ id: track.id, changes: { ...track, trackSaving: false } }, album.tracks),
+        }),
+      },
+      state
+    )
+  ),
+  on(updateTracks, (state, { id, updates }) =>
+    adapter.mapOne(
+      {
+        id,
+        map: (album) => ({
+          ...album,
+          tracks: trackAdapter.updateMany(updates, album.tracks),
         }),
       },
       state

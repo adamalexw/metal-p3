@@ -7,8 +7,9 @@ import { Album, Band, Prisma } from '@prisma/client';
 import * as fs from 'fs';
 import { Tags } from 'node-id3';
 import * as path from 'path';
-import { from, Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { forkJoin, from, iif, Observable, of } from 'rxjs';
+import { concatMap, filter, map, take } from 'rxjs/operators';
+import { AlbumGateway } from './album-gateway.service';
 
 @Injectable()
 export class AlbumService {
@@ -16,8 +17,13 @@ export class AlbumService {
     private readonly dbService: DbService,
     private readonly fileSystemService: FileSystemService,
     private readonly trackService: TrackService,
+    private readonly albumGateway: AlbumGateway,
     @Inject('BASE_PATH') private basePath: string
-  ) {}
+  ) {
+    if (basePath) {
+      this.addFileWatcher(basePath);
+    }
+  }
 
   getAlbums(request: { skip?: number; take?: number; criteria?: string }): Observable<AlbumDto[]> {
     let where: Prisma.AlbumWhereInput;
@@ -55,35 +61,47 @@ export class AlbumService {
     };
   }
 
-  async addAlbum(folder: string): Promise<AlbumDto> {
-    this.fileSystemService.moveFilesToTheRoot(folder, folder);
+  private addFileWatcher(basePath: string) {
+    fs.watch(basePath, (eventType, folder) => {
+      if (eventType === 'change') {
+        const fullPath = path.join(this.basePath, folder);
 
-    const files = this.fileSystemService.getFiles(folder);
-
-    for (let index = 0; index < files.length; index++) {
-      const file = files[index];
-      if (path.extname(file) == '.mp3') {
-        const tags = this.trackService.getTags(path.join(folder, file));
-
-        if (tags.artist) {
-          const bands = await this.dbService.bands({ Name: tags.artist });
-          let band: Band;
-
-          if (!bands?.length) {
-            band = await this.dbService.createBand({ Name: tags.artist });
-          } else {
-            band = bands && bands[0];
+        if (fs.existsSync(fullPath) && this.fileSystemService.isFolder(fullPath)) {
+          if (this.albumGateway.newAlbums.indexOf(folder) === -1) {
+            this.albumGateway.newAlbums.push(folder);
+            this.albumGateway.albumAddedMessage(folder);
           }
-
-          const data = this.mapTagsToAlbum(path.basename(folder), tags, band);
-          const newAlbum = await this.dbService.createAlbum(data);
-
-          return this.mapAlbumToAlbumDto(newAlbum);
         }
-
-        break;
       }
-    }
+    });
+  }
+
+  addAlbum(folder: string): Observable<AlbumDto> {
+    const dirName = this.fileSystemService.getFilename(folder);
+    return this.getAlbums({ take: 1, criteria: dirName }).pipe(
+      take(1),
+      filter((album) => !album.length),
+      map(() => {
+        this.fileSystemService.moveFilesToTheRoot(folder, folder);
+
+        const files = this.fileSystemService.getFiles(folder);
+
+        for (let index = 0; index < files.length; index++) {
+          const file = files[index];
+          if (path.extname(file) == '.mp3') {
+            const tags = this.trackService.getTags(path.join(folder, file));
+
+            return tags;
+          }
+        }
+      }),
+      filter((tags) => !!tags?.artist),
+      concatMap((tags) => forkJoin([of(tags), from(this.dbService.bands({ Name: tags.artist }))])),
+      concatMap(([tags, bands]) => forkJoin([of(tags), iif(() => !!bands.length, of(bands[0]), from(this.dbService.createBand({ Name: tags.artist })))])),
+      map(([tags, band]) => this.mapTagsToAlbum(path.basename(folder), tags, band)),
+      concatMap((data) => from(this.dbService.createAlbum(data))),
+      map((newAlbum) => this.mapAlbumToAlbumDto(newAlbum))
+    );
   }
 
   private mapTagsToAlbum(folder: string, tags: Tags, band: Band): Prisma.AlbumCreateInput {

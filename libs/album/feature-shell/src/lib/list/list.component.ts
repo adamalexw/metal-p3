@@ -1,4 +1,6 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, OnInit, Output } from '@angular/core';
+import { Router } from '@angular/router';
+import { AlbumWsService } from '@metal-p3/album/data-access';
 import { SearchRequest } from '@metal-p3/album/domain';
 import { Track } from '@metal-p3/api-interfaces';
 import { addTracksToPlaylist, clearPlaylist, selectPlaylist } from '@metal-p3/player/data-access';
@@ -20,7 +22,6 @@ import {
   transferTrack,
   viewAlbum,
 } from '@metal-p3/shared/data-access';
-import { NotificationService } from '@metal-p3/shared/feedback';
 import { mapTrackToPlaylistItem } from '@metal-p3/shared/utils';
 import { UntilDestroy } from '@ngneat/until-destroy';
 import { select, Store } from '@ngrx/store';
@@ -46,7 +47,7 @@ export class ListComponent implements OnInit {
   @Output()
   readonly openAlbum = new EventEmitter<number>();
 
-  constructor(private readonly store: Store, private notificationService: NotificationService) {}
+  constructor(private readonly store: Store, private router: Router, private readonly ws: AlbumWsService) {}
 
   ngOnInit(): void {
     this.albumsLoaded$
@@ -55,6 +56,11 @@ export class ListComponent implements OnInit {
         take(1),
         tap(() => this.store.dispatch(loadAlbums({ request: { take: '10' } })))
       )
+      .subscribe();
+
+    this.ws
+      .albumAdded()
+      .pipe(tap((folder) => this.onAlbumAdded([folder])))
       .subscribe();
   }
 
@@ -127,5 +133,10 @@ export class ListComponent implements OnInit {
 
   onCreateNew() {
     this.store.dispatch(createNew());
+  }
+
+  onOpenAlbum(id: number) {
+    this.store.dispatch(viewAlbum({ id }));
+    this.router.navigate(['album', id]);
   }
 }

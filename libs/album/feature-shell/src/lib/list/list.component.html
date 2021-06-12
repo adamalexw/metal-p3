@@ -11,7 +11,7 @@
     <div class="p-2" *ngFor="let album of albums$ | async; trackBy: identify">
       <app-list-item
         [album]="album"
-        (openAlbum)="openAlbum.emit($event)"
+        (openAlbum)="onOpenAlbum($event)"
         (getCover)="onGetCover(album.id, album.folder)"
         (renameFolder)="onRenameFolder(album.id, album.fullPath, album.artist, album.album)"
         (transferAlbum)="onTransferAlbum(album.id, album.folder)"

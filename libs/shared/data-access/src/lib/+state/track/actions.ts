@@ -12,6 +12,7 @@ export const renameTrack = createAction('[Tracks] Rename Track', props<{ id: num
 export const renameTrackSuccess = createAction('[Tracks] Rename Track Success', props<{ id: number; track: Track }>());
 export const transferTrack = createAction('[Tracks] Transfer Track', props<{ id: number; trackId: number }>());
 export const transferTrackSuccess = createAction('[Tracks] Transfer Track Success', props<{ id: number; track: Track }>());
+export const updateTracks = createAction('[Tracks] Update Tracks Success', props<{ id: number; updates: Update<Track>[] }>());
 
 export const getMaTracks = createAction('[Tracks] Get MA Tracks', props<{ id: number; url: string }>());
 export const getMaTracksSuccess = createAction('[Tracks] Get MA Tracks Success', props<{ id: number; maTracks: MetalArchivesAlbumTrack[] }>());

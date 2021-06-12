@@ -1,15 +1,18 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { Inject, Injectable } from '@angular/core';
-import { AlbumService } from '@metal-p3/album/data-access';
+import { AlbumService, AlbumWsService } from '@metal-p3/album/data-access';
 import { BASE_PATH } from '@metal-p3/album/domain';
-import { MetalArchivesSearchResponse } from '@metal-p3/api-interfaces';
+import { MetalArchivesSearchResponse, Track } from '@metal-p3/api-interfaces';
 import { extractUrl } from '@metal-p3/shared/utils';
 import { WINDOW } from '@ng-web-apis/common';
-import { Actions, createEffect, ofType } from '@ngrx/effects';
-import { Store } from '@ngrx/store';
+import { Actions, concatLatestFrom, createEffect, ofType } from '@ngrx/effects';
+import { Update } from '@ngrx/entity';
+import { select, Store } from '@ngrx/store';
 import { EMPTY, of, throwError } from 'rxjs';
-import { catchError, filter, map, mergeMap } from 'rxjs/operators';
+import { catchError, filter, map, mergeMap, tap } from 'rxjs/operators';
 import { Album, AlbumDtoToAlbum } from '../model';
+import { selectTracks } from '../selectors';
+import { updateTracks } from '../track/actions';
 import {
   addAlbum,
   addNewAlbum,
@@ -65,6 +68,7 @@ export class AlbumEffects {
       ofType(addNewAlbum),
       mergeMap(({ folder }) =>
         this.service.addNewAlbum(`${this.basePath}/${folder}`).pipe(
+          tap(() => this.ws.albumAddedComplete(folder)),
           map((album) => AlbumDtoToAlbum(album) as Album),
           map((album) => addAlbum({ album })),
           catchError((error) => {
@@ -142,6 +146,20 @@ export class AlbumEffects {
     )
   );
 
+  renameFolderSuccess$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(renameFolderSuccess),
+      map(({ update }) => ({ id: update.id, fullPath: update.changes.fullPath })),
+      concatLatestFrom(() => this.store.pipe(select(selectTracks))),
+      filter(([{ id, fullPath }, tracks]) => !!tracks),
+      map(([{ id, fullPath }, tracks]) => {
+        const updates = (tracks || []).map((track) => ({ id: track.id, changes: { folder: fullPath, fullPath: `${fullPath}/${track.file}` } })) as Update<Track>[];
+
+        return updateTracks({ id: +id, updates });
+      })
+    )
+  );
+
   createNew$ = createEffect(() =>
     this.actions$.pipe(
       ofType(createNew),
@@ -163,5 +181,12 @@ export class AlbumEffects {
     )
   );
 
-  constructor(private actions$: Actions, private service: AlbumService, private store: Store, @Inject(WINDOW) readonly windowRef: Window, @Inject(BASE_PATH) private readonly basePath: string) {}
+  constructor(
+    private actions$: Actions,
+    private service: AlbumService,
+    private ws: AlbumWsService,
+    private store: Store,
+    @Inject(WINDOW) readonly windowRef: Window,
+    @Inject(BASE_PATH) private readonly basePath: string
+  ) {}
 }

@@ -135,7 +135,7 @@ export class AlbumComponent implements OnChanges {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes.album && changes.album.currentValue && !changes.album.previousValue) {
+    if (changes.album && changes.album.currentValue && (changes.album.previousValue ? changes.album.currentValue.id !== changes.album.previousValue.id : !changes.album.previousValue)) {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { tracks, maTracks, ...rest } = changes.album.currentValue;
       this.patchForm(rest);

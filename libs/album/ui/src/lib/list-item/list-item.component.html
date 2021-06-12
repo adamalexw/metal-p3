@@ -6,7 +6,7 @@
     >
   </mat-card-header>
 
-  <div [routerLink]="['album', album.id]">
+  <div (click)="openAlbum.emit(album.id)" class="cursor-pointer">
     <app-cover [cover]="album.cover" [loading]="album.coverLoading || false"></app-cover>
   </div>
 

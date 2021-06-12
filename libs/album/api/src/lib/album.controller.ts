@@ -42,7 +42,7 @@ export class AlbumController {
   }
 
   @Post()
-  post(@Body() body: { folder: string }): Promise<AlbumDto> {
+  post(@Body() body: { folder: string }): Observable<AlbumDto> {
     return this.albumService.addAlbum(body.folder);
   }
 

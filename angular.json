@@ -76,7 +76,7 @@
                 {
                   "type": "initial",
                   "maximumWarning": "2mb",
-                  "maximumError": "5mb"
+                  "maximumError": "10mb"
                 },
                 {
                   "type": "anyComponentStyle",
@@ -95,7 +95,8 @@
           },
           "configurations": {
             "production": {
-              "browserTarget": "ui:build:production"
+              "browserTarget": "ui:build:production",
+              "proxyConfig": "apps/ui/proxy.conf.json"
             }
           }
         },

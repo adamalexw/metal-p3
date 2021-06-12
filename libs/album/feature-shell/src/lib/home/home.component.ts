@@ -14,5 +14,7 @@ export class HomeComponent {
 
   sideNavOpen$ = this.store.pipe(select(sideNavOpen));
 
+  opened = true;
+
   constructor(private store: Store) {}
 }

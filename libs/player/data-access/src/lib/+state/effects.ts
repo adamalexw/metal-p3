@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { select, Store } from '@ngrx/store';
-import { map, tap, withLatestFrom } from 'rxjs/operators';
+import { map, withLatestFrom } from 'rxjs/operators';
 import { addTracksToPlaylist, noopPlaylist, pauseItem, playItem, playNext, playPrevious, updatePlaylist, updatePlaylistItem } from './actions';
 import { selectActiveItemIndex, selectActivePlaylistItem, selectPlaylist } from './selectors';
 
@@ -53,7 +53,6 @@ export class PlayerEffects {
     this.actions$.pipe(
       ofType(addTracksToPlaylist),
       withLatestFrom(this.store.pipe(select(selectActivePlaylistItem))),
-      tap(([{ tracks }, item]) => console.log(tracks, item)),
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       map(([{ tracks }, item]) => (item?.playing || item?.paused ? noopPlaylist() : playItem({ id: tracks[0]?.id })))
     )
