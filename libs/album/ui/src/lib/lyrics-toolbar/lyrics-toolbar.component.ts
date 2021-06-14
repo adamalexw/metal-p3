@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { Location } from '@angular/common';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
 
 @Component({
   selector: 'app-lyrics-toolbar',
@@ -6,13 +7,16 @@ import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnInit, Output
   styleUrls: ['./lyrics-toolbar.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class LyricsToolbarComponent implements OnInit {
+export class LyricsToolbarComponent {
   @Input()
   applying = false;
 
   @Output()
   apply = new EventEmitter<void>();
-  constructor() {}
 
-  ngOnInit(): void {}
+  constructor(private location: Location) {}
+
+  onClose() {
+    this.location.back();
+  }
 }

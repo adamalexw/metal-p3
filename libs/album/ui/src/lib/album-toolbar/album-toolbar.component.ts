@@ -17,6 +17,9 @@ export class AlbumToolbarComponent {
   renamingFolder = false;
 
   @Input()
+  trackTransferring = false;
+
+  @Input()
   folder = '';
 
   @Output()

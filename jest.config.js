@@ -29,6 +29,6 @@ module.exports = {
     '<rootDir>/libs/player/feature-shell',
     '<rootDir>/libs/player/data-access',
     '<rootDir>/libs/player/ui',
-    '<rootDir>/libs/player/domain',
+    '<rootDir>/libs/player/domain'
   ],
 };

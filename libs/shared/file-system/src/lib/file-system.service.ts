@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { exec } from 'child_process';
-import { lstatSync, readdirSync, renameSync, rmdirSync, statSync } from 'fs';
+import { chmodSync, lstatSync, readdirSync, renameSync, rmdirSync, statSync } from 'fs';
 import { basename, dirname, join } from 'path';
 
 @Injectable()
@@ -46,6 +46,10 @@ export class FileSystemService {
 
   getFileStats(file: string) {
     return statSync(file);
+  }
+
+  setReadAndWritePermission(file: string) {
+    chmodSync(file, this.getFileStats(file).mode | 0o666);
   }
 
   moveFilesToTheRoot(folder: string, rootFolder: string) {

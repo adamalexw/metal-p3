@@ -14,7 +14,7 @@
   <button mat-icon-button (click)="openFolder.emit()">
     <mat-icon title="open folder">folder</mat-icon>
   </button>
-  <button mat-icon-button (click)="transfer.emit()">
+  <button mat-icon-button [disabled]="trackTransferring" (click)="transfer.emit()">
     <mat-icon title="transfer">adb</mat-icon>
   </button>
 

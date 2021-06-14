@@ -1,1 +1,10 @@
-<app-lyrics [maTracks]="maTracks$ | async" [tracks]="tracks$ | async" (applyLyrics)="onApply($event.id, $event.lyrics)"> </app-lyrics>
+<app-lyrics
+  [albumId]="albumId$ | async"
+  [lyricsLoadingProgress]="lyricsLoadingProgress$ | async"
+  [maTracks]="maTracks$ | async"
+  [tracks]="tracks$ | async"
+  [applying]="applying$ | async"
+  [applyingProgress]="applyingProgress$ | async"
+  (applyLyrics)="onApply($event.id, $event.lyrics)"
+>
+</app-lyrics>

@@ -2,6 +2,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
 import { ApplyLyrics, BASE_PATH, SearchRequest } from '@metal-p3/album/domain';
 import { AlbumDto, BandProps, MetalArchivesSearchResponse, RenameFolder, Track } from '@metal-p3/api-interfaces';
+import { Socket } from 'ngx-socket-io';
 import { Observable } from 'rxjs';
 
 @Injectable({
@@ -10,7 +11,7 @@ import { Observable } from 'rxjs';
 export class AlbumService {
   readonly baseUrl = '/api/album';
 
-  constructor(private http: HttpClient, @Inject(BASE_PATH) private readonly basePath: string) {}
+  constructor(private http: HttpClient, @Inject(BASE_PATH) private readonly basePath: string, private socket: Socket) {}
 
   getFolders(): Observable<string[]> {
     return this.http.get<string[]>(`/api/folders?folder=${this.basePath}`);
@@ -38,6 +39,14 @@ export class AlbumService {
 
   saveAlbum(album: AlbumDto): Observable<never> {
     return this.http.patch<never>(this.baseUrl, album);
+  }
+
+  setHasLyrics(id: number, hasLyrics: boolean): Observable<never> {
+    return this.http.patch<never>(`${this.baseUrl}/setHasLyrics?id=${id}&hasLyrics=${hasLyrics}`, {});
+  }
+
+  setTransferred(id: number, transferred: boolean): Observable<never> {
+    return this.http.patch<never>(`${this.baseUrl}/setTransferred?id=${id}&transferred=${transferred}`, {});
   }
 
   findMaUrl(artist: string, album: string): Observable<MetalArchivesSearchResponse> {
@@ -68,11 +77,11 @@ export class AlbumService {
     return this.http.get<BandProps>(`/api/band/props?url=${encodeURIComponent(url)}`);
   }
 
-  transferTrack(file: string): Observable<never> {
-    return this.http.get<never>(`/api/track/transferTrack?file=${file}`);
-  }
-
   createAlbumFromRootFiles(): Observable<string[]> {
     return this.http.get<string[]>(`${this.baseUrl}/createAlbumFromRootFiles?folder=${encodeURIComponent(this.basePath)}`);
+  }
+
+  albumAdded(): Observable<string> {
+    return this.socket.fromEvent('albumAdded');
   }
 }

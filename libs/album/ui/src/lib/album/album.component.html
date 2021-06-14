@@ -4,6 +4,7 @@
       [saving]="albumSaving"
       [findingUrl]="findingUrl"
       [renamingFolder]="renamingFolder"
+      [trackTransferring]="trackTransferring"
       [folder]="album?.folder"
       (save)="onSave()"
       (imageSearch)="onImageSearch()"
@@ -14,9 +15,14 @@
       (closeAlbum)="closeAlbum.emit()"
     ></app-album-toolbar>
   </nav>
+
+  <ng-container *ngIf="trackSavingProgress || trackTransferringProgress || trackRenamingProgress as progress">
+    <mat-progress-bar class="w-full h-3" mode="determinate" [value]="progress"> </mat-progress-bar>
+  </ng-container>
+
   <form [formGroup]="form" autocomplete="off">
     <section class="flex flex-row">
-      <app-cover [loading]="coverLoading" [cover]="album.cover" width="500" height="500" (coverUrl)="coverUrl.emit({ id: album.id, url: $event })"></app-cover>
+      <app-cover [loading]="coverLoading" [cover]="album.cover" [coverError]="album.coverError" width="500" height="500" (coverUrl)="coverUrl.emit({ id: album.id, url: $event })"></app-cover>
       <mat-list class="m-2 summary-list">
         <mat-list-item class="mb-2">
           <mat-form-field class="w-full">
@@ -75,8 +81,9 @@
 
     <section>
       <app-tracks-toolbar
-        [renamingTracks]="renamingTracks"
-        [gettingLyrics]="gettingLyrics"
+        [trackRenaming]="trackRenaming"
+        [lyricsLoading]="lyricsLoading"
+        [enableLyrics]="!!albumUrl"
         (maTracks)="onMaTracks()"
         (renameTracks)="onRenameTracks()"
         (lyrics)="onLyrics()"

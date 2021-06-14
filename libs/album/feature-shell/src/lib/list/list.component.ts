@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, OnInit, Output } from '@angular/core';
 import { Router } from '@angular/router';
-import { AlbumWsService } from '@metal-p3/album/data-access';
+import { AlbumService } from '@metal-p3/album/data-access';
 import { SearchRequest } from '@metal-p3/album/domain';
 import { Track } from '@metal-p3/api-interfaces';
 import { addTracksToPlaylist, clearPlaylist, selectPlaylist } from '@metal-p3/player/data-access';
@@ -15,6 +15,7 @@ import {
   renameFolder,
   selectAlbums,
   selectAlbumsLoaded,
+  selectAlbumsLoadError,
   selectAlbumsLoading,
   selectCreatingNew,
   selectTracks,
@@ -22,11 +23,12 @@ import {
   transferTrack,
   viewAlbum,
 } from '@metal-p3/shared/data-access';
+import { NotificationService } from '@metal-p3/shared/feedback';
 import { mapTrackToPlaylistItem } from '@metal-p3/shared/utils';
-import { UntilDestroy } from '@ngneat/until-destroy';
+import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { select, Store } from '@ngrx/store';
 import { Observable } from 'rxjs';
-import { filter, map, take, tap } from 'rxjs/operators';
+import { delay, filter, map, take, tap } from 'rxjs/operators';
 
 @UntilDestroy()
 @Component({
@@ -38,6 +40,8 @@ import { filter, map, take, tap } from 'rxjs/operators';
 export class ListComponent implements OnInit {
   albumsLoading$ = this.store.pipe(select(selectAlbumsLoading));
   albumsLoaded$ = this.store.pipe(select(selectAlbumsLoaded));
+  albumsLoadError$ = this.store.pipe(select(selectAlbumsLoadError));
+
   albums$ = this.store.pipe(select(selectAlbums));
 
   showPlayer$ = this.store.pipe(select(selectPlaylist)).pipe(map((playlist) => playlist?.length));
@@ -47,20 +51,32 @@ export class ListComponent implements OnInit {
   @Output()
   readonly openAlbum = new EventEmitter<number>();
 
-  constructor(private readonly store: Store, private router: Router, private readonly ws: AlbumWsService) {}
+  constructor(private readonly store: Store, private router: Router, private notificationService: NotificationService, private readonly service: AlbumService) {}
 
   ngOnInit(): void {
     this.albumsLoaded$
       .pipe(
         filter((loaded) => !loaded),
         take(1),
-        tap(() => this.store.dispatch(loadAlbums({ request: { take: '10' } })))
+        tap(() => this.store.dispatch(loadAlbums({ request: { take: '24' } })))
       )
       .subscribe();
 
-    this.ws
+    this.albumsLoadError$
+      .pipe(
+        filter((error) => !!error),
+        tap((error: string) => this.notificationService.showError(error, 'Load Albums')),
+        untilDestroyed(this)
+      )
+      .subscribe();
+
+    this.service
       .albumAdded()
-      .pipe(tap((folder) => this.onAlbumAdded([folder])))
+      .pipe(
+        delay(2000),
+        tap((folder) => this.onAlbumAdded([folder])),
+        untilDestroyed(this)
+      )
       .subscribe();
   }
 

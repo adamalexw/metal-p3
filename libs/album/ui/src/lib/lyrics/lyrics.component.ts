@@ -10,7 +10,7 @@ import { MetalArchivesAlbumTrack, Track } from '@metal-p3/api-interfaces';
 })
 export class LyricsComponent implements OnChanges {
   @Input()
-  albumId: number | undefined;
+  albumId!: number;
 
   @Input()
   tracks: Track[] = [];
@@ -23,6 +23,15 @@ export class LyricsComponent implements OnChanges {
 
   @Input()
   maTracksLoading = false;
+
+  @Input()
+  lyricsLoadingProgress = 0;
+
+  @Input()
+  applyingProgress = 0;
+
+  @Input()
+  applying = false;
 
   @Output()
   applyLyrics = new EventEmitter<{ id: number; lyrics: ApplyLyrics[] }>();
@@ -49,13 +58,13 @@ export class LyricsComponent implements OnChanges {
       return { ...track, maTrack };
     }
 
-    maTrack = maTracks.find((item) => item.trackNumber === track.trackNumber);
+    maTrack = maTracks.find((item) => Number(item.trackNumber) === Number(track.trackNumber));
 
     if (maTrack) {
       return { ...track, maTrack };
     }
 
-    return track;
+    return { ...track, maTrack: maTracks[0] };
   }
 
   onApply() {

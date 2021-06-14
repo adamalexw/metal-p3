@@ -1,9 +1,14 @@
-<ng-container *ngIf="tracksLoading || maTracksLoading; else lyricsTemplate">
-  <mat-spinner></mat-spinner>
+<ng-container *ngIf="tracksLoading || maTracksLoading || lyricsLoadingProgress; else lyricsTemplate">
+  <mat-progress-bar class="w-full h-3" [mode]="lyricsLoadingProgress ? 'determinate' : 'indeterminate'" [value]="lyricsLoadingProgress"> </mat-progress-bar>
+  <h3>Loading Lyrics</h3>
 </ng-container>
 
 <ng-template #lyricsTemplate>
-  <app-lyrics-toolbar (apply)="onApply()"></app-lyrics-toolbar>
+  <app-lyrics-toolbar [applying]="applying" (apply)="onApply()"></app-lyrics-toolbar>
+
+  <ng-container *ngIf="applyingProgress">
+    <mat-progress-bar class="w-full h-3" mode="determinate" [value]="applyingProgress"> </mat-progress-bar>
+  </ng-container>
 
   <mat-table [dataSource]="dataSource">
     <ng-container matColumnDef="trackNumber">

@@ -64,7 +64,7 @@ export class TrackService {
     return track.no.toString().padStart(2, '0');
   }
 
-  saveTrack(track: Track): void {
+  saveTrack(track: Track): boolean | Error {
     let baseTags: Partial<Tags> = {
       album: track.album,
       artist: track.artist,
@@ -99,7 +99,15 @@ export class TrackService {
     }
 
     const tags = this.mapTrackToTags(track, baseTags);
-    this.updateTrack(tags, track.fullPath);
+
+    const result = this.updateTrack(tags, track.fullPath);
+
+    if (result instanceof Error) {
+      this.fileSystemService.setReadAndWritePermission(track.fullPath);
+      return this.updateTrack(tags, track.fullPath);
+    }
+
+    return result;
   }
 
   private mapTrackToTags(track: Track, baseTags: Tags): Tags {
@@ -107,8 +115,8 @@ export class TrackService {
     return tags;
   }
 
-  updateTrack(tags: Tags, location: string) {
-    update(tags, location);
+  updateTrack(tags: Tags, location: string): boolean | Error {
+    return update(tags, location);
   }
 
   renameTrack(track: Track): string {

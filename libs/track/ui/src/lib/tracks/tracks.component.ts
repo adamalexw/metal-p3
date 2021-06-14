@@ -1,7 +1,10 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { AbstractControl, FormArray, FormBuilder, FormGroup } from '@angular/forms';
+import { MatBottomSheet } from '@angular/material/bottom-sheet';
 import { MatTableDataSource } from '@angular/material/table';
 import { Track } from '@metal-p3/api-interfaces';
+import { filter, take, tap } from 'rxjs/operators';
+import { LyricsComponent } from '../lyrics/lyrics.component';
 
 @Component({
   selector: 'app-tracks',
@@ -28,12 +31,12 @@ export class TracksComponent implements OnChanges {
   @Output()
   addTrackToPlaylist = new EventEmitter<Track>();
 
-  displayedColumns = ['trackNumber', 'title', 'duration', 'bitrate', 'lyrics', 'trackSaving'];
+  displayedColumns = ['trackNumber', 'title', 'duration', 'bitrate', 'lyrics'];
   dataSource: MatTableDataSource<AbstractControl> = new MatTableDataSource();
 
   private tracksArray: FormArray = new FormArray([]);
 
-  constructor(private fb: FormBuilder) {}
+  constructor(private fb: FormBuilder, private bottomSheet: MatBottomSheet) {}
 
   ngOnChanges(changes: SimpleChanges): void {
     if (this.form && changes.tracks && this.tracks?.length) {
@@ -65,11 +68,24 @@ export class TracksComponent implements OnChanges {
       lyrics: [track.lyrics],
       folder: [track.folder],
       fullPath: [track.fullPath],
-      trackSaving: [track.trackSaving],
     });
   }
 
-  viewLyrics(lyrics: string) {}
+  viewLyrics(index: number, lyrics: string) {
+    const ref = this.bottomSheet.open(LyricsComponent, {
+      data: { lyrics },
+      panelClass: ['h-screen', 'pr-0'],
+    });
+
+    ref
+      .afterDismissed()
+      .pipe(
+        take(1),
+        filter((newLyrics) => newLyrics !== undefined),
+        tap((newLyrics) => this.tracksArray.at(index)?.get('lyrics')?.setValue(newLyrics))
+      )
+      .subscribe();
+  }
 
   onPlayTrack(id: number) {
     this.playTrack.emit(this.tracks.find((t) => t.id === id));

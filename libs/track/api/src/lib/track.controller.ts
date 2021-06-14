@@ -19,9 +19,8 @@ export class TrackController {
   }
 
   @Patch()
-  @HttpCode(HttpStatus.ACCEPTED)
-  patch(@Body() track: Track): void {
-    this.trackService.saveTrack(track);
+  patch(@Body() track: Track): boolean | Error {
+    return this.trackService.saveTrack(track);
   }
 
   @Patch('rename')

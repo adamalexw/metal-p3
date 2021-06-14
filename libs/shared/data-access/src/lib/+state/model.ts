@@ -7,13 +7,13 @@ export interface Album extends AlbumDto {
   tracks: EntityState<Track>;
   tracksLoading?: boolean;
   coverLoading?: boolean;
+  coverError?: string;
   findingUrl?: boolean;
   saving?: boolean;
   savingCover?: boolean;
-  renamingTracks?: boolean;
   renamingFolder?: boolean;
+  renamingFolderError?: string;
   refreshing?: boolean;
-  gettingLyrics?: boolean;
   gettingMaTracks?: boolean;
   maTracks: EntityState<MetalArchivesAlbumTrack>;
 }

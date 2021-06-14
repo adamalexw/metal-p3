@@ -1,6 +1,21 @@
 import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
 import { ApplyLyrics } from '@metal-p3/album/domain';
-import { getAlbum, getLyrics, getMaTracks, getTracks, saveTrack, selectAlbum, selectGettingMaTracks, selectMaTracks, selectRouteParams, selectTracks } from '@metal-p3/shared/data-access';
+import {
+  getAlbum,
+  getLyrics,
+  getMaTracks,
+  getTracks,
+  saveTrack,
+  selectAlbum,
+  selectAlbumSaving,
+  selectGettingMaTracks,
+  selectLyricsLoadingProgress,
+  selectMaTracks,
+  selectRouteParams,
+  selectTracks,
+  selectTrackSavingProgress,
+  setHasLyrics,
+} from '@metal-p3/shared/data-access';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { select, Store } from '@ngrx/store';
 import { combineLatest } from 'rxjs';
@@ -15,11 +30,19 @@ import { filter, map, take, tap, withLatestFrom } from 'rxjs/operators';
 })
 export class LyricsShellComponent implements OnInit {
   album$ = this.store.pipe(select(selectAlbum));
+  albumId$ = this.store.pipe(
+    select(selectRouteParams),
+    filter((params) => params?.id),
+    map((params) => params.id)
+  );
 
   gettingMaTracks$ = this.store.pipe(select(selectGettingMaTracks));
+  lyricsLoadingProgress$ = this.store.pipe(select(selectLyricsLoadingProgress));
 
   tracks$ = this.store.pipe(select(selectTracks));
   maTracks$ = this.store.pipe(select(selectMaTracks));
+  applying$ = this.store.pipe(select(selectAlbumSaving));
+  applyingProgress$ = this.store.pipe(select(selectTrackSavingProgress));
 
   constructor(private readonly store: Store) {}
 
@@ -33,8 +56,8 @@ export class LyricsShellComponent implements OnInit {
         untilDestroyed(this),
         filter((album) => !album),
         take(1),
-        withLatestFrom(this.store.pipe(select(selectRouteParams))),
-        filter(([_id, params]) => params?.id),
+        withLatestFrom(this.albumId$),
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         tap(([_id, params]) => this.store.dispatch(getAlbum({ id: params.id })))
       )
       .subscribe();
@@ -62,10 +85,9 @@ export class LyricsShellComponent implements OnInit {
     this.maTracks$
       .pipe(
         filter((maTracks) => !!maTracks),
-        withLatestFrom(this.store.pipe(select(selectRouteParams))),
-        filter(([_maTracks, params]) => params?.id),
+        withLatestFrom(this.albumId$),
         tap(([maTracks, params]) => {
-          maTracks?.filter((track) => !track.lyrics && track.hasLyrics).forEach((track) => this.store.dispatch(getLyrics({ id: params?.id, trackId: track.id })));
+          maTracks?.filter((track) => !track.hasLyrics && !track.lyricsLoading).forEach((track) => this.store.dispatch(getLyrics({ id: params?.id, trackId: track.id })));
         }),
         take(1)
       )
@@ -78,6 +100,8 @@ export class LyricsShellComponent implements OnInit {
         this.store.dispatch(saveTrack({ id, track: { ...track, lyrics: this.formatLyrics(track.maTrack.lyrics) } }));
       }
     });
+
+    this.store.dispatch(setHasLyrics({ id, hasLyrics: true }));
   }
 
   private formatLyrics(lyrics: string): string {

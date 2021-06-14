@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, EventEmitter, Inject, Input, OnChan
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { AlbumDto, BandProps, MetalArchivesAlbumTrack, MetalArchivesUrl, Track } from '@metal-p3/api-interfaces';
 import { Album, AlbumWithoutTracks } from '@metal-p3/shared/data-access';
+import { NotificationService } from '@metal-p3/shared/feedback';
 import { WINDOW } from '@ng-web-apis/common';
 
 @Component({
@@ -24,6 +25,9 @@ export class AlbumComponent implements OnChanges {
   tracksLoading = false;
 
   @Input()
+  trackSavingProgress = 0;
+
+  @Input()
   coverLoading = false;
 
   @Input()
@@ -42,13 +46,28 @@ export class AlbumComponent implements OnChanges {
   maTracks: MetalArchivesAlbumTrack[] = [];
 
   @Input()
-  renamingTracks = false;
+  trackRenaming = false;
+
+  @Input()
+  trackRenamingProgress = 0;
+
+  @Input()
+  trackTransferring = false;
+
+  @Input()
+  trackTransferringProgress = 0;
 
   @Input()
   renamingFolder = false;
 
   @Input()
-  gettingLyrics = false;
+  renamingFolderError: string | undefined;
+
+  @Input()
+  lyricsLoading = false;
+
+  @Input()
+  lyricsLoadingProgress = false;
 
   @Input()
   gettingBandProps = false;
@@ -120,7 +139,7 @@ export class AlbumComponent implements OnChanges {
 
   form: FormGroup;
 
-  constructor(fb: FormBuilder, @Inject(WINDOW) readonly windowRef: Window) {
+  constructor(fb: FormBuilder, @Inject(WINDOW) readonly windowRef: Window, private notificationService: NotificationService) {
     this.form = fb.group({
       artist: [],
       album: [],
@@ -147,6 +166,10 @@ export class AlbumComponent implements OnChanges {
 
     if (changes.bandProps && this.bandProps) {
       this.setBandProps(this.bandProps);
+    }
+
+    if (changes.renamingFolderError && this.renamingFolderError) {
+      this.notificationService.showError(this.renamingFolderError, 'Rename Folder');
     }
   }
 

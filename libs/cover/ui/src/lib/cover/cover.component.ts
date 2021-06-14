@@ -14,6 +14,9 @@ export class CoverComponent {
   cover: string | undefined;
 
   @Input()
+  coverError: string | undefined;
+
+  @Input()
   width = 250;
 
   @Input()

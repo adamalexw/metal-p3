@@ -30,7 +30,7 @@ export class ListItemComponent implements OnChanges {
   readonly addToPlaylist = new EventEmitter<void>();
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes.album && this.album && !this.album.coverLoading && !this.album.cover) {
+    if (changes.album && this.album && !this.album.coverLoading && !this.album.cover && !this.album.coverError) {
       this.getCover.emit();
     }
   }

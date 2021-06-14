@@ -4,11 +4,12 @@ import { FileSystemService } from '@metal-p3/shared/file-system';
 import { TrackService } from '@metal-p3/track/api';
 import { Inject, Injectable } from '@nestjs/common';
 import { Album, Band, Prisma } from '@prisma/client';
+import * as chokidar from 'chokidar';
 import * as fs from 'fs';
 import { Tags } from 'node-id3';
 import * as path from 'path';
 import { forkJoin, from, iif, Observable, of } from 'rxjs';
-import { concatMap, filter, map, take } from 'rxjs/operators';
+import { concatMap, filter, map } from 'rxjs/operators';
 import { AlbumGateway } from './album-gateway.service';
 
 @Injectable()
@@ -62,24 +63,20 @@ export class AlbumService {
   }
 
   private addFileWatcher(basePath: string) {
-    fs.watch(basePath, (eventType, folder) => {
-      if (eventType === 'change') {
-        const fullPath = path.join(this.basePath, folder);
+    const watcher = chokidar.watch(basePath, {
+      persistent: true,
+      ignoreInitial: true,
+      alwaysStat: false,
+    });
 
-        if (fs.existsSync(fullPath) && this.fileSystemService.isFolder(fullPath)) {
-          if (this.albumGateway.newAlbums.indexOf(folder) === -1) {
-            this.albumGateway.newAlbums.push(folder);
-            this.albumGateway.albumAddedMessage(folder);
-          }
-        }
-      }
+    watcher.on('addDir', (path) => {
+      this.albumGateway.albumAddedMessage(this.fileSystemService.getFilename(path));
     });
   }
 
   addAlbum(folder: string): Observable<AlbumDto> {
     const dirName = this.fileSystemService.getFilename(folder);
     return this.getAlbums({ take: 1, criteria: dirName }).pipe(
-      take(1),
       filter((album) => !album.length),
       map(() => {
         this.fileSystemService.moveFilesToTheRoot(folder, folder);
@@ -126,6 +123,14 @@ export class AlbumService {
 
   async saveAlbum(album: AlbumDto): Promise<void> {
     this.dbService.updateAlbum({ where: { AlbumId: album.id }, data: this.mapAlbumDtoToAlbum(album) });
+  }
+
+  async setHasLyrics(id: number, hasLyrics: boolean): Promise<void> {
+    this.dbService.updateAlbum({ where: { AlbumId: id }, data: { Lyrics: hasLyrics } });
+  }
+
+  async setTransferred(id: number, transferred: boolean): Promise<void> {
+    this.dbService.updateAlbum({ where: { AlbumId: +id }, data: { Transferred: !!transferred, TransferredDate: new Date() } });
   }
 
   private mapAlbumDtoToAlbum(albumDto: AlbumDto): Partial<Album> {

@@ -106,7 +106,7 @@ export class TrackEffects {
       concatLatestFrom(({ id, trackId }) => this.store.select(selectTrack(id, trackId))),
       mergeMap(([{ id }, track]) =>
         this.service.transferTrack(track?.fullPath || '').pipe(
-          map(() => transferTrackSuccess({ id, track: { ...(track as Track), trackTransfering: false } })),
+          map(() => transferTrackSuccess({ id, track: { ...(track as Track), trackTransferring: false } })),
           catchError((error) => {
             console.error(error);
             return EMPTY;

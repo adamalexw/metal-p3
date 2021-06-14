@@ -28,24 +28,31 @@ import {
   selectCoverLoading,
   selectedAlbum,
   selectFindingUrl,
-  selectGettingLyrics,
   selectGettingMaTracks,
+  selectLyricsLoading,
+  selectLyricsLoadingProgress,
   selectMaTracks,
   selectMaUrls,
   selectRenamingFolder,
-  selectRenamingTracks,
+  selectRenamingFolderError,
   selectRouteParams,
+  selectTrackRenaming,
+  selectTrackRenamingProgress,
   selectTracks,
+  selectTrackSavingProgress,
   selectTracksLoading,
   selectTracksRequired,
+  selectTrackTransferring,
+  selectTrackTransferringProgress,
+  setTransferred,
   transferTrack,
   viewAlbum,
 } from '@metal-p3/shared/data-access';
 import { mapTrackToPlaylistItem } from '@metal-p3/shared/utils';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { select, Store } from '@ngrx/store';
-import { combineLatest } from 'rxjs';
-import { filter, map, take, tap, withLatestFrom } from 'rxjs/operators';
+import { combineLatest, of } from 'rxjs';
+import { exhaustMap, filter, map, take, tap, withLatestFrom } from 'rxjs/operators';
 
 @UntilDestroy()
 @Component({
@@ -63,6 +70,7 @@ export class AlbumShellComponent implements OnInit {
 
   tracksLoading$ = this.store.pipe(select(selectTracksLoading));
   tracks$ = this.store.pipe(select(selectTracks));
+  trackSavingProgress$ = this.store.pipe(select(selectTrackSavingProgress));
 
   coverLoading$ = this.store.pipe(select(selectCoverLoading));
   cover$ = this.store.pipe(select(selectCover));
@@ -70,10 +78,17 @@ export class AlbumShellComponent implements OnInit {
   findingUrl$ = this.store.pipe(select(selectFindingUrl));
   maUrls$ = this.store.pipe(select(selectMaUrls));
 
-  renamingTracks$ = this.store.pipe(select(selectRenamingTracks));
-  renamingFolder$ = this.store.pipe(select(selectRenamingFolder));
+  trackRenaming$ = this.store.pipe(select(selectTrackRenaming));
+  trackRenamingProgress$ = this.store.pipe(select(selectTrackRenamingProgress));
 
-  gettingLyrics$ = this.store.pipe(select(selectGettingLyrics));
+  trackTransferring$ = this.store.pipe(select(selectTrackTransferring));
+  trackTransferringProgress$ = this.store.pipe(select(selectTrackTransferringProgress));
+
+  renamingFolder$ = this.store.pipe(select(selectRenamingFolder));
+  renamingFolderError$ = this.store.pipe(select(selectRenamingFolderError));
+
+  lyricsLoading$ = this.store.pipe(select(selectLyricsLoading));
+  lyricsLoadingProgress$ = this.store.pipe(select(selectLyricsLoadingProgress));
 
   gettingMaTracks$ = this.store.pipe(select(selectGettingMaTracks));
   maTracks$ = this.store.pipe(select(selectMaTracks));
@@ -191,20 +206,25 @@ export class AlbumShellComponent implements OnInit {
   }
 
   onLyrics(id: number, url: string): void {
-    this.maTracks$
+    const maTracks$ = this.maTracks$.pipe(
+      untilDestroyed(this),
+      tap((maTracks) => {
+        if (!maTracks) {
+          this.onMaTracks(id, url);
+        }
+      }),
+      filter((maTracks) => !!maTracks),
+      take(1)
+    );
+
+    maTracks$
       .pipe(
-        untilDestroyed(this),
-        tap((maTracks) => {
-          if (!maTracks) {
-            this.onMaTracks(id, url);
-          }
+        exhaustMap((maTracks) => {
+          maTracks?.forEach((track) => this.store.dispatch(getLyrics({ id, trackId: track.id })));
+          return of(maTracks);
         }),
-        filter((maTracks) => !!maTracks),
-        tap((maTracks) => {
-          maTracks?.filter((track) => track.hasLyrics).forEach((track) => this.store.dispatch(getLyrics({ id, trackId: track.id })));
-        }),
-        tap(() => this.router.navigate(['album', 'lyrics', id])),
-        take(1)
+        take(1),
+        tap(() => this.router.navigate(['album', 'lyrics', id]))
       )
       .subscribe();
   }
@@ -240,6 +260,8 @@ export class AlbumShellComponent implements OnInit {
 
   onTransferAlbum(tracks: { id: number; trackId: number }[]) {
     tracks.forEach((track) => this.onTransferTrack(track.id, track.trackId));
+
+    this.store.dispatch(setTransferred({ id: tracks[0].id, transferred: true }));
   }
 
   onTransferTrack(id: number, trackId: number) {

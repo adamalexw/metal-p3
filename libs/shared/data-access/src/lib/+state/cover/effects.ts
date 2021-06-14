@@ -2,12 +2,13 @@
 import { Inject, Injectable } from '@angular/core';
 import { BASE_PATH } from '@metal-p3/album/domain';
 import { CoverService } from '@metal-p3/cover/data-access';
+import { ErrorService } from '@metal-p3/shared/error';
 import { WINDOW } from '@ng-web-apis/common';
 import { Actions, concatLatestFrom, createEffect, ofType } from '@ngrx/effects';
 import { select, Store } from '@ngrx/store';
-import { EMPTY } from 'rxjs';
+import { EMPTY, of } from 'rxjs';
 import { catchError, filter, map, mergeMap, tap } from 'rxjs/operators';
-import { clearCovers, downloadCover, downloadCoverSuccess, getCover, getCoverSuccess, saveCover, saveCoverSuccess } from './actions';
+import { clearCovers, downloadCover, downloadCoverSuccess, getCover, getCoverError, getCoverSuccess, saveCover, saveCoverSuccess } from './actions';
 import { selectBlobCovers } from './selectors';
 
 @Injectable()
@@ -17,11 +18,8 @@ export class CoverEffects {
       ofType(getCover),
       mergeMap(({ id, folder }) =>
         this.service.getCover(`${this.basePath}/${folder}`).pipe(
-          map((cover) => getCoverSuccess({ update: { id, changes: { cover, coverLoading: false } } })),
-          catchError((error) => {
-            console.error(error);
-            return EMPTY;
-          })
+          map((cover) => getCoverSuccess({ update: { id, changes: { cover, coverLoading: false, coverError: undefined } } })),
+          catchError((error) => of(getCoverError({ update: { id, changes: { coverLoading: false, coverError: this.errorService.getError(error) } } })))
         )
       )
     )
@@ -72,5 +70,12 @@ export class CoverEffects {
     )
   );
 
-  constructor(private actions$: Actions, private service: CoverService, private store: Store, @Inject(WINDOW) readonly windowRef: Window, @Inject(BASE_PATH) private readonly basePath: string) {}
+  constructor(
+    private actions$: Actions,
+    private service: CoverService,
+    private store: Store,
+    private errorService: ErrorService,
+    @Inject(WINDOW) readonly windowRef: Window,
+    @Inject(BASE_PATH) private readonly basePath: string
+  ) {}
 }

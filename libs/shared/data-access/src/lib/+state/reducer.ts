@@ -16,6 +16,7 @@ import {
   getBandProps,
   getBandPropsSuccess,
   getCover,
+  getCoverError,
   getCoverSuccess,
   getLyrics,
   getLyricsSuccess,
@@ -41,15 +42,16 @@ import {
   upsertAlbum,
   upsertAlbums,
 } from './actions';
-import { createNew, createNewSuccess, renameFolder, renameFolderSuccess, viewAlbum } from './album/actions';
+import { createNew, createNewSuccess, loadAlbumsError, renameFolder, renameFolderError, renameFolderSuccess, viewAlbum } from './album/actions';
 import { Album } from './model';
-import { updateTracks } from './track/actions';
+import { transferTrack, transferTrackSuccess, updateTracks } from './track/actions';
 
 export const ALBUMS_FEATURE_KEY = 'albums';
 
 export interface AlbumState extends EntityState<Album> {
   loading: boolean;
   loaded: boolean;
+  loadError?: string;
   searchRequest?: SearchRequest;
   error?: HttpErrorResponse | Error;
   creatingNew?: boolean;
@@ -107,8 +109,9 @@ export const reducer = createReducer(
     return { ...state, searchRequest: request, loading: true };
   }),
   on(loadAlbumsSuccess, (state, { albums }) => {
-    return adapter.setAll(albums, { ...state, loading: false, loaded: true });
+    return adapter.setAll(albums, { ...state, loading: false, loaded: true, loadError: undefined });
   }),
+  on(loadAlbumsError, (state, { loadError }) => ({ ...state, loading: false, loaded: false, loadError })),
   on(clearAlbums, (state) => {
     return adapter.removeAll({ ...state, selectedAlbumId: null });
   }),
@@ -130,22 +133,19 @@ export const reducer = createReducer(
   on(createNew, (state) => ({ ...state, creatingNew: true })),
   on(createNewSuccess, (state) => ({ ...state, creatingNew: false })),
   on(renameFolder, (state, { id }) => adapter.updateOne({ id, changes: { renamingFolder: true } }, state)),
-  on(renameFolderSuccess, (state, { update }) => adapter.updateOne(update, state)),
+  on(renameFolderSuccess, renameFolderError, (state, { update }) => adapter.updateOne(update, state)),
 
   /** COVER */
   on(getCover, (state, { id }) => {
     return adapter.updateOne({ id, changes: { coverLoading: true } }, state);
   }),
-  on(getCoverSuccess, (state, { update }) => {
+  on(getCoverSuccess, getCoverError, (state, { update }) => {
     return adapter.updateOne(update, state);
   }),
   on(saveCover, (state, { id }) => {
     return adapter.updateOne({ id: id, changes: { savingCover: true } }, state);
   }),
-  on(saveCoverSuccess, (state, { update }) => {
-    return adapter.updateOne(update, state);
-  }),
-  on(downloadCoverSuccess, (state, { update }) => {
+  on(saveCoverSuccess, downloadCoverSuccess, (state, { update }) => {
     return adapter.updateOne(update, state);
   }),
 
@@ -189,16 +189,25 @@ export const reducer = createReducer(
       state
     )
   ),
-  on(getLyrics, (state, { id }) => {
-    return adapter.updateOne({ id, changes: { gettingLyrics: true } }, state);
-  }),
+  on(getLyrics, (state, { id, trackId }) =>
+    adapter.mapOne(
+      {
+        id,
+        map: (album) => ({
+          ...album,
+          maTracks: maTrackAdapter.updateOne({ id: trackId, changes: { lyricsLoading: true } }, album.maTracks),
+        }),
+      },
+      state
+    )
+  ),
   on(getLyricsSuccess, (state, { id, trackId, lyrics }) =>
     adapter.mapOne(
       {
         id,
         map: (album) => ({
           ...album,
-          maTracks: maTrackAdapter.map((track) => (track.id === trackId ? { ...track, lyrics } : track), album.maTracks),
+          maTracks: maTrackAdapter.map((track) => (track.id === trackId ? { ...track, lyrics, lyricsLoading: false } : track), album.maTracks),
         }),
       },
       state
@@ -225,7 +234,7 @@ export const reducer = createReducer(
         id,
         map: (album) => ({
           ...album,
-          tracks: trackAdapter.updateOne({ id: track.id, changes: { ...track, trackSaving: true } }, album.tracks),
+          tracks: trackAdapter.updateOne({ id: track.id, changes: { ...track, trackRenaming: true } }, album.tracks),
         }),
       },
       state
@@ -237,7 +246,7 @@ export const reducer = createReducer(
         id,
         map: (album) => ({
           ...album,
-          tracks: trackAdapter.updateOne({ id: track.id, changes: { ...track, trackSaving: false } }, album.tracks),
+          tracks: trackAdapter.updateOne({ id: track.id, changes: { ...track, trackRenaming: false } }, album.tracks),
         }),
       },
       state
@@ -250,6 +259,30 @@ export const reducer = createReducer(
         map: (album) => ({
           ...album,
           tracks: trackAdapter.updateMany(updates, album.tracks),
+        }),
+      },
+      state
+    )
+  ),
+  on(transferTrack, (state, { id, trackId }) =>
+    adapter.mapOne(
+      {
+        id,
+        map: (album) => ({
+          ...album,
+          tracks: trackAdapter.updateOne({ id: trackId, changes: { trackTransferring: true } }, album.tracks),
+        }),
+      },
+      state
+    )
+  ),
+  on(transferTrackSuccess, (state, { id, track }) =>
+    adapter.mapOne(
+      {
+        id,
+        map: (album) => ({
+          ...album,
+          tracks: trackAdapter.updateOne({ id: track.id, changes: { trackTransferring: false } }, album.tracks),
         }),
       },
       state

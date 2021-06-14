@@ -28,7 +28,7 @@ export class ListToolbarComponent implements OnInit {
 
   constructor(fb: FormBuilder) {
     this.form = fb.group({
-      take: ['10'],
+      take: ['24'],
       criteria: [],
     });
   }

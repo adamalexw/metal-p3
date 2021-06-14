@@ -1,8 +1,10 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { Inject, Injectable } from '@angular/core';
-import { AlbumService, AlbumWsService } from '@metal-p3/album/data-access';
+import { AlbumService } from '@metal-p3/album/data-access';
 import { BASE_PATH } from '@metal-p3/album/domain';
 import { MetalArchivesSearchResponse, Track } from '@metal-p3/api-interfaces';
+import { ErrorService } from '@metal-p3/shared/error';
+import { NotificationService } from '@metal-p3/shared/feedback';
 import { extractUrl } from '@metal-p3/shared/utils';
 import { WINDOW } from '@ng-web-apis/common';
 import { Actions, concatLatestFrom, createEffect, ofType } from '@ngrx/effects';
@@ -22,11 +24,16 @@ import {
   findMaUrlSuccess,
   getAlbum,
   loadAlbums,
+  loadAlbumsError,
   loadAlbumsSuccess,
   renameFolder,
+  renameFolderError,
   renameFolderSuccess,
   saveAlbum,
   saveAlbumSuccess,
+  setHasLyrics,
+  setTransferred,
+  updateAlbum,
 } from './actions';
 
 @Injectable()
@@ -38,10 +45,7 @@ export class AlbumEffects {
         this.service.getAlbums(request).pipe(
           map((albums) => albums as Album[]),
           map((albums) => loadAlbumsSuccess({ albums })),
-          catchError((error) => {
-            console.error(error);
-            return EMPTY;
-          })
+          catchError((error) => of(loadAlbumsError({ loadError: error })))
         )
       )
     )
@@ -68,7 +72,7 @@ export class AlbumEffects {
       ofType(addNewAlbum),
       mergeMap(({ folder }) =>
         this.service.addNewAlbum(`${this.basePath}/${folder}`).pipe(
-          tap(() => this.ws.albumAddedComplete(folder)),
+          tap((album) => this.notificationService.showInfo(album.folder, 'New Album')),
           map((album) => AlbumDtoToAlbum(album) as Album),
           map((album) => addAlbum({ album })),
           catchError((error) => {
@@ -90,6 +94,36 @@ export class AlbumEffects {
             return rest;
           }),
           map((album) => saveAlbumSuccess({ update: { id: album.id, changes: { ...album, saving: false } } })),
+          catchError((error) => {
+            console.error(error);
+            return EMPTY;
+          })
+        )
+      )
+    )
+  );
+
+  setHasLyrics$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(setHasLyrics),
+      mergeMap(({ id, hasLyrics }) =>
+        this.service.setHasLyrics(id, hasLyrics).pipe(
+          map(() => updateAlbum({ update: { id, changes: { hasLyrics } } })),
+          catchError((error) => {
+            console.error(error);
+            return EMPTY;
+          })
+        )
+      )
+    )
+  );
+
+  setTransferred$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(setTransferred),
+      mergeMap(({ id, transferred }) =>
+        this.service.setTransferred(id, transferred).pipe(
+          map(() => updateAlbum({ update: { id, changes: { transferred } } })),
           catchError((error) => {
             console.error(error);
             return EMPTY;
@@ -136,11 +170,8 @@ export class AlbumEffects {
       map(({ id, src, artist, album }) => ({ id, src, dest: `${artist} - ${album}` })),
       mergeMap(({ id, src, dest }) =>
         this.service.renameFolder(id, src, dest).pipe(
-          map(({ fullPath, folder }) => renameFolderSuccess({ update: { id, changes: { fullPath, folder, renamingFolder: false } } })),
-          catchError((error) => {
-            console.error(error);
-            return EMPTY;
-          })
+          map(({ fullPath, folder }) => renameFolderSuccess({ update: { id, changes: { fullPath, folder, renamingFolder: false, renamingFolderError: undefined } } })),
+          catchError((error) => of(renameFolderError({ update: { id, changes: { renamingFolder: false, renamingFolderError: this.errorService.getError(error) } } })))
         )
       )
     )
@@ -184,8 +215,9 @@ export class AlbumEffects {
   constructor(
     private actions$: Actions,
     private service: AlbumService,
-    private ws: AlbumWsService,
     private store: Store,
+    private notificationService: NotificationService,
+    private errorService: ErrorService,
     @Inject(WINDOW) readonly windowRef: Window,
     @Inject(BASE_PATH) private readonly basePath: string
   ) {}

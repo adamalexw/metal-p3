@@ -40,7 +40,7 @@ export class TrackService {
   }
 
   transferTrack(file: string): Observable<never> {
-    return this.http.get<never>(`${this.baseUrl}/transferTrack?file=${file}`);
+    return this.http.get<never>(`${this.baseUrl}/transferTrack?file=${encodeURIComponent(file)}`);
   }
 
   playTrack(file: string): Observable<unknown> {

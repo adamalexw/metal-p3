@@ -27,7 +27,8 @@ export interface Track extends AlbumBase {
   duration?: number;
   lyrics?: string;
   trackSaving?: boolean;
-  trackTransfering?: boolean;
+  trackRenaming?: boolean;
+  trackTransferring?: boolean;
 }
 
 export interface BandDto extends BandProps {
@@ -60,6 +61,7 @@ export interface MetalArchivesAlbumTrack {
   duration?: string;
   hasLyrics?: boolean;
   lyrics?: string;
+  lyricsLoading?: boolean;
 }
 
 export interface RenameFolder {

@@ -44,7 +44,8 @@
       "@metal-p3/player/feature-shell": ["libs/player/feature-shell/src/index.ts"],
       "@metal-p3/player/data-access": ["libs/player/data-access/src/index.ts"],
       "@metal-p3/player/ui": ["libs/player/ui/src/index.ts"],
-      "@metal-p3/player/domain": ["libs/player/domain/src/index.ts"]
+      "@metal-p3/player/domain": ["libs/player/domain/src/index.ts"],
+      "@metal-p3/shared/error-util": ["libs/shared/error-util/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]

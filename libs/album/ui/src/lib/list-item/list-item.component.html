@@ -7,7 +7,7 @@
   </mat-card-header>
 
   <div (click)="openAlbum.emit(album.id)" class="cursor-pointer">
-    <app-cover [cover]="album.cover" [loading]="album.coverLoading || false"></app-cover>
+    <app-cover [cover]="album.cover" [coverError]="album.coverError" [loading]="album.coverLoading || false"></app-cover>
   </div>
 
   <mat-card-content>

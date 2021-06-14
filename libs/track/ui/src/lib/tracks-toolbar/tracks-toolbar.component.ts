@@ -11,10 +11,13 @@ export class TracksToolbarComponent {
   gettingMaTracks = false;
 
   @Input()
-  renamingTracks = false;
+  trackRenaming = false;
 
   @Input()
-  gettingLyrics = false;
+  enableLyrics = false;
+
+  @Input()
+  lyricsLoading = false;
 
   @Input()
   folder = '';

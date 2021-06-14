@@ -41,6 +41,18 @@ export class AlbumController {
     this.albumService.saveAlbum(album);
   }
 
+  @Patch('setHasLyrics')
+  @HttpCode(HttpStatus.ACCEPTED)
+  setHasLyrics(@Query('id') id: number, @Query('hasLyrics') hasLyrics: boolean): void {
+    this.albumService.setHasLyrics(id, hasLyrics);
+  }
+
+  @Patch('setTransferred')
+  @HttpCode(HttpStatus.ACCEPTED)
+  setTransferred(@Query('id') id: number, @Query('transferred') transferred: boolean): void {
+    this.albumService.setTransferred(id, transferred);
+  }
+
   @Post()
   post(@Body() body: { folder: string }): Observable<AlbumDto> {
     return this.albumService.addAlbum(body.folder);

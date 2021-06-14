@@ -3,7 +3,11 @@
 </ng-container>
 
 <ng-template #coverTemplate>
-  <div *ngIf="cover" appCoverDnd (coverUrl)="coverUrl.emit($event)" [style.width.px]="width" [style.height.px]="height">
+  <div *ngIf="coverError">
+    <pre>{{ coverError }}</pre>
+  </div>
+
+  <div *ngIf="cover && !coverError" appCoverDnd (coverUrl)="coverUrl.emit($event)" [style.width.px]="width" [style.height.px]="height">
     <img [src]="cover | safe: 'resourceUrl'" class="w-100 h-100" />
   </div>
 </ng-template>

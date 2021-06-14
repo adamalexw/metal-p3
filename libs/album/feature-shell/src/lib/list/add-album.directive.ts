@@ -15,6 +15,12 @@ export class AddAlbumDirective {
     this.addClass = 'opacity-25';
   }
 
+  @HostListener('dragleave', ['$event']) public onDragLeave(evt: DragEvent) {
+    evt.preventDefault();
+    evt.stopPropagation();
+    this.addClass = '';
+  }
+
   @HostListener('drop', ['$event']) public onDrop(evt: DragEvent) {
     evt.preventDefault();
     evt.stopPropagation();
