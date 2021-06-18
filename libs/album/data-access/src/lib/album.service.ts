@@ -1,4 +1,4 @@
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
 import { ApplyLyrics, BASE_PATH, SearchRequest } from '@metal-p3/album/domain';
 import { AlbumDto, BandProps, MetalArchivesSearchResponse, RenameFolder, Track } from '@metal-p3/api-interfaces';
@@ -18,11 +18,13 @@ export class AlbumService {
   }
 
   getAlbums(request: Partial<SearchRequest>): Observable<AlbumDto[]> {
-    return this.http.get<AlbumDto[]>(`${this.baseUrl}/search`, { params: new HttpParams({ fromObject: request }) });
+    const criteria = request.criteria ? `&criteria=${encodeURIComponent(request.criteria)}` : '';
+
+    return this.http.get<AlbumDto[]>(`${this.baseUrl}/search?take=${request.take}&skip=${request.skip}${criteria}`);
   }
 
   getAlbum(id: number): Observable<AlbumDto> {
-    return this.http.get<AlbumDto>(`${this.baseUrl}/search?id=${id}`);
+    return this.http.get<AlbumDto>(`${this.baseUrl}?id=${id}`);
   }
 
   addNewAlbum(folder: string): Observable<AlbumDto> {

@@ -11,6 +11,9 @@ export class ListItemComponent implements OnChanges {
   @Input()
   album: Album | undefined;
 
+  @Input()
+  trackTransferringProgress = 0;
+
   @Output()
   readonly openAlbum = new EventEmitter<number>();
 

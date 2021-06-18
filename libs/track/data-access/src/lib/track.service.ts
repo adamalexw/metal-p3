@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { ApplyLyrics } from '@metal-p3/album/domain';
-import { AlbumDto, MetalArchivesAlbumTrack, Track } from '@metal-p3/api-interfaces';
+import { AlbumDto, MetalArchivesAlbumTrack, RenameTrack, Track } from '@metal-p3/api-interfaces';
 import { Observable } from 'rxjs';
 
 @Injectable({
@@ -35,8 +35,8 @@ export class TrackService {
     return this.http.patch<AlbumDto>('/api/applyLyrics', { id, lyrics });
   }
 
-  renameTrack(track: Track): Observable<string> {
-    return this.http.patch<string>(`${this.baseUrl}/rename`, track, { responseType: 'text' as 'json' });
+  renameTrack(track: Track): Observable<RenameTrack> {
+    return this.http.patch<RenameTrack>(`${this.baseUrl}/rename`, track);
   }
 
   transferTrack(file: string): Observable<never> {

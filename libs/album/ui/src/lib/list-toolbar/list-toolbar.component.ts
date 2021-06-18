@@ -15,6 +15,9 @@ export class ListToolbarComponent implements OnInit {
   @Input()
   creatingNew = false;
 
+  @Input()
+  searching = false;
+
   @Output()
   readonly searchRequest = new EventEmitter<SearchRequest>();
 
@@ -28,7 +31,7 @@ export class ListToolbarComponent implements OnInit {
 
   constructor(fb: FormBuilder) {
     this.form = fb.group({
-      take: ['24'],
+      take: [40],
       criteria: [],
     });
   }

@@ -36,6 +36,7 @@ import {
   selectRenamingFolder,
   selectRenamingFolderError,
   selectRouteParams,
+  selectSaveAlbumError,
   selectTrackRenaming,
   selectTrackRenamingProgress,
   selectTracks,
@@ -48,6 +49,7 @@ import {
   transferTrack,
   viewAlbum,
 } from '@metal-p3/shared/data-access';
+import { NotificationService } from '@metal-p3/shared/feedback';
 import { mapTrackToPlaylistItem } from '@metal-p3/shared/utils';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { select, Store } from '@ngrx/store';
@@ -67,6 +69,7 @@ export class AlbumShellComponent implements OnInit {
 
   album$ = this.store.pipe(select(selectAlbum));
   albumSaving$ = this.store.pipe(select(selectAlbumSaving));
+  saveError$ = this.store.pipe(select(selectSaveAlbumError));
 
   tracksLoading$ = this.store.pipe(select(selectTracksLoading));
   tracks$ = this.store.pipe(select(selectTracks));
@@ -103,10 +106,17 @@ export class AlbumShellComponent implements OnInit {
     filter((id) => !!id)
   );
 
-  constructor(private readonly store: Store, private readonly albumService: AlbumService, private readonly coverService: CoverService, private readonly router: Router) {}
+  constructor(
+    private readonly store: Store,
+    private readonly albumService: AlbumService,
+    private readonly coverService: CoverService,
+    private readonly router: Router,
+    private readonly notificationService: NotificationService
+  ) {}
 
   ngOnInit(): void {
     this.setState();
+    this.errorNotifications();
   }
 
   private setState(): void {
@@ -148,6 +158,17 @@ export class AlbumShellComponent implements OnInit {
         map(([album]) => ({ id: album?.id, folder: album?.folder })),
         take(1),
         tap(({ id, folder }) => this.store.dispatch(getCover({ id, folder })))
+      )
+      .subscribe();
+  }
+
+  private errorNotifications() {
+    this.saveError$
+      .pipe(
+        untilDestroyed(this),
+        filter((error) => !!error),
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        tap((error) => this.notificationService.showError(error!, 'Save'))
       )
       .subscribe();
   }

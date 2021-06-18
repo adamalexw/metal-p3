@@ -16,7 +16,7 @@
     <ng-container matColumnDef="title">
       <mat-header-cell *matHeaderCellDef>Track</mat-header-cell>
       <mat-cell *matCellDef="let element" [formGroup]="element">
-        <mat-form-field floatLabel="never" class="w-full pr-4">
+        <mat-form-field floatLabel="never" class="w-full pr-4" [matTooltip]="element.get('fullPath')?.value" matTooltipPosition="above">
           <input matInput placeholder="Title" formControlName="title" required />
         </mat-form-field>
       </mat-cell>

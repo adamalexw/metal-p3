@@ -5,6 +5,9 @@ import { Album } from '../model';
 
 export const loadAlbums = createAction('[Album] Load Albums', props<{ request: Partial<SearchRequest> }>());
 export const loadAlbumsSuccess = createAction('[Album] Load Albums Success', props<{ albums: Album[] }>());
+
+export const loadAlbumsPage = createAction('[Album] Load Albums Page', props<{ request: Partial<SearchRequest> }>());
+export const loadAlbumsPageSuccess = createAction('[Album] Load Albums Page Success', props<{ albums: Album[] }>());
 export const loadAlbumsError = createAction('[Album] Load Albums Error', props<{ loadError: string }>());
 
 export const addAlbum = createAction('[Album] Add Album', props<{ album: Album }>());
@@ -25,6 +28,8 @@ export const viewAlbum = createAction('[Album] View Album', props<{ id: number }
 
 export const addNewAlbum = createAction('[Album] Add New Album', props<{ folder: string }>());
 export const getAlbum = createAction('[Album] Get Album', props<{ id: number }>());
+export const getAlbumError = createAction('[Album] Get Album Error', props<{ update: Update<Album> }>());
+
 export const renameFolder = createAction('[Album] Rename Folder', props<{ id: number; src: string; artist: string; album: string }>());
 export const renameFolderSuccess = createAction('[Album] Rename Folder Success', props<{ update: Update<Album> }>());
 export const renameFolderError = createAction('[Album] Rename Folder Error', props<{ update: Update<Album> }>());

@@ -2,8 +2,8 @@
   <ng-content></ng-content>
 
   <form [formGroup]="form" class="ml-3">
-    <mat-form-field>
-      <input matInput placeholder="Search" formControlName="criteria" />
+    <mat-form-field floatLabel="never">
+      <input matInput placeholder="Search" formControlName="criteria" type="search" />
     </mat-form-field>
   </form>
 
@@ -11,3 +11,5 @@
     <mat-icon title="createNew">create_new_folder</mat-icon>
   </button>
 </mat-toolbar>
+
+<mat-progress-bar *ngIf="searching" mode="indeterminate"></mat-progress-bar>

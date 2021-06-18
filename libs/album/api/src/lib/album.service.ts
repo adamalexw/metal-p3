@@ -39,7 +39,7 @@ export class AlbumService {
   }
 
   getAlbum(id: number): Observable<AlbumDto> {
-    return from(this.dbService.album({ AlbumId: +id })).pipe(map((album) => this.mapAlbumToAlbumDto(album)));
+    return from(this.dbService.album({ AlbumId: id })).pipe(map((album) => this.mapAlbumToAlbumDto(album)));
   }
 
   private mapAlbumToAlbumDto(album: Album): AlbumDto {
@@ -59,6 +59,7 @@ export class AlbumService {
       artistUrl: band.MetalArchiveUrl,
       transferred: album.Transferred,
       hasLyrics: album.Lyrics,
+      dateCreated: album.Created.toISOString(),
     };
   }
 
@@ -121,16 +122,16 @@ export class AlbumService {
     return input;
   }
 
-  async saveAlbum(album: AlbumDto): Promise<void> {
-    this.dbService.updateAlbum({ where: { AlbumId: album.id }, data: this.mapAlbumDtoToAlbum(album) });
+  saveAlbum(album: AlbumDto): Observable<Album> {
+    return from(this.dbService.updateAlbum({ where: { AlbumId: album.id }, data: this.mapAlbumDtoToAlbum(album) }));
   }
 
-  async setHasLyrics(id: number, hasLyrics: boolean): Promise<void> {
-    this.dbService.updateAlbum({ where: { AlbumId: id }, data: { Lyrics: hasLyrics } });
+  setHasLyrics(id: number, hasLyrics: boolean): Observable<Album> {
+    return from(this.dbService.updateAlbum({ where: { AlbumId: id }, data: { Lyrics: hasLyrics } }));
   }
 
-  async setTransferred(id: number, transferred: boolean): Promise<void> {
-    this.dbService.updateAlbum({ where: { AlbumId: +id }, data: { Transferred: !!transferred, TransferredDate: new Date() } });
+  setTransferred(id: number, transferred: boolean): Observable<Album> {
+    return from(this.dbService.updateAlbum({ where: { AlbumId: +id }, data: { Transferred: !!transferred, TransferredDate: new Date() } }));
   }
 
   private mapAlbumDtoToAlbum(albumDto: AlbumDto): Partial<Album> {
@@ -140,6 +141,7 @@ export class AlbumService {
       MetalArchiveUrl: albumDto.albumUrl,
       Name: albumDto.album,
       Transferred: albumDto.transferred,
+      Year: +albumDto.year,
     };
   }
 
@@ -147,8 +149,7 @@ export class AlbumService {
     const folder = this.fileSystemService.filenameValidator(this.fileSystemService.getFilename(dest));
     const fullPath = `${this.basePath}/${folder}`;
 
-    this.fileSystemService.renameFolder(src, fullPath);
-
+    this.fileSystemService.rename(src, fullPath);
     this.dbService.updateAlbum({ where: { AlbumId: +id }, data: { Folder: folder } });
 
     return { fullPath, folder };
@@ -173,7 +174,7 @@ export class AlbumService {
             newAlbums.push(folder);
           }
 
-          this.fileSystemService.renameFile(mp3, path.join(location, mp3s[index]));
+          this.fileSystemService.rename(mp3, path.join(location, mp3s[index]));
         }
       }
     }

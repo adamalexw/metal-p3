@@ -1,4 +1,4 @@
-import { Track } from '@metal-p3/api-interfaces';
+import { RenameTrack, Track } from '@metal-p3/api-interfaces';
 import { AdbService } from '@metal-p3/shared/adb';
 import { FileSystemService } from '@metal-p3/shared/file-system';
 import { Injectable } from '@nestjs/common';
@@ -61,7 +61,7 @@ export class TrackService {
   }
 
   private getTrackNo(track: { no: number | null; of: number | null }): string {
-    return track.no.toString().padStart(2, '0');
+    return track.no!.toString().padStart(2, '0');
   }
 
   saveTrack(track: Track): boolean | Error {
@@ -100,11 +100,11 @@ export class TrackService {
 
     const tags = this.mapTrackToTags(track, baseTags);
 
-    const result = this.updateTrack(tags, track.fullPath);
+    const result = this.updateTrack(tags, track.fullPath!);
 
     if (result instanceof Error) {
-      this.fileSystemService.setReadAndWritePermission(track.fullPath);
-      return this.updateTrack(tags, track.fullPath);
+      this.fileSystemService.setReadAndWritePermission(track.fullPath!);
+      return this.updateTrack(tags, track.fullPath!);
     }
 
     return result;
@@ -119,12 +119,16 @@ export class TrackService {
     return update(tags, location);
   }
 
-  renameTrack(track: Track): string {
-    const newName = `${track.folder}/${track.trackNumber} - ${this.fileSystemService.filenameValidator(track.title)}.mp3`;
+  renameTrack(track: Track): RenameTrack {
+    const file = `${track.trackNumber} - ${this.fileSystemService.filenameValidator(track.title!)}.mp3`;
+    const fullPath = `${track.folder}/${file}`;
 
-    this.fileSystemService.renameFile(track.fullPath, newName);
+    this.fileSystemService.rename(track.fullPath!, fullPath);
 
-    return newName;
+    return {
+      file,
+      fullPath,
+    };
   }
 
   async transferTrack(file: string): Promise<void> {

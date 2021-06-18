@@ -1,4 +1,16 @@
 mat-card {
-  max-width: 282px;
-  max-height: 390px;
+  max-width: 304px;
+  max-height: 392px;
+  padding: 10px 16px;
+}
+
+:host ::ng-deep {
+  .mat-card-header-text {
+    margin: 0;
+    width: 100%;
+  }
+
+  .mat-icon-button {
+    width: 16px;
+  }
 }

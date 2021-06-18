@@ -1,5 +1,5 @@
 export interface SearchRequest {
-  take?: string;
-  skip?: string;
+  take?: number;
+  skip?: number;
   criteria?: string;
 }

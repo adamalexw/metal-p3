@@ -1,15 +1,13 @@
-<app-list-toolbar [creatingNew]="creatingNew$ | async" (searchRequest)="onSearch($event)" (createNew)="onCreateNew()">
+<app-list-toolbar [searching]="albumsLoading$ | async" [creatingNew]="creatingNew$ | async" (searchRequest)="onSearch($event)" (createNew)="onCreateNew()">
   <app-player-toolbar></app-player-toolbar>
 </app-list-toolbar>
 
-<ng-container *ngIf="albumsLoading$ | async; else listTemplate">
-  <mat-spinner></mat-spinner>
-</ng-container>
-
-<ng-template #listTemplate>
-  <div class="flex flex-row flex-wrap" appAddAlbum (albumAdded)="onAlbumAdded($event)">
-    <div class="p-2" *ngFor="let album of albums$ | async; trackBy: identify">
+<cdk-virtual-scroll-viewport itemSize="400" minBufferPx="1200" maxBufferPx="2400" (scrolledIndexChange)="scrollIndexChange($event, criteria)" class="item-height w-full">
+  <div appAddAlbum (albumAdded)="onAlbumAdded($event)">
+    <div class="flex flex-row flex-wrap" *cdkVirtualFor="let albums of albumsView$; trackBy: identify">
       <app-list-item
+        *ngFor="let album of albums"
+        class="p-2"
         [album]="album"
         (openAlbum)="onOpenAlbum($event)"
         (getCover)="onGetCover(album.id, album.folder)"
@@ -20,4 +18,4 @@
       ></app-list-item>
     </div>
   </div>
-</ng-template>
+</cdk-virtual-scroll-viewport>

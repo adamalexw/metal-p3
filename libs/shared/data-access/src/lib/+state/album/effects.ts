@@ -23,13 +23,16 @@ import {
   findMaUrl,
   findMaUrlSuccess,
   getAlbum,
+  getAlbumError,
   loadAlbums,
   loadAlbumsError,
+  loadAlbumsPageSuccess,
   loadAlbumsSuccess,
   renameFolder,
   renameFolderError,
   renameFolderSuccess,
   saveAlbum,
+  saveAlbumError,
   saveAlbumSuccess,
   setHasLyrics,
   setTransferred,
@@ -44,7 +47,7 @@ export class AlbumEffects {
       mergeMap(({ request }) =>
         this.service.getAlbums(request).pipe(
           map((albums) => albums as Album[]),
-          map((albums) => loadAlbumsSuccess({ albums })),
+          map((albums) => (!request.skip ? loadAlbumsSuccess({ albums }) : loadAlbumsPageSuccess({ albums }))),
           catchError((error) => of(loadAlbumsError({ loadError: error })))
         )
       )
@@ -58,10 +61,7 @@ export class AlbumEffects {
         this.service.getAlbum(id).pipe(
           map((album) => AlbumDtoToAlbum(album) as Album),
           map((album) => addAlbum({ album })),
-          catchError((error) => {
-            console.error(error);
-            return EMPTY;
-          })
+          catchError((error) => of(getAlbumError({ update: { id, changes: { getError: this.errorService.getError(error) } } })))
         )
       )
     )
@@ -93,11 +93,8 @@ export class AlbumEffects {
             const { cover, ...rest } = album;
             return rest;
           }),
-          map((album) => saveAlbumSuccess({ update: { id: album.id, changes: { ...album, saving: false } } })),
-          catchError((error) => {
-            console.error(error);
-            return EMPTY;
-          })
+          map((album) => saveAlbumSuccess({ update: { id: album.id, changes: { ...album, saving: false, saveError: undefined } } })),
+          catchError((error) => of(saveAlbumError({ update: { id: album.id, changes: { saving: false, saveError: this.errorService.getError(error) } } })))
         )
       )
     )

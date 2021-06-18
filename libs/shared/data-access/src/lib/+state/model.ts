@@ -2,6 +2,7 @@ import { AlbumDto, BandProps, MetalArchivesAlbumTrack, Track } from '@metal-p3/a
 import { EntityState } from '@ngrx/entity';
 
 export interface Album extends AlbumDto {
+  getError?: string;
   bandProps?: BandProps;
   gettingBandProps?: boolean;
   tracks: EntityState<Track>;
@@ -10,6 +11,7 @@ export interface Album extends AlbumDto {
   coverError?: string;
   findingUrl?: boolean;
   saving?: boolean;
+  saveError?: string;
   savingCover?: boolean;
   renamingFolder?: boolean;
   renamingFolderError?: string;
@@ -36,5 +38,6 @@ export const AlbumDtoToAlbum = (dto: AlbumDto): Partial<Album> => {
     hasLyrics: dto.hasLyrics,
     transferred: dto.transferred,
     year: dto.year,
+    dateCreated: dto.dateCreated,
   };
 };

@@ -1,4 +1,5 @@
 import { ArgumentsHost, Catch, ExceptionFilter, HttpException, HttpStatus } from '@nestjs/common';
+import { PrismaClientValidationError } from '@prisma/client/runtime';
 
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
@@ -13,7 +14,15 @@ export class AllExceptionsFilter implements ExceptionFilter {
       statusCode: status,
       timestamp: new Date().toISOString(),
       path: request.url,
-      error: exception,
+      error: this.getErrorMessage(exception),
     });
+  }
+
+  private getErrorMessage(exception: unknown): string {
+    if (exception instanceof PrismaClientValidationError) {
+      return exception.message;
+    }
+
+    return JSON.stringify(exception);
   }
 }

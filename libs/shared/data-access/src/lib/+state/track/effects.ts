@@ -90,7 +90,7 @@ export class TrackEffects {
       ofType(renameTrack),
       mergeMap(({ id, track }) =>
         this.service.renameTrack(track).pipe(
-          map((newName) => renameTrackSuccess({ id, track: { ...track, fullPath: newName } })),
+          map(({ fullPath, file }) => renameTrackSuccess({ id, track: { ...track, fullPath, file } })),
           catchError((error) => {
             console.error(error);
             return EMPTY;

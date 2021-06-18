@@ -42,7 +42,7 @@ import {
   upsertAlbum,
   upsertAlbums,
 } from './actions';
-import { createNew, createNewSuccess, loadAlbumsError, renameFolder, renameFolderError, renameFolderSuccess, viewAlbum } from './album/actions';
+import { createNew, createNewSuccess, loadAlbumsError, loadAlbumsPageSuccess, renameFolder, renameFolderError, renameFolderSuccess, saveAlbumError, viewAlbum } from './album/actions';
 import { Album } from './model';
 import { transferTrack, transferTrackSuccess, updateTracks } from './track/actions';
 
@@ -58,7 +58,13 @@ export interface AlbumState extends EntityState<Album> {
   selectedAlbum?: number;
 }
 
-export const adapter: EntityAdapter<Album> = createEntityAdapter<Album>();
+function sortByDateCreated(a: Album, b: Album): number {
+  return b.dateCreated.localeCompare(a.dateCreated);
+}
+
+export const adapter: EntityAdapter<Album> = createEntityAdapter<Album>({
+  sortComparer: sortByDateCreated,
+});
 export const trackAdapter: EntityAdapter<Track> = createEntityAdapter<Track>();
 export const maTrackAdapter: EntityAdapter<MetalArchivesAlbumTrack> = createEntityAdapter<MetalArchivesAlbumTrack>();
 
@@ -70,7 +76,7 @@ export const initialState = adapter.getInitialState({
 export const reducer = createReducer(
   initialState,
   on(addAlbum, (state, { album }) => {
-    return adapter.addOne(album, state);
+    return adapter.addOne(album, { ...state, getAlbumError: undefined });
   }),
   on(setAlbum, (state, { album }) => {
     return adapter.setOne(album, state);
@@ -111,6 +117,9 @@ export const reducer = createReducer(
   on(loadAlbumsSuccess, (state, { albums }) => {
     return adapter.setAll(albums, { ...state, loading: false, loaded: true, loadError: undefined });
   }),
+  on(loadAlbumsPageSuccess, (state, { albums }) => {
+    return adapter.addMany(albums, { ...state, loading: false, loaded: true, loadError: undefined });
+  }),
   on(loadAlbumsError, (state, { loadError }) => ({ ...state, loading: false, loaded: false, loadError })),
   on(clearAlbums, (state) => {
     return adapter.removeAll({ ...state, selectedAlbumId: null });
@@ -127,7 +136,7 @@ export const reducer = createReducer(
   on(saveAlbum, (state, { album }) => {
     return adapter.updateOne({ id: album.id, changes: { saving: true } }, state);
   }),
-  on(saveAlbumSuccess, (state, { update }) => {
+  on(saveAlbumSuccess, saveAlbumError, (state, { update }) => {
     return adapter.updateOne(update, state);
   }),
   on(createNew, (state) => ({ ...state, creatingNew: true })),

@@ -1,3 +1,4 @@
+import { ViewportRuler } from '@angular/cdk/scrolling';
 import { ChangeDetectionStrategy, Component, EventEmitter, OnInit, Output } from '@angular/core';
 import { Router } from '@angular/router';
 import { AlbumService } from '@metal-p3/album/data-access';
@@ -24,11 +25,11 @@ import {
   viewAlbum,
 } from '@metal-p3/shared/data-access';
 import { NotificationService } from '@metal-p3/shared/feedback';
-import { mapTrackToPlaylistItem } from '@metal-p3/shared/utils';
+import { mapTrackToPlaylistItem, toChunks } from '@metal-p3/shared/utils';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { select, Store } from '@ngrx/store';
-import { Observable } from 'rxjs';
-import { delay, filter, map, take, tap } from 'rxjs/operators';
+import { combineLatest, Observable } from 'rxjs';
+import { delay, filter, map, startWith, take, tap } from 'rxjs/operators';
 
 @UntilDestroy()
 @Component({
@@ -41,27 +42,40 @@ export class ListComponent implements OnInit {
   albumsLoading$ = this.store.pipe(select(selectAlbumsLoading));
   albumsLoaded$ = this.store.pipe(select(selectAlbumsLoaded));
   albumsLoadError$ = this.store.pipe(select(selectAlbumsLoadError));
-
   albums$ = this.store.pipe(select(selectAlbums));
+
+  viewportWidth$ = this.viewportRuler.change().pipe(
+    startWith(true),
+    map(() => this.viewportRuler.getViewportSize().width)
+  );
+
+  albumsView$ = combineLatest([this.albums$, this.viewportWidth$]).pipe(
+    filter(([albums, width]) => !!albums && !!width),
+    map(([albums, width]) => {
+      const chunks = Math.floor(width / 300);
+      return toChunks(albums, chunks);
+    })
+  );
 
   showPlayer$ = this.store.pipe(select(selectPlaylist)).pipe(map((playlist) => playlist?.length));
 
   creatingNew$ = this.store.pipe(select(selectCreatingNew));
 
+  private fetchedPages = new Set<number>();
+  criteria: string | undefined;
+
   @Output()
   readonly openAlbum = new EventEmitter<number>();
 
-  constructor(private readonly store: Store, private router: Router, private notificationService: NotificationService, private readonly service: AlbumService) {}
+  constructor(
+    private readonly store: Store,
+    private router: Router,
+    private notificationService: NotificationService,
+    private readonly service: AlbumService,
+    private readonly viewportRuler: ViewportRuler
+  ) {}
 
   ngOnInit(): void {
-    this.albumsLoaded$
-      .pipe(
-        filter((loaded) => !loaded),
-        take(1),
-        tap(() => this.store.dispatch(loadAlbums({ request: { take: '24' } })))
-      )
-      .subscribe();
-
     this.albumsLoadError$
       .pipe(
         filter((error) => !!error),
@@ -139,8 +153,10 @@ export class ListComponent implements OnInit {
   }
 
   onSearch(request: SearchRequest) {
+    this.fetchedPages.clear();
     this.store.dispatch(clearCovers());
-    this.store.dispatch(loadAlbums({ request }));
+    this.criteria = request.criteria;
+    this.scrollIndexChange(0, this.criteria);
   }
 
   onAlbumAdded(folders: string[]) {
@@ -154,5 +170,23 @@ export class ListComponent implements OnInit {
   onOpenAlbum(id: number) {
     this.store.dispatch(viewAlbum({ id }));
     this.router.navigate(['album', id]);
+  }
+
+  scrollIndexChange(page: number, criteria: string | undefined) {
+    if (this.fetchedPages.has(page)) {
+      return;
+    }
+
+    let skip = 0;
+    let take = 16;
+
+    if (page === 0) {
+      take = 40;
+    } else {
+      skip = 40 + 16 * page;
+    }
+
+    this.fetchedPages.add(page);
+    this.store.dispatch(loadAlbums({ request: { take, skip, criteria } }));
   }
 }

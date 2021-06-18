@@ -29,8 +29,13 @@ export class FileSystemService {
     return basename(file);
   }
 
-  renameFile(path: string, newPath: string) {
-    renameSync(path, newPath);
+  rename(path: string, newPath: string) {
+    try {
+      renameSync(path, newPath);
+    } catch (error) {
+      this.setReadAndWritePermission(path);
+      renameSync(path, newPath);
+    }
   }
 
   filenameValidator(filename: string): string {
@@ -38,10 +43,6 @@ export class FileSystemService {
       .replace(/\n/g, ' ')
       .replace(/[<>:"/\\|?*\x00-\x1F]| +$/g, '')
       .replace(/^(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])$/, (x) => x + '_');
-  }
-
-  renameFolder(src: string, dest: string) {
-    renameSync(src, dest);
   }
 
   getFileStats(file: string) {
@@ -64,7 +65,7 @@ export class FileSystemService {
 
         for (let i = 0; i < files.length; i++) {
           const file = files[i];
-          this.renameFile(join(itemPath, file), join(rootFolder, file));
+          this.rename(join(itemPath, file), join(rootFolder, file));
         }
 
         this.cleanEmptyFolders(folder);

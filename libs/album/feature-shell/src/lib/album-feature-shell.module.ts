@@ -1,3 +1,4 @@
+import { ScrollingModule } from '@angular/cdk/scrolling';
 import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
@@ -25,6 +26,7 @@ import { LyricsShellComponent } from './lyrics/lyrics.component';
     MatIconModule,
     MatProgressSpinnerModule,
     SharedFeedbackModule,
+    ScrollingModule,
   ],
   declarations: [ListComponent, AlbumShellComponent, LyricsShellComponent, AddAlbumDirective, HomeComponent],
   exports: [HomeComponent],

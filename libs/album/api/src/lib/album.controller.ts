@@ -1,3 +1,4 @@
+import { Album } from '.prisma/client';
 import { AlbumDto, MetalArchivesAlbumTrack, MetalArchivesSearchResponse, RenameFolder, Track } from '@metal-p3/api-interfaces';
 import { FileSystemService } from '@metal-p3/shared/file-system';
 import { MetalArchivesService } from '@metal-p3/shared/metal-archives';
@@ -18,13 +19,13 @@ export class AlbumController {
   ) {}
 
   @Get('search')
-  albums(@Query('take') take?: number, @Query('criteria') criteria?: string): Observable<AlbumDto[]> {
-    return this.albumService.getAlbums({ take, criteria });
+  albums(@Query('take') take?: number, @Query('skip') skip?: number, @Query('criteria') criteria?: string): Observable<AlbumDto[]> {
+    return this.albumService.getAlbums({ take: +take, skip: +skip, criteria });
   }
 
   @Get()
   album(@Query('id') id: number): Observable<AlbumDto> {
-    return this.albumService.getAlbum(id);
+    return this.albumService.getAlbum(+id);
   }
 
   @Get('tracks')
@@ -36,21 +37,18 @@ export class AlbumController {
   }
 
   @Patch()
-  @HttpCode(HttpStatus.ACCEPTED)
-  patch(@Body() album: AlbumDto): void {
-    this.albumService.saveAlbum(album);
+  patch(@Body() album: AlbumDto): Observable<Album> {
+    return this.albumService.saveAlbum(album);
   }
 
   @Patch('setHasLyrics')
-  @HttpCode(HttpStatus.ACCEPTED)
-  setHasLyrics(@Query('id') id: number, @Query('hasLyrics') hasLyrics: boolean): void {
-    this.albumService.setHasLyrics(id, hasLyrics);
+  setHasLyrics(@Query('id') id: number, @Query('hasLyrics') hasLyrics: boolean): Observable<Album> {
+    return this.albumService.setHasLyrics(id, hasLyrics);
   }
 
   @Patch('setTransferred')
-  @HttpCode(HttpStatus.ACCEPTED)
-  setTransferred(@Query('id') id: number, @Query('transferred') transferred: boolean): void {
-    this.albumService.setTransferred(id, transferred);
+  setTransferred(@Query('id') id: number, @Query('transferred') transferred: boolean): Observable<Album> {
+    return this.albumService.setTransferred(id, transferred);
   }
 
   @Post()

@@ -14,6 +14,7 @@ export interface AlbumDto extends AlbumBase {
   bandId: number;
   transferred?: boolean;
   hasLyrics?: boolean;
+  dateCreated: string;
 }
 
 export interface Track extends AlbumBase {
@@ -67,4 +68,9 @@ export interface MetalArchivesAlbumTrack {
 export interface RenameFolder {
   fullPath: string;
   folder: string;
+}
+
+export interface RenameTrack {
+  fullPath: string;
+  file: string;
 }

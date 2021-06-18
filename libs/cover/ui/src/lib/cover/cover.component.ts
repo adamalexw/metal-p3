@@ -17,10 +17,10 @@ export class CoverComponent {
   coverError: string | undefined;
 
   @Input()
-  width = 250;
+  width = 270;
 
   @Input()
-  height = 250;
+  height = 270;
 
   @Output()
   coverUrl = new EventEmitter<string>();

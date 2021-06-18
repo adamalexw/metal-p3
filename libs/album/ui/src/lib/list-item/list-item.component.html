@@ -1,8 +1,10 @@
 <mat-card *ngIf="album">
   <mat-card-header>
-    <mat-card-title>{{ album.artist }}</mat-card-title>
+    <mat-card-title
+      ><p class="truncate">{{ album.artist }}</p></mat-card-title
+    >
     <mat-card-subtitle (click)="openAlbum.emit(album.id)"
-      ><span class="cursor-pointer">{{ album.album }}</span></mat-card-subtitle
+      ><p class="cursor-pointer truncate">{{ album.album }}</p></mat-card-subtitle
     >
   </mat-card-header>
 
