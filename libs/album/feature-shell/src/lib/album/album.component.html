@@ -3,6 +3,7 @@
   [albumSaving]="albumSaving$ | async"
   [tracks]="tracks$ | async"
   [tracksLoading]="tracksLoading$ | async"
+  [albumDuration]="albumDuration$ | async"
   [trackSavingProgress]="trackSavingProgress$ | async"
   [coverLoading]="coverLoading$ | async"
   [cover]="cover$ | async"
@@ -36,5 +37,7 @@
   (addAlbumToPlaylist)="onAddAlbumToPlaylist($event)"
   (playTrack)="onPlayTrack($event.track, $event.albumId)"
   (addTrackToPlaylist)="onAddTrackToPlaylist($event.track, $event.albumId)"
+  (deleteTrack)="onDeleteTrack($event.track, $event.albumId)"
+  (deleteAlbum)="onDeleteAlbum($event)"
   (closeAlbum)="closeAlbum.emit()"
 ></app-album>

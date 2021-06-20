@@ -31,6 +31,9 @@ export class TracksComponent implements OnChanges {
   @Output()
   addTrackToPlaylist = new EventEmitter<Track>();
 
+  @Output()
+  delete = new EventEmitter<Track>();
+
   displayedColumns = ['trackNumber', 'title', 'duration', 'bitrate', 'lyrics'];
   dataSource: MatTableDataSource<AbstractControl> = new MatTableDataSource();
 
@@ -93,5 +96,11 @@ export class TracksComponent implements OnChanges {
 
   onAddTrackToPlaylist(id: number) {
     this.addTrackToPlaylist.emit(this.tracks.find((t) => t.id === id));
+  }
+
+  onDelete(result: boolean, id: number) {
+    if (result) {
+      this.delete.emit(this.tracks.find((t) => t.id === id));
+    }
   }
 }

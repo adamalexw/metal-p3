@@ -1,15 +1,11 @@
-.mat-column-trackNumber {
-  max-width: 60px;
-}
+@import 'variables';
 
 .mat-column-bitrate {
-  max-width: 90px;
-}
-
-.mat-column-duration {
-  max-width: 150px;
+  max-width: $bitrate-width;
+  width: $bitrate-width;
 }
 
 .mat-column-lyrics {
-  max-width: 50px;
+  max-width: $lyrics-width;
+  width: $lyrics-width;
 }

@@ -10,6 +10,9 @@ export const loadAlbumsPage = createAction('[Album] Load Albums Page', props<{ r
 export const loadAlbumsPageSuccess = createAction('[Album] Load Albums Page Success', props<{ albums: Album[] }>());
 export const loadAlbumsError = createAction('[Album] Load Albums Error', props<{ loadError: string }>());
 
+export const cancelLoadAlbums = createAction('[Album] Cancel Load Albums', props<{ request: Partial<SearchRequest> }>());
+export const cancelLoadAlbumsSuccess = createAction('[Album] Cancel Load Albums Success');
+
 export const addAlbum = createAction('[Album] Add Album', props<{ album: Album }>());
 export const setAlbum = createAction('[Album] Set Album', props<{ album: Album }>());
 export const upsertAlbum = createAction('[Album] Upsert Album', props<{ album: Album }>());
@@ -19,7 +22,6 @@ export const updateAlbum = createAction('[Album] Update Album', props<{ update: 
 export const updateAlbums = createAction('[Album] Update Albums', props<{ updates: Update<Album>[] }>());
 export const mapAlbum = createAction('[Album] Map Album', props<{ entityMap: EntityMapOne<Album> }>());
 export const mapAlbums = createAction('[Album] Map Albums', props<{ entityMap: EntityMap<Album> }>());
-export const deleteAlbum = createAction('[Album] Delete Album', props<{ id: string }>());
 export const deleteAlbums = createAction('[Album] Delete Albums', props<{ ids: string[] }>());
 export const deleteAlbumsByPredicate = createAction('[Album] Delete Albums By Predicate', props<{ predicate: Predicate<Album> }>());
 export const clearAlbums = createAction('[Album] Clear Albums');
@@ -27,6 +29,7 @@ export const clearAlbums = createAction('[Album] Clear Albums');
 export const viewAlbum = createAction('[Album] View Album', props<{ id: number }>());
 
 export const addNewAlbum = createAction('[Album] Add New Album', props<{ folder: string }>());
+export const addNewError = createAction('[Album] Add New Album Error', props<{ error: string }>());
 export const getAlbum = createAction('[Album] Get Album', props<{ id: number }>());
 export const getAlbumError = createAction('[Album] Get Album Error', props<{ update: Update<Album> }>());
 
@@ -46,3 +49,7 @@ export const findMaUrlSuccess = createAction('[Album] Find Metal Archives Succes
 
 export const createNew = createAction('[Album] Create New');
 export const createNewSuccess = createAction('[Album] Create New Success');
+
+export const deleteAlbum = createAction('[Album] Delete Album', props<{ id: number }>());
+export const deleteAlbumSuccess = createAction('[Album] Delete Album Success', props<{ id: number }>());
+export const deleteAlbumError = createAction('[Album] Delete Album Error', props<{ id: number; error: string }>());

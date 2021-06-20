@@ -46,4 +46,8 @@ export class TrackService {
   playTrack(file: string): Observable<unknown> {
     return this.http.get(`${this.baseUrl}/playTrack?file=${encodeURIComponent(file)}`, { responseType: 'blob' });
   }
+
+  deleteTrack(file: string): Observable<unknown> {
+    return this.http.delete(`${this.baseUrl}?file=${encodeURIComponent(file)}`);
+  }
 }

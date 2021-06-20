@@ -4,8 +4,8 @@ import { NgModule } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSidenavModule } from '@angular/material/sidenav';
-import { AlbumsDataAccessModule } from '@metal-p3/album/data-access';
-import { AlbumsUiModule } from '@metal-p3/album/ui';
+import { AlbumDataAccessModule } from '@metal-p3/album/data-access';
+import { AlbumUiModule } from '@metal-p3/album/ui';
 import { PlayerFeatureShellModule } from '@metal-p3/player/feature-shell';
 import { SharedFeedbackModule } from '@metal-p3/shared/feedback';
 import { AlbumFeatureShellRoutingModule } from './album-feature-shell-routing.module';
@@ -18,8 +18,8 @@ import { LyricsShellComponent } from './lyrics/lyrics.component';
 @NgModule({
   imports: [
     CommonModule,
-    AlbumsDataAccessModule,
-    AlbumsUiModule,
+    AlbumDataAccessModule,
+    AlbumUiModule,
     AlbumFeatureShellRoutingModule,
     PlayerFeatureShellModule,
     MatSidenavModule,

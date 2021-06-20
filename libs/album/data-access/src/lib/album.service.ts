@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
 import { ApplyLyrics, BASE_PATH, SearchRequest } from '@metal-p3/album/domain';
-import { AlbumDto, BandProps, MetalArchivesSearchResponse, RenameFolder, Track } from '@metal-p3/api-interfaces';
+import { AlbumDto, MetalArchivesSearchResponse, RenameFolder, Track } from '@metal-p3/api-interfaces';
 import { Socket } from 'ngx-socket-io';
 import { Observable } from 'rxjs';
 
@@ -12,10 +12,6 @@ export class AlbumService {
   readonly baseUrl = '/api/album';
 
   constructor(private http: HttpClient, @Inject(BASE_PATH) private readonly basePath: string, private socket: Socket) {}
-
-  getFolders(): Observable<string[]> {
-    return this.http.get<string[]>(`/api/folders?folder=${this.basePath}`);
-  }
 
   getAlbums(request: Partial<SearchRequest>): Observable<AlbumDto[]> {
     const criteria = request.criteria ? `&criteria=${encodeURIComponent(request.criteria)}` : '';
@@ -75,15 +71,15 @@ export class AlbumService {
     return this.http.get<never>(`${this.baseUrl}/openFolder?folder=${folder}`);
   }
 
-  getBandProps(url: string): Observable<BandProps> {
-    return this.http.get<BandProps>(`/api/band/props?url=${encodeURIComponent(url)}`);
-  }
-
   createAlbumFromRootFiles(): Observable<string[]> {
     return this.http.get<string[]>(`${this.baseUrl}/createAlbumFromRootFiles?folder=${encodeURIComponent(this.basePath)}`);
   }
 
   albumAdded(): Observable<string> {
     return this.socket.fromEvent('albumAdded');
+  }
+
+  deleteAlbum(id: number) {
+    return this.http.delete(`${this.baseUrl}?id=${id}`);
   }
 }

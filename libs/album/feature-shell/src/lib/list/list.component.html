@@ -1,21 +1,25 @@
-<app-list-toolbar [searching]="albumsLoading$ | async" [creatingNew]="creatingNew$ | async" (searchRequest)="onSearch($event)" (createNew)="onCreateNew()">
-  <app-player-toolbar></app-player-toolbar>
-</app-list-toolbar>
+<div class="flex flex-col min-h-screen">
+  <app-list-toolbar [searching]="albumsLoading$ | async" [creatingNew]="creatingNew$ | async" (searchRequest)="onSearch($event)" (refresh)="onSearch($event)" (createNew)="onCreateNew()">
+  </app-list-toolbar>
 
-<cdk-virtual-scroll-viewport itemSize="400" minBufferPx="1200" maxBufferPx="2400" (scrolledIndexChange)="scrollIndexChange($event, criteria)" class="item-height w-full">
-  <div appAddAlbum (albumAdded)="onAlbumAdded($event)">
-    <div class="flex flex-row flex-wrap" *cdkVirtualFor="let albums of albumsView$; trackBy: identify">
-      <app-list-item
-        *ngFor="let album of albums"
-        class="p-2"
-        [album]="album"
-        (openAlbum)="onOpenAlbum($event)"
-        (getCover)="onGetCover(album.id, album.folder)"
-        (renameFolder)="onRenameFolder(album.id, album.fullPath, album.artist, album.album)"
-        (transferAlbum)="onTransferAlbum(album.id, album.folder)"
-        (playAlbum)="onPlayAlbum(album.id, album.folder)"
-        (addToPlaylist)="onAddToPlaylist(album.id, album.folder)"
-      ></app-list-item>
+  <cdk-virtual-scroll-viewport itemSize="400" minBufferPx="1200" maxBufferPx="2400" (scrolledIndexChange)="scrollIndexChange($event, criteria)" class="flex-grow w-full">
+    <div appAddAlbum (albumAdded)="onAlbumAdded($event)">
+      <div class="flex flex-row flex-wrap" *cdkVirtualFor="let albums of albumsView$; trackBy: trackByFn">
+        <app-list-item
+          *ngFor="let album of albums"
+          class="p-2"
+          [album]="album"
+          (openAlbum)="onOpenAlbum($event)"
+          (renameFolder)="onRenameFolder(album.id, album.fullPath, album.artist, album.album)"
+          (transferAlbum)="onTransferAlbum(album.id, album.folder)"
+          (playAlbum)="onPlayAlbum(album.id, album.folder)"
+          (addToPlaylist)="onAddToPlaylist(album.id, album.folder)"
+        ></app-list-item>
+      </div>
     </div>
-  </div>
-</cdk-virtual-scroll-viewport>
+  </cdk-virtual-scroll-viewport>
+
+  <footer>
+    <app-player></app-player>
+  </footer>
+</div>

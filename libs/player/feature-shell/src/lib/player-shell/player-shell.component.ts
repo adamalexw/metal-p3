@@ -7,8 +7,8 @@ import {
   playPrevious,
   selectActivePlaylistItem,
   selectFirstItemPlaying,
+  selectFooterMode,
   selectLastItemPlaying,
-  selectMiniMode,
   selectPlaylist,
   tooglePlayerView,
   updatePlaylistItem,
@@ -22,7 +22,7 @@ import { concatMap, filter, map, shareReplay, switchMap, take, tap, withLatestFr
 
 @UntilDestroy()
 @Component({
-  selector: 'app-player-shell',
+  selector: 'app-player',
   templateUrl: './player-shell.component.html',
   styleUrls: ['./player-shell.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -30,9 +30,13 @@ import { concatMap, filter, map, shareReplay, switchMap, take, tap, withLatestFr
 export class PlayerShellComponent implements OnInit {
   @ViewChild('audio', { static: true }) audio!: ElementRef;
 
-  miniMode$ = this.store.pipe(select(selectMiniMode)).pipe(shareReplay());
-  divClass$ = this.miniMode$.pipe(map((miniMode) => (miniMode ? 'mini-mode' : 'full-mode')));
-  toggleIcon$ = this.miniMode$.pipe(map((miniMode) => (miniMode ? 'expand_more' : 'expand_less')));
+  playlistActive$ = this.store.pipe(
+    select(selectPlaylist),
+    map((playlist) => playlist?.length)
+  );
+  footerMode$ = this.store.pipe(select(selectFooterMode)).pipe(shareReplay());
+  divClass$ = this.footerMode$.pipe(map((footerMode) => (footerMode ? 'footer-mode' : 'full-mode')));
+  toggleIcon$ = this.footerMode$.pipe(map((footerMode) => (footerMode ? 'expand_less' : 'expand_more')));
 
   playlist$ = this.store.pipe(select(selectPlaylist));
   activeItem$ = this.store.pipe(select(selectActivePlaylistItem));
@@ -46,8 +50,8 @@ export class PlayerShellComponent implements OnInit {
     switchMap((item) => this.store.pipe(select(selectAlbumById(item?.albumId || 0)))),
     map((album) => album?.cover)
   );
-  coverSize$ = this.miniMode$.pipe(
-    map((miniMode) => (miniMode ? 64 : 256)),
+  coverSize$ = this.footerMode$.pipe(
+    map((footerMode) => (footerMode ? 64 : 256)),
     shareReplay()
   );
 

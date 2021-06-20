@@ -13,7 +13,7 @@ import { WINDOW } from '@ng-web-apis/common';
 })
 export class AlbumComponent implements OnChanges {
   @Input()
-  album: Album | undefined;
+  album!: Album;
 
   @Input()
   albumSaving = false;
@@ -23,6 +23,9 @@ export class AlbumComponent implements OnChanges {
 
   @Input()
   tracksLoading = false;
+
+  @Input()
+  albumDuration = 0;
 
   @Input()
   trackSavingProgress = 0;
@@ -127,6 +130,12 @@ export class AlbumComponent implements OnChanges {
   readonly addTrackToPlaylist = new EventEmitter<{ track: Track; albumId: number }>();
 
   @Output()
+  readonly deleteTrack = new EventEmitter<{ track: Track; albumId: number }>();
+
+  @Output()
+  readonly deleteAlbum = new EventEmitter<number>();
+
+  @Output()
   readonly closeAlbum = new EventEmitter<void>();
 
   get albumUrl(): string {
@@ -206,7 +215,7 @@ export class AlbumComponent implements OnChanges {
   }
 
   private get albumId(): number {
-    return this.album?.id || 0;
+    return this.album.id;
   }
 
   onImageSearch() {
@@ -230,7 +239,7 @@ export class AlbumComponent implements OnChanges {
   }
 
   onRenameFolder() {
-    this.renameFolder.emit({ id: this.albumId, src: this.album?.fullPath, artist: this.form.get('artist')?.value, album: this.form.get('album')?.value });
+    this.renameFolder.emit({ id: this.albumId, src: this.album.fullPath || '', artist: this.form.get('artist')?.value, album: this.form.get('album')?.value });
   }
 
   openLink(url: string) {

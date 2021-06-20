@@ -3,6 +3,7 @@ import { Inject, Injectable } from '@angular/core';
 import { AlbumService } from '@metal-p3/album/data-access';
 import { BASE_PATH } from '@metal-p3/album/domain';
 import { MetalArchivesSearchResponse, Track } from '@metal-p3/api-interfaces';
+import { CoverService } from '@metal-p3/cover/data-access';
 import { ErrorService } from '@metal-p3/shared/error';
 import { NotificationService } from '@metal-p3/shared/feedback';
 import { extractUrl } from '@metal-p3/shared/utils';
@@ -10,16 +11,23 @@ import { WINDOW } from '@ng-web-apis/common';
 import { Actions, concatLatestFrom, createEffect, ofType } from '@ngrx/effects';
 import { Update } from '@ngrx/entity';
 import { select, Store } from '@ngrx/store';
-import { EMPTY, of, throwError } from 'rxjs';
-import { catchError, filter, map, mergeMap, tap } from 'rxjs/operators';
+import { EMPTY, forkJoin, iif, Observable, of, throwError } from 'rxjs';
+import { catchError, concatMap, filter, map, mergeMap, switchMap, tap } from 'rxjs/operators';
+import { getCoverError } from '../cover/actions';
 import { Album, AlbumDtoToAlbum } from '../model';
 import { selectTracks } from '../selectors';
 import { updateTracks } from '../track/actions';
 import {
   addAlbum,
   addNewAlbum,
+  addNewError,
+  cancelLoadAlbums,
+  cancelLoadAlbumsSuccess,
   createNew,
   createNewSuccess,
+  deleteAlbum,
+  deleteAlbumError,
+  deleteAlbumSuccess,
   findMaUrl,
   findMaUrlSuccess,
   getAlbum,
@@ -43,12 +51,46 @@ import {
 export class AlbumEffects {
   loadAlbums$ = createEffect(() =>
     this.actions$.pipe(
-      ofType(loadAlbums),
-      mergeMap(({ request }) =>
-        this.service.getAlbums(request).pipe(
-          map((albums) => albums as Album[]),
-          map((albums) => (!request.skip ? loadAlbumsSuccess({ albums }) : loadAlbumsPageSuccess({ albums }))),
-          catchError((error) => of(loadAlbumsError({ loadError: error })))
+      ofType(loadAlbums, cancelLoadAlbums),
+      switchMap(({ request }) =>
+        iif(
+          () => !!request.cancel,
+          of(cancelLoadAlbumsSuccess()),
+          this.service.getAlbums(request).pipe(
+            map((albums) => albums as Album[]),
+            mergeMap((albums) => {
+              if (!albums.length) {
+                return of(albums);
+              }
+
+              const sources: Record<number, Observable<string>> = {};
+              albums.forEach(
+                (album) =>
+                  (sources[album.id] = this.coverService.getCover(`${this.basePath}/${album.folder}`).pipe(
+                    catchError((error) => {
+                      this.store.dispatch(getCoverError({ update: { id: album.id, changes: { coverLoading: false, coverError: this.errorService.getError(error) } } }));
+                      return of('/assets/blank.png');
+                    })
+                  ))
+              );
+
+              return forkJoin(sources).pipe(
+                map((covers) => {
+                  Object.keys(covers).forEach((key) => {
+                    const album = albums.find((a) => a.id === +key);
+
+                    if (album) {
+                      album.cover = covers[key];
+                    }
+                  });
+
+                  return albums;
+                })
+              );
+            }),
+            map((albums) => (!request.skip ? loadAlbumsSuccess({ albums }) : loadAlbumsPageSuccess({ albums }))),
+            catchError((error) => of(loadAlbumsError({ loadError: error })))
+          )
         )
       )
     )
@@ -74,10 +116,11 @@ export class AlbumEffects {
         this.service.addNewAlbum(`${this.basePath}/${folder}`).pipe(
           tap((album) => this.notificationService.showInfo(album.folder, 'New Album')),
           map((album) => AlbumDtoToAlbum(album) as Album),
+          concatMap((album) => this.coverService.getCover(`${this.basePath}/${album.folder}`).pipe(map((cover) => ({ ...album, cover })))),
           map((album) => addAlbum({ album })),
           catchError((error) => {
-            console.error(error);
-            return EMPTY;
+            this.notificationService.showError(`${folder}: ${this.errorService.getError(error)}`, 'New Album');
+            return of(addNewError({ error }));
           })
         )
       )
@@ -209,9 +252,25 @@ export class AlbumEffects {
     )
   );
 
+  deleteAlbum$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(deleteAlbum),
+      mergeMap(({ id }) =>
+        this.service.deleteAlbum(id).pipe(
+          map(() => deleteAlbumSuccess({ id })),
+          catchError((error) => {
+            this.notificationService.showError(`${this.errorService.getError(error)}`, 'Delete Album');
+            return of(deleteAlbumError({ id, error }));
+          })
+        )
+      )
+    )
+  );
+
   constructor(
     private actions$: Actions,
     private service: AlbumService,
+    private coverService: CoverService,
     private store: Store,
     private notificationService: NotificationService,
     private errorService: ErrorService,

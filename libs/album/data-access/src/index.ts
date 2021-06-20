@@ -1,2 +1,2 @@
+export * from './lib/album-data-access.module';
 export * from './lib/album.service';
-export * from './lib/albums-data-access.module';

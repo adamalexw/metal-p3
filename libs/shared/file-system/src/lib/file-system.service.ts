@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { exec } from 'child_process';
-import { chmodSync, lstatSync, readdirSync, renameSync, rmdirSync, statSync } from 'fs';
+import { chmodSync, lstatSync, readdirSync, renameSync, rmdirSync, statSync, unlinkSync } from 'fs';
 import { basename, dirname, join } from 'path';
 
 @Injectable()
@@ -36,6 +36,14 @@ export class FileSystemService {
       this.setReadAndWritePermission(path);
       renameSync(path, newPath);
     }
+  }
+
+  deleteFile(path: string) {
+    unlinkSync(path);
+  }
+
+  deleteFolder(path: string) {
+    rmdirSync(path, { recursive: true });
   }
 
   filenameValidator(filename: string): string {
@@ -81,9 +89,9 @@ export class FileSystemService {
 
     let files = this.getFiles(folder);
     if (files.length > 0) {
-      files.forEach(function (file) {
-        //const fullPath = join(folder, file);
-        //this.cleanEmptyFolders(fullPath);
+      files.forEach((file) => {
+        const fullPath = join(folder, file);
+        this.cleanEmptyFolders(fullPath);
       });
 
       files = this.getFiles(folder);

@@ -12,6 +12,7 @@
       (renameFolder)="onRenameFolder()"
       (openFolder)="openFolder.emit(album.fullPath)"
       (transfer)="onTransferAlbum()"
+      (delete)="deleteAlbum.emit(this.albumId)"
       (closeAlbum)="closeAlbum.emit()"
     ></app-album-toolbar>
   </nav>
@@ -84,6 +85,7 @@
         [trackRenaming]="trackRenaming"
         [lyricsLoading]="lyricsLoading"
         [enableLyrics]="!!albumUrl"
+        [albumDuration]="albumDuration"
         (maTracks)="onMaTracks()"
         (renameTracks)="onRenameTracks()"
         (lyrics)="onLyrics()"
@@ -99,6 +101,7 @@
         (transferTrack)="onTransferTrack($event)"
         (playTrack)="playTrack.emit({ track: $event, albumId: albumId })"
         (addTrackToPlaylist)="addTrackToPlaylist.emit({ track: $event, albumId: albumId })"
+        (delete)="deleteTrack.emit({ track: $event, albumId: albumId })"
       ></app-tracks>
     </section>
   </form>

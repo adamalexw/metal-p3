@@ -46,5 +46,6 @@ export const mapBlobToBase64 = (blob: Blob) => {
 };
 
 export const mapTrackToPlaylistItem = (track: Track, albumId: number): PlaylistItem => {
+  console.log(track);
   return { ...track, id: UUID.UUID(), albumId };
 };

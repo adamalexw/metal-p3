@@ -1,1 +1,1 @@
-export * from './lib/albums-ui.module';
+export * from './lib/album-ui.module';

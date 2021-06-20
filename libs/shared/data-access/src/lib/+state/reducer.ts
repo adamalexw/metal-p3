@@ -42,9 +42,21 @@ import {
   upsertAlbum,
   upsertAlbums,
 } from './actions';
-import { createNew, createNewSuccess, loadAlbumsError, loadAlbumsPageSuccess, renameFolder, renameFolderError, renameFolderSuccess, saveAlbumError, viewAlbum } from './album/actions';
+import {
+  createNew,
+  createNewSuccess,
+  deleteAlbumError,
+  deleteAlbumSuccess,
+  loadAlbumsError,
+  loadAlbumsPageSuccess,
+  renameFolder,
+  renameFolderError,
+  renameFolderSuccess,
+  saveAlbumError,
+  viewAlbum,
+} from './album/actions';
 import { Album } from './model';
-import { transferTrack, transferTrackSuccess, updateTracks } from './track/actions';
+import { deleteTrack, deleteTrackError, deleteTrackSuccess, transferTrack, transferTrackSuccess, updateTracks } from './track/actions';
 
 export const ALBUMS_FEATURE_KEY = 'albums';
 
@@ -102,9 +114,11 @@ export const reducer = createReducer(
   on(mapAlbums, (state, { entityMap }) => {
     return adapter.map(entityMap, state);
   }),
-  on(deleteAlbum, (state, { id }) => {
+  on(deleteAlbum, (state, { id }) => adapter.updateOne({ id, changes: { deleting: true, deleteError: undefined } }, state)),
+  on(deleteAlbumSuccess, (state, { id }) => {
     return adapter.removeOne(id, state);
   }),
+  on(deleteAlbumError, (state, { id, error }) => adapter.updateOne({ id, changes: { deleting: false, deleteError: error } }, state)),
   on(deleteAlbums, (state, { ids }) => {
     return adapter.removeMany(ids, state);
   }),
@@ -127,9 +141,7 @@ export const reducer = createReducer(
   on(viewAlbum, (state, { id }) => {
     return { ...state, selectedAlbum: id };
   }),
-  on(findMaUrl, (state, { id }) => {
-    return adapter.updateOne({ id, changes: { findingUrl: true } }, state);
-  }),
+  on(findMaUrl, (state, { id }) => adapter.updateOne({ id, changes: { findingUrl: true } }, state)),
   on(findMaUrlSuccess, (state, { update }) => {
     return adapter.updateOne(update, state);
   }),
@@ -141,7 +153,7 @@ export const reducer = createReducer(
   }),
   on(createNew, (state) => ({ ...state, creatingNew: true })),
   on(createNewSuccess, (state) => ({ ...state, creatingNew: false })),
-  on(renameFolder, (state, { id }) => adapter.updateOne({ id, changes: { renamingFolder: true } }, state)),
+  on(renameFolder, (state, { id }) => adapter.updateOne({ id, changes: { renamingFolder: true, renamingFolderError: undefined } }, state)),
   on(renameFolderSuccess, renameFolderError, (state, { update }) => adapter.updateOne(update, state)),
 
   /** COVER */
@@ -292,6 +304,42 @@ export const reducer = createReducer(
         map: (album) => ({
           ...album,
           tracks: trackAdapter.updateOne({ id: track.id, changes: { trackTransferring: false } }, album.tracks),
+        }),
+      },
+      state
+    )
+  ),
+  on(deleteTrack, (state, { id, track }) =>
+    adapter.mapOne(
+      {
+        id,
+        map: (album) => ({
+          ...album,
+          tracks: trackAdapter.updateOne({ id: track.id, changes: { trackDeleting: true, trackDeletionError: undefined } }, album.tracks),
+        }),
+      },
+      state
+    )
+  ),
+  on(deleteTrackSuccess, (state, { id, track }) =>
+    adapter.mapOne(
+      {
+        id,
+        map: (album) => ({
+          ...album,
+          tracks: trackAdapter.removeOne(track.id, album.tracks),
+        }),
+      },
+      state
+    )
+  ),
+  on(deleteTrackError, (state, { id, trackId, error }) =>
+    adapter.mapOne(
+      {
+        id,
+        map: (album) => ({
+          ...album,
+          tracks: trackAdapter.updateOne({ id: trackId, changes: { trackDeleting: false, trackDeletionError: error } }, album.tracks),
         }),
       },
       state

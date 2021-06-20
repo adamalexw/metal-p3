@@ -8,4 +8,4 @@ const config: SocketIoConfig = { url: 'http://localhost:3000', options: { transp
 @NgModule({
   imports: [CommonModule, HttpClientModule, SocketIoModule.forRoot(config)],
 })
-export class AlbumsDataAccessModule {}
+export class AlbumDataAccessModule {}

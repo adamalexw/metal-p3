@@ -19,12 +19,20 @@
     }
   },
   "projects": {
-    "ui": {
+    "album-api": {
       "tags": []
     },
-    "ui-e2e": {
-      "tags": [],
-      "implicitDependencies": ["ui"]
+    "album-data-access": {
+      "tags": ["scope:album", "type:data-access"]
+    },
+    "album-domain": {
+      "tags": ["scope:album", "tags:domain"]
+    },
+    "album-feature-shell": {
+      "tags": ["scope:album", "type:feature"]
+    },
+    "album-ui": {
+      "tags": ["scope:album", "tags:ui"]
     },
     "api": {
       "tags": []
@@ -32,46 +40,13 @@
     "api-interfaces": {
       "tags": []
     },
-    "albums-feature-shell": {
-      "tags": ["scope:albums", "type:feature"]
-    },
-    "albums-data-access": {
-      "tags": ["scope:albums", "type:data-access"]
-    },
-    "albums-ui": {
-      "tags": ["scope:albums", "tags:ui"]
-    },
-    "shared-utils": {
-      "tags": ["scope:shared", "type:util"]
-    },
-    "albums-domain": {
-      "tags": []
-    },
-    "cover-api": {
-      "tags": []
-    },
-    "track-api": {
-      "tags": []
-    },
-    "shared-adb": {
-      "tags": []
-    },
-    "shared-database": {
-      "tags": []
-    },
-    "shared-metal-archives": {
-      "tags": []
-    },
-    "shared-file-system": {
-      "tags": []
-    },
     "band-api": {
       "tags": []
     },
-    "shared-error": {
+    "band-data-access": {
       "tags": []
     },
-    "shared-feedback": {
+    "cover-api": {
       "tags": []
     },
     "cover-data-access": {
@@ -83,13 +58,52 @@
     "cover-ui": {
       "tags": []
     },
+    "maintenance-api": {
+      "tags": []
+    },
+    "player-data-access": {
+      "tags": []
+    },
+    "player-domain": {
+      "tags": []
+    },
+    "player-feature-shell": {
+      "tags": []
+    },
+    "player-ui": {
+      "tags": []
+    },
+    "shared-adb": {
+      "tags": []
+    },
     "shared-data-access": {
       "tags": []
     },
-    "track-data-access": {
+    "shared-database": {
       "tags": []
     },
-    "band-data-access": {
+    "shared-error": {
+      "tags": []
+    },
+    "shared-feedback": {
+      "tags": []
+    },
+    "shared-file-system": {
+      "tags": []
+    },
+    "shared-metal-archives": {
+      "tags": []
+    },
+    "shared-ngrx-store": {
+      "tags": []
+    },
+    "shared-utils": {
+      "tags": ["scope:shared", "type:util"]
+    },
+    "track-api": {
+      "tags": []
+    },
+    "track-data-access": {
       "tags": []
     },
     "track-ui": {
@@ -98,23 +112,12 @@
     "track-util": {
       "tags": []
     },
-    "shared-ngrx-store": {
+    "ui": {
       "tags": []
     },
-    "albums-api": {
-      "tags": []
-    },
-    "player-feature-shell": {
-      "tags": []
-    },
-    "player-data-access": {
-      "tags": []
-    },
-    "player-ui": {
-      "tags": []
-    },
-    "player-domain": {
-      "tags": []
+    "ui-e2e": {
+      "tags": [],
+      "implicitDependencies": ["ui"]
     }
   }
 }

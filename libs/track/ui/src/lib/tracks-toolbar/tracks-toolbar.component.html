@@ -17,4 +17,9 @@
   <button mat-icon-button (click)="addAlbumToPlaylist.emit()">
     <mat-icon title="add to playlist">playlist_add</mat-icon>
   </button>
+
+  <div *ngIf="albumDuration" class="w-full flex flex-row-reverse items-center">
+    <span class="ml-1">{{ albumDuration | time }}</span>
+    <mat-icon>timer</mat-icon>
+  </div>
 </mat-toolbar>

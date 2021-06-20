@@ -3,7 +3,7 @@ import { AlbumDto, MetalArchivesAlbumTrack, MetalArchivesSearchResponse, RenameF
 import { FileSystemService } from '@metal-p3/shared/file-system';
 import { MetalArchivesService } from '@metal-p3/shared/metal-archives';
 import { TrackService } from '@metal-p3/track/api';
-import { Body, Controller, Get, HttpCode, HttpStatus, Patch, Post, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Patch, Post, Query } from '@nestjs/common';
 import { join } from 'path';
 import { Observable, of } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
@@ -43,12 +43,12 @@ export class AlbumController {
 
   @Patch('setHasLyrics')
   setHasLyrics(@Query('id') id: number, @Query('hasLyrics') hasLyrics: boolean): Observable<Album> {
-    return this.albumService.setHasLyrics(id, hasLyrics);
+    return this.albumService.setHasLyrics(+id, !!hasLyrics);
   }
 
   @Patch('setTransferred')
   setTransferred(@Query('id') id: number, @Query('transferred') transferred: boolean): Observable<Album> {
-    return this.albumService.setTransferred(id, transferred);
+    return this.albumService.setTransferred(+id, !!transferred);
   }
 
   @Post()
@@ -85,5 +85,10 @@ export class AlbumController {
   @Get('createAlbumFromRootFiles')
   createAlbumFromRootFiles(@Query('folder') folder: string): string[] {
     return this.albumService.createAlbumFromRootFiles(folder);
+  }
+
+  @Delete()
+  deleteAlbum(@Query('id') id: number): Observable<boolean | Error> {
+    return this.albumService.deleteAlbum(+id);
   }
 }

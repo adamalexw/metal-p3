@@ -38,7 +38,7 @@ export class MetalArchivesService {
 
             switch (i) {
               case 0:
-                track.id = +td.querySelector('a')?.getAttribute('name');
+                track.id = +(td.querySelector('a')?.getAttribute('name') || 0);
                 track.trackNumber = td.textContent.replace('.', '');
                 break;
               case 1:
@@ -88,7 +88,7 @@ export class MetalArchivesService {
     const row2 = statsTable.querySelector('dl.float_right');
 
     props.country = row1.querySelector('dd > a').textContent;
-    props.genre = row2.querySelector('dd').textContent;
+    props.genre = row2.querySelector('dd').textContent.replace(/\//g, ' - ');
 
     return props;
   }

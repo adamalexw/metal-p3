@@ -9,7 +9,7 @@ import * as fs from 'fs';
 import { Tags } from 'node-id3';
 import * as path from 'path';
 import { forkJoin, from, iif, Observable, of } from 'rxjs';
-import { concatMap, filter, map } from 'rxjs/operators';
+import { concatMap, filter, map, mapTo, tap } from 'rxjs/operators';
 import { AlbumGateway } from './album-gateway.service';
 
 @Injectable()
@@ -68,15 +68,25 @@ export class AlbumService {
       persistent: true,
       ignoreInitial: true,
       alwaysStat: false,
+      cwd: basePath,
+      depth: 1,
     });
 
     watcher.on('addDir', (path) => {
-      this.albumGateway.albumAddedMessage(this.fileSystemService.getFilename(path));
+      const folder = this.fileSystemService.getFilename(path);
+
+      // ensure we aren't reanming an existing folder
+      this.dbService.albums({ take: 1, where: { Folder: folder } }).then((album) => {
+        if (!album.length) {
+          this.albumGateway.albumAddedMessage(this.fileSystemService.getFilename(path));
+        }
+      });
     });
   }
 
   addAlbum(folder: string): Observable<AlbumDto> {
     const dirName = this.fileSystemService.getFilename(folder);
+
     return this.getAlbums({ take: 1, criteria: dirName }).pipe(
       filter((album) => !album.length),
       map(() => {
@@ -180,5 +190,13 @@ export class AlbumService {
     }
 
     return newAlbums;
+  }
+
+  deleteAlbum(id: number): Observable<boolean> {
+    return this.getAlbum(id).pipe(
+      tap((album) => this.fileSystemService.deleteFolder(album.fullPath)),
+      tap(() => this.dbService.deleteAlbum(id)),
+      mapTo(true)
+    );
   }
 }

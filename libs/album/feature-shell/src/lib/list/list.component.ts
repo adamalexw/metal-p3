@@ -8,6 +8,7 @@ import { addTracksToPlaylist, clearPlaylist, selectPlaylist } from '@metal-p3/pl
 import {
   addNewAlbum,
   Album,
+  cancelLoadAlbums,
   clearCovers,
   createNew,
   getCover,
@@ -21,6 +22,7 @@ import {
   selectCreatingNew,
   selectTracks,
   selectTracksRequired,
+  sideNavOpen,
   transferTrack,
   viewAlbum,
 } from '@metal-p3/shared/data-access';
@@ -49,10 +51,16 @@ export class ListComponent implements OnInit {
     map(() => this.viewportRuler.getViewportSize().width)
   );
 
-  albumsView$ = combineLatest([this.albums$, this.viewportWidth$]).pipe(
+  albumsView$ = combineLatest([this.albums$, this.viewportWidth$, this.store.select(sideNavOpen)]).pipe(
     filter(([albums, width]) => !!albums && !!width),
-    map(([albums, width]) => {
-      const chunks = Math.floor(width / 300);
+    map(([albums, width, open]) => {
+      // if the side nav is open we only half the amount of space
+      const listWidth = open ? width / 2 : width;
+      const chunks = Math.floor(listWidth / 319);
+
+      if (chunks === 3) {
+        console.log(listWidth);
+      }
       return toChunks(albums, chunks);
     })
   );
@@ -79,7 +87,7 @@ export class ListComponent implements OnInit {
     this.albumsLoadError$
       .pipe(
         filter((error) => !!error),
-        tap((error: string) => this.notificationService.showError(error, 'Load Albums')),
+        tap((error) => this.notificationService.showError(error, 'Load Albums')),
         untilDestroyed(this)
       )
       .subscribe();
@@ -123,7 +131,8 @@ export class ListComponent implements OnInit {
 
     tracks$
       .pipe(
-        map((tracks: Track[]) => tracks.map((track) => mapTrackToPlaylistItem(track, id))),
+        filter((tracks) => !!tracks),
+        map((tracks) => tracks!.map((track) => mapTrackToPlaylistItem(track, id))),
         tap((tracks) => this.store.dispatch(addTracksToPlaylist({ tracks }))),
         take(1)
       )
@@ -148,13 +157,14 @@ export class ListComponent implements OnInit {
     );
   }
 
-  identify(index: number, item: Album) {
+  trackByFn(index: number, item: Album) {
     return item.id;
   }
 
   onSearch(request: SearchRequest) {
     this.fetchedPages.clear();
     this.store.dispatch(clearCovers());
+    this.store.dispatch(cancelLoadAlbums({ request: { cancel: true } }));
     this.criteria = request.criteria;
     this.scrollIndexChange(0, this.criteria);
   }
@@ -177,13 +187,14 @@ export class ListComponent implements OnInit {
       return;
     }
 
+    const initialSize = 40;
     let skip = 0;
-    let take = 16;
+    let take = 24;
 
     if (page === 0) {
-      take = 40;
+      take = initialSize;
     } else {
-      skip = 40 + 16 * page;
+      skip = initialSize + take * page;
     }
 
     this.fetchedPages.add(page);

@@ -1,12 +1,13 @@
 <mat-toolbar>
-  <ng-content></ng-content>
-
-  <form [formGroup]="form" class="ml-3">
+  <form [formGroup]="form">
     <mat-form-field floatLabel="never">
       <input matInput placeholder="Search" formControlName="criteria" type="search" />
     </mat-form-field>
   </form>
 
+  <button mat-icon-button (click)="searchRequest.emit(form.value)">
+    <mat-icon title="refresh">refresh</mat-icon>
+  </button>
   <button mat-icon-button [disabled]="creatingNew" (click)="createNew.emit()">
     <mat-icon title="createNew">create_new_folder</mat-icon>
   </button>

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
 import { PlaylistItem } from '@metal-p3/player/domain';
 
 @Component({
@@ -7,9 +7,9 @@ import { PlaylistItem } from '@metal-p3/player/domain';
   styleUrls: ['./player-controls.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class PlayerControlsComponent implements OnInit {
+export class PlayerControlsComponent {
   @Input()
-  miniMode = false;
+  footerMode = false;
 
   @Input()
   isFirstItemPlaying = false;
@@ -43,10 +43,6 @@ export class PlayerControlsComponent implements OnInit {
 
   @Output()
   readonly toggleView = new EventEmitter<number>();
-
-  constructor() {}
-
-  ngOnInit(): void {}
 
   onSliderChangeEnd(value: number) {
     this.seekTo.emit(value);

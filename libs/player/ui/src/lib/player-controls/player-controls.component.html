@@ -1,47 +1,61 @@
-<mat-toolbar color="primary" class="h-full w-full">
-  <mat-toolbar-row *ngIf="!miniMode">
-    <ng-container *ngTemplateOutlet="sliderTemplate"></ng-container>
+<mat-toolbar class="h-full w-full relative">
+  <mat-toolbar-row *ngIf="!footerMode">
+    <div class="w-full">
+      <div class="flex flex-row items-end pt-5">
+        <span class="text-xs">{{ elapsedTime | time }}</span>
+        <span class="flex-grow"></span>
+        <span class="text-xs">{{ currentItem?.duration | time }}</span>
+      </div>
+      <mat-slider class="w-full p-0 h-10" min="0" [max]="currentItem?.duration" step="1" [value]="elapsedTime" (input)="onSliderChangeEnd($event.value)" [disabled]="!currentItem"></mat-slider>
+    </div>
   </mat-toolbar-row>
-  <mat-toolbar-row class="justify-center">
-    <button mat-icon-button [disabled]="isFirstItemPlaying" (click)="previous.emit()">
-      <mat-icon mat-list-icon>skip_previous</mat-icon>
-    </button>
-    <button mat-icon-button (click)="playItem.emit()" *ngIf="!currentItem?.playing">
-      <mat-icon mat-list-icon>play_arrow</mat-icon>
-    </button>
-    <button mat-icon-button (click)="pauseItem.emit()" *ngIf="currentItem?.playing">
-      <mat-icon mat-list-icon>pause</mat-icon>
-    </button>
-    <button mat-icon-button [disabled]="isLastItemPlaying" (click)="next.emit()">
-      <mat-icon mat-list-icon>skip_next</mat-icon>
-    </button>
-    <ng-container *ngIf="miniMode">
-      <span class="text-xs">{{ currentItem?.title }}</span>
+  <mat-toolbar-row>
+    <div [ngClass]="{ 'w-full': !footerMode, flex: !footerMode, 'justify-center': !footerMode }">
+      <ng-container *ngTemplateOutlet="controlsTemplate"></ng-container>
+    </div>
+    <ng-container *ngIf="footerMode">
+      <div *ngIf="footerMode" class="text-xs mr-3">{{ elapsedTime | time }} / {{ currentItem?.duration | time }}</div>
+      <div *ngIf="currentItem" class="text-xs">{{ currentItem.trackNumber }} - {{ currentItem.title }}</div>
+      <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+        <ng-container *ngTemplateOutlet="detailsTemplate"></ng-container>
+      </div>
     </ng-container>
-    <button mat-icon-button (click)="toggleView.emit()">
-      <mat-icon mat-list-icon>{{ toggleIcon }}</mat-icon>
-    </button>
+    <div class="absolute right-2">
+      <button mat-icon-button (click)="toggleView.emit()">
+        <mat-icon mat-list-icon>{{ toggleIcon }}</mat-icon>
+      </button>
+    </div>
   </mat-toolbar-row>
-  <ng-container *ngIf="!miniMode">
+  <ng-container *ngIf="!footerMode">
     <mat-toolbar-row>
       <div class="w-full text-center" *ngIf="currentItem">{{ currentItem.trackNumber }} - {{ currentItem.title }}</div>
     </mat-toolbar-row>
-    <mat-toolbar-row class="flex-col">
-      <ng-container *ngIf="currentItem">
-        <div class="text-sm">{{ currentItem.artist }} - {{ currentItem.album }}</div>
-        <div class="text-sm">{{ currentItem.year }} - {{ currentItem.genre }}</div>
-      </ng-container>
+    <mat-toolbar-row class="justify-center text-center">
+      <ng-container *ngTemplateOutlet="detailsTemplate"></ng-container>
     </mat-toolbar-row>
   </ng-container>
 </mat-toolbar>
 
-<ng-template #sliderTemplate>
-  <div class="w-full">
-    <div class="flex flex-row items-end pt-5">
-      <span class="text-xs">{{ elapsedTime | time }}</span>
-      <span class="flex-grow"></span>
-      <span class="text-xs">{{ currentItem?.duration | time }}</span>
-    </div>
-    <mat-slider class="w-full p-0 h-10" min="0" [max]="currentItem?.duration" step="1" [value]="elapsedTime" (input)="onSliderChangeEnd($event.value)" [disabled]="!currentItem"></mat-slider>
+<ng-template #controlsTemplate>
+  <button mat-icon-button [disabled]="isFirstItemPlaying" (click)="previous.emit()">
+    <mat-icon mat-list-icon>skip_previous</mat-icon>
+  </button>
+  <button mat-icon-button (click)="playItem.emit()" *ngIf="!currentItem?.playing">
+    <mat-icon mat-list-icon>play_arrow</mat-icon>
+  </button>
+  <button mat-icon-button (click)="pauseItem.emit()" *ngIf="currentItem?.playing">
+    <mat-icon mat-list-icon>pause</mat-icon>
+  </button>
+  <button mat-icon-button [disabled]="isLastItemPlaying" (click)="next.emit()">
+    <mat-icon mat-list-icon>skip_next</mat-icon>
+  </button>
+</ng-template>
+
+<ng-template #detailsTemplate>
+  <div class="flex-col">
+    <ng-container *ngIf="currentItem">
+      <div class="text-sm">{{ currentItem.artist }} - {{ currentItem.album }}</div>
+      <div class="text-sm">{{ currentItem.year }} - {{ currentItem.genre }}</div>
+    </ng-container>
   </div>
 </ng-template>

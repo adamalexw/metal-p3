@@ -7,18 +7,18 @@ export const PLAYER_FEATURE_KEY = 'player';
 
 export interface PlayerState extends EntityState<PlaylistItem> {
   activeTrack?: string;
-  miniMode: boolean;
+  footerMode: boolean;
 }
 
 export const adapter: EntityAdapter<PlaylistItem> = createEntityAdapter<PlaylistItem>();
 
 export const initialState = adapter.getInitialState({
-  miniMode: true,
+  footerMode: true,
 });
 
 export const reducer = createReducer(
   initialState,
-  on(tooglePlayerView, (state) => ({ ...state, miniMode: !state.miniMode })),
+  on(tooglePlayerView, (state) => ({ ...state, footerMode: !state.footerMode })),
   on(addTrackToPlaylist, (state, { track }) => adapter.addOne(track, state)),
   on(addTracksToPlaylist, (state, { tracks }) => adapter.addMany(tracks, state)),
   on(updatePlaylist, (state, { updates }) => adapter.updateMany(updates, state)),

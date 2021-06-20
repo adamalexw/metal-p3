@@ -59,6 +59,10 @@
             <mat-icon>playlist_add</mat-icon>
             <span>Add To Playlist</span>
           </button>
+          <button mat-menu-item appConfirmDelete (click)="$event.stopPropagation()" [itemName]="element.get('title').value" (confirmResult)="onDelete($event, element.get('id')?.value)">
+            <mat-icon>delete</mat-icon>
+            <span>Delete</span>
+          </button>
         </mat-menu>
       </mat-cell>
     </ng-container>

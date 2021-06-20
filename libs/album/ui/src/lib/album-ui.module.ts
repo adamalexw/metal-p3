@@ -18,6 +18,7 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { RouterModule } from '@angular/router';
 import { CoverUiModule } from '@metal-p3/cover/ui';
 import { PlayerDataAccessModule } from '@metal-p3/player/data-access';
+import { SharedFeedbackModule } from '@metal-p3/shared/feedback';
 import { TrackUiModule } from '@metal-p3/track/ui';
 import { SafePipeModule } from 'safe-pipe';
 import { AlbumHeaderComponent } from './album-header/album-header.component';
@@ -46,8 +47,8 @@ const materialModules = [
 ];
 
 @NgModule({
-  imports: [CommonModule, RouterModule, FormsModule, ReactiveFormsModule, SafePipeModule, materialModules, CoverUiModule, TrackUiModule, PlayerDataAccessModule],
+  imports: [CommonModule, RouterModule, FormsModule, ReactiveFormsModule, SafePipeModule, materialModules, CoverUiModule, TrackUiModule, PlayerDataAccessModule, SharedFeedbackModule],
   declarations: [ListItemComponent, AlbumComponent, AlbumToolbarComponent, LyricsComponent, LyricsToolbarComponent, ListToolbarComponent, AlbumHeaderComponent],
   exports: [ListItemComponent, ListToolbarComponent, AlbumComponent, LyricsComponent],
 })
-export class AlbumsUiModule {}
+export class AlbumUiModule {}

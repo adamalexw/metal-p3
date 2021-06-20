@@ -2,12 +2,16 @@
 import { Inject, Injectable } from '@angular/core';
 import { BASE_PATH } from '@metal-p3/album/domain';
 import { Track } from '@metal-p3/api-interfaces';
+import { ErrorService } from '@metal-p3/shared/error';
 import { TrackService } from '@metal-p3/track/data-access';
 import { Actions, concatLatestFrom, createEffect, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
-import { EMPTY } from 'rxjs';
+import { EMPTY, of } from 'rxjs';
 import { catchError, map, mergeMap } from 'rxjs/operators';
 import {
+  deleteTrack,
+  deleteTrackError,
+  deleteTrackSuccess,
   getLyrics,
   getLyricsSuccess,
   getMaTracks,
@@ -116,5 +120,18 @@ export class TrackEffects {
     )
   );
 
-  constructor(private actions$: Actions, private service: TrackService, private store: Store, @Inject(BASE_PATH) private readonly basePath: string) {}
+  deleteTrack$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(deleteTrack),
+      mergeMap(({ id, track }) =>
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        this.service.deleteTrack(track.fullPath!).pipe(
+          map(() => deleteTrackSuccess({ id, track })),
+          catchError((error) => of(deleteTrackError({ id, trackId: track.id, error: this.errorService.getError(error) })))
+        )
+      )
+    )
+  );
+
+  constructor(private actions$: Actions, private service: TrackService, private store: Store, @Inject(BASE_PATH) private readonly basePath: string, private errorService: ErrorService) {}
 }

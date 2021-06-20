@@ -15,8 +15,4 @@ export class AlbumWsService {
   albumAddedComplete(album: string): void {
     this.socket.emit('albumAddedComplete', album);
   }
-
-  getUsers() {
-    return this.socket.fromEvent('users');
-  }
 }

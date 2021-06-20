@@ -28,6 +28,6 @@ export class ErrorsHandler implements ErrorHandler {
       // logger.logError(error);
     }
 
-    notifier.showError(message);
+    notifier.showError(message, 'Internal Error');
   }
 }

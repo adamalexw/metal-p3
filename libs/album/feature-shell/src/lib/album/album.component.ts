@@ -7,6 +7,8 @@ import { CoverService } from '@metal-p3/cover/data-access';
 import { addTracksToPlaylist, addTrackToPlaylist, clearPlaylist, playItem } from '@metal-p3/player/data-access';
 import {
   Album,
+  deleteAlbum,
+  deleteTrack,
   downloadCover,
   findMaUrl,
   getAlbum,
@@ -23,6 +25,7 @@ import {
   saveTrack,
   selectAlbum,
   selectAlbumSaving,
+  selectAlbumsLoaded,
   selectBandProps,
   selectCover,
   selectCoverLoading,
@@ -41,6 +44,7 @@ import {
   selectTrackRenamingProgress,
   selectTracks,
   selectTrackSavingProgress,
+  selectTracksDuration,
   selectTracksLoading,
   selectTracksRequired,
   selectTrackTransferring,
@@ -73,6 +77,8 @@ export class AlbumShellComponent implements OnInit {
 
   tracksLoading$ = this.store.pipe(select(selectTracksLoading));
   tracks$ = this.store.pipe(select(selectTracks));
+  albumDuration$ = this.store.pipe(select(selectTracksDuration));
+
   trackSavingProgress$ = this.store.pipe(select(selectTrackSavingProgress));
 
   coverLoading$ = this.store.pipe(select(selectCoverLoading));
@@ -128,14 +134,15 @@ export class AlbumShellComponent implements OnInit {
       take(1)
     );
 
-    this.album$
+    combineLatest([this.store.select(selectAlbumsLoaded), this.album$])
       .pipe(
         untilDestroyed(this),
-        filter((album) => !album),
-        take(1),
+        filter(([loaded, album]) => loaded && !album),
         withLatestFrom(albumId$),
-        filter(([_album, id]) => !!id),
-        tap(([_album, id]) => {
+        take(1),
+        map(([_album, id]) => id),
+        filter((id) => !!id),
+        tap((id) => {
           this.store.dispatch(getAlbum({ id }));
           this.store.dispatch(viewAlbum({ id }));
         })
@@ -314,5 +321,14 @@ export class AlbumShellComponent implements OnInit {
     const playlistItem = mapTrackToPlaylistItem(track, albumId);
     this.store.dispatch(addTrackToPlaylist({ track: playlistItem }));
     return playlistItem.id;
+  }
+
+  onDeleteTrack(track: Track, albumId: number): void {
+    this.store.dispatch(deleteTrack({ id: albumId, track }));
+  }
+
+  onDeleteAlbum(id: number) {
+    this.store.dispatch(deleteAlbum({ id }));
+    this.router.navigate(['/']);
   }
 }

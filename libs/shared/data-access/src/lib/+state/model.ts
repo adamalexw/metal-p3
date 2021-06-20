@@ -18,6 +18,8 @@ export interface Album extends AlbumDto {
   refreshing?: boolean;
   gettingMaTracks?: boolean;
   maTracks: EntityState<MetalArchivesAlbumTrack>;
+  deleting?: boolean;
+  deleteError?: string;
 }
 
 export type AlbumWithoutTracks = Omit<Album, 'tracks' | 'maTracks'>;

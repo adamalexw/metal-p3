@@ -17,6 +17,9 @@
   <button mat-icon-button [disabled]="trackTransferring" (click)="transfer.emit()">
     <mat-icon title="transfer">adb</mat-icon>
   </button>
+  <button mat-icon-button appConfirmDelete [itemName]="'album'" (confirmResult)="onDelete($event)">
+    <mat-icon title="delete">delete</mat-icon>
+  </button>
 
   <div class="w-full flex flex-row-reverse">
     <app-album-header [folder]="folder" [routerLink]="['/']"></app-album-header>

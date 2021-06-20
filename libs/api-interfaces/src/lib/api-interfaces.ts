@@ -30,6 +30,8 @@ export interface Track extends AlbumBase {
   trackSaving?: boolean;
   trackRenaming?: boolean;
   trackTransferring?: boolean;
+  trackDeleting?: boolean;
+  trackDeletionError?: string;
 }
 
 export interface BandDto extends BandProps {

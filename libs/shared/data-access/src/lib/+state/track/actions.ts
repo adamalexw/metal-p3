@@ -20,3 +20,7 @@ export const getLyrics = createAction('[Tracks] Get Lyrics', props<{ id: number;
 export const getLyricsSuccess = createAction('[Tracks] Get Lyrics Success', props<{ id: number; trackId: number; lyrics: string }>());
 export const applyLyrics = createAction('[Tracks] Apply Lyrics', props<{ id: number; lyrics: ApplyLyrics[] }>());
 export const applyLyricsSuccess = createAction('[Tracks] Apply Lyrics Success', props<{ update: Update<Album> }>());
+
+export const deleteTrack = createAction('[Tracks] Delete Track', props<{ id: number; track: Track }>());
+export const deleteTrackSuccess = createAction('[Tracks] Delete Track Success', props<{ id: number; track: Track }>());
+export const deleteTrackError = createAction('[Tracks] Delete Track Error', props<{ id: number; trackId: number; error: string }>());

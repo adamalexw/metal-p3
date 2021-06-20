@@ -5,7 +5,7 @@ export const selectPlaylistState = createFeatureSelector<PlayerState>(PLAYER_FEA
 
 const { selectEntities, selectAll } = adapter.getSelectors();
 
-export const selectMiniMode = createSelector(selectPlaylistState, (state) => state.miniMode);
+export const selectFooterMode = createSelector(selectPlaylistState, (state) => state.footerMode);
 
 export const selectPlaylistEntities = createSelector(selectPlaylistState, selectEntities);
 export const selectPlaylist = createSelector(selectPlaylistState, (state) => selectAll(state));

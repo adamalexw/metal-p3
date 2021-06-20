@@ -1,6 +1,6 @@
 import { RenameTrack, Track } from '@metal-p3/api-interfaces';
 import { FileSystemService } from '@metal-p3/shared/file-system';
-import { Body, Controller, Get, HttpCode, HttpStatus, Patch, Query, Res } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Patch, Query, Res } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { TrackService } from './track.service';
 
@@ -47,5 +47,10 @@ export class TrackController {
       'Content-Length': stats.size,
     });
     this.trackService.playTrack(file).pipe(res);
+  }
+
+  @Delete()
+  delete(@Query('file') file: string) {
+    this.fileSystemService.deleteFile(file);
   }
 }

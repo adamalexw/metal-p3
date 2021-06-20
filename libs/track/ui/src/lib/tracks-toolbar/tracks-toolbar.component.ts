@@ -20,7 +20,7 @@ export class TracksToolbarComponent {
   lyricsLoading = false;
 
   @Input()
-  folder = '';
+  albumDuration = 0;
 
   @Output()
   readonly renameTracks = new EventEmitter<void>();

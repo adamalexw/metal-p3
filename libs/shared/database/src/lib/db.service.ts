@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Album, Band, Prisma } from '@prisma/client';
+import { Album, Band, LyricsHistory, Prisma } from '@prisma/client';
 import { PrismaService } from './prisma.service';
 
 @Injectable()
@@ -11,7 +11,7 @@ export class DbService {
 
     return this.prisma.album.findMany({
       skip,
-      take: +take,
+      take: +(take || 0),
       cursor,
       where,
       orderBy,
@@ -47,6 +47,10 @@ export class DbService {
     });
   }
 
+  async deleteAlbum(id: number) {
+    return this.prisma.album.delete({ where: { AlbumId: id } });
+  }
+
   async bands(where: Prisma.BandWhereInput): Promise<Band[]> {
     return this.prisma.band.findMany({
       where,
@@ -69,5 +73,13 @@ export class DbService {
       data,
       where,
     });
+  }
+
+  async lyricsHistory(): Promise<LyricsHistory[]> {
+    return this.prisma.lyricsHistory.findMany();
+  }
+
+  async lyricsPriority(): Promise<LyricsHistory[]> {
+    return this.prisma.lyricsHistory.findMany({ where: { Priority: true } });
   }
 }

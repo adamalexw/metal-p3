@@ -10,6 +10,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTableModule } from '@angular/material/table';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { SharedFeedbackModule } from '@metal-p3/shared/feedback';
 import { TrackUtilModule } from '@metal-p3/track/util';
 import { LyricsComponent } from './lyrics/lyrics.component';
 import { TracksToolbarComponent } from './tracks-toolbar/tracks-toolbar.component';
@@ -29,7 +30,7 @@ const materialModules = [
 ];
 
 @NgModule({
-  imports: [CommonModule, TrackUtilModule, FormsModule, ReactiveFormsModule, materialModules],
+  imports: [CommonModule, TrackUtilModule, FormsModule, ReactiveFormsModule, SharedFeedbackModule, materialModules],
   declarations: [TracksComponent, TracksToolbarComponent, LyricsComponent],
   exports: [TracksComponent, TracksToolbarComponent],
 })
