@@ -48,7 +48,6 @@ model LyricsError {
 model LyricsHistory {
   LyricsHistoryId  Int          @id @default(autoincrement())
   AlbumId          Int
-  Url              String?      @db.VarChar(2083)
   NumTracks        Int?
   NumLyrics        Int?
   NumLyricsHistory Int?

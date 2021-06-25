@@ -2,14 +2,14 @@ import { AlbumDto, RenameFolder } from '@metal-p3/api-interfaces';
 import { DbService } from '@metal-p3/shared/database';
 import { FileSystemService } from '@metal-p3/shared/file-system';
 import { TrackService } from '@metal-p3/track/api';
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { Album, Band, Prisma } from '@prisma/client';
 import * as chokidar from 'chokidar';
 import * as fs from 'fs';
 import { Tags } from 'node-id3';
 import * as path from 'path';
 import { forkJoin, from, iif, Observable, of } from 'rxjs';
-import { concatMap, filter, map, mapTo, tap } from 'rxjs/operators';
+import { catchError, concatMap, filter, map, mapTo, mergeMap, tap } from 'rxjs/operators';
 import { AlbumGateway } from './album-gateway.service';
 
 @Injectable()
@@ -68,19 +68,20 @@ export class AlbumService {
       persistent: true,
       ignoreInitial: true,
       alwaysStat: false,
-      cwd: basePath,
-      depth: 1,
     });
 
     watcher.on('addDir', (path) => {
       const folder = this.fileSystemService.getFilename(path);
 
       // ensure we aren't reanming an existing folder
-      this.dbService.albums({ take: 1, where: { Folder: folder } }).then((album) => {
-        if (!album.length) {
-          this.albumGateway.albumAddedMessage(this.fileSystemService.getFilename(path));
-        }
-      });
+      this.dbService
+        .albums({ take: 1, where: { Folder: folder } })
+        .then((album) => {
+          if (!album.length) {
+            this.albumGateway.albumAddedMessage(this.fileSystemService.getFilename(path));
+          }
+        })
+        .catch((error) => Logger.error(error));
     });
   }
 
@@ -160,7 +161,7 @@ export class AlbumService {
     const fullPath = `${this.basePath}/${folder}`;
 
     this.fileSystemService.rename(src, fullPath);
-    this.dbService.updateAlbum({ where: { AlbumId: +id }, data: { Folder: folder } });
+    this.dbService.updateAlbum({ where: { AlbumId: +id }, data: { Folder: folder } }).catch((error) => Logger.error(error));
 
     return { fullPath, folder };
   }
@@ -195,8 +196,12 @@ export class AlbumService {
   deleteAlbum(id: number): Observable<boolean> {
     return this.getAlbum(id).pipe(
       tap((album) => this.fileSystemService.deleteFolder(album.fullPath)),
-      tap(() => this.dbService.deleteAlbum(id)),
-      mapTo(true)
+      mergeMap(() => from(this.dbService.deleteAlbum(id))),
+      mapTo(true),
+      catchError((error) => {
+        Logger.error(error);
+        return of(false);
+      })
     );
   }
 }

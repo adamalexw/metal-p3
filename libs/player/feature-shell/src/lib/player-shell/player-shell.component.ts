@@ -1,24 +1,28 @@
 import { ChangeDetectionStrategy, Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import { DomSanitizer } from '@angular/platform-browser';
 import {
   clearPlaylist,
   pauseItem,
   playItem,
   playNext,
   playPrevious,
+  reorderPlaylist,
   selectActivePlaylistItem,
   selectFirstItemPlaying,
   selectFooterMode,
   selectLastItemPlaying,
   selectPlaylist,
+  selectPlaylistDuration,
   tooglePlayerView,
-  updatePlaylistItem,
+  updatePlaylistItem
 } from '@metal-p3/player/data-access';
+import { PlaylistItem } from '@metal-p3/player/domain';
 import { selectAlbumById } from '@metal-p3/shared/data-access';
 import { TrackService } from '@metal-p3/track/data-access';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { select, Store } from '@ngrx/store';
 import { fromEvent, iif, Observable, of } from 'rxjs';
-import { concatMap, filter, map, shareReplay, switchMap, take, tap, withLatestFrom } from 'rxjs/operators';
+import { concatMap, distinctUntilKeyChanged, filter, map, shareReplay, switchMap, take, tap, withLatestFrom } from 'rxjs/operators';
 
 @UntilDestroy()
 @Component({
@@ -32,19 +36,28 @@ export class PlayerShellComponent implements OnInit {
 
   playlistActive$ = this.store.pipe(
     select(selectPlaylist),
-    map((playlist) => playlist?.length)
+    map((playlist) => playlist?.length),
+    tap(active => {
+      if (!active) {
+        this.audioElement.src = ''
+      }
+    })
   );
   footerMode$ = this.store.pipe(select(selectFooterMode)).pipe(shareReplay());
-  divClass$ = this.footerMode$.pipe(map((footerMode) => (footerMode ? 'footer-mode' : 'full-mode')));
+  divClass$ = this.footerMode$.pipe(map((footerMode) => (footerMode ? 'footer-mode' : 'full-mode overflow-hidden')));
   toggleIcon$ = this.footerMode$.pipe(map((footerMode) => (footerMode ? 'expand_less' : 'expand_more')));
 
   playlist$ = this.store.pipe(select(selectPlaylist));
   activeItem$ = this.store.pipe(select(selectActivePlaylistItem));
 
   playingItem$ = this.activeItem$.pipe(
+    untilDestroyed(this),
     filter((item) => !!item?.playing),
-    concatMap((item) => iif(() => !!item?.url, of(item?.url), this.getBlobUrl(item?.id || '', item?.fullPath || '')))
-  );
+    distinctUntilKeyChanged('id'),
+    concatMap((item) => iif(() => !!item?.url, of(item?.url), this.getBlobUrl(item?.id || '', item?.fullPath || ''))),
+    tap((url) => this.audioElement.src = url!),
+    ).subscribe();
+    //[//src]="playingItem$ | async | safe: 'resourceUrl'"
 
   cover$ = this.activeItem$.pipe(
     switchMap((item) => this.store.pipe(select(selectAlbumById(item?.albumId || 0)))),
@@ -60,7 +73,11 @@ export class PlayerShellComponent implements OnInit {
   isFirstItemPlaying$ = this.store.pipe(select(selectFirstItemPlaying));
   isLastItemPlaying$ = this.store.pipe(select(selectLastItemPlaying));
 
-  constructor(private store: Store, private trackService: TrackService) {}
+  playlistDuration$ = this.store.pipe(select(selectPlaylistDuration));
+
+
+  constructor(private store: Store, private trackService: TrackService, private sanitizer: DomSanitizer) {
+  }
 
   ngOnInit(): void {
     this.listenToAudioEvents();
@@ -108,6 +125,7 @@ export class PlayerShellComponent implements OnInit {
         tap((item) => this.onPlayItem(item?.id || ''))
       )
       .subscribe();
+
     this.audioElement.play();
   }
 
@@ -130,6 +148,10 @@ export class PlayerShellComponent implements OnInit {
 
   onToogleView() {
     this.store.dispatch(tooglePlayerView());
+  }
+
+  onReorder(playlist: PlaylistItem[]) {
+    this.store.dispatch(reorderPlaylist({ updates: playlist.map((item, index) => ({ id: item.id, changes: { index } })) }));
   }
 
   onClearPlaylist() {

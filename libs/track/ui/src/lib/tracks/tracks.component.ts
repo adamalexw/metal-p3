@@ -66,8 +66,8 @@ export class TracksComponent implements OnChanges {
       id: [track.id],
       trackNumber: [track.trackNumber],
       title: [track.title],
-      duration: [track.duration?.toString()],
-      bitrate: [track.bitrate?.toString()],
+      duration: [track.duration],
+      bitrate: [track.bitrate],
       lyrics: [track.lyrics],
       folder: [track.folder],
       fullPath: [track.fullPath],
@@ -102,5 +102,9 @@ export class TracksComponent implements OnChanges {
     if (result) {
       this.delete.emit(this.tracks.find((t) => t.id === id));
     }
+  }
+
+  trackByFn(index: number, item: FormGroup) {
+    return item.get('id')?.value || index;
   }
 }

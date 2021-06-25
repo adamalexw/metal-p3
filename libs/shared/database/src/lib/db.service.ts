@@ -76,10 +76,37 @@ export class DbService {
   }
 
   async lyricsHistory(): Promise<LyricsHistory[]> {
-    return this.prisma.lyricsHistory.findMany();
+    return this.prisma.lyricsHistory.findMany({
+      include: { Album: true },
+    });
   }
 
   async lyricsPriority(): Promise<LyricsHistory[]> {
-    return this.prisma.lyricsHistory.findMany({ where: { Priority: true } });
+    return this.prisma.lyricsHistory.findMany({ where: { Priority: true }, include: { Album: true } });
+  }
+
+  async getLyricsHistory(albumId: number): Promise<LyricsHistory | null> {
+    return this.prisma.lyricsHistory.findFirst({ where: { AlbumId: albumId } });
+  }
+
+  async createLyricsHistory(data: Prisma.LyricsHistoryCreateInput): Promise<LyricsHistory> {
+    return this.prisma.lyricsHistory.create({
+      data,
+      include: {
+        Album: true,
+      },
+    });
+  }
+
+  async updateLyricsHistory(params: { where: Prisma.LyricsHistoryWhereUniqueInput; data: Prisma.LyricsHistoryUpdateInput }): Promise<LyricsHistory> {
+    const { where, data } = params;
+
+    return this.prisma.lyricsHistory.update({
+      data,
+      where,
+      include: {
+        Album: true,
+      },
+    });
   }
 }

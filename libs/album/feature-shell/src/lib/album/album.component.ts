@@ -4,7 +4,8 @@ import { Router } from '@angular/router';
 import { AlbumService } from '@metal-p3/album/data-access';
 import { BandDto, Track } from '@metal-p3/api-interfaces';
 import { CoverService } from '@metal-p3/cover/data-access';
-import { addTracksToPlaylist, addTrackToPlaylist, clearPlaylist, playItem } from '@metal-p3/player/data-access';
+import { addLyricsPriority } from '@metal-p3/maintenance/data-access';
+import { PlaylistService } from '@metal-p3/player/data-access';
 import {
   Album,
   deleteAlbum,
@@ -51,10 +52,9 @@ import {
   selectTrackTransferringProgress,
   setTransferred,
   transferTrack,
-  viewAlbum,
+  viewAlbum
 } from '@metal-p3/shared/data-access';
 import { NotificationService } from '@metal-p3/shared/feedback';
-import { mapTrackToPlaylistItem } from '@metal-p3/shared/utils';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { select, Store } from '@ngrx/store';
 import { combineLatest, of } from 'rxjs';
@@ -117,7 +117,8 @@ export class AlbumShellComponent implements OnInit {
     private readonly albumService: AlbumService,
     private readonly coverService: CoverService,
     private readonly router: Router,
-    private readonly notificationService: NotificationService
+    private readonly notificationService: NotificationService,
+    private readonly playlistService: PlaylistService
   ) {}
 
   ngOnInit(): void {
@@ -271,6 +272,10 @@ export class AlbumShellComponent implements OnInit {
     this.albumService.openFolder(folder).subscribe();
   }
 
+  onLyricsPriority(albumId: number) {
+    this.store.dispatch(addLyricsPriority({ albumId }));
+  }
+
   onRefreshTracks(id: number, folder: string) {
     this.store.dispatch(getTracks({ id, folder }));
   }
@@ -297,30 +302,19 @@ export class AlbumShellComponent implements OnInit {
   }
 
   onPlayAlbum(albumId: number) {
-    this.store.dispatch(clearPlaylist());
-    this.onAddAlbumToPlaylist(albumId);
+    this.playlistService.playAlbum(albumId, this.tracks$)
   }
 
   onAddAlbumToPlaylist(albumId: number) {
-    this.tracks$
-      .pipe(
-        take(1),
-        map((tracks) => tracks?.map((track) => mapTrackToPlaylistItem(track, albumId))),
-        tap((tracks) => this.store.dispatch(addTracksToPlaylist({ tracks })))
-      )
-      .subscribe();
+    this.playlistService.addAlbumToPlaylist(albumId, this.tracks$)
   }
 
   onPlayTrack(track: Track, albumId: number) {
-    this.store.dispatch(clearPlaylist());
-    const id = this.onAddTrackToPlaylist(track, albumId);
-    this.store.dispatch(playItem({ id }));
+    this.playlistService.playTrack(track, albumId);
   }
 
-  onAddTrackToPlaylist(track: Track, albumId: number): string {
-    const playlistItem = mapTrackToPlaylistItem(track, albumId);
-    this.store.dispatch(addTrackToPlaylist({ track: playlistItem }));
-    return playlistItem.id;
+  onAddTrackToPlaylist(track: Track, albumId: number) {
+    this.playlistService.addTrackToPlaylist(track, albumId);
   }
 
   onDeleteTrack(track: Track, albumId: number): void {

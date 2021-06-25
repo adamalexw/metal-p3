@@ -5,14 +5,14 @@
       [findingUrl]="findingUrl"
       [renamingFolder]="renamingFolder"
       [trackTransferring]="trackTransferring"
-      [folder]="album?.folder"
+      [folder]="album.folder"
       (save)="onSave()"
       (imageSearch)="onImageSearch()"
       (findUrl)="onFindUrl()"
       (renameFolder)="onRenameFolder()"
       (openFolder)="openFolder.emit(album.fullPath)"
       (transfer)="onTransferAlbum()"
-      (delete)="deleteAlbum.emit(this.albumId)"
+      (delete)="deleteAlbum.emit(albumId)"
       (closeAlbum)="closeAlbum.emit()"
     ></app-album-toolbar>
   </nav>
@@ -76,6 +76,13 @@
         </mat-list-item>
         <mat-list-item>
           <mat-checkbox formControlName="hasLyrics"> Lyrics </mat-checkbox>
+
+          <div *ngIf="!hasLyrics" class="w-full text-right">
+          <button mat-button class="p-0" (click)="lyricsPriority.emit(albumId)">
+            <mat-icon title="transfer">priority_high</mat-icon>
+            <span>Priority</span>
+          </button>
+        </div>
         </mat-list-item>
       </mat-list>
     </section>

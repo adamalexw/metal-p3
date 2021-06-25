@@ -1,7 +1,5 @@
-import { Track } from '@metal-p3/api-interfaces';
-import { PlaylistItem } from '@metal-p3/player/domain';
-import { UUID } from 'angular2-uuid';
 import { from } from 'rxjs';
+
 
 export function extractUrl(url: string): string | undefined {
   const regex = /(?:(?:https?|ftp|file):\/\/|www\.|ftp\.)(?:\([-A-Z0-9+&@#/%=~_|$?!:,.]*\)|[-A-Z0-9+&@#/%=~_|$?!:,.])*(?:\([-A-Z0-9+&@#/%=~_|$?!:,.]*\)|[A-Z0-9+&@#/%=~_|$])/gim;
@@ -43,9 +41,4 @@ export const mapBlobToBase64 = (blob: Blob) => {
       reader.onerror = () => reject(reader.error);
     })
   );
-};
-
-export const mapTrackToPlaylistItem = (track: Track, albumId: number): PlaylistItem => {
-  console.log(track);
-  return { ...track, id: UUID.UUID(), albumId };
 };

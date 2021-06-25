@@ -61,6 +61,12 @@
     "maintenance-api": {
       "tags": []
     },
+    "maintenance-data-access": {
+      "tags": []
+    },
+    "maintenance-domain": {
+      "tags": []
+    },
     "player-data-access": {
       "tags": []
     },

@@ -356,6 +356,50 @@
         }
       }
     },
+    "maintenance-data-access": {
+      "projectType": "library",
+      "root": "libs/maintenance/data-access",
+      "sourceRoot": "libs/maintenance/data-access/src",
+      "prefix": "app",
+      "architect": {
+        "test": {
+          "builder": "@nrwl/jest:jest",
+          "outputs": ["coverage/libs/maintenance/data-access"],
+          "options": {
+            "jestConfig": "libs/maintenance/data-access/jest.config.js",
+            "passWithNoTests": true
+          }
+        },
+        "lint": {
+          "builder": "@nrwl/linter:eslint",
+          "options": {
+            "lintFilePatterns": ["libs/maintenance/data-access/src/**/*.ts", "libs/maintenance/data-access/src/**/*.html"]
+          }
+        }
+      }
+    },
+    "maintenance-domain": {
+      "projectType": "library",
+      "root": "libs/maintenance/domain",
+      "sourceRoot": "libs/maintenance/domain/src",
+      "prefix": "app",
+      "architect": {
+        "test": {
+          "builder": "@nrwl/jest:jest",
+          "outputs": ["coverage/libs/maintenance/domain"],
+          "options": {
+            "jestConfig": "libs/maintenance/domain/jest.config.js",
+            "passWithNoTests": true
+          }
+        },
+        "lint": {
+          "builder": "@nrwl/linter:eslint",
+          "options": {
+            "lintFilePatterns": ["libs/maintenance/domain/src/**/*.ts", "libs/maintenance/domain/src/**/*.html"]
+          }
+        }
+      }
+    },
     "player-data-access": {
       "projectType": "library",
       "root": "libs/player/data-access",

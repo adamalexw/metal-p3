@@ -1,3 +1,4 @@
+import { DragDropModule } from '@angular/cdk/drag-drop';
 import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
@@ -9,8 +10,13 @@ import { TrackUtilModule } from '@metal-p3/track/util';
 import { PlayerControlsComponent } from './player-controls/player-controls.component';
 import { PlaylistComponent } from './playlist/playlist.component';
 
+const materialModules = [
+  DragDropModule,
+  MatTableModule, MatIconModule, MatSliderModule, MatButtonModule, MatToolbarModule
+]
+
 @NgModule({
-  imports: [CommonModule, MatTableModule, MatIconModule, MatSliderModule, MatButtonModule, MatToolbarModule, TrackUtilModule],
+  imports: [CommonModule, TrackUtilModule, materialModules],
   declarations: [PlaylistComponent, PlayerControlsComponent],
   exports: [PlaylistComponent, PlayerControlsComponent],
 })

@@ -1,5 +1,5 @@
-import { LyricsHistory } from '.prisma/client';
-import { Controller, Get } from '@nestjs/common';
+import { LyricsHistoryDto } from '@metal-p3/maintenance/domain';
+import { Controller, Get, Post, Query } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { LyricsService } from './lyrics.service';
 
@@ -8,12 +8,17 @@ export class LyricsController {
   constructor(private readonly lyricsService: LyricsService) {}
 
   @Get('history')
-  get(): Observable<LyricsHistory[]> {
+  get(): Observable<LyricsHistoryDto[]> {
     return this.lyricsService.getHistory();
   }
 
   @Get('priority')
-  priority(): Observable<LyricsHistory[]> {
+  getPriority(): Observable<LyricsHistoryDto[]> {
     return this.lyricsService.getPriority();
+  }
+
+  @Post('priority')
+  addPriority(@Query('albumId') albumId: number): Observable<LyricsHistoryDto> {
+    return this.lyricsService.addPriority(+albumId);
   }
 }

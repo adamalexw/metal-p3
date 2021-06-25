@@ -255,19 +255,19 @@ export const reducer = createReducer(
         id,
         map: (album) => ({
           ...album,
-          tracks: trackAdapter.updateOne({ id: track.id, changes: { ...track, trackRenaming: true } }, album.tracks),
+          tracks: trackAdapter.updateOne({ id: track.id, changes: { trackRenaming: true } }, album.tracks),
         }),
       },
       state
     )
   ),
-  on(renameTrackSuccess, (state, { id, track }) =>
+  on(renameTrackSuccess, (state, { id, trackId, file, fullPath }) =>
     adapter.mapOne(
       {
         id,
         map: (album) => ({
           ...album,
-          tracks: trackAdapter.updateOne({ id: track.id, changes: { ...track, trackRenaming: false } }, album.tracks),
+          tracks: trackAdapter.updateOne({ id: trackId, changes: { file, fullPath, trackRenaming: false } }, album.tracks),
         }),
       },
       state

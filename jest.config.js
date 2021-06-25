@@ -31,5 +31,7 @@ module.exports = {
     '<rootDir>/libs/player/ui',
     '<rootDir>/libs/player/domain',
     '<rootDir>/libs/maintenance/api',
+    '<rootDir>/libs/maintenance/data-access',
+    '<rootDir>/libs/maintenance/domain',
   ],
 };

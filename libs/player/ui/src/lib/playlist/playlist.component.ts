@@ -1,5 +1,7 @@
+import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
 import { PlaylistItem } from '@metal-p3/player/domain';
+import { cloneDeep } from 'lodash-es';
 
 @Component({
   selector: 'app-playlist',
@@ -12,13 +14,31 @@ export class PlaylistComponent {
   playlist: PlaylistItem[] = [];
 
   @Input()
+  duration = 0;
+
+  @Input()
   currentItem: PlaylistItem | undefined;
 
   @Output()
   readonly playItem = new EventEmitter<string>();
 
   @Output()
+  readonly resumeItem = new EventEmitter<void>();
+
+  @Output()
+  readonly pauseItem = new EventEmitter<void>();
+
+  @Output()
+  readonly reorder = new EventEmitter<PlaylistItem[]>();
+
+  @Output()
   readonly clearPlaylist = new EventEmitter<void>();
 
-  displayedColumns = ['trackNumber', 'title', 'artist', 'duration', 'action'];
+  displayedColumns = ['action', 'trackNumber', 'title', 'artist', 'duration'];
+
+  drop(event: CdkDragDrop<string[]>) {
+    const newOrder = cloneDeep(this.playlist)
+    moveItemInArray(newOrder, event.previousIndex, event.currentIndex);
+    this.reorder.emit(newOrder);
+  }
 }

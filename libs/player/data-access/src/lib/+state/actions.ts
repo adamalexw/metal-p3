@@ -9,6 +9,7 @@ export const addTracksToPlaylist = createAction('[Player] Add Item', props<{ tra
 
 export const updatePlaylist = createAction('[Player] Update Items', props<{ updates: Update<PlaylistItem>[] }>());
 export const updatePlaylistItem = createAction('[Player] Update Item', props<{ update: Update<PlaylistItem> }>());
+export const reorderPlaylist = createAction('[Player] Reorder', props<{ updates: Update<PlaylistItem>[] }>());
 
 export const playItem = createAction('[Player] Play Item', props<{ id: string }>());
 export const pauseItem = createAction('[Player] Pause Item');

@@ -6,6 +6,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { AlbumDataAccessModule } from '@metal-p3/album/data-access';
 import { AlbumUiModule } from '@metal-p3/album/ui';
+import { MaintenanceDataAccessModule } from '@metal-p3/maintenance/data-access';
 import { PlayerFeatureShellModule } from '@metal-p3/player/feature-shell';
 import { SharedFeedbackModule } from '@metal-p3/shared/feedback';
 import { AlbumFeatureShellRoutingModule } from './album-feature-shell-routing.module';
@@ -27,6 +28,7 @@ import { LyricsShellComponent } from './lyrics/lyrics.component';
     MatProgressSpinnerModule,
     SharedFeedbackModule,
     ScrollingModule,
+    MaintenanceDataAccessModule,
   ],
   declarations: [ListComponent, AlbumShellComponent, LyricsShellComponent, AddAlbumDirective, HomeComponent],
   exports: [HomeComponent],

@@ -1,6 +1,6 @@
 <ng-container *ngIf="playlistActive$ | async">
   <div [class]="divClass$ | async">
-    <div class="flex w-full">
+    <div class="flex w-full static">
       <app-cover [cover]="cover$ | async" [width]="coverSize$ | async" [height]="coverSize$ | async"></app-cover>
 
       <app-player-controls
@@ -19,13 +19,22 @@
       ></app-player-controls>
     </div>
 
-    <ng-container *ngIf="!(footerMode$ | async)">
-      <app-playlist [playlist]="playlist$ | async" [currentItem]="activeItem$ | async" (playItem)="onPlayItem($event)" (clearPlaylist)="onClearPlaylist()"></app-playlist>
+    <ng-container *ngIf="(footerMode$ | async) === false">
+      <app-playlist
+        [playlist]="playlist$ | async"
+        [duration]="playlistDuration$ | async"
+        [currentItem]="activeItem$ | async"
+        (playItem)="onPlayItem($event)"
+        (pauseItem)="onPause()"
+        (resumeItem)="onPlay()"
+        (reorder)="onReorder($event)"
+        (clearPlaylist)="onClearPlaylist()"
+      ></app-playlist>
     </ng-container>
   </div>
 </ng-container>
 
-<audio #audio [src]="playingItem$ | async | safe: 'resourceUrl'" waMediaElementAudioSourceNode autoplay>
+<audio #audio waMediaElementAudioSourceNode autoplay>
   <!-- <ng-container #node="AudioNode" waDelayNode [delayTime]="delayTime">
 <ng-container waGainNode [gain]="gain">
   <ng-container [waOutput]="node"></ng-container>

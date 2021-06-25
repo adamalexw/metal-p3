@@ -4,7 +4,7 @@ import { Router } from '@angular/router';
 import { AlbumService } from '@metal-p3/album/data-access';
 import { SearchRequest } from '@metal-p3/album/domain';
 import { Track } from '@metal-p3/api-interfaces';
-import { addTracksToPlaylist, clearPlaylist, selectPlaylist } from '@metal-p3/player/data-access';
+import { PlaylistService, selectPlaylist } from '@metal-p3/player/data-access';
 import {
   addNewAlbum,
   Album,
@@ -24,10 +24,10 @@ import {
   selectTracksRequired,
   sideNavOpen,
   transferTrack,
-  viewAlbum,
+  viewAlbum
 } from '@metal-p3/shared/data-access';
 import { NotificationService } from '@metal-p3/shared/feedback';
-import { mapTrackToPlaylistItem, toChunks } from '@metal-p3/shared/utils';
+import { toChunks } from '@metal-p3/shared/utils';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { select, Store } from '@ngrx/store';
 import { combineLatest, Observable } from 'rxjs';
@@ -77,8 +77,9 @@ export class ListComponent implements OnInit {
 
   constructor(
     private readonly store: Store,
-    private router: Router,
-    private notificationService: NotificationService,
+    private readonly router: Router,
+    private readonly playlistService: PlaylistService,
+    private readonly notificationService: NotificationService,
     private readonly service: AlbumService,
     private readonly viewportRuler: ViewportRuler
   ) {}
@@ -87,7 +88,7 @@ export class ListComponent implements OnInit {
     this.albumsLoadError$
       .pipe(
         filter((error) => !!error),
-        tap((error) => this.notificationService.showError(error, 'Load Albums')),
+        tap((error) => this.notificationService.showError(error!, 'Load Albums')),
         untilDestroyed(this)
       )
       .subscribe();
@@ -122,21 +123,11 @@ export class ListComponent implements OnInit {
   }
 
   onPlayAlbum(id: number, folder: string) {
-    this.store.dispatch(clearPlaylist());
-    this.onAddToPlaylist(id, folder);
+    this.playlistService.playAlbum(id, this.getTracks(id, folder))
   }
 
   onAddToPlaylist(id: number, folder: string) {
-    const tracks$ = this.getTracks(id, folder);
-
-    tracks$
-      .pipe(
-        filter((tracks) => !!tracks),
-        map((tracks) => tracks!.map((track) => mapTrackToPlaylistItem(track, id))),
-        tap((tracks) => this.store.dispatch(addTracksToPlaylist({ tracks }))),
-        take(1)
-      )
-      .subscribe();
+    this.playlistService.addAlbumToPlaylist(id, this.getTracks(id, folder))
   }
 
   private getTracks(id: number, folder: string): Observable<Track[] | undefined> {

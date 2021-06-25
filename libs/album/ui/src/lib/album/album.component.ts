@@ -103,6 +103,9 @@ export class AlbumComponent implements OnChanges {
   readonly openFolder = new EventEmitter<string>();
 
   @Output()
+  readonly lyricsPriority = new EventEmitter<number>();
+
+  @Output()
   readonly refreshTracks = new EventEmitter<{ id: number; folder: string }>();
 
   @Output()
@@ -144,6 +147,10 @@ export class AlbumComponent implements OnChanges {
 
   get artistUrl(): string {
     return this.form.get('artistUrl')?.value;
+  }
+
+  get hasLyrics(): boolean {
+    return this.form.get('hasLyrics')?.value;
   }
 
   form: FormGroup;
@@ -214,7 +221,7 @@ export class AlbumComponent implements OnChanges {
     });
   }
 
-  private get albumId(): number {
+  get albumId(): number {
     return this.album.id;
   }
 

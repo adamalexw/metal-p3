@@ -3,7 +3,7 @@
 </ng-container>
 
 <ng-template #tracksTemplate>
-  <mat-table [dataSource]="dataSource">
+  <mat-table [dataSource]="dataSource" [trackBy]="trackByFn">
     <ng-container matColumnDef="trackNumber">
       <mat-header-cell *matHeaderCellDef>#</mat-header-cell>
       <mat-cell *matCellDef="let element" [formGroup]="element">
