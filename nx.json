@@ -67,6 +67,12 @@
     "maintenance-domain": {
       "tags": []
     },
+    "maintenance-feature-shell": {
+      "tags": []
+    },
+    "maintenance-ui": {
+      "tags": []
+    },
     "player-data-access": {
       "tags": []
     },
@@ -98,6 +104,9 @@
       "tags": []
     },
     "shared-metal-archives": {
+      "tags": []
+    },
+    "shared-navigation": {
       "tags": []
     },
     "shared-ngrx-store": {

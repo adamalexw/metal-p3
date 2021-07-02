@@ -1,0 +1,25 @@
+<app-nav-toolbar>
+  <button mat-icon-button [disabled]="getting || checking" [matMenuTriggerFor]="priorityMenu">
+    <mat-icon title="priority">new_releases</mat-icon>
+  </button>
+
+  <mat-menu #priorityMenu="matMenu">
+    <button mat-menu-item (click)="viewPriority.emit()">View</button>
+    <button mat-menu-item (click)="checkPriority.emit()">View & Update</button>
+  </mat-menu>
+
+  <button mat-icon-button [disabled]="getting || checking" [matMenuTriggerFor]="allMenu">
+    <mat-icon title="all">play_arrow</mat-icon>
+  </button>
+
+  <mat-menu #allMenu="matMenu">
+    <button mat-menu-item (click)="viewCheck.emit()">View</button>
+    <button mat-menu-item (click)="startCheck.emit()">View & Update</button>
+  </mat-menu>
+
+  <button *ngIf="checking" mat-icon-button (click)="stopCheck.emit()">
+    <mat-icon title="stop">stop</mat-icon>
+  </button>
+</app-nav-toolbar>
+
+<mat-progress-bar *ngIf="checking" mode="indeterminate"></mat-progress-bar>

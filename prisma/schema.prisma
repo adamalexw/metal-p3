@@ -37,6 +37,14 @@ model Band {
   NewAlbumError   NewAlbumError[]
 }
 
+model iPhoneTracks {
+  iPhoneTrackId Int       @id @default(autoincrement())
+  Band          String?   @db.VarChar(256)
+  Album         String?   @db.VarChar(256)
+  Track         String?   @db.VarChar(256)
+  DateAdded     DateTime? @db.DateTime
+}
+
 model LyricsError {
   LyricsErrorId Int     @id @default(autoincrement())
   AlbumId       Int
@@ -46,28 +54,14 @@ model LyricsError {
 }
 
 model LyricsHistory {
-  LyricsHistoryId  Int          @id @default(autoincrement())
+  LyricsHistoryId  Int      @id @default(autoincrement())
   AlbumId          Int
   NumTracks        Int?
   NumLyrics        Int?
   NumLyricsHistory Int?
   Checked          Boolean?
   Priority         Boolean?
-  Album            Album        @relation(fields: [AlbumId], references: [AlbumId])
-  SavedLyrics      SavedLyrics?
-}
-
-model SavedLyrics {
-  LyricsHistoryId Int           @id
-  LyricsHistory   LyricsHistory @relation(fields: [LyricsHistoryId], references: [LyricsHistoryId])
-}
-
-model iPhoneTracks {
-  iPhoneTrackId Int       @id @default(autoincrement())
-  Band          String?   @db.VarChar(256)
-  Album         String?   @db.VarChar(256)
-  Track         String?   @db.VarChar(256)
-  DateAdded     DateTime? @db.DateTime
+  Album            Album    @relation(fields: [AlbumId], references: [AlbumId])
 }
 
 model NewAlbum {

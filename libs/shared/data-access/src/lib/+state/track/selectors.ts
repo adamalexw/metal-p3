@@ -9,4 +9,7 @@ export const selectTracksRequired = createSelector(selectTracks, selectTracksLoa
 export const selectTracksDuration = createSelector(selectTracks, (tracks) => tracks?.map((track) => track.duration || 0)?.reduce((accumulator, current) => (accumulator += current), 0));
 export const selectGettingMaTracks = createSelector(selectAlbum, (album) => album?.gettingMaTracks);
 export const selectMaTracks = createSelector(selectAlbum, (album) => album && album.maTracks && maTrackAdapter.getSelectors().selectAll(album.maTracks));
+
 export const selectTrack = (id: number, trackId: number) => createSelector(selectAlbumById(id), (album) => album?.tracks.entities[trackId]);
+export const selectTracksById = (id: number) => createSelector(selectAlbumById(id), (album) => album?.tracks && trackAdapter.getSelectors().selectAll(album.tracks));
+export const selectTracksRequiredById = (id: number) => createSelector(selectTracksById(id), selectAlbumById(id), (tracks, album) => (album?.tracksLoading ? false : !tracks));

@@ -13,6 +13,7 @@ import {
   deleteTrackError,
   deleteTrackSuccess,
   getLyrics,
+  getLyricsError,
   getLyricsSuccess,
   getMaTracks,
   getMaTracksSuccess,
@@ -80,10 +81,7 @@ export class TrackEffects {
       mergeMap(({ id, trackId }) =>
         this.service.getLyrics(trackId).pipe(
           map((lyrics) => getLyricsSuccess({ id, trackId, lyrics })),
-          catchError((error) => {
-            console.error(error);
-            return EMPTY;
-          })
+          catchError((error) => of(getLyricsError({ id, trackId, error: this.errorService.getError(error) })))
         )
       )
     )

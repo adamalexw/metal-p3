@@ -78,11 +78,11 @@
           <mat-checkbox formControlName="hasLyrics"> Lyrics </mat-checkbox>
 
           <div *ngIf="!hasLyrics" class="w-full text-right">
-          <button mat-button class="p-0" (click)="lyricsPriority.emit(albumId)">
-            <mat-icon title="transfer">priority_high</mat-icon>
-            <span>Priority</span>
-          </button>
-        </div>
+            <button mat-button class="p-0" (click)="lyricsPriority.emit(albumId)">
+              <mat-icon>new_releases</mat-icon>
+              <span class="ml-2">Priority</span>
+            </button>
+          </div>
         </mat-list-item>
       </mat-list>
     </section>

@@ -138,6 +138,15 @@ export class AlbumService {
   }
 
   setHasLyrics(id: number, hasLyrics: boolean): Observable<Album> {
+    this.dbService
+      .getLyricsHistory(id)
+      .then((history) => {
+        if (history) {
+          this.dbService.deleteLyricsHistory({ where: { LyricsHistoryId: history.LyricsHistoryId } }).catch((error) => Logger.error(error));
+        }
+      })
+      .catch((error) => Logger.error(error));
+
     return from(this.dbService.updateAlbum({ where: { AlbumId: id }, data: { Lyrics: hasLyrics } }));
   }
 

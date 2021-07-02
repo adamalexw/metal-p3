@@ -1,4 +1,4 @@
-<mat-toolbar>
+<app-nav-toolbar [closeFullWidth]="false">
   <button mat-icon-button [disabled]="saving" (click)="save.emit()">
     <mat-icon title="save">save</mat-icon>
   </button>
@@ -22,6 +22,6 @@
   </button>
 
   <div class="w-full flex flex-row-reverse">
-    <app-album-header [folder]="folder" [routerLink]="['/']"></app-album-header>
+    <app-album-header [folder]="folder"></app-album-header>
   </div>
-</mat-toolbar>
+</app-nav-toolbar>

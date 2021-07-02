@@ -1,7 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UseFilters } from '@nestjs/common';
 import { Album, Band, LyricsHistory, Prisma } from '@prisma/client';
+import { DbExceptionsFilter } from './db-exceptions-filter';
 import { PrismaService } from './prisma.service';
 
+@UseFilters(new DbExceptionsFilter())
 @Injectable()
 export class DbService {
   constructor(private readonly prisma: PrismaService) {}
@@ -107,6 +109,14 @@ export class DbService {
       include: {
         Album: true,
       },
+    });
+  }
+
+  async deleteLyricsHistory(params: { where: Prisma.LyricsHistoryWhereUniqueInput }): Promise<LyricsHistory> {
+    const { where } = params;
+
+    return this.prisma.lyricsHistory.delete({
+      where,
     });
   }
 }

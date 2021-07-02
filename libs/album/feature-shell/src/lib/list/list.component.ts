@@ -20,11 +20,11 @@ import {
   selectAlbumsLoadError,
   selectAlbumsLoading,
   selectCreatingNew,
-  selectTracks,
-  selectTracksRequired,
+  selectTracksById,
+  selectTracksRequiredById,
   sideNavOpen,
   transferTrack,
-  viewAlbum
+  viewAlbum,
 } from '@metal-p3/shared/data-access';
 import { NotificationService } from '@metal-p3/shared/feedback';
 import { toChunks } from '@metal-p3/shared/utils';
@@ -58,9 +58,6 @@ export class ListComponent implements OnInit {
       const listWidth = open ? width / 2 : width;
       const chunks = Math.floor(listWidth / 319);
 
-      if (chunks === 3) {
-        console.log(listWidth);
-      }
       return toChunks(albums, chunks);
     })
   );
@@ -88,6 +85,7 @@ export class ListComponent implements OnInit {
     this.albumsLoadError$
       .pipe(
         filter((error) => !!error),
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         tap((error) => this.notificationService.showError(error!, 'Load Albums')),
         untilDestroyed(this)
       )
@@ -116,25 +114,23 @@ export class ListComponent implements OnInit {
 
     tracks$
       .pipe(
-        tap((tracks: Track[]) => tracks.forEach((track) => this.store.dispatch(transferTrack({ id, trackId: track.id })))),
+        tap((tracks) => tracks?.forEach((track) => this.store.dispatch(transferTrack({ id, trackId: track.id })))),
         take(1)
       )
       .subscribe();
   }
 
   onPlayAlbum(id: number, folder: string) {
-    this.playlistService.playAlbum(id, this.getTracks(id, folder))
+    this.playlistService.playAlbum(id, this.getTracks(id, folder));
   }
 
   onAddToPlaylist(id: number, folder: string) {
-    this.playlistService.addAlbumToPlaylist(id, this.getTracks(id, folder))
+    this.playlistService.addAlbumToPlaylist(id, this.getTracks(id, folder));
   }
 
   private getTracks(id: number, folder: string): Observable<Track[] | undefined> {
-    this.store.dispatch(viewAlbum({ id }));
-
     this.store
-      .pipe(select(selectTracksRequired))
+      .pipe(select(selectTracksRequiredById(id)))
       .pipe(
         take(1),
         filter((required) => !!required),
@@ -143,7 +139,7 @@ export class ListComponent implements OnInit {
       .subscribe();
 
     return this.store.pipe(
-      select(selectTracks),
+      select(selectTracksById(id)),
       filter((tracks) => !!tracks)
     );
   }

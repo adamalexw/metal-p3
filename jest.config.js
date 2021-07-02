@@ -33,5 +33,8 @@ module.exports = {
     '<rootDir>/libs/maintenance/api',
     '<rootDir>/libs/maintenance/data-access',
     '<rootDir>/libs/maintenance/domain',
+    '<rootDir>/libs/maintenance/ui',
+    '<rootDir>/libs/maintenance/feature-shell',
+    '<rootDir>/libs/shared/navigation',
   ],
 };

@@ -1,0 +1,21 @@
+@import 'variables';
+
+.mat-column-actions {
+  max-width: $actions-width;
+  width: $actions-width;
+}
+
+$numWidth: 70px;
+
+.mat-column-url,
+.mat-column-year,
+.mat-column-numTracks,
+.mat-column-numLyrics,
+.mat-column-numLyricsHistory,
+.mat-column-checked,
+.mat-column-complete {
+    max-width: $numWidth;
+    @apply justify-center
+}
+
+

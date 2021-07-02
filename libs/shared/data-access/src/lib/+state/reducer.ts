@@ -56,7 +56,7 @@ import {
   viewAlbum,
 } from './album/actions';
 import { Album } from './model';
-import { deleteTrack, deleteTrackError, deleteTrackSuccess, transferTrack, transferTrackSuccess, updateTracks } from './track/actions';
+import { deleteTrack, deleteTrackError, deleteTrackSuccess, getLyricsError, transferTrack, transferTrackSuccess, updateTracks } from './track/actions';
 
 export const ALBUMS_FEATURE_KEY = 'albums';
 
@@ -229,6 +229,18 @@ export const reducer = createReducer(
         map: (album) => ({
           ...album,
           maTracks: maTrackAdapter.map((track) => (track.id === trackId ? { ...track, lyrics, lyricsLoading: false } : track), album.maTracks),
+        }),
+      },
+      state
+    )
+  ),
+  on(getLyricsError, (state, { id, trackId, error }) =>
+    adapter.mapOne(
+      {
+        id,
+        map: (album) => ({
+          ...album,
+          maTracks: maTrackAdapter.map((track) => (track.id === trackId ? { ...track, error, lyricsLoading: false } : track), album.maTracks),
         }),
       },
       state

@@ -1,5 +1,1 @@
-@import 'variables';
 
-.duration {
-  right: calc((#{$lyrics-width} - #{$bitrate-width} - #{$duration-width}) * -1);
-}

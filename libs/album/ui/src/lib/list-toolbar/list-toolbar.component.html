@@ -11,6 +11,15 @@
   <button mat-icon-button [disabled]="creatingNew" (click)="createNew.emit()">
     <mat-icon title="createNew">create_new_folder</mat-icon>
   </button>
+  <button mat-icon-button [matMenuTriggerFor]="menu">
+    <mat-icon title="maintenance">engineering</mat-icon>
+  </button>
+  <mat-menu #menu="matMenu">
+    <button mat-menu-item [routerLink]="['maintenance', 'lyrics']">
+      <mat-icon>article</mat-icon>
+      <span>Lyrics</span>
+    </button>
+  </mat-menu>
 </mat-toolbar>
 
 <mat-progress-bar *ngIf="searching" mode="indeterminate"></mat-progress-bar>

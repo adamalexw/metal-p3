@@ -22,5 +22,8 @@ export const selectFindingUrl = createSelector(selectAlbum, (album) => album?.fi
 export const selectMaUrls = createSelector(selectAlbum, (album) => ({ artistUrl: album?.artistUrl, albumUrl: album?.albumUrl }));
 
 export const selectCreatingNew = createSelector(selectAlbumState, (state) => state.creatingNew);
-export const selectRenamingFolder = createSelector(selectAlbum, (state) => state?.renamingFolder);
-export const selectRenamingFolderError = createSelector(selectAlbum, (state) => state?.renamingFolderError);
+export const selectRenamingFolder = createSelector(selectAlbum, (album) => album?.renamingFolder);
+export const selectRenamingFolderError = createSelector(selectAlbum, (album) => album?.renamingFolderError);
+
+export const selectAlbumFolder = createSelector(selectAlbum, (album) => album?.folder);
+export const selectAlbumUrl = createSelector(selectAlbum, (album) => album?.albumUrl);

@@ -52,7 +52,7 @@ import {
   selectTrackTransferringProgress,
   setTransferred,
   transferTrack,
-  viewAlbum
+  viewAlbum,
 } from '@metal-p3/shared/data-access';
 import { NotificationService } from '@metal-p3/shared/feedback';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
@@ -253,7 +253,7 @@ export class AlbumShellComponent implements OnInit {
           return of(maTracks);
         }),
         take(1),
-        tap(() => this.router.navigate(['album', 'lyrics', id]))
+        tap(() => this.router.navigate(['maintenance', 'lyrics', id]))
       )
       .subscribe();
   }
@@ -302,11 +302,11 @@ export class AlbumShellComponent implements OnInit {
   }
 
   onPlayAlbum(albumId: number) {
-    this.playlistService.playAlbum(albumId, this.tracks$)
+    this.playlistService.playAlbum(albumId, this.tracks$);
   }
 
   onAddAlbumToPlaylist(albumId: number) {
-    this.playlistService.addAlbumToPlaylist(albumId, this.tracks$)
+    this.playlistService.addAlbumToPlaylist(albumId, this.tracks$);
   }
 
   onPlayTrack(track: Track, albumId: number) {

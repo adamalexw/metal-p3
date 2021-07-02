@@ -1,5 +1,5 @@
 import { LyricsHistoryDto } from '@metal-p3/maintenance/domain';
-import { Controller, Get, Post, Query } from '@nestjs/common';
+import { Controller, Delete, Get, Patch, Post, Query } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { LyricsService } from './lyrics.service';
 
@@ -20,5 +20,20 @@ export class LyricsController {
   @Post('priority')
   addPriority(@Query('albumId') albumId: number): Observable<LyricsHistoryDto> {
     return this.lyricsService.addPriority(+albumId);
+  }
+
+  @Get('checkPriority')
+  checkHistory(): void {
+    this.lyricsService.checkPriority().subscribe();
+  }
+
+  @Patch('checked')
+  setChecked(@Query('id') id: number, @Query('checked') checked: boolean): Observable<LyricsHistoryDto> {
+    return this.lyricsService.setChecked(+id, !!checked);
+  }
+
+  @Delete()
+  deleteHistory(@Query('id') id: number): Observable<boolean | Error> {
+    return this.lyricsService.deleteHistory(+id);
   }
 }

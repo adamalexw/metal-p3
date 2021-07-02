@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Inject, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Inject, Input, OnChanges, Output, SimpleChanges, HostBinding } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { AlbumDto, BandProps, MetalArchivesAlbumTrack, MetalArchivesUrl, Track } from '@metal-p3/api-interfaces';
 import { Album, AlbumWithoutTracks } from '@metal-p3/shared/data-access';
@@ -140,6 +140,8 @@ export class AlbumComponent implements OnChanges {
 
   @Output()
   readonly closeAlbum = new EventEmitter<void>();
+
+  @HostBinding('class') class = 'block h-screen overflow-hidden'
 
   get albumUrl(): string {
     return this.form.get('albumUrl')?.value;

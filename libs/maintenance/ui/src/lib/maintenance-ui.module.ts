@@ -1,0 +1,42 @@
+import { CommonModule } from '@angular/common';
+import { NgModule } from '@angular/core';
+import { MatButtonModule } from '@angular/material/button';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatDialogModule } from '@angular/material/dialog';
+import { MatIconModule } from '@angular/material/icon';
+import { MatMenuModule } from '@angular/material/menu';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatSelectModule } from '@angular/material/select';
+import { MatSortModule } from '@angular/material/sort';
+import { MatTableModule } from '@angular/material/table';
+import { MatToolbarModule } from '@angular/material/toolbar';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { RouterModule } from '@angular/router';
+import { CoverUiModule } from '@metal-p3/cover/ui';
+import { SharedFeedbackModule } from '@metal-p3/shared/feedback';
+import { SharedNavigationModule } from '@metal-p3/shared/navigation';
+import { ApplyLyricsToolbarComponent } from './apply-lyrics-toolbar/apply-lyrics-toolbar.component';
+import { ApplyLyricsComponent } from './apply-lyrics/apply-lyrics.component';
+import { LyricsHistoryToolbarComponent } from './lyrics-history-toolbar/lyrics-history-toolbar.component';
+import { LyricsHistoryComponent } from './lyrics-history/lyrics-history.component';
+
+const materialModules = [
+  MatToolbarModule,
+  MatIconModule,
+  MatButtonModule,
+  MatTableModule,
+  MatSelectModule,
+  MatMenuModule,
+  MatProgressBarModule,
+  MatCheckboxModule,
+  MatDialogModule,
+  MatSortModule,
+  MatTooltipModule,
+];
+
+@NgModule({
+  imports: [CommonModule, RouterModule, SharedFeedbackModule, SharedNavigationModule, CoverUiModule, materialModules],
+  declarations: [LyricsHistoryToolbarComponent, LyricsHistoryComponent, ApplyLyricsToolbarComponent, ApplyLyricsComponent],
+  exports: [LyricsHistoryToolbarComponent, LyricsHistoryComponent, ApplyLyricsToolbarComponent, ApplyLyricsComponent],
+})
+export class MaintenanceUiModule {}

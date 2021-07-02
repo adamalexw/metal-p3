@@ -32,5 +32,5 @@ const getProgress = (total: number, progress: number): number => {
     return 0;
   }
 
-  return Math.abs(((total - progress) / total) * 100);
+  return Math.floor(((total - progress) / total) * 100);
 };

@@ -1,0 +1,20 @@
+<app-apply-lyrics
+  [albumId]="albumId$ | async"
+  [lyricsLoadingProgress]="lyricsLoadingProgress$ | async"
+  [tracksLoading]="tracksLoading$ | async"
+  [maTracks]="maTracks$ | async"
+  [tracks]="tracks$ | async"
+  [albumUrl]="albumUrl$ | async"
+  [coverLoading]="coverLoading$ | async"
+  [cover]="cover$ | async"
+  [folder]="albumFolder$ | async"
+  [applying]="applying$ | async"
+  [applyingProgress]="applyingProgress$ | async"
+  [trackTransferring]="trackTransferring$ | async"
+  [trackTransferringProgress]="trackTransferringProgress$ | async"
+  [showClose]="showClose"
+  (applyLyrics)="onApply($event.id, $event.lyrics)"
+  (transfer)="onTransfer($event)"
+  (done)="onDone()"
+>
+</app-apply-lyrics>

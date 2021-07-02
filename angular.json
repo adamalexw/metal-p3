@@ -400,6 +400,50 @@
         }
       }
     },
+    "maintenance-feature-shell": {
+      "projectType": "library",
+      "root": "libs/maintenance/feature-shell",
+      "sourceRoot": "libs/maintenance/feature-shell/src",
+      "prefix": "app",
+      "architect": {
+        "test": {
+          "builder": "@nrwl/jest:jest",
+          "outputs": ["coverage/libs/maintenance/feature-shell"],
+          "options": {
+            "jestConfig": "libs/maintenance/feature-shell/jest.config.js",
+            "passWithNoTests": true
+          }
+        },
+        "lint": {
+          "builder": "@nrwl/linter:eslint",
+          "options": {
+            "lintFilePatterns": ["libs/maintenance/feature-shell/src/**/*.ts", "libs/maintenance/feature-shell/src/**/*.html"]
+          }
+        }
+      }
+    },
+    "maintenance-ui": {
+      "projectType": "library",
+      "root": "libs/maintenance/ui",
+      "sourceRoot": "libs/maintenance/ui/src",
+      "prefix": "app",
+      "architect": {
+        "test": {
+          "builder": "@nrwl/jest:jest",
+          "outputs": ["coverage/libs/maintenance/ui"],
+          "options": {
+            "jestConfig": "libs/maintenance/ui/jest.config.js",
+            "passWithNoTests": true
+          }
+        },
+        "lint": {
+          "builder": "@nrwl/linter:eslint",
+          "options": {
+            "lintFilePatterns": ["libs/maintenance/ui/src/**/*.ts", "libs/maintenance/ui/src/**/*.html"]
+          }
+        }
+      }
+    },
     "player-data-access": {
       "projectType": "library",
       "root": "libs/player/data-access",
@@ -634,6 +678,28 @@
           "options": {
             "jestConfig": "libs/shared/metal-archives/jest.config.js",
             "passWithNoTests": true
+          }
+        }
+      }
+    },
+    "shared-navigation": {
+      "projectType": "library",
+      "root": "libs/shared/navigation",
+      "sourceRoot": "libs/shared/navigation/src",
+      "prefix": "app",
+      "architect": {
+        "test": {
+          "builder": "@nrwl/jest:jest",
+          "outputs": ["coverage/libs/shared/navigation"],
+          "options": {
+            "jestConfig": "libs/shared/navigation/jest.config.js",
+            "passWithNoTests": true
+          }
+        },
+        "lint": {
+          "builder": "@nrwl/linter:eslint",
+          "options": {
+            "lintFilePatterns": ["libs/shared/navigation/src/**/*.ts", "libs/shared/navigation/src/**/*.html"]
           }
         }
       }

@@ -1,7 +1,6 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { AlbumShellComponent } from './album/album.component';
-import { LyricsShellComponent } from './lyrics/lyrics.component';
 
 const routes: Routes = [
   {
@@ -9,12 +8,12 @@ const routes: Routes = [
     component: AlbumShellComponent,
   },
   {
-    path: 'album/lyrics/:id',
-    component: LyricsShellComponent,
+    path: 'maintenance',
+    loadChildren: () => import('@metal-p3/maintenance').then((m) => m.MaintenanceFeatureShellModule),
   },
 ];
 @NgModule({
-  imports: [RouterModule.forRoot(routes)],
+  imports: [RouterModule.forRoot(routes, { enableTracing: false })],
   exports: [RouterModule],
 })
 export class AlbumFeatureShellRoutingModule {}

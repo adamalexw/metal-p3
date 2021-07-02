@@ -1,0 +1,7 @@
+<mat-toolbar>
+  <ng-content></ng-content>
+
+  <div *ngIf="showClose" class="flex flex-row-reverse" [class.w-full]="closeFullWidth">
+    <mat-icon class="cursor-pointer" (click)="onClose()">close</mat-icon>
+  </div>
+</mat-toolbar>

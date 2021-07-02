@@ -16,8 +16,11 @@ export const updateTracks = createAction('[Tracks] Update Tracks Success', props
 
 export const getMaTracks = createAction('[Tracks] Get MA Tracks', props<{ id: number; url: string }>());
 export const getMaTracksSuccess = createAction('[Tracks] Get MA Tracks Success', props<{ id: number; maTracks: MetalArchivesAlbumTrack[] }>());
+
 export const getLyrics = createAction('[Tracks] Get Lyrics', props<{ id: number; trackId: number }>());
 export const getLyricsSuccess = createAction('[Tracks] Get Lyrics Success', props<{ id: number; trackId: number; lyrics: string }>());
+export const getLyricsError = createAction('[Tracks] Get Lyrics Error', props<{ id: number; trackId: number; error: string }>());
+
 export const applyLyrics = createAction('[Tracks] Apply Lyrics', props<{ id: number; lyrics: ApplyLyrics[] }>());
 export const applyLyricsSuccess = createAction('[Tracks] Apply Lyrics Success', props<{ update: Update<Album> }>());
 

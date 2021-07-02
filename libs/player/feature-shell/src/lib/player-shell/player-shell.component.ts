@@ -43,6 +43,7 @@ export class PlayerShellComponent implements OnInit {
       }
     })
   );
+
   footerMode$ = this.store.pipe(select(selectFooterMode)).pipe(shareReplay());
   divClass$ = this.footerMode$.pipe(map((footerMode) => (footerMode ? 'footer-mode' : 'full-mode overflow-hidden')));
   toggleIcon$ = this.footerMode$.pipe(map((footerMode) => (footerMode ? 'expand_less' : 'expand_more')));
@@ -53,11 +54,10 @@ export class PlayerShellComponent implements OnInit {
   playingItem$ = this.activeItem$.pipe(
     untilDestroyed(this),
     filter((item) => !!item?.playing),
-    distinctUntilKeyChanged('id'),
+    distinctUntilKeyChanged('id'), // if we are reordering tracks we want to keep the current item playing
     concatMap((item) => iif(() => !!item?.url, of(item?.url), this.getBlobUrl(item?.id || '', item?.fullPath || ''))),
     tap((url) => this.audioElement.src = url!),
     ).subscribe();
-    //[//src]="playingItem$ | async | safe: 'resourceUrl'"
 
   cover$ = this.activeItem$.pipe(
     switchMap((item) => this.store.pipe(select(selectAlbumById(item?.albumId || 0)))),

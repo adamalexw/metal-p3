@@ -25,7 +25,7 @@ export class ListToolbarComponent implements OnInit {
   readonly createNew = new EventEmitter<void>();
 
   @Output()
-  readonly viewPlayer = new EventEmitter<void>();
+  readonly lyricsPriority = new EventEmitter<void>();
 
   form: FormGroup;
 

@@ -1,0 +1,86 @@
+<mat-table [dataSource]="dataSource" matSort [trackBy]="trackByFn">
+  <ng-container matColumnDef="folder">
+    <mat-header-cell *matHeaderCellDef mat-sort-header>Album</mat-header-cell>
+    <mat-cell *matCellDef="let element">
+      <span class="w-full">{{ element.folder }}</span>
+    </mat-cell>
+  </ng-container>
+
+  <ng-container matColumnDef="url">
+    <mat-header-cell *matHeaderCellDef>Url</mat-header-cell>
+    <mat-cell *matCellDef="let element">
+      <a mat-button [href]="element.url" target="_blank">View</a>
+    </mat-cell>
+  </ng-container>
+
+  <ng-container matColumnDef="year">
+    <mat-header-cell *matHeaderCellDef mat-sort-header>Year</mat-header-cell>
+    <mat-cell *matCellDef="let element">
+      {{ element.year }}
+    </mat-cell>
+  </ng-container>
+
+  <ng-container matColumnDef="numTracks">
+    <mat-header-cell *matHeaderCellDef mat-sort-header>Tracks</mat-header-cell>
+    <mat-cell *matCellDef="let element">
+      {{ element.numTracks }}
+    </mat-cell>
+  </ng-container>
+
+  <ng-container matColumnDef="numLyrics">
+    <mat-header-cell *matHeaderCellDef mat-sort-header>Lyrics</mat-header-cell>
+    <mat-cell *matCellDef="let element">
+      {{ element.numLyrics }}
+    </mat-cell>
+  </ng-container>
+
+  <ng-container matColumnDef="numLyricsHistory">
+    <mat-header-cell *matHeaderCellDef mat-sort-header>History</mat-header-cell>
+    <mat-cell *matCellDef="let element">
+      {{ element.numLyricsHistory }}
+    </mat-cell>
+  </ng-container>
+
+  <ng-container matColumnDef="checked">
+    <mat-header-cell *matHeaderCellDef>Checked</mat-header-cell>
+    <mat-cell *matCellDef="let element">
+      <mat-checkbox [checked]="element.checked" [value]="element.checked" (change)="onChecked($event.checked, element.id)"></mat-checkbox>
+    </mat-cell>
+  </ng-container>
+
+  <ng-container matColumnDef="complete">
+    <mat-header-cell *matHeaderCellDef mat-sort-header>Complete</mat-header-cell>
+    <mat-cell *matCellDef="let element">
+      <ng-container *ngIf="element.complete">
+        <ng-container *ngIf="element.error; else successTemplate">
+          <mat-icon [matTooltip]="element.error" matTooltipPosition="left">error_outline</mat-icon>
+        </ng-container>
+        <ng-template #successTemplate>
+          <mat-icon>done</mat-icon>
+        </ng-template>
+      </ng-container>
+    </mat-cell>
+  </ng-container>
+
+  <ng-container matColumnDef="actions">
+    <mat-header-cell *matHeaderCellDef></mat-header-cell>
+    <mat-cell *matCellDef="let element">
+      <button mat-icon-button [matMenuTriggerFor]="menu" class="max-w-min">
+        <mat-icon>more_vert</mat-icon>
+      </button>
+      <mat-menu #menu="matMenu">
+        <button mat-menu-item (click)="onApply(element.albumId, element.id)">
+          <mat-icon>approval</mat-icon>
+          <span>Apply</span>
+        </button>
+        <button mat-menu-item appConfirmDelete [itemName]="'lyrics history'" (confirmResult)="onDelete($event, element.id)">
+          <mat-icon>delete</mat-icon>
+          <span>Delete</span>
+        </button>
+      </mat-menu>
+    </mat-cell>
+  </ng-container>
+
+  <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+  <mat-row *matRowDef="let row; columns: displayedColumns"></mat-row>
+</mat-table>
