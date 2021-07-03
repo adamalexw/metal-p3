@@ -63,6 +63,26 @@ export class AlbumService {
     };
   }
 
+  hasExtraFiles(folder: string): boolean {
+    const files = this.fileSystemService.getFiles(path.join(this.basePath, folder));
+
+    for (let index = 0; index < files.length; index++) {
+      const file = files[index];
+
+      if (path.extname(file) !== '.mp3') {
+        if (this.fileSystemService.isFolder(path.join(this.basePath, folder, file))) {
+          return true;
+        }
+
+        if (file !== 'Folder.jpg') {
+          return true;
+        }
+      }
+    }
+
+    return false;
+  }
+
   private addFileWatcher(basePath: string) {
     const watcher = chokidar.watch(basePath, {
       persistent: true,

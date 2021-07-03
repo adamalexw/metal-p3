@@ -35,6 +35,10 @@ export class AlbumService {
     return this.http.get<Track[]>(`${this.baseUrl}/tracks?folder=${folder}`);
   }
 
+  getExtraFiles(folder: string): Observable<boolean> {
+    return this.http.get<boolean>(`${this.baseUrl}/extraFiles?folder=${encodeURIComponent(folder)}`, { responseType: 'text' as 'json' });
+  }
+
   saveAlbum(album: AlbumDto): Observable<never> {
     return this.http.patch<never>(this.baseUrl, album);
   }

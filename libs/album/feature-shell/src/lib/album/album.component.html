@@ -28,7 +28,7 @@
   (lyrics)="onLyrics($event.id, $event.url)"
   (renameTracks)="onRenameTracks($event.id, $event.tracks)"
   (renameFolder)="onRenameFolder($event.id, $event.src, $event.artist, $event.album)"
-  (openFolder)="onOpenFolder($event)"
+  (openFolder)="onOpenFolder($event.id, $event.folder)"
   (lyricsPriority)="onLyricsPriority($event)"
   (refreshTracks)="onRefreshTracks($event.id, $event.folder)"
   (findBandProps)="onFindBandProps($event.id, $event.url)"

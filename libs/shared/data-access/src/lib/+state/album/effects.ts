@@ -32,6 +32,7 @@ import {
   findMaUrlSuccess,
   getAlbum,
   getAlbumError,
+  getExtraFiles,
   loadAlbums,
   loadAlbumsError,
   loadAlbumsPageSuccess,
@@ -42,6 +43,7 @@ import {
   saveAlbum,
   saveAlbumError,
   saveAlbumSuccess,
+  setExtraFiles,
   setHasLyrics,
   setTransferred,
   updateAlbum,
@@ -121,6 +123,21 @@ export class AlbumEffects {
           catchError((error) => {
             this.notificationService.showError(`${folder}: ${this.errorService.getError(error)}`, 'New Album');
             return of(addNewError({ error }));
+          })
+        )
+      )
+    )
+  );
+
+  extraFiles$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(getExtraFiles),
+      mergeMap(({ id, folder }) =>
+        this.service.getExtraFiles(folder).pipe(
+          map((extraFiles) => setExtraFiles({ update: { id, changes: { extraFiles } } })),
+          catchError((error) => {
+            this.notificationService.showError(`${folder}: ${this.errorService.getError(error)}`, 'Extra Files');
+            return of(setExtraFiles({ update: { id, changes: { extraFiles: false } } }));
           })
         )
       )

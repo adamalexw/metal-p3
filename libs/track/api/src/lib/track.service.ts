@@ -33,7 +33,7 @@ export class TrackService {
   }
 
   trackDetails(file: string, index: number): Observable<Track> {
-    if (path.extname(file) == '.mp3') {
+    if (path.extname(file) === '.mp3') {
       return this.getMetadata(file, { skipCovers: true }).pipe(map((metadata) => this.mapTrack(file, this.getTags(file), metadata, index)));
     }
 

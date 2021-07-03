@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Inject, Input, OnChanges, Output, SimpleChanges, HostBinding } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, HostBinding, Inject, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { AlbumDto, BandProps, MetalArchivesAlbumTrack, MetalArchivesUrl, Track } from '@metal-p3/api-interfaces';
 import { Album, AlbumWithoutTracks } from '@metal-p3/shared/data-access';
@@ -100,7 +100,7 @@ export class AlbumComponent implements OnChanges {
   readonly renameFolder = new EventEmitter<{ id: number; src: string; artist: string; album: string }>();
 
   @Output()
-  readonly openFolder = new EventEmitter<string>();
+  readonly openFolder = new EventEmitter<{ id: number; folder: string }>();
 
   @Output()
   readonly lyricsPriority = new EventEmitter<number>();
@@ -141,7 +141,7 @@ export class AlbumComponent implements OnChanges {
   @Output()
   readonly closeAlbum = new EventEmitter<void>();
 
-  @HostBinding('class') class = 'block h-screen overflow-hidden'
+  @HostBinding('class') class = 'block h-screen overflow-hidden';
 
   get albumUrl(): string {
     return this.form.get('albumUrl')?.value;

@@ -44,6 +44,9 @@ export const saveAlbumError = createAction('[Album] Save Album Error', props<{ u
 export const setHasLyrics = createAction('[Album] Set Has Lyrics', props<{ id: number; hasLyrics: boolean }>());
 export const setTransferred = createAction('[Album] Set Transferred', props<{ id: number; transferred: boolean }>());
 
+export const getExtraFiles = createAction('[Album] Get Extra Files', props<{ id: number; folder: string }>());
+export const setExtraFiles = createAction('[Album] Set Extra Files', props<{ update: Update<Album> }>());
+
 export const findMaUrl = createAction('[Album] Find Metal Archives Url', props<{ id: number; artist: string; album: string }>());
 export const findMaUrlSuccess = createAction('[Album] Find Metal Archives Success', props<{ update: Update<Album> }>());
 

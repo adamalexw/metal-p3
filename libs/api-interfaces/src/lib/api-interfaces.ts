@@ -15,6 +15,7 @@ export interface AlbumDto extends AlbumBase {
   transferred?: boolean;
   hasLyrics?: boolean;
   dateCreated: string;
+  extraFiles?: boolean;
 }
 
 export interface Track extends AlbumBase {

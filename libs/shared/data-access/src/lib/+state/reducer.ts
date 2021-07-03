@@ -53,6 +53,7 @@ import {
   renameFolderError,
   renameFolderSuccess,
   saveAlbumError,
+  setExtraFiles,
   viewAlbum,
 } from './album/actions';
 import { Album } from './model';
@@ -138,9 +139,7 @@ export const reducer = createReducer(
   on(clearAlbums, (state) => {
     return adapter.removeAll({ ...state, selectedAlbumId: null });
   }),
-  on(viewAlbum, (state, { id }) => {
-    return { ...state, selectedAlbum: id };
-  }),
+  on(viewAlbum, (state, { id }) => ({ ...state, selectedAlbum: id })),
   on(findMaUrl, (state, { id }) => adapter.updateOne({ id, changes: { findingUrl: true } }, state)),
   on(findMaUrlSuccess, (state, { update }) => {
     return adapter.updateOne(update, state);
@@ -154,7 +153,7 @@ export const reducer = createReducer(
   on(createNew, (state) => ({ ...state, creatingNew: true })),
   on(createNewSuccess, (state) => ({ ...state, creatingNew: false })),
   on(renameFolder, (state, { id }) => adapter.updateOne({ id, changes: { renamingFolder: true, renamingFolderError: undefined } }, state)),
-  on(renameFolderSuccess, renameFolderError, (state, { update }) => adapter.updateOne(update, state)),
+  on(renameFolderSuccess, renameFolderError, setExtraFiles, (state, { update }) => adapter.updateOne(update, state)),
 
   /** COVER */
   on(getCover, (state, { id }) => {

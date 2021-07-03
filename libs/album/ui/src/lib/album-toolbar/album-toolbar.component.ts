@@ -23,6 +23,9 @@ export class AlbumToolbarComponent {
   @Input()
   folder = '';
 
+  @Input()
+  extraFiles = false;
+
   @Output()
   readonly save = new EventEmitter<void>();
 

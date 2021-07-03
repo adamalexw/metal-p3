@@ -15,6 +15,7 @@ import {
   getAlbum,
   getBandProps,
   getCover,
+  getExtraFiles,
   getLyrics,
   getMaTracks,
   getTracks,
@@ -50,6 +51,7 @@ import {
   selectTracksRequired,
   selectTrackTransferring,
   selectTrackTransferringProgress,
+  setExtraFiles,
   setTransferred,
   transferTrack,
   viewAlbum,
@@ -168,6 +170,15 @@ export class AlbumShellComponent implements OnInit {
         tap(({ id, folder }) => this.store.dispatch(getCover({ id, folder })))
       )
       .subscribe();
+
+    this.album$
+      .pipe(
+        filter((album) => !!album),
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        tap((album) => this.store.dispatch(getExtraFiles({ id: album!.id, folder: album!.folder }))),
+        take(1)
+      )
+      .subscribe();
   }
 
   private errorNotifications() {
@@ -268,7 +279,8 @@ export class AlbumShellComponent implements OnInit {
     this.store.dispatch(renameFolder({ id, src, artist, album }));
   }
 
-  onOpenFolder(folder: string) {
+  onOpenFolder(id: string, folder: string) {
+    this.store.dispatch(setExtraFiles({ update: { id, changes: { extraFiles: false } } }));
     this.albumService.openFolder(folder).subscribe();
   }
 

@@ -36,6 +36,11 @@ export class AlbumController {
     );
   }
 
+  @Get('extraFiles')
+  extraFiles(@Query('folder') folder: string): boolean {
+    return this.albumService.hasExtraFiles(folder);
+  }
+
   @Patch()
   patch(@Body() album: AlbumDto): Observable<Album> {
     return this.albumService.saveAlbum(album);
