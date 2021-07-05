@@ -72,7 +72,7 @@ export class AlbumService {
   }
 
   openFolder(folder: string): Observable<never> {
-    return this.http.get<never>(`${this.baseUrl}/openFolder?folder=${folder}`);
+    return this.http.get<never>(`${this.baseUrl}/openFolder?folder=${encodeURIComponent(folder)}`);
   }
 
   createAlbumFromRootFiles(): Observable<string[]> {

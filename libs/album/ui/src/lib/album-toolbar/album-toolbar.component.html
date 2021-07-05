@@ -11,7 +11,7 @@
   <button mat-icon-button [disabled]="renamingFolder" (click)="renameFolder.emit()">
     <mat-icon title="rename folder">source</mat-icon>
   </button>
-  <button mat-icon-button (click)="openFolder.emit()" matBadge="1" matBadgeColor="warn" [matBadgeHidden]="!extraFiles">
+  <button mat-icon-button (click)="openFolder.emit()" matBadge="!" matBadgeColor="warn" [matBadgeHidden]="!extraFiles">
     <mat-icon title="open folder">folder</mat-icon>
   </button>
   <button mat-icon-button [disabled]="trackTransferring" (click)="transfer.emit()">

@@ -8,6 +8,6 @@ import { Module } from '@nestjs/common';
 import { environment } from '../environments/environment.prod';
 
 @Module({
-  imports: [AlbumModule.forRoot(environment.basePath), BandModule, CoverModule, TrackModule, SharedFileSystemModule.forRoot(environment.basePath), MaintenanceApiModule],
+  imports: [AlbumModule.forRoot(environment.basePath), BandModule, CoverModule, TrackModule, SharedFileSystemModule.forRoot(environment.basePath), MaintenanceApiModule.forRoot(environment.basePath)],
 })
 export class AppModule {}

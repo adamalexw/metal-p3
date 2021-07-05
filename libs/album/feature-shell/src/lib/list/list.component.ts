@@ -19,6 +19,7 @@ import {
   selectAlbumsLoaded,
   selectAlbumsLoadError,
   selectAlbumsLoading,
+  selectAlbumsSearchCriteria,
   selectCreatingNew,
   selectTracksById,
   selectTracksRequiredById,
@@ -45,6 +46,7 @@ export class ListComponent implements OnInit {
   albumsLoaded$ = this.store.pipe(select(selectAlbumsLoaded));
   albumsLoadError$ = this.store.pipe(select(selectAlbumsLoadError));
   albums$ = this.store.pipe(select(selectAlbums));
+  criteria$ = this.store.pipe(select(selectAlbumsSearchCriteria));
 
   viewportWidth$ = this.viewportRuler.change().pipe(
     startWith(true),

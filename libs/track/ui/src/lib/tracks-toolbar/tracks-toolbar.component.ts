@@ -14,7 +14,7 @@ export class TracksToolbarComponent {
   trackRenaming = false;
 
   @Input()
-  enableLyrics = false;
+  enableMaActions = false;
 
   @Input()
   lyricsLoading = false;

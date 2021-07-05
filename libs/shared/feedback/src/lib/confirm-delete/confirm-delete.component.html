@@ -1,8 +1,8 @@
 <mat-card>
   <mat-card-content>
-    <p>Are you sure you want to delete {{ ref.data?.name }}?</p>
+    <p class="text-center">Are you sure you want to delete {{ ref.data?.name }}?</p>
   </mat-card-content>
-  <mat-card-actions>
+  <mat-card-actions class="flex justify-center">
     <button mat-raised-button (click)="close(true)" color="warn">Confirm</button>
     <button mat-raised-button (click)="close(false)">Cancel</button>
   </mat-card-actions>

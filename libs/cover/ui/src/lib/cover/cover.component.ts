@@ -22,6 +22,9 @@ export class CoverComponent {
   @Input()
   height = 270;
 
+  @Input()
+  enableDnd = false;
+
   @Output()
   coverUrl = new EventEmitter<string>();
 }

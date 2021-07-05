@@ -2,7 +2,7 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, OnInit, Output } from '@angular/core';
 import { Router } from '@angular/router';
 import { AlbumService } from '@metal-p3/album/data-access';
-import { BandDto, Track } from '@metal-p3/api-interfaces';
+import { BandDto, MetalArchivesAlbumTrack, Track } from '@metal-p3/api-interfaces';
 import { CoverService } from '@metal-p3/cover/data-access';
 import { addLyricsPriority } from '@metal-p3/maintenance/data-access';
 import { PlaylistService } from '@metal-p3/player/data-access';
@@ -54,12 +54,14 @@ import {
   setExtraFiles,
   setTransferred,
   transferTrack,
+  updateTracks,
   viewAlbum,
 } from '@metal-p3/shared/data-access';
 import { NotificationService } from '@metal-p3/shared/feedback';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
+import { Update } from '@ngrx/entity';
 import { select, Store } from '@ngrx/store';
-import { combineLatest, of } from 'rxjs';
+import { combineLatest, Observable, of } from 'rxjs';
 import { exhaustMap, filter, map, take, tap, withLatestFrom } from 'rxjs/operators';
 
 @UntilDestroy()
@@ -241,21 +243,45 @@ export class AlbumShellComponent implements OnInit {
     this.store.dispatch(findMaUrl({ id, artist, album }));
   }
 
-  onMaTracks(id: number, url: string) {
-    this.store.dispatch(getMaTracks({ id, url }));
-  }
-
-  onLyrics(id: number, url: string): void {
-    const maTracks$ = this.maTracks$.pipe(
+  private getMaTracks(id: number, url: string): Observable<MetalArchivesAlbumTrack[] | undefined> {
+    return this.maTracks$.pipe(
       untilDestroyed(this),
       tap((maTracks) => {
         if (!maTracks) {
-          this.onMaTracks(id, url);
+          this.store.dispatch(getMaTracks({ id, url }));
         }
       }),
       filter((maTracks) => !!maTracks),
       take(1)
     );
+  }
+
+  onMaTracks(id: number, url: string) {
+    combineLatest([this.tracks$, this.getMaTracks(id, url)])
+      .pipe(
+        filter(([tracks, maTracks]) => !!tracks && !!maTracks),
+        tap(([tracks, maTracks]) => {
+          const updates: Update<Track>[] = [];
+
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          for (let index = 0; index < tracks!.length; index++) {
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            const track = tracks![index];
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            const maTrack = maTracks![index];
+
+            updates.push({ id: track.id, changes: { trackNumber: maTrack.trackNumber, title: maTrack.title } });
+          }
+
+          this.store.dispatch(updateTracks({ id, updates }));
+        }),
+        take(1)
+      )
+      .subscribe();
+  }
+
+  onLyrics(id: number, url: string): void {
+    const maTracks$ = this.getMaTracks(id, url);
 
     maTracks$
       .pipe(

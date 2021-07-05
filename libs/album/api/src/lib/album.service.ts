@@ -8,7 +8,7 @@ import * as chokidar from 'chokidar';
 import * as fs from 'fs';
 import { Tags } from 'node-id3';
 import * as path from 'path';
-import { forkJoin, from, iif, Observable, of } from 'rxjs';
+import { EMPTY, forkJoin, from, iif, Observable, of } from 'rxjs';
 import { catchError, concatMap, filter, map, mapTo, mergeMap, tap } from 'rxjs/operators';
 import { AlbumGateway } from './album-gateway.service';
 
@@ -129,7 +129,11 @@ export class AlbumService {
       concatMap(([tags, bands]) => forkJoin([of(tags), iif(() => !!bands.length, of(bands[0]), from(this.dbService.createBand({ Name: tags.artist })))])),
       map(([tags, band]) => this.mapTagsToAlbum(path.basename(folder), tags, band)),
       concatMap((data) => from(this.dbService.createAlbum(data))),
-      map((newAlbum) => this.mapAlbumToAlbumDto(newAlbum))
+      map((newAlbum) => this.mapAlbumToAlbumDto(newAlbum)),
+      catchError((error) => {
+        console.log(error);
+        return EMPTY;
+      })
     );
   }
 

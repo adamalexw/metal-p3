@@ -8,7 +8,7 @@
   <button mat-icon-button [disabled]="trackTransferring" (click)="transfer.emit()">
     <mat-icon title="transfer">adb</mat-icon>
   </button>
-  <app-cover [loading]="coverLoading" [cover]="cover" width="64" height="64"></app-cover>
+  <app-cover [loading]="coverLoading" [cover]="cover" [width]="64" [height]="64"></app-cover>
   <h3 class="ml-3" [routerLink]="['/album', albumId]">{{ folder }}</h3>
   <div *ngIf="!showClose" class="flex flex-row-reverse w-full">
     <mat-icon class="cursor-pointer" (click)="done.emit()">close</mat-icon>

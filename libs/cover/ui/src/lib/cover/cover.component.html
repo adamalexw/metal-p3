@@ -7,7 +7,7 @@
     <pre>{{ coverError }}</pre>
   </div>
 
-  <div *ngIf="cover && !coverError" appCoverDnd (coverUrl)="coverUrl.emit($event)" [style.width.px]="width" [style.height.px]="height">
-    <img [src]="cover | safe: 'resourceUrl'" class="w-100 h-100" />
+  <div *ngIf="cover && !coverError" appCoverDnd [enableDnd]="enableDnd" (coverUrl)="coverUrl.emit($event)" [style.width.px]="width" [style.height.px]="height">
+    <img [src]="cover | safe: 'resourceUrl'" loading="lazy" class="w-100 h-100" />
   </div>
 </ng-template>

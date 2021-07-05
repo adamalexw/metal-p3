@@ -116,6 +116,7 @@ export class AlbumEffects {
       ofType(addNewAlbum),
       mergeMap(({ folder }) =>
         this.service.addNewAlbum(`${this.basePath}/${folder}`).pipe(
+          filter((album) => !!album),
           tap((album) => this.notificationService.showInfo(album.folder, 'New Album')),
           map((album) => AlbumDtoToAlbum(album) as Album),
           concatMap((album) => this.coverService.getCover(`${this.basePath}/${album.folder}`).pipe(map((cover) => ({ ...album, cover })))),

@@ -1,5 +1,12 @@
 <div class="flex flex-col min-h-screen">
-  <app-list-toolbar [searching]="albumsLoading$ | async" [creatingNew]="creatingNew$ | async" (searchRequest)="onSearch($event)" (refresh)="onSearch($event)" (createNew)="onCreateNew()">
+  <app-list-toolbar
+    [criteria]="criteria$ | async"
+    [searching]="albumsLoading$ | async"
+    [creatingNew]="creatingNew$ | async"
+    (searchRequest)="onSearch($event)"
+    (refresh)="onSearch($event)"
+    (createNew)="onCreateNew()"
+  >
   </app-list-toolbar>
 
   <cdk-virtual-scroll-viewport itemSize="400" minBufferPx="1200" maxBufferPx="2400" (scrolledIndexChange)="scrollIndexChange($event, criteria)" class="flex-grow w-full">

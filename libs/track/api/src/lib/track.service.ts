@@ -8,7 +8,7 @@ import { read, Tags, update } from 'node-id3';
 import { ReadStream } from 'node:fs';
 import * as path from 'path';
 import { EMPTY, from, Observable } from 'rxjs';
-import { concatAll, map, toArray } from 'rxjs/operators';
+import { catchError, concatAll, map, toArray } from 'rxjs/operators';
 
 @Injectable()
 export class TrackService {
@@ -34,7 +34,13 @@ export class TrackService {
 
   trackDetails(file: string, index: number): Observable<Track> {
     if (path.extname(file) === '.mp3') {
-      return this.getMetadata(file, { skipCovers: true }).pipe(map((metadata) => this.mapTrack(file, this.getTags(file), metadata, index)));
+      return this.getMetadata(file, { skipCovers: true }).pipe(
+        map((metadata) => this.mapTrack(file, this.getTags(file), metadata, index)),
+        catchError((error) => {
+          console.log(error);
+          return EMPTY;
+        })
+      );
     }
 
     return EMPTY;
@@ -61,7 +67,7 @@ export class TrackService {
   }
 
   private getTrackNo(track: { no: number | null; of: number | null }): string {
-    return track.no!.toString().padStart(2, '0');
+    return track.no?.toString().padStart(2, '0') || '00';
   }
 
   saveTrack(track: Track): boolean | Error {

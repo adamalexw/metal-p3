@@ -24,7 +24,15 @@
 
   <form [formGroup]="form" autocomplete="off">
     <section class="flex flex-row">
-      <app-cover [loading]="coverLoading" [cover]="album.cover" [coverError]="album.coverError" width="500" height="500" (coverUrl)="coverUrl.emit({ id: album.id, url: $event })"></app-cover>
+      <app-cover
+        [loading]="coverLoading"
+        [cover]="album.cover"
+        [coverError]="album.coverError"
+        [enableDnd]="true"
+        [width]="500"
+        [height]="500"
+        (coverUrl)="coverUrl.emit({ id: album.id, url: $event })"
+      ></app-cover>
       <mat-list class="m-2 summary-list">
         <mat-list-item class="mb-2">
           <mat-form-field class="w-full">
@@ -92,7 +100,7 @@
       <app-tracks-toolbar
         [trackRenaming]="trackRenaming"
         [lyricsLoading]="lyricsLoading"
-        [enableLyrics]="!!albumUrl"
+        [enableMaActions]="!!albumUrl"
         [albumDuration]="albumDuration"
         (maTracks)="onMaTracks()"
         (renameTracks)="onRenameTracks()"

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { SearchRequest } from '@metal-p3/album/domain';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
@@ -11,12 +11,15 @@ import { debounceTime, distinctUntilChanged, tap } from 'rxjs/operators';
   styleUrls: ['./list-toolbar.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ListToolbarComponent implements OnInit {
+export class ListToolbarComponent implements OnInit, OnChanges {
   @Input()
   creatingNew = false;
 
   @Input()
   searching = false;
+
+  @Input()
+  criteria = '';
 
   @Output()
   readonly searchRequest = new EventEmitter<SearchRequest>();
@@ -33,6 +36,12 @@ export class ListToolbarComponent implements OnInit {
     this.form = fb.group({
       criteria: [],
     });
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes.criteria && this.form && this.criteria !== this.form.get('criteria')?.value) {
+      this.form.get('criteria')?.setValue(this.criteria);
+    }
   }
 
   ngOnInit(): void {

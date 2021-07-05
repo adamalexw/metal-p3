@@ -29,7 +29,9 @@
       "strict": true
     },
     "@nrwl/angular:component": {
-      "style": "scss"
+      "style": "scss",
+      "prefix": "app",
+      "changeDetection": "OnPush" 
     }
   },
   "projects": {

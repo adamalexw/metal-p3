@@ -119,4 +119,8 @@ export class DbService {
       where,
     });
   }
+
+  async folders(): Promise<Partial<Album>[]> {
+    return this.prisma.album.findMany({ select: { AlbumId: true, Folder: true } });
+  }
 }
