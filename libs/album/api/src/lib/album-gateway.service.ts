@@ -1,3 +1,4 @@
+import { ALBUM_ADDED } from '@metal-p3/api-interfaces';
 import { SubscribeMessage, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 
@@ -8,7 +9,7 @@ export class AlbumGateway {
   @WebSocketServer() server: Server;
 
   albumAddedMessage(album: string) {
-    this.server.emit('albumAdded', album);
+    this.server.emit(ALBUM_ADDED, album);
   }
 
   @SubscribeMessage('albumAddedComplete')

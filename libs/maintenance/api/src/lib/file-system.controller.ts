@@ -15,4 +15,14 @@ export class FileSystemController {
   deleteFolder(@Query('folder') folder: string) {
     this.service.deleteFolder(folder);
   }
+
+  @Get('extraFiles')
+  getExtraFiles(): void {
+    this.service.extraFiles();
+  }
+
+  @Get('cancel')
+  cancelExtraFiles(): void {
+    this.service.cancelExtraFiles();
+  }
 }

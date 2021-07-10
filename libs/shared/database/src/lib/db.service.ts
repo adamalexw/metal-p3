@@ -77,14 +77,33 @@ export class DbService {
     });
   }
 
-  async lyricsHistory(): Promise<LyricsHistory[]> {
-    return this.prisma.lyricsHistory.findMany({
-      include: { Album: true },
+  async lyricsHistory(): Promise<Album[]> {
+    return this.prisma.album.findMany({
+      where: {
+        MetalArchiveUrl: {
+          not: null,
+        },
+        Lyrics: false,
+        Year: {
+          gt: new Date().getFullYear() - 4,
+        },
+      },
+      include: { LyricsHistory: true },
     });
   }
 
   async lyricsPriority(): Promise<LyricsHistory[]> {
-    return this.prisma.lyricsHistory.findMany({ where: { Priority: true }, include: { Album: true } });
+    return this.prisma.lyricsHistory.findMany({
+      where: {
+        Priority: true,
+        Album: {
+          MetalArchiveUrl: {
+            not: null,
+          },
+        },
+      },
+      include: { Album: true },
+    });
   }
 
   async getLyricsHistory(albumId: number): Promise<LyricsHistory | null> {

@@ -3,7 +3,7 @@ import { ErrorService } from '@metal-p3/shared/error';
 import { NotificationService } from '@metal-p3/shared/feedback';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { EMPTY, iif, of } from 'rxjs';
-import { catchError, concatMap, map, mapTo, tap } from 'rxjs/operators';
+import { catchError, concatMap, concatMapTo, map, mapTo, tap } from 'rxjs/operators';
 import { LyricsMaintenanceService } from '../lyrics.service';
 import {
   addLyricsPriority,
@@ -19,6 +19,7 @@ import {
   getLyricsHistory,
   getLyricsHistoryError,
   getLyricsHistorySuccess,
+  stopLyricsCheck,
 } from './actions';
 
 @Injectable()
@@ -83,6 +84,16 @@ export class MaintenanceEffects {
         )
       )
     )
+  );
+
+  cancel$ = createEffect(
+    () =>
+      this.actions$.pipe(
+        ofType(stopLyricsCheck),
+        tap(() => console.log('stoppin')),
+        concatMapTo(this.lyricsService.cancelHistoryCheck())
+      ),
+    { dispatch: false }
   );
 
   constructor(private actions$: Actions, private lyricsService: LyricsMaintenanceService, private errorService: ErrorService, private notificationService: NotificationService) {}

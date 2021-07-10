@@ -77,3 +77,9 @@ export interface RenameTrack {
   fullPath: string;
   file: string;
 }
+
+export const ALBUM_ADDED = 'albumAdded';
+export const LYRICS_HISTORY_UPDATE = 'lyricsHistoryUpdate';
+export const LYRICS_HISTORY_COMPLETE = 'lyricsHistoryComplete';
+export const EXTRA_FILES = 'extraFiles';
+export const EXTRA_FILES_COMPLETE = 'extraFilesComplete';

@@ -1,6 +1,7 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { ApplyLyricsShellComponent } from './apply-lyrics/apply-lyrics.component';
+import { ExtraFilesShellComponent } from './extra-files/extra-files.component';
 import { LyricsHistoryShellComponent } from './lyrics-history/lyrics-history.component';
 import { UnmappedFoldersShellComponent } from './unmapped-folders/unmapped-folders.component';
 
@@ -16,6 +17,10 @@ const routes: Routes = [
   {
     path: 'folders',
     component: UnmappedFoldersShellComponent,
+  },
+  {
+    path: 'extraFiles',
+    component: ExtraFilesShellComponent,
   },
 ];
 @NgModule({

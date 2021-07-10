@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { exec } from 'child_process';
 import { chmodSync, lstatSync, readdirSync, renameSync, rmdirSync, statSync, unlinkSync } from 'fs';
-import { basename, dirname, join } from 'path';
+import { basename, dirname, extname, join } from 'path';
 
 @Injectable()
 export class FileSystemService {
@@ -101,5 +101,25 @@ export class FileSystemService {
       rmdirSync(folder);
       return;
     }
+  }
+
+  hasExtraFiles(basePath: string, folder: string): boolean {
+    const files = this.getFiles(join(basePath, folder));
+
+    for (let index = 0; index < files.length; index++) {
+      const file = files[index];
+
+      if (extname(file) !== '.mp3') {
+        if (this.isFolder(join(basePath, folder, file))) {
+          return true;
+        }
+
+        if (file.toLowerCase() !== 'folder.jpg') {
+          return true;
+        }
+      }
+    }
+
+    return false;
   }
 }

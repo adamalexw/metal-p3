@@ -3,12 +3,14 @@ import { FileSystemService } from '@metal-p3/shared/file-system';
 import { Inject, Injectable } from '@nestjs/common';
 import { difference } from 'lodash';
 import { join } from 'path';
-import { from, Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { from, Observable, of, Subject } from 'rxjs';
+import { finalize, map, takeUntil, tap } from 'rxjs/operators';
 import { MaintenanceGateway } from './maintenance-gateway.service';
 
 @Injectable()
 export class FileSystemMaintenanceService {
+  notifier = new Subject();
+
   constructor(
     private readonly dbService: DbService,
     private readonly fileSystemService: FileSystemService,
@@ -31,5 +33,29 @@ export class FileSystemMaintenanceService {
 
   deleteFolder(folder: string) {
     this.fileSystemService.deleteFolder(join(this.basePath, folder));
+  }
+
+  extraFiles() {
+    this.notifier = new Subject();
+
+    of(this.fileSystemService.getFolders(this.basePath))
+      .pipe(
+        takeUntil(this.notifier),
+        tap((folders) => {
+          for (let index = 0; index < folders.length; index++) {
+            const folder = folders[index];
+            if (this.fileSystemService.hasExtraFiles(this.basePath, folder)) {
+              this.maintenanceGateway.extraFiles(folder);
+            }
+          }
+        }),
+        finalize(() => this.maintenanceGateway.extraFilesComplete())
+      )
+      .subscribe();
+  }
+
+  cancelExtraFiles(): void {
+    this.notifier.next();
+    this.notifier.complete();
   }
 }

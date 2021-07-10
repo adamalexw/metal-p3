@@ -1,1 +1,10 @@
-<p>extra-files works!</p>
+<app-nav-toolbar>
+  <h2>Extra Files</h2>
+</app-nav-toolbar>
+<mat-list>
+  <div mat-subheader>Folders</div>
+  <mat-list-item *ngFor="let folder of folders">
+    <mat-icon mat-list-icon class="cursor-pointer" (click)="openFolder.emit(folder)">folder</mat-icon>
+    <div class="w-full ml-2">{{ folder }}</div>
+  </mat-list-item>
+</mat-list>

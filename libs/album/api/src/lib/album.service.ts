@@ -31,7 +31,7 @@ export class AlbumService {
 
     if (request.criteria) {
       where = {
-        Folder: { contains: request.criteria },
+        Folder: { startsWith: request.criteria },
       };
     }
 
@@ -64,23 +64,7 @@ export class AlbumService {
   }
 
   hasExtraFiles(folder: string): boolean {
-    const files = this.fileSystemService.getFiles(path.join(this.basePath, folder));
-
-    for (let index = 0; index < files.length; index++) {
-      const file = files[index];
-
-      if (path.extname(file) !== '.mp3') {
-        if (this.fileSystemService.isFolder(path.join(this.basePath, folder, file))) {
-          return true;
-        }
-
-        if (file !== 'Folder.jpg') {
-          return true;
-        }
-      }
-    }
-
-    return false;
+    return this.fileSystemService.hasExtraFiles(this.basePath, folder);
   }
 
   private addFileWatcher(basePath: string) {

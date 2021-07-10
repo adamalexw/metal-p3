@@ -1,5 +1,4 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
-import { OverlayService } from '@metal-p3/shared/feedback';
 
 @Component({
   selector: 'app-album-toolbar',
@@ -24,7 +23,7 @@ export class AlbumToolbarComponent {
   folder = '';
 
   @Input()
-  extraFiles = false;
+  extraFiles: boolean | undefined;
 
   @Output()
   readonly save = new EventEmitter<void>();
@@ -46,8 +45,6 @@ export class AlbumToolbarComponent {
 
   @Output()
   readonly delete = new EventEmitter<void>();
-
-  constructor(private overlayService: OverlayService) {}
 
   onDelete(result: boolean) {
     if (result) {

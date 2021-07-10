@@ -1,5 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { LYRICS_HISTORY_COMPLETE, LYRICS_HISTORY_UPDATE } from '@metal-p3/api-interfaces';
 import { LyricsHistoryDto } from '@metal-p3/maintenance/domain';
 import { Socket } from 'ngx-socket-io';
 import { Observable } from 'rxjs';
@@ -33,11 +34,11 @@ export class LyricsMaintenanceService {
   }
 
   lyricsHistoryUpdate(): Observable<LyricsHistoryDto> {
-    return this.socket.fromEvent('lyricsHistoryUpdate');
+    return this.socket.fromEvent(LYRICS_HISTORY_UPDATE);
   }
 
   lyricsHistoryComplete(): Observable<boolean> {
-    return this.socket.fromEvent('lyricsHistoryComplete');
+    return this.socket.fromEvent(LYRICS_HISTORY_COMPLETE);
   }
 
   checkedLyricsHistory(id: number, checked: boolean): Observable<LyricsHistoryDto> {
@@ -46,5 +47,9 @@ export class LyricsMaintenanceService {
 
   deleteLyricsHistory(id: number): Observable<boolean | Error> {
     return this.http.delete<boolean | Error>(`${this.baseUrl}?id=${id}`, {});
+  }
+
+  cancelHistoryCheck(): Observable<never> {
+    return this.http.get<never>(`${this.baseUrl}/cancel`);
   }
 }

@@ -23,8 +23,13 @@ export class LyricsController {
   }
 
   @Get('checkPriority')
-  checkHistory(): void {
+  checkPriority(): void {
     this.lyricsService.checkPriority().subscribe();
+  }
+
+  @Get('checkHistory')
+  checkHistory(): void {
+    this.lyricsService.checkHistory().subscribe();
   }
 
   @Patch('checked')
@@ -35,5 +40,10 @@ export class LyricsController {
   @Delete()
   deleteHistory(@Query('id') id: number): Observable<boolean | Error> {
     return this.lyricsService.deleteHistory(+id);
+  }
+
+  @Get('cancel')
+  cancelHistoryCheck(): void {
+    this.lyricsService.cancelHistoryCheck();
   }
 }

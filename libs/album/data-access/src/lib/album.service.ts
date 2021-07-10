@@ -1,9 +1,10 @@
 import { HttpClient } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
 import { ApplyLyrics, BASE_PATH, SearchRequest } from '@metal-p3/album/domain';
-import { AlbumDto, MetalArchivesSearchResponse, RenameFolder, Track } from '@metal-p3/api-interfaces';
+import { AlbumDto, ALBUM_ADDED, MetalArchivesSearchResponse, RenameFolder, Track } from '@metal-p3/api-interfaces';
 import { Socket } from 'ngx-socket-io';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root',
@@ -36,7 +37,7 @@ export class AlbumService {
   }
 
   getExtraFiles(folder: string): Observable<boolean> {
-    return this.http.get<boolean>(`${this.baseUrl}/extraFiles?folder=${encodeURIComponent(folder)}`, { responseType: 'text' as 'json' });
+    return this.http.get<string>(`${this.baseUrl}/extraFiles?folder=${encodeURIComponent(folder)}`, { responseType: 'text' as 'json' }).pipe(map((response) => /true/i.test(response)));
   }
 
   saveAlbum(album: AlbumDto): Observable<never> {
@@ -80,7 +81,7 @@ export class AlbumService {
   }
 
   albumAdded(): Observable<string> {
-    return this.socket.fromEvent('albumAdded');
+    return this.socket.fromEvent(ALBUM_ADDED);
   }
 
   deleteAlbum(id: number) {

@@ -31,7 +31,7 @@
     "@nrwl/angular:component": {
       "style": "scss",
       "prefix": "app",
-      "changeDetection": "OnPush" 
+      "changeDetection": "OnPush"
     }
   },
   "projects": {

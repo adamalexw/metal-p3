@@ -12,7 +12,7 @@ import { MaintenanceGateway } from './maintenance-gateway.service';
   imports: [SharedDatabaseModule, SharedFileSystemModule, SharedMetalArchivesModule],
   controllers: [LyricsController, FileSystemController],
   providers: [LyricsService, MaintenanceGateway, FileSystemMaintenanceService],
-  exports: [],
+  exports: [FileSystemMaintenanceService],
 })
 export class MaintenanceApiModule {
   static forRoot(basePath: string): DynamicModule {

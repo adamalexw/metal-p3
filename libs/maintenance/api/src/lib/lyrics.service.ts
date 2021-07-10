@@ -4,31 +4,33 @@ import { DbService } from '@metal-p3/shared/database';
 import { MetalArchivesService } from '@metal-p3/shared/metal-archives';
 import { Injectable, Logger } from '@nestjs/common';
 import { Album, LyricsHistory, Prisma } from '@prisma/client';
-import { from, Observable, of } from 'rxjs';
-import { catchError, concatMap, finalize, map, mapTo, tap, toArray } from 'rxjs/operators';
+import { from, Observable, of, Subject } from 'rxjs';
+import { catchError, concatMap, finalize, map, mapTo, takeUntil, tap, toArray } from 'rxjs/operators';
 import { MaintenanceGateway } from './maintenance-gateway.service';
 
 @Injectable()
 export class LyricsService {
+  notifier = new Subject();
+
   constructor(private readonly dbService: DbService, private readonly metalArchivesService: MetalArchivesService, private readonly maintenanceGateway: MaintenanceGateway) {}
 
   getHistory(): Observable<LyricsHistoryDto[]> {
-    return from(this.dbService.lyricsHistory()).pipe(map((history) => history.map(this.lyricsHistoryToDto)));
+    return from(this.dbService.lyricsHistory()).pipe(
+      map((album) => album.map((album) => this.lyricsHistoryToDto(album, album['LyricsHistory'] && album['LyricsHistory'].length && album['LyricsHistory'][0])))
+    );
   }
 
   getPriority(): Observable<LyricsHistoryDto[]> {
-    return from(this.dbService.lyricsPriority()).pipe(map((history) => history.map(this.lyricsHistoryToDto)));
+    return from(this.dbService.lyricsPriority()).pipe(map((history) => history.map((history) => this.lyricsHistoryToDto(history['Album'], history))));
   }
 
-  private lyricsHistoryToDto(history: LyricsHistory): LyricsHistoryDto {
-    const album = history['Album'] as Album;
-
+  private lyricsHistoryToDto(album: Album, history: LyricsHistory | undefined): LyricsHistoryDto {
     return {
-      id: history.LyricsHistoryId,
+      id: history?.LyricsHistoryId || album.AlbumId,
       albumId: album.AlbumId,
-      numTracks: history.NumTracks,
-      numLyrics: history.NumLyrics,
-      numLyricsHistory: history.NumLyricsHistory,
+      numTracks: history?.NumTracks || 0,
+      numLyrics: history?.NumLyrics || 0,
+      numLyricsHistory: history?.NumLyricsHistory || 0,
       checked: history.Checked,
       folder: album.Folder,
       year: album.Year,
@@ -51,16 +53,33 @@ export class LyricsService {
           ? from(this.dbService.updateLyricsHistory({ where: { LyricsHistoryId: history.LyricsHistoryId }, data: { Priority: true } }))
           : from(this.dbService.createLyricsHistory({ Priority: true, Album: this.getAlbumInput(albumId) }))
       ),
-      map((history) => this.lyricsHistoryToDto(history))
+      map((history) => this.lyricsHistoryToDto(history['Album'], history))
     );
   }
 
   setChecked(id: number, checked: boolean): Observable<LyricsHistoryDto> {
-    return from(this.dbService.updateLyricsHistory({ where: { LyricsHistoryId: id }, data: { Checked: checked } })).pipe(map((history) => this.lyricsHistoryToDto(history)));
+    return from(this.dbService.updateLyricsHistory({ where: { LyricsHistoryId: id }, data: { Checked: checked } })).pipe(map((history) => this.lyricsHistoryToDto(history['Album'], history)));
   }
 
   checkPriority(): Observable<LyricsHistoryDto[]> {
-    return this.checkLyrics(this.getPriority()).pipe(finalize(() => this.maintenanceGateway.lyricsHistoryComplete()));
+    this.notifier = new Subject();
+    return this.checkLyrics(this.getPriority()).pipe(
+      takeUntil(this.notifier),
+      finalize(() => this.maintenanceGateway.lyricsHistoryComplete())
+    );
+  }
+
+  checkHistory(): Observable<LyricsHistoryDto[]> {
+    this.notifier = new Subject();
+    return this.checkLyrics(this.getHistory()).pipe(
+      takeUntil(this.notifier),
+      finalize(() => this.maintenanceGateway.lyricsHistoryComplete())
+    );
+  }
+
+  cancelHistoryCheck() {
+    this.notifier.next();
+    this.notifier.complete();
   }
 
   checkLyrics(source$: Observable<LyricsHistoryDto[]>): Observable<LyricsHistoryDto[]> {
@@ -70,12 +89,23 @@ export class LyricsService {
           concatMap((history) =>
             this.metalArchivesService.getTracks(history.url).pipe(
               map((maTracks) => this.mapLyrics(history, maTracks)),
-              tap((history) =>
-                this.dbService.updateLyricsHistory({
-                  where: { LyricsHistoryId: history.id },
-                  data: { NumLyrics: history.numLyrics, NumTracks: history.numTracks, NumLyricsHistory: history.numLyricsHistory, Checked: history.checked },
-                })
-              ),
+              tap((history) => {
+                // no existing history so create it
+                if (history.id === history.albumId) {
+                  this.dbService.createLyricsHistory({
+                    NumLyrics: history.numLyrics,
+                    NumTracks: history.numTracks,
+                    NumLyricsHistory: history.numLyricsHistory,
+                    Checked: history.checked,
+                    Album: this.getAlbumInput(history.albumId),
+                  });
+                } else {
+                  this.dbService.updateLyricsHistory({
+                    where: { LyricsHistoryId: history.id },
+                    data: { NumLyrics: history.numLyrics, NumTracks: history.numTracks, NumLyricsHistory: history.numLyricsHistory, Checked: history.checked },
+                  });
+                }
+              }),
               catchError((error) => {
                 Logger.error(error);
                 return of({ ...history, error });

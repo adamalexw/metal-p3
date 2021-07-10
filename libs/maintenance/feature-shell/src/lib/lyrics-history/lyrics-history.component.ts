@@ -70,7 +70,7 @@ export class LyricsHistoryShellComponent implements OnInit {
 
   onStartCheck() {
     this.onViewCheck();
-    this.store.dispatch(checkLyricsHistory({ priority: true }));
+    this.store.dispatch(checkLyricsHistory({ priority: false }));
   }
 
   onStopCheck() {

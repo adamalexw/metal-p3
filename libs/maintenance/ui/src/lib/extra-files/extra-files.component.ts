@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
 
 @Component({
   selector: 'app-extra-files',
@@ -6,8 +6,10 @@ import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
   styleUrls: ['./extra-files.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ExtraFilesComponent implements OnInit {
-  constructor() {}
+export class ExtraFilesComponent {
+  @Input()
+  folders: string[] = [];
 
-  ngOnInit(): void {}
+  @Output()
+  readonly openFolder = new EventEmitter<string>();
 }
