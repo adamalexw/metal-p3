@@ -1,9 +1,27 @@
-import { Injectable } from '@angular/core';
-import { Actions, createEffect, ofType } from '@ngrx/effects';
+import { Inject, Injectable } from '@angular/core';
+import { BASE_PATH } from '@metal-p3/album/domain';
+import { CoverService } from '@metal-p3/cover/data-access';
+import { ErrorService } from '@metal-p3/shared/error';
+import { Actions, concatLatestFrom, createEffect, ofType } from '@ngrx/effects';
 import { select, Store } from '@ngrx/store';
-import { map, withLatestFrom } from 'rxjs/operators';
-import { addTracksToPlaylist, noopPlaylist, pauseItem, playItem, playNext, playPrevious, updatePlaylist, updatePlaylistItem } from './actions';
-import { selectActiveItemIndex, selectActivePlaylistItem, selectPlaylist } from './selectors';
+import { of } from 'rxjs';
+import { catchError, filter, map, mergeMap, tap, withLatestFrom } from 'rxjs/operators';
+import {
+  addTracksToPlaylist,
+  clearBlobs,
+  getItemCover,
+  getItemCoverError,
+  getItemCoverSuccess,
+  noopPlaylist,
+  pauseItem,
+  playItem,
+  playNext,
+  playPrevious,
+  removeItem,
+  updatePlaylist,
+  updatePlaylistItem,
+} from './actions';
+import { selectActiveItemIndex, selectActivePlaylistItem, selectItemById, selectPlaylist, selectPlaylistBlobs } from './selectors';
 
 @Injectable()
 export class PlayerEffects {
@@ -58,5 +76,48 @@ export class PlayerEffects {
     )
   );
 
-  constructor(private actions$: Actions, private store: Store) {}
+  removeItem$ = createEffect(
+    () =>
+      this.actions$.pipe(
+        ofType(removeItem),
+        concatLatestFrom(({ id }) => this.store.pipe(select(selectItemById(id)))),
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        tap(([{ id }, item]) => {
+          if (item) {
+            typeof item.cover === 'string' ? URL.revokeObjectURL(item.cover) : '';
+            typeof item.url === 'string' ? URL.revokeObjectURL(item.url) : '';
+          }
+        })
+      ),
+    { dispatch: false }
+  );
+
+  getCover$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(getItemCover),
+      mergeMap(({ id, folder }) =>
+        this.coverService.getCover(folder).pipe(
+          map((cover) => getItemCoverSuccess({ update: { id, changes: { cover } } })),
+          catchError((error) => of(getItemCoverError({ update: { id, changes: { cover: this.errorService.getError(error) } } })))
+        )
+      )
+    )
+  );
+
+  clearBlobs$ = createEffect(
+    () =>
+      this.actions$.pipe(
+        ofType(clearBlobs),
+        concatLatestFrom(() => this.store.pipe(select(selectPlaylistBlobs))),
+        filter(([_, blobs]) => blobs.length > 0),
+        tap(([_, blobs]) =>
+          blobs.forEach((blob) => {
+            typeof blob === 'string' ? URL.revokeObjectURL(blob) : '';
+          })
+        )
+      ),
+    { dispatch: false }
+  );
+
+  constructor(private actions$: Actions, private store: Store, private coverService: CoverService, private errorService: ErrorService, @Inject(BASE_PATH) private readonly basePath: string) {}
 }

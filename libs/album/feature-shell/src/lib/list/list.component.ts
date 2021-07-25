@@ -4,7 +4,7 @@ import { Router } from '@angular/router';
 import { AlbumService } from '@metal-p3/album/data-access';
 import { SearchRequest } from '@metal-p3/album/domain';
 import { Track } from '@metal-p3/api-interfaces';
-import { PlaylistService, selectPlaylist } from '@metal-p3/player/data-access';
+import { PlayerService, selectPlaylist, showPlayer } from '@metal-p3/player/data-access';
 import {
   addNewAlbum,
   Album,
@@ -77,7 +77,7 @@ export class ListComponent implements OnInit {
   constructor(
     private readonly store: Store,
     private readonly router: Router,
-    private readonly playlistService: PlaylistService,
+    private readonly playerService: PlayerService,
     private readonly notificationService: NotificationService,
     private readonly service: AlbumService,
     private readonly viewportRuler: ViewportRuler
@@ -123,11 +123,11 @@ export class ListComponent implements OnInit {
   }
 
   onPlayAlbum(id: number, folder: string) {
-    this.playlistService.playAlbum(id, this.getTracks(id, folder));
+    this.playerService.playAlbum(id, this.getTracks(id, folder));
   }
 
   onAddToPlaylist(id: number, folder: string) {
-    this.playlistService.addAlbumToPlaylist(id, this.getTracks(id, folder));
+    this.playerService.addAlbumToPlaylist(id, this.getTracks(id, folder));
   }
 
   private getTracks(id: number, folder: string): Observable<Track[] | undefined> {
@@ -160,6 +160,10 @@ export class ListComponent implements OnInit {
 
   onAlbumAdded(folders: string[]) {
     folders.forEach((folder) => this.store.dispatch(addNewAlbum({ folder })));
+  }
+
+  onShowPlayer() {
+    this.store.dispatch(showPlayer());
   }
 
   onCreateNew() {

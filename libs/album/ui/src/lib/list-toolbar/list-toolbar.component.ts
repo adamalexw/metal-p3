@@ -25,6 +25,9 @@ export class ListToolbarComponent implements OnInit, OnChanges {
   readonly searchRequest = new EventEmitter<SearchRequest>();
 
   @Output()
+  readonly showPlayer = new EventEmitter<void>();
+
+  @Output()
   readonly createNew = new EventEmitter<void>();
 
   @Output()

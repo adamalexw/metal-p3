@@ -12,7 +12,7 @@ export class TrackService {
   constructor(private http: HttpClient) {}
 
   getTrack(file: string): Observable<Track> {
-    return this.http.get<Track>(`/api/trackDetails?file=${encodeURIComponent(file)}`);
+    return this.http.get<Track>(`${this.baseUrl}/trackDetails?file=${encodeURIComponent(file)}`);
   }
 
   getTracks(folder: string): Observable<Track[]> {

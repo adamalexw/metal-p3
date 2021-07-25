@@ -20,7 +20,7 @@
   },
   "projects": {
     "album-api": {
-      "tags": []
+      "tags": ["scope:album", "type:api"]
     },
     "album-data-access": {
       "tags": ["scope:album", "type:data-access"]
@@ -44,91 +44,103 @@
       "tags": []
     },
     "band-data-access": {
-      "tags": []
+      "tags": ["scope:band", "type:data-access"]
     },
     "cover-api": {
-      "tags": []
+      "tags": ["scope:cover", "type:api"]
     },
     "cover-data-access": {
-      "tags": []
+      "tags": ["scope:cover", "type:data-access"]
     },
     "cover-feature-shell": {
-      "tags": []
+      "tags": ["scope:cover", "type:feature"]
     },
     "cover-ui": {
-      "tags": []
+      "tags": ["scope:cover", "type:ui"]
     },
     "maintenance-api": {
-      "tags": []
+      "tags": ["scope:maintenance", "type:api"]
     },
     "maintenance-data-access": {
-      "tags": []
+      "tags": ["scope:maintenance", "type:data-access"]
     },
     "maintenance-domain": {
-      "tags": []
+      "tags": ["scope:maintenance", "type:domain"]
     },
     "maintenance-feature-shell": {
-      "tags": []
+      "tags": ["scope:maintenance", "type:feature"]
     },
     "maintenance-ui": {
-      "tags": []
+      "tags": ["scope:maintenance", "type:ui"]
     },
     "player-data-access": {
-      "tags": []
+      "tags": ["scope:player", "type:data-access"]
     },
     "player-domain": {
-      "tags": []
+      "tags": ["scope:player", "type:domain"]
     },
     "player-feature-shell": {
-      "tags": []
+      "tags": ["scope:player", "type:feature"]
     },
     "player-ui": {
-      "tags": []
+      "tags": ["scope:player", "type:ui"]
+    },
+    "playlist-api": {
+      "tags": ["scope:playlist", "type:api"]
+    },
+    "playlist-data-access": {
+      "tags": ["scope:playlist", "type:data-access"]
+    },
+    "playlist-feature-shell": {
+      "tags": ["scope:playlist", "type:feature"]
+    },
+    "playlist-ui": {
+      "tags": ["scope:playlist", "type:ui"]
     },
     "shared-adb": {
-      "tags": []
+      "tags": ["scope:shared", "type:api"]
     },
     "shared-data-access": {
-      "tags": []
+      "tags": ["scope:shared", "type:data-access"]
     },
     "shared-database": {
-      "tags": []
+      "tags": ["scope:shared", "type:api"]
     },
     "shared-error": {
-      "tags": []
+      "tags": ["scope:shared", "type:util"]
     },
     "shared-feedback": {
-      "tags": []
+      "tags": ["scope:shared", "type:util"]
     },
     "shared-file-system": {
-      "tags": []
+      "tags": ["scope:shared", "type:api"]
     },
     "shared-metal-archives": {
-      "tags": []
+      "tags": ["scope:shared", "type:api"]
     },
     "shared-navigation": {
-      "tags": []
+      "tags": ["scope:shared", "type:ui"]
     },
     "shared-ngrx-store": {
-      "tags": []
+      "tags": ["scope:shared", "type:util"]
     },
     "shared-utils": {
       "tags": ["scope:shared", "type:util"]
     },
     "track-api": {
-      "tags": []
+      "tags": ["scope:track", "type:api"]
     },
     "track-data-access": {
-      "tags": []
+      "tags": ["scope:track", "type:data-access"]
     },
     "track-ui": {
-      "tags": []
+      "tags": ["scope:track", "type:ui"]
     },
     "track-util": {
-      "tags": []
+      "tags": ["scope:track", "type:util"]
     },
     "ui": {
-      "tags": []
+      "tags": ["scope:track", "type:ui"]
     },
     "ui-e2e": {
       "tags": [],

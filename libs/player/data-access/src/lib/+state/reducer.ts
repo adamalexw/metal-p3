@@ -1,13 +1,29 @@
 import { PlaylistItem } from '@metal-p3/player/domain';
 import { createEntityAdapter, EntityAdapter, EntityState } from '@ngrx/entity';
 import { createReducer, on } from '@ngrx/store';
-import { addTracksToPlaylist, addTrackToPlaylist, clearPlaylist, playItem, reorderPlaylist, tooglePlayerView, updatePlaylist, updatePlaylistItem } from './actions';
+import {
+  addTracksToPlaylist,
+  addTrackToPlaylist,
+  clearPlaylist,
+  closePlayer,
+  getItemCoverError,
+  getItemCoverSuccess,
+  playItem,
+  removeItem,
+  reorderPlaylist,
+  showPlayer,
+  tooglePlayerView,
+  updatePlaylist,
+  updatePlaylistItem,
+} from './actions';
 
 export const PLAYER_FEATURE_KEY = 'player';
 
 export interface PlayerState extends EntityState<PlaylistItem> {
-  activeTrack?: string;
+  visible: boolean;
   footerMode: boolean;
+  activeTrack?: string;
+  activePlaylist?: number;
 }
 
 function sortByIndex(a: PlaylistItem, b: PlaylistItem): number {
@@ -15,20 +31,24 @@ function sortByIndex(a: PlaylistItem, b: PlaylistItem): number {
 }
 
 export const adapter: EntityAdapter<PlaylistItem> = createEntityAdapter<PlaylistItem>({
-  sortComparer: sortByIndex
+  sortComparer: sortByIndex,
 });
 
 export const initialState = adapter.getInitialState({
   footerMode: true,
+  selectPlaylist: false,
 });
 
 export const reducer = createReducer(
   initialState,
+  on(showPlayer, (state) => ({ ...state, selectPlaylist: true })),
+  on(closePlayer, (state) => adapter.removeAll({ ...state, selectPlaylist: false })),
   on(tooglePlayerView, (state) => ({ ...state, footerMode: !state.footerMode })),
   on(addTrackToPlaylist, (state, { track }) => adapter.addOne(track, state)),
   on(addTracksToPlaylist, (state, { tracks }) => adapter.addMany(tracks, state)),
   on(updatePlaylist, reorderPlaylist, (state, { updates }) => adapter.updateMany(updates, state)),
-  on(updatePlaylistItem, (state, { update }) => adapter.updateOne(update, state)),
+  on(updatePlaylistItem, getItemCoverSuccess, getItemCoverError, (state, { update }) => adapter.updateOne(update, state)),
   on(playItem, (state, { id }) => ({ ...state, activeTrack: id })),
-  on(clearPlaylist, (state) => adapter.removeAll(state))
+  on(removeItem, (state, { id }) => adapter.removeOne(id, state)),
+  on(clearPlaylist, (state) => adapter.removeAll({ ...state, activeTrack: undefined }))
 );

@@ -79,3 +79,16 @@ model NewAlbumError {
   Error           String? @db.VarChar(Max)
   Band            Band    @relation(fields: [BandId], references: [BandId])
 }
+
+model Playlist {
+  PlaylistId   Int            @id @default(autoincrement())
+  PlaylistName String         @db.VarChar(255)
+  PlaylistItem PlaylistItem[]
+}
+
+model PlaylistItem {
+  PlaylistItemId Int      @id @default(autoincrement())
+  PlaylistId     Int
+  ItemPath       String   @db.VarChar(512)
+  Playlist       Playlist @relation(fields: [PlaylistId], references: [PlaylistId])
+}

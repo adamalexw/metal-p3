@@ -36,5 +36,9 @@ module.exports = {
     '<rootDir>/libs/maintenance/ui',
     '<rootDir>/libs/maintenance/feature-shell',
     '<rootDir>/libs/shared/navigation',
+    '<rootDir>/libs/playlist/api',
+    '<rootDir>/libs/playlist/data-access',
+    '<rootDir>/libs/playlist/feature-shell',
+    '<rootDir>/libs/playlist/ui',
   ],
 };

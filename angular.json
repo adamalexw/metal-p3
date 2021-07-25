@@ -232,7 +232,7 @@
       "projectType": "library",
       "root": "libs/band/data-access",
       "sourceRoot": "libs/band/data-access/src",
-      "prefix": "metal-p3",
+      "prefix": "app",
       "architect": {
         "test": {
           "builder": "@nrwl/jest:jest",
@@ -275,7 +275,7 @@
       "projectType": "library",
       "root": "libs/cover/data-access",
       "sourceRoot": "libs/cover/data-access/src",
-      "prefix": "metal-p3",
+      "prefix": "app",
       "architect": {
         "test": {
           "builder": "@nrwl/jest:jest",
@@ -297,7 +297,7 @@
       "projectType": "library",
       "root": "libs/cover/feature-shell",
       "sourceRoot": "libs/cover/feature-shell/src",
-      "prefix": "metal-p3",
+      "prefix": "app",
       "architect": {
         "test": {
           "builder": "@nrwl/jest:jest",
@@ -319,7 +319,7 @@
       "projectType": "library",
       "root": "libs/cover/ui",
       "sourceRoot": "libs/cover/ui/src",
-      "prefix": "metal-p3",
+      "prefix": "app",
       "architect": {
         "test": {
           "builder": "@nrwl/jest:jest",
@@ -450,7 +450,7 @@
       "projectType": "library",
       "root": "libs/player/data-access",
       "sourceRoot": "libs/player/data-access/src",
-      "prefix": "metal-p3",
+      "prefix": "app",
       "architect": {
         "test": {
           "builder": "@nrwl/jest:jest",
@@ -472,7 +472,7 @@
       "projectType": "library",
       "root": "libs/player/domain",
       "sourceRoot": "libs/player/domain/src",
-      "prefix": "metal-p3",
+      "prefix": "app",
       "architect": {
         "test": {
           "builder": "@nrwl/jest:jest",
@@ -494,7 +494,7 @@
       "projectType": "library",
       "root": "libs/player/feature-shell",
       "sourceRoot": "libs/player/feature-shell/src",
-      "prefix": "metal-p3",
+      "prefix": "app",
       "architect": {
         "test": {
           "builder": "@nrwl/jest:jest",
@@ -516,7 +516,7 @@
       "projectType": "library",
       "root": "libs/player/ui",
       "sourceRoot": "libs/player/ui/src",
-      "prefix": "metal-p3",
+      "prefix": "app",
       "architect": {
         "test": {
           "builder": "@nrwl/jest:jest",
@@ -530,6 +530,93 @@
           "builder": "@nrwl/linter:eslint",
           "options": {
             "lintFilePatterns": ["libs/player/ui/src/**/*.ts", "libs/player/ui/src/**/*.html"]
+          }
+        }
+      }
+    },
+    "playlist-api": {
+      "root": "libs/playlist/api",
+      "sourceRoot": "libs/playlist/api/src",
+      "projectType": "library",
+      "architect": {
+        "lint": {
+          "builder": "@nrwl/linter:eslint",
+          "options": {
+            "lintFilePatterns": ["libs/playlist/api/**/*.ts"]
+          }
+        },
+        "test": {
+          "builder": "@nrwl/jest:jest",
+          "outputs": ["coverage/libs/playlist/api"],
+          "options": {
+            "jestConfig": "libs/playlist/api/jest.config.js",
+            "passWithNoTests": true
+          }
+        }
+      }
+    },
+    "playlist-data-access": {
+      "projectType": "library",
+      "root": "libs/playlist/data-access",
+      "sourceRoot": "libs/playlist/data-access/src",
+      "prefix": "app",
+      "architect": {
+        "test": {
+          "builder": "@nrwl/jest:jest",
+          "outputs": ["coverage/libs/playlist/data-access"],
+          "options": {
+            "jestConfig": "libs/playlist/data-access/jest.config.js",
+            "passWithNoTests": true
+          }
+        },
+        "lint": {
+          "builder": "@nrwl/linter:eslint",
+          "options": {
+            "lintFilePatterns": ["libs/playlist/data-access/src/**/*.ts", "libs/playlist/data-access/src/**/*.html"]
+          }
+        }
+      }
+    },
+    "playlist-feature-shell": {
+      "projectType": "library",
+      "root": "libs/playlist/feature-shell",
+      "sourceRoot": "libs/playlist/feature-shell/src",
+      "prefix": "app",
+      "architect": {
+        "test": {
+          "builder": "@nrwl/jest:jest",
+          "outputs": ["coverage/libs/playlist/feature-shell"],
+          "options": {
+            "jestConfig": "libs/playlist/feature-shell/jest.config.js",
+            "passWithNoTests": true
+          }
+        },
+        "lint": {
+          "builder": "@nrwl/linter:eslint",
+          "options": {
+            "lintFilePatterns": ["libs/playlist/feature-shell/src/**/*.ts", "libs/playlist/feature-shell/src/**/*.html"]
+          }
+        }
+      }
+    },
+    "playlist-ui": {
+      "projectType": "library",
+      "root": "libs/playlist/ui",
+      "sourceRoot": "libs/playlist/ui/src",
+      "prefix": "app",
+      "architect": {
+        "test": {
+          "builder": "@nrwl/jest:jest",
+          "outputs": ["coverage/libs/playlist/ui"],
+          "options": {
+            "jestConfig": "libs/playlist/ui/jest.config.js",
+            "passWithNoTests": true
+          }
+        },
+        "lint": {
+          "builder": "@nrwl/linter:eslint",
+          "options": {
+            "lintFilePatterns": ["libs/playlist/ui/src/**/*.ts", "libs/playlist/ui/src/**/*.html"]
           }
         }
       }
@@ -559,7 +646,7 @@
       "projectType": "library",
       "root": "libs/shared/data-access",
       "sourceRoot": "libs/shared/data-access/src",
-      "prefix": "metal-p3",
+      "prefix": "app",
       "architect": {
         "test": {
           "builder": "@nrwl/jest:jest",
@@ -602,7 +689,7 @@
       "projectType": "library",
       "root": "libs/shared/error",
       "sourceRoot": "libs/shared/error/src",
-      "prefix": "metal-p3",
+      "prefix": "app",
       "architect": {
         "test": {
           "builder": "@nrwl/jest:jest",
@@ -624,7 +711,7 @@
       "projectType": "library",
       "root": "libs/shared/feedback",
       "sourceRoot": "libs/shared/feedback/src",
-      "prefix": "metal-p3",
+      "prefix": "app",
       "architect": {
         "test": {
           "builder": "@nrwl/jest:jest",
@@ -710,7 +797,7 @@
       "projectType": "library",
       "root": "libs/shared/ngrx-store",
       "sourceRoot": "libs/shared/ngrx-store/src",
-      "prefix": "metal-p3",
+      "prefix": "app",
       "architect": {
         "test": {
           "builder": "@nrwl/jest:jest",
@@ -775,7 +862,7 @@
       "projectType": "library",
       "root": "libs/track/data-access",
       "sourceRoot": "libs/track/data-access/src",
-      "prefix": "metal-p3",
+      "prefix": "app",
       "architect": {
         "test": {
           "builder": "@nrwl/jest:jest",
@@ -797,7 +884,7 @@
       "projectType": "library",
       "root": "libs/track/ui",
       "sourceRoot": "libs/track/ui/src",
-      "prefix": "metal-p3",
+      "prefix": "app",
       "architect": {
         "test": {
           "builder": "@nrwl/jest:jest",

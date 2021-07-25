@@ -86,15 +86,7 @@ export class MaintenanceEffects {
     )
   );
 
-  cancel$ = createEffect(
-    () =>
-      this.actions$.pipe(
-        ofType(stopLyricsCheck),
-        tap(() => console.log('stoppin')),
-        concatMapTo(this.lyricsService.cancelHistoryCheck())
-      ),
-    { dispatch: false }
-  );
+  cancel$ = createEffect(() => this.actions$.pipe(ofType(stopLyricsCheck), concatMapTo(this.lyricsService.cancelHistoryCheck())), { dispatch: false });
 
   constructor(private actions$: Actions, private lyricsService: LyricsMaintenanceService, private errorService: ErrorService, private notificationService: NotificationService) {}
 }

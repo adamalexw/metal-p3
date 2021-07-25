@@ -5,7 +5,7 @@ import { AlbumService } from '@metal-p3/album/data-access';
 import { BandDto, MetalArchivesAlbumTrack, Track } from '@metal-p3/api-interfaces';
 import { CoverService } from '@metal-p3/cover/data-access';
 import { addLyricsPriority } from '@metal-p3/maintenance/data-access';
-import { PlaylistService } from '@metal-p3/player/data-access';
+import { PlayerService } from '@metal-p3/player/data-access';
 import {
   Album,
   deleteAlbum,
@@ -122,7 +122,7 @@ export class AlbumShellComponent implements OnInit {
     private readonly coverService: CoverService,
     private readonly router: Router,
     private readonly notificationService: NotificationService,
-    private readonly playlistService: PlaylistService
+    private readonly playerService: PlayerService
   ) {}
 
   ngOnInit(): void {
@@ -133,7 +133,7 @@ export class AlbumShellComponent implements OnInit {
   private setState(): void {
     const albumId$ = this.routeId$.pipe(
       withLatestFrom(this.store.pipe(select(selectedAlbum))),
-      filter(([routeId, selectedId]) => routeId !== selectedId),
+      filter(([routeId, selectedId]) => +routeId !== selectedId),
       tap(([routeId, _albumId]) => this.store.dispatch(viewAlbum({ id: routeId }))),
       map(([routeId, _albumId]) => routeId),
       take(1)
@@ -340,19 +340,19 @@ export class AlbumShellComponent implements OnInit {
   }
 
   onPlayAlbum(albumId: number) {
-    this.playlistService.playAlbum(albumId, this.tracks$);
+    this.playerService.playAlbum(albumId, this.tracks$);
   }
 
   onAddAlbumToPlaylist(albumId: number) {
-    this.playlistService.addAlbumToPlaylist(albumId, this.tracks$);
+    this.playerService.addAlbumToPlaylist(albumId, this.tracks$);
   }
 
   onPlayTrack(track: Track, albumId: number) {
-    this.playlistService.playTrack(track, albumId);
+    this.playerService.playTrack(track, albumId);
   }
 
   onAddTrackToPlaylist(track: Track, albumId: number) {
-    this.playlistService.addTrackToPlaylist(track, albumId);
+    this.playerService.addTrackToPlaylist(track, albumId);
   }
 
   onDeleteTrack(track: Track, albumId: number): void {

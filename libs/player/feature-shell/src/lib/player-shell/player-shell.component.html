@@ -1,4 +1,4 @@
-<ng-container *ngIf="playlistActive$ | async">
+<ng-container *ngIf="playerOpen$ | async">
   <div [class]="divClass$ | async">
     <div class="flex w-full static">
       <app-cover [cover]="cover$ | async" [width]="coverSize$ | async" [height]="coverSize$ | async"></app-cover>
@@ -20,15 +20,15 @@
     </div>
 
     <ng-container *ngIf="(footerMode$ | async) === false">
+      <app-playlist-shell [duration]="playlistDuration$ | async" (clearPlaylist)="onClearPlaylist()" (closePlaylist)="onClosePlaylist()"></app-playlist-shell>
       <app-playlist
         [playlist]="playlist$ | async"
-        [duration]="playlistDuration$ | async"
         [currentItem]="activeItem$ | async"
         (playItem)="onPlayItem($event)"
         (pauseItem)="onPause()"
         (resumeItem)="onPlay()"
+        (removeItem)="onRemove($event)"
         (reorder)="onReorder($event)"
-        (clearPlaylist)="onClearPlaylist()"
       ></app-playlist>
     </ng-container>
   </div>

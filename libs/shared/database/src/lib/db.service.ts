@@ -1,5 +1,5 @@
 import { Injectable, UseFilters } from '@nestjs/common';
-import { Album, Band, LyricsHistory, Prisma } from '@prisma/client';
+import { Album, Band, LyricsHistory, Playlist, Prisma } from '@prisma/client';
 import { DbExceptionsFilter } from './db-exceptions-filter';
 import { PrismaService } from './prisma.service';
 
@@ -135,6 +135,43 @@ export class DbService {
     const { where } = params;
 
     return this.prisma.lyricsHistory.delete({
+      where,
+    });
+  }
+
+  async getPlaylists(): Promise<Playlist[]> {
+    return this.prisma.playlist.findMany({ include: { PlaylistItem: true } });
+  }
+
+  async getPlaylist(playlistId: number): Promise<Playlist | null> {
+    return this.prisma.playlist.findFirst({ where: { PlaylistId: playlistId } });
+  }
+
+  async createPlaylist(data: Prisma.PlaylistCreateInput): Promise<Playlist> {
+    return this.prisma.playlist.create({
+      data,
+      include: {
+        PlaylistItem: true,
+      },
+    });
+  }
+
+  async updatePlaylist(params: { where: Prisma.PlaylistWhereUniqueInput; data: Prisma.PlaylistUpdateInput }): Promise<Playlist> {
+    const { where, data } = params;
+
+    return this.prisma.playlist.update({
+      data,
+      where,
+      include: {
+        PlaylistItem: true,
+      },
+    });
+  }
+
+  async deletePlaylist(params: { where: Prisma.PlaylistWhereUniqueInput }): Promise<Playlist> {
+    const { where } = params;
+
+    return this.prisma.playlist.delete({
       where,
     });
   }

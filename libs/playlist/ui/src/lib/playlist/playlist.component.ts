@@ -14,9 +14,6 @@ export class PlaylistComponent {
   playlist: PlaylistItem[] = [];
 
   @Input()
-  duration = 0;
-
-  @Input()
   currentItem: PlaylistItem | undefined;
 
   @Output()
@@ -32,12 +29,12 @@ export class PlaylistComponent {
   readonly reorder = new EventEmitter<PlaylistItem[]>();
 
   @Output()
-  readonly clearPlaylist = new EventEmitter<void>();
+  readonly removeItem = new EventEmitter<string>();
 
   displayedColumns = ['action', 'trackNumber', 'title', 'artist', 'duration'];
 
   drop(event: CdkDragDrop<string[]>) {
-    const newOrder = cloneDeep(this.playlist)
+    const newOrder = cloneDeep(this.playlist);
     moveItemInArray(newOrder, event.previousIndex, event.currentIndex);
     this.reorder.emit(newOrder);
   }

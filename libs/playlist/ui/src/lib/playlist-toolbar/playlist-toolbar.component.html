@@ -1,0 +1,37 @@
+<mat-toolbar-row>
+  <ng-container *ngIf="playlists?.length; else loadTemplate">
+    <button mat-icon-button [matMenuTriggerFor]="menu"><mat-icon title="load">queue_music</mat-icon></button>
+    <mat-menu #menu="matMenu">
+      <button *ngFor="let playlist of playlists" mat-menu-item (click)="loadPlaylist.emit(playlist.id)">{{ playlist.name }}</button>
+    </mat-menu>
+  </ng-container>
+
+  <ng-template #loadTemplate>
+    <button mat-icon-button (click)="loadPlaylists.emit()"><mat-icon title="load">queue_music</mat-icon></button>
+  </ng-template>
+
+  <ng-container *ngIf="activePlaylist; else createTemplate">
+    <button mat-icon-button (click)="savePlaylist.emit()">
+      <mat-icon title="save">save</mat-icon>
+    </button>
+  </ng-container>
+
+  <ng-template #createTemplate>
+    <input *ngIf="saving" matInput placeholder="playlist name" required [(ngModel)]="playlistName" />
+    <button mat-icon-button [disabled]="saving && !playlistName" (click)="onCreate()"><mat-icon title="create">playlist_add</mat-icon></button>
+  </ng-template>
+
+  <button mat-icon-button (click)="clearPlaylist.emit()">
+    <mat-icon title="clear">clear_all</mat-icon>
+  </button>
+
+  <button *ngIf="activePlaylist" mat-icon-button appConfirmDelete [itemName]="'playlist'" (confirmResult)="onDelete($event)">
+    <mat-icon title="delete">delete</mat-icon>
+  </button>
+
+  <div class="w-full flex flex-row-reverse items-center">
+    <mat-icon class="cursor-pointer" (click)="closePlaylist.emit()">close</mat-icon>
+    <div class="ml-1 mr-1">{{ duration | time }}</div>
+    <mat-icon>timer</mat-icon>
+  </div>
+</mat-toolbar-row>

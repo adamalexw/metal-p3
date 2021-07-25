@@ -8,6 +8,9 @@
   <button mat-icon-button (click)="searchRequest.emit(form.value)">
     <mat-icon title="refresh">refresh</mat-icon>
   </button>
+  <button mat-icon-button (click)="showPlayer.emit()">
+    <mat-icon title="playlists">queue_music</mat-icon>
+  </button>
   <button mat-icon-button [disabled]="creatingNew" (click)="createNew.emit()">
     <mat-icon title="createNew">create_new_folder</mat-icon>
   </button>

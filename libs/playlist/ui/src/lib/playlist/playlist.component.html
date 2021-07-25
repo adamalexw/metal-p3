@@ -21,20 +21,25 @@
   </ng-container>
 
   <ng-container matColumnDef="duration">
-    <th mat-header-cell *matHeaderCellDef>
-      Duration
-      <div class="ml-1">{{ duration | time }}</div>
-    </th>
+    <th mat-header-cell *matHeaderCellDef></th>
     <td mat-cell *matCellDef="let element">
-      <span class="pr-4">{{ element.duration | time }}</span>
+      <div class="flex">
+        <span class="pr-4">{{ element.duration | time }}</span>
+        <mat-icon *ngIf="!element.playing && currentItem?.id !== element.id" class="cursor-pointer" (click)="removeItem.emit(element.id)">delete</mat-icon>
+      </div>
     </td>
   </ng-container>
 
   <ng-container matColumnDef="action">
-    <th mat-header-cell *matHeaderCellDef><mat-icon (click)="clearPlaylist.emit()" title="clear" class="mt-1">clear_all</mat-icon></th>
+    <th mat-header-cell *matHeaderCellDef></th>
     <td mat-cell *matCellDef="let element">
       <mat-icon *ngIf="element.playing" (click)="pauseItem.emit()">play_arrow</mat-icon>
       <mat-icon *ngIf="!element.playing && currentItem?.id === element.id" (click)="resumeItem.emit()">pause</mat-icon>
+      <ng-container *ngIf="!element.playing && currentItem?.id !== element.id">
+        <div class="cover relative">
+          <app-cover [cover]="element.cover" [width]="48" [height]="48"></app-cover>
+        </div>
+      </ng-container>
     </td>
   </ng-container>
 

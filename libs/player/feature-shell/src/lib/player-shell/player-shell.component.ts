@@ -1,28 +1,31 @@
 import { ChangeDetectionStrategy, Component, ElementRef, OnInit, ViewChild } from '@angular/core';
-import { DomSanitizer } from '@angular/platform-browser';
 import {
+  clearBlobs,
   clearPlaylist,
+  closePlayer,
   pauseItem,
   playItem,
   playNext,
   playPrevious,
+  removeItem,
   reorderPlaylist,
+  selectActiveItemCover,
   selectActivePlaylistItem,
   selectFirstItemPlaying,
   selectFooterMode,
   selectLastItemPlaying,
+  selectPlayerOpen,
   selectPlaylist,
   selectPlaylistDuration,
   tooglePlayerView,
-  updatePlaylistItem
+  updatePlaylistItem,
 } from '@metal-p3/player/data-access';
 import { PlaylistItem } from '@metal-p3/player/domain';
-import { selectAlbumById } from '@metal-p3/shared/data-access';
 import { TrackService } from '@metal-p3/track/data-access';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { select, Store } from '@ngrx/store';
 import { fromEvent, iif, Observable, of } from 'rxjs';
-import { concatMap, distinctUntilKeyChanged, filter, map, shareReplay, switchMap, take, tap, withLatestFrom } from 'rxjs/operators';
+import { concatMap, distinctUntilKeyChanged, filter, map, shareReplay, take, tap, withLatestFrom } from 'rxjs/operators';
 
 @UntilDestroy()
 @Component({
@@ -34,15 +37,7 @@ import { concatMap, distinctUntilKeyChanged, filter, map, shareReplay, switchMap
 export class PlayerShellComponent implements OnInit {
   @ViewChild('audio', { static: true }) audio!: ElementRef;
 
-  playlistActive$ = this.store.pipe(
-    select(selectPlaylist),
-    map((playlist) => playlist?.length),
-    tap(active => {
-      if (!active) {
-        this.audioElement.src = ''
-      }
-    })
-  );
+  playerOpen$ = this.store.pipe(select(selectPlayerOpen));
 
   footerMode$ = this.store.pipe(select(selectFooterMode)).pipe(shareReplay());
   divClass$ = this.footerMode$.pipe(map((footerMode) => (footerMode ? 'footer-mode' : 'full-mode overflow-hidden')));
@@ -51,18 +46,17 @@ export class PlayerShellComponent implements OnInit {
   playlist$ = this.store.pipe(select(selectPlaylist));
   activeItem$ = this.store.pipe(select(selectActivePlaylistItem));
 
-  playingItem$ = this.activeItem$.pipe(
-    untilDestroyed(this),
-    filter((item) => !!item?.playing),
-    distinctUntilKeyChanged('id'), // if we are reordering tracks we want to keep the current item playing
-    concatMap((item) => iif(() => !!item?.url, of(item?.url), this.getBlobUrl(item?.id || '', item?.fullPath || ''))),
-    tap((url) => this.audioElement.src = url!),
-    ).subscribe();
+  playingItem$ = this.activeItem$
+    .pipe(
+      untilDestroyed(this),
+      filter((item) => !!item?.playing),
+      distinctUntilKeyChanged('id'), // if we are reordering tracks we want to keep the current item playing
+      concatMap((item) => iif(() => !!item?.url, of(item?.url), this.getBlobUrl(item?.id || '', item?.fullPath || ''))),
+      tap((url) => (this.audioElement.src = url!))
+    )
+    .subscribe();
 
-  cover$ = this.activeItem$.pipe(
-    switchMap((item) => this.store.pipe(select(selectAlbumById(item?.albumId || 0)))),
-    map((album) => album?.cover)
-  );
+  cover$ = this.store.pipe(select(selectActiveItemCover));
   coverSize$ = this.footerMode$.pipe(
     map((footerMode) => (footerMode ? 64 : 256)),
     shareReplay()
@@ -73,11 +67,10 @@ export class PlayerShellComponent implements OnInit {
   isFirstItemPlaying$ = this.store.pipe(select(selectFirstItemPlaying));
   isLastItemPlaying$ = this.store.pipe(select(selectLastItemPlaying));
 
+  playlists$ = this.store.pipe(select(selectPlaylistDuration));
   playlistDuration$ = this.store.pipe(select(selectPlaylistDuration));
 
-
-  constructor(private store: Store, private trackService: TrackService, private sanitizer: DomSanitizer) {
-  }
+  constructor(private store: Store, private trackService: TrackService) {}
 
   ngOnInit(): void {
     this.listenToAudioEvents();
@@ -146,6 +139,10 @@ export class PlayerShellComponent implements OnInit {
     this.audioElement.currentTime = value;
   }
 
+  onRemove(id: string) {
+    this.store.dispatch(removeItem({ id }));
+  }
+
   onToogleView() {
     this.store.dispatch(tooglePlayerView());
   }
@@ -155,6 +152,13 @@ export class PlayerShellComponent implements OnInit {
   }
 
   onClearPlaylist() {
+    this.audioElement.src = '';
+    this.store.dispatch(clearBlobs());
     this.store.dispatch(clearPlaylist());
+  }
+
+  onClosePlaylist() {
+    this.onClearPlaylist();
+    this.store.dispatch(closePlayer());
   }
 }

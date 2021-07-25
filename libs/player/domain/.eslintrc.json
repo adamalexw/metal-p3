@@ -10,7 +10,7 @@
           "error",
           {
             "type": "attribute",
-            "prefix": "metalP3",
+            "prefix": "app",
             "style": "camelCase"
           }
         ],
