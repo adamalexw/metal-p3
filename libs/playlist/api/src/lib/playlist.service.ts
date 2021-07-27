@@ -1,4 +1,4 @@
-import { PlaylistDto, PlaylistItemDto } from '@metal-p3/player/domain';
+import { PlaylistDto, PlaylistItemDto } from '@metal-p3/playlist/domain';
 import { DbService } from '@metal-p3/shared/database';
 import { Injectable, Logger } from '@nestjs/common';
 import { Playlist, PlaylistItem, Prisma } from '@prisma/client';
@@ -23,7 +23,7 @@ export class PlaylistService {
     return {
       id: playlist.PlaylistId,
       name: playlist.PlaylistName,
-      items: items.map((item) => this.playlistItemToDto(item)),
+      items: items.map((item) => this.playlistItemToDto(item)).sort((a, b) => a.itemIndex - b.itemIndex),
     };
   }
 
@@ -32,13 +32,18 @@ export class PlaylistService {
       id: playlistItem.PlaylistItemId,
       playlistId: playlistItem.PlaylistId,
       itemPath: playlistItem.ItemPath,
+      itemIndex: playlistItem.ItemIndex,
     };
+  }
+
+  private playlistItemDtoToPrisma(dto: PlaylistItemDto): Prisma.PlaylistItemCreateManyPlaylistInput | Prisma.PlaylistItemUpdateManyMutationInput {
+    return { ItemPath: dto.itemPath, ItemIndex: dto.itemIndex };
   }
 
   private getPlaylistItemInput(items: PlaylistItemDto[]): Prisma.PlaylistItemCreateNestedManyWithoutPlaylistInput {
     const playlistItemInput: Prisma.PlaylistItemCreateNestedManyWithoutPlaylistInput = {
       createMany: {
-        data: items.map((item) => ({ ItemPath: item.itemPath })),
+        data: items.map((item) => this.playlistItemDtoToPrisma(item) as Prisma.PlaylistItemCreateManyPlaylistInput),
       },
     };
 
@@ -48,6 +53,43 @@ export class PlaylistService {
   createPlaylist(playlist: PlaylistDto): Observable<PlaylistDto> {
     return from(this.dbService.createPlaylist({ PlaylistName: playlist.name, PlaylistItem: this.getPlaylistItemInput(playlist.items) })).pipe(
       map((playlist: Playlist) => this.playlistToDto(playlist)),
+      catchError((error) => {
+        Logger.error(error);
+        return of(error);
+      })
+    );
+  }
+
+  private getPlaylistUpdateInput(items: PlaylistItemDto[]): Prisma.PlaylistItemUpdateManyWithoutPlaylistInput {
+    const playlistUpdateInput: Prisma.PlaylistItemUpdateManyWithoutPlaylistInput = {
+      updateMany: items.filter((item) => item.id > 0).map((item) => ({ where: { PlaylistItemId: item.id }, data: this.playlistItemDtoToPrisma(item) as Prisma.PlaylistItemUpdateManyMutationInput })),
+    };
+
+    const newItems = items.filter((item) => item.id === -1);
+
+    if (newItems) {
+      playlistUpdateInput.createMany = {
+        data: newItems.map((item) => this.playlistItemDtoToPrisma(item) as Prisma.PlaylistItemCreateManyPlaylistInput),
+      };
+    }
+
+    return playlistUpdateInput;
+  }
+
+  updatePlaylist(playlist: PlaylistDto): Observable<PlaylistDto> {
+    return from(this.dbService.updatePlaylist({ where: { PlaylistId: playlist.id }, data: { PlaylistName: playlist.name, PlaylistItem: this.getPlaylistUpdateInput(playlist.items) } })).pipe(
+      map((playlist: Playlist) => this.playlistToDto(playlist)),
+      catchError((error) => {
+        Logger.error(error);
+        return of(error);
+      })
+    );
+  }
+
+  removeItem(itemId: number): Observable<boolean | Error> {
+    console.log('🚀 ~ file: playlist.service.ts ~ line 91 ~ PlaylistService ~ removeItem ~ itemId', itemId);
+    return from(this.dbService.removePlaylistItem({ where: { PlaylistItemId: itemId } })).pipe(
+      mapTo(true),
       catchError((error) => {
         Logger.error(error);
         return of(error);

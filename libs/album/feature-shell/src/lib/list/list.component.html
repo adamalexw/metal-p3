@@ -4,7 +4,7 @@
     [searching]="albumsLoading$ | async"
     [creatingNew]="creatingNew$ | async"
     (searchRequest)="onSearch($event)"
-    (playlist)="onShowPlayer()"
+    (showPlayer)="onShowPlayer()"
     (refresh)="onSearch($event)"
     (createNew)="onCreateNew()"
   >

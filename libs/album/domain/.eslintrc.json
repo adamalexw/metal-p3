@@ -18,7 +18,7 @@
           "error",
           {
             "type": "element",
-            "prefix": "metal-p3",
+            "prefix": "app",
             "style": "kebab-case"
           }
         ]

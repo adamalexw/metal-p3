@@ -15,7 +15,9 @@ export const reorderPlaylist = createAction('[Player] Reorder', props<{ updates:
 
 export const playItem = createAction('[Player] Play Item', props<{ id: string }>());
 export const pauseItem = createAction('[Player] Pause Item');
+
 export const removeItem = createAction('[Player] Remove Item', props<{ id: string }>());
+export const removeItemSuccess = createAction('[Player] Remove Item Success', props<{ id: string }>());
 
 export const playPrevious = createAction('[Player] Play Previous');
 export const playNext = createAction('[Player] Pause Next');

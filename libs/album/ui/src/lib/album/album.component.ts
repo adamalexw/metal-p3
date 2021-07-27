@@ -1,8 +1,9 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, HostBinding, Inject, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
-import { AlbumDto, BandProps, MetalArchivesAlbumTrack, MetalArchivesUrl, Track } from '@metal-p3/api-interfaces';
+import { AlbumDto, BandProps, MetalArchivesAlbumTrack, MetalArchivesUrl } from '@metal-p3/api-interfaces';
 import { Album, AlbumWithoutTracks } from '@metal-p3/shared/data-access';
 import { NotificationService } from '@metal-p3/shared/feedback';
+import { Track } from '@metal-p3/track/domain';
 import { WINDOW } from '@ng-web-apis/common';
 
 @Component({

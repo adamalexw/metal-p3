@@ -1,4 +1,4 @@
-import { RenameTrack, Track } from '@metal-p3/api-interfaces';
+import { RenameTrack, TrackDto } from '@metal-p3/api-interfaces';
 import { AdbService } from '@metal-p3/shared/adb';
 import { FileSystemService } from '@metal-p3/shared/file-system';
 import { Injectable } from '@nestjs/common';
@@ -6,7 +6,7 @@ import { createReadStream } from 'fs';
 import * as mm from 'music-metadata';
 import { read, Tags, update } from 'node-id3';
 import { ReadStream } from 'node:fs';
-import * as path from 'path';
+import { basename, dirname, extname } from 'path';
 import { EMPTY, from, Observable } from 'rxjs';
 import { catchError, concatAll, map, toArray } from 'rxjs/operators';
 
@@ -14,7 +14,7 @@ import { catchError, concatAll, map, toArray } from 'rxjs/operators';
 export class TrackService {
   constructor(private readonly fileSystemService: FileSystemService, private readonly adbService: AdbService) {}
 
-  getTracks(files: string[]): Observable<Track[]> {
+  getTracks(files: string[]): Observable<TrackDto[]> {
     if (files.length) {
       const tags = files.map((file, index) => this.trackDetails(file, index));
 
@@ -32,8 +32,8 @@ export class TrackService {
     return read(file);
   }
 
-  trackDetails(file: string, index: number): Observable<Track> {
-    if (path.extname(file) === '.mp3') {
+  trackDetails(file: string, index: number): Observable<TrackDto> {
+    if (extname(file) === '.mp3') {
       return this.getMetadata(file, { skipCovers: true }).pipe(
         map((metadata) => this.mapTrack(file, this.getTags(file), metadata, index)),
         catchError((error) => {
@@ -46,12 +46,12 @@ export class TrackService {
     return EMPTY;
   }
 
-  private mapTrack(fullPath: string, tags: Tags, mm: mm.IAudioMetadata, index: number): Track {
+  private mapTrack(fullPath: string, tags: Tags, mm: mm.IAudioMetadata, index: number): TrackDto {
     return {
       id: index + 1,
       fullPath,
-      folder: path.dirname(fullPath),
-      file: path.basename(fullPath),
+      folder: dirname(fullPath),
+      file: basename(fullPath),
       album: mm.common.album,
       artist: mm.common.artist,
       bitrate: mm.format.bitrate,
@@ -70,7 +70,7 @@ export class TrackService {
     return track.no?.toString().padStart(2, '0') || '00';
   }
 
-  saveTrack(track: Track): boolean | Error {
+  saveTrack(track: TrackDto): boolean | Error {
     let baseTags: Partial<Tags> = {
       album: track.album,
       artist: track.artist,
@@ -116,7 +116,7 @@ export class TrackService {
     return result;
   }
 
-  private mapTrackToTags(track: Track, baseTags: Tags): Tags {
+  private mapTrackToTags(track: TrackDto, baseTags: Tags): Tags {
     const tags = { ...baseTags, trackNumber: track.trackNumber, title: track.title } as Tags;
     return tags;
   }
@@ -125,7 +125,7 @@ export class TrackService {
     return update(tags, location);
   }
 
-  renameTrack(track: Track): RenameTrack {
+  renameTrack(track: TrackDto): RenameTrack {
     const file = `${track.trackNumber} - ${this.fileSystemService.filenameValidator(track.title!)}.mp3`;
     const fullPath = `${track.folder}/${file}`;
 

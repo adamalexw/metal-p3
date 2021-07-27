@@ -1,5 +1,5 @@
 import { Injectable, UseFilters } from '@nestjs/common';
-import { Album, Band, LyricsHistory, Playlist, Prisma } from '@prisma/client';
+import { Album, Band, LyricsHistory, Playlist, PlaylistItem, Prisma } from '@prisma/client';
 import { DbExceptionsFilter } from './db-exceptions-filter';
 import { PrismaService } from './prisma.service';
 
@@ -165,6 +165,14 @@ export class DbService {
       include: {
         PlaylistItem: true,
       },
+    });
+  }
+
+  async removePlaylistItem(params: { where: Prisma.PlaylistItemWhereUniqueInput }): Promise<PlaylistItem> {
+    const { where } = params;
+
+    return this.prisma.playlistItem.delete({
+      where,
     });
   }
 

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { Inject, Injectable } from '@angular/core';
 import { BASE_PATH } from '@metal-p3/album/domain';
 import { CoverService } from '@metal-p3/cover/data-access';
@@ -18,6 +19,7 @@ import {
   playNext,
   playPrevious,
   removeItem,
+  removeItemSuccess,
   updatePlaylist,
   updatePlaylistItem,
 } from './actions';
@@ -38,7 +40,6 @@ export class PlayerEffects {
     this.actions$.pipe(
       ofType(pauseItem),
       withLatestFrom(this.store.pipe(select(selectActivePlaylistItem))),
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       map(([_, item]) => updatePlaylistItem({ update: { id: item?.id || '', changes: { playing: false, paused: true } } }))
     )
   );
@@ -47,7 +48,6 @@ export class PlayerEffects {
     this.actions$.pipe(
       ofType(playPrevious),
       withLatestFrom(this.store.pipe(select(selectPlaylist)), this.store.pipe(select(selectActiveItemIndex))),
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       map(([_, playlist, index]) => {
         const id = playlist[index - 1].id;
         return playItem({ id });
@@ -59,7 +59,6 @@ export class PlayerEffects {
     this.actions$.pipe(
       ofType(playNext),
       withLatestFrom(this.store.pipe(select(selectPlaylist)), this.store.pipe(select(selectActiveItemIndex))),
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       map(([_, playlist, index]) => {
         const id = playlist[index + 1].id;
         return playItem({ id });
@@ -71,25 +70,23 @@ export class PlayerEffects {
     this.actions$.pipe(
       ofType(addTracksToPlaylist),
       withLatestFrom(this.store.pipe(select(selectActivePlaylistItem))),
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       map(([{ tracks }, item]) => (item?.playing || item?.paused ? noopPlaylist() : playItem({ id: tracks[0]?.id })))
     )
   );
 
-  removeItem$ = createEffect(
-    () =>
-      this.actions$.pipe(
-        ofType(removeItem),
-        concatLatestFrom(({ id }) => this.store.pipe(select(selectItemById(id)))),
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        tap(([{ id }, item]) => {
-          if (item) {
-            typeof item.cover === 'string' ? URL.revokeObjectURL(item.cover) : '';
-            typeof item.url === 'string' ? URL.revokeObjectURL(item.url) : '';
-          }
-        })
-      ),
-    { dispatch: false }
+  removeItem$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(removeItem),
+      concatLatestFrom(({ id }) => this.store.pipe(select(selectItemById(id)))),
+      tap(([{ id }, item]) => {
+        if (item) {
+          typeof item.cover === 'string' ? URL.revokeObjectURL(item.cover) : '';
+          typeof item.url === 'string' ? URL.revokeObjectURL(item.url) : '';
+        }
+      }),
+      map(([{ id }, item]) => id),
+      map((id) => removeItemSuccess({ id }))
+    )
   );
 
   getCover$ = createEffect(() =>

@@ -30,7 +30,7 @@ export class AdbService {
         const deviceClient = this.client.getDevice(device.id);
         const transfer = await deviceClient.push(file, dest);
         await new Bluebird(function (resolve, reject) {
-          transfer.on('progress', (stats) => console.log(`[${device.id}] Pushed ${stats.bytesTransferred} bytes so far`));
+          // transfer.on('progress', (stats) => console.log(`[${device.id}] Pushed ${stats.bytesTransferred} bytes so far`));
           transfer.on('end', () => {
             console.log('[${device.id}] Push complete');
 

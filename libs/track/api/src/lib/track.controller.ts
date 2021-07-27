@@ -1,4 +1,4 @@
-import { RenameTrack, Track } from '@metal-p3/api-interfaces';
+import { RenameTrack, TrackDto } from '@metal-p3/api-interfaces';
 import { FileSystemService } from '@metal-p3/shared/file-system';
 import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Patch, Query, Res } from '@nestjs/common';
 import { Observable } from 'rxjs';
@@ -14,17 +14,17 @@ export class TrackController {
   }
 
   @Get('trackDetails')
-  trackDetails(@Query('file') file: string, @Query('id') id: number): Observable<Track> {
+  trackDetails(@Query('file') file: string, @Query('id') id: number): Observable<TrackDto> {
     return this.trackService.trackDetails(file, id);
   }
 
   @Patch()
-  patch(@Body() track: Track): boolean | Error {
+  patch(@Body() track: TrackDto): boolean | Error {
     return this.trackService.saveTrack(track);
   }
 
   @Patch('rename')
-  rename(@Body() track: Track): RenameTrack {
+  rename(@Body() track: TrackDto): RenameTrack {
     return this.trackService.renameTrack(track);
   }
 

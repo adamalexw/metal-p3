@@ -2,11 +2,12 @@
 import { Inject, Injectable } from '@angular/core';
 import { AlbumService } from '@metal-p3/album/data-access';
 import { BASE_PATH } from '@metal-p3/album/domain';
-import { MetalArchivesSearchResponse, Track } from '@metal-p3/api-interfaces';
+import { MetalArchivesSearchResponse } from '@metal-p3/api-interfaces';
 import { CoverService } from '@metal-p3/cover/data-access';
 import { ErrorService } from '@metal-p3/shared/error';
 import { NotificationService } from '@metal-p3/shared/feedback';
 import { extractUrl } from '@metal-p3/shared/utils';
+import { Track } from '@metal-p3/track/domain';
 import { WINDOW } from '@ng-web-apis/common';
 import { Actions, concatLatestFrom, createEffect, ofType } from '@ngrx/effects';
 import { Update } from '@ngrx/entity';

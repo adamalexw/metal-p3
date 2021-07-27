@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { PlaylistDto } from '@metal-p3/player/domain';
+import { PlaylistDto } from '@metal-p3/playlist/domain';
 import { Observable } from 'rxjs';
 
 @Injectable({
@@ -24,7 +24,11 @@ export class PlaylistService {
   }
 
   updatePlaylist(playlist: PlaylistDto): Observable<PlaylistDto> {
-    return this.http.patch<PlaylistDto>(this.baseUrl, playlist);
+    return this.http.put<PlaylistDto>(this.baseUrl, playlist);
+  }
+
+  removeItem(playlistItemId: number): Observable<boolean | Error> {
+    return this.http.delete<boolean | Error>(`${this.baseUrl}/remove?itemId=${playlistItemId}`, {});
   }
 
   deletePlaylist(playlistId: number): Observable<boolean | Error> {

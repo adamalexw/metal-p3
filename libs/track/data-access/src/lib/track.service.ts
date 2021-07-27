@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { ApplyLyrics } from '@metal-p3/album/domain';
-import { AlbumDto, MetalArchivesAlbumTrack, RenameTrack, Track } from '@metal-p3/api-interfaces';
+import { AlbumDto, MetalArchivesAlbumTrack, RenameTrack, TrackDto } from '@metal-p3/api-interfaces';
 import { Observable } from 'rxjs';
 
 @Injectable({
@@ -11,15 +11,15 @@ export class TrackService {
   readonly baseUrl = '/api/track';
   constructor(private http: HttpClient) {}
 
-  getTrack(file: string): Observable<Track> {
-    return this.http.get<Track>(`${this.baseUrl}/trackDetails?file=${encodeURIComponent(file)}`);
+  getTrack(file: string): Observable<TrackDto> {
+    return this.http.get<TrackDto>(`${this.baseUrl}/trackDetails?file=${encodeURIComponent(file)}`);
   }
 
-  getTracks(folder: string): Observable<Track[]> {
-    return this.http.get<Track[]>(`/api/album/tracks?folder=${encodeURIComponent(folder)}`);
+  getTracks(folder: string): Observable<TrackDto[]> {
+    return this.http.get<TrackDto[]>(`/api/album/tracks?folder=${encodeURIComponent(folder)}`);
   }
 
-  saveTrack(track: Track): Observable<never> {
+  saveTrack(track: TrackDto): Observable<never> {
     return this.http.patch<never>(this.baseUrl, track);
   }
 
@@ -35,7 +35,7 @@ export class TrackService {
     return this.http.patch<AlbumDto>('/api/applyLyrics', { id, lyrics });
   }
 
-  renameTrack(track: Track): Observable<RenameTrack> {
+  renameTrack(track: TrackDto): Observable<RenameTrack> {
     return this.http.patch<RenameTrack>(`${this.baseUrl}/rename`, track);
   }
 

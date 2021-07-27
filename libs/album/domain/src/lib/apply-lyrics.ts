@@ -1,6 +1,6 @@
-import { MetalArchivesAlbumTrack, Track } from '@metal-p3/api-interfaces';
+import { MetalArchivesAlbumTrack, TrackDto } from '@metal-p3/api-interfaces';
 
-export interface ApplyLyrics extends Track {
+export interface ApplyLyrics extends TrackDto {
   maTrack?: MetalArchivesAlbumTrack;
   selected?: boolean;
 }

@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnChanges, Out
 import { AbstractControl, FormArray, FormBuilder, FormGroup } from '@angular/forms';
 import { MatBottomSheet } from '@angular/material/bottom-sheet';
 import { MatTableDataSource } from '@angular/material/table';
-import { Track } from '@metal-p3/api-interfaces';
+import { Track } from '@metal-p3/track/domain';
 import { filter, take, tap } from 'rxjs/operators';
 import { LyricsComponent } from '../lyrics/lyrics.component';
 

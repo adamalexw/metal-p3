@@ -91,6 +91,9 @@
     "playlist-data-access": {
       "tags": ["scope:playlist", "type:data-access"]
     },
+    "playlist-domain": {
+      "tags": []
+    },
     "playlist-feature-shell": {
       "tags": ["scope:playlist", "type:feature"]
     },
@@ -132,6 +135,9 @@
     },
     "track-data-access": {
       "tags": ["scope:track", "type:data-access"]
+    },
+    "track-domain": {
+      "tags": []
     },
     "track-ui": {
       "tags": ["scope:track", "type:ui"]

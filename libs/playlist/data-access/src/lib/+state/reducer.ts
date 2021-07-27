@@ -1,7 +1,8 @@
-import { PlaylistDto } from '@metal-p3/player/domain';
+import { clearPlaylist } from '@metal-p3/player/data-access';
+import { PlaylistDto } from '@metal-p3/playlist/domain';
 import { createEntityAdapter, EntityAdapter, EntityState } from '@ngrx/entity';
 import { createReducer, on } from '@ngrx/store';
-import { createPlaylistSuccess, deletePlaylistSuccess, loadPlaylist, loadPlaylists, loadPlaylistsError, loadPlaylistsSuccess } from './actions';
+import { createPlaylistSuccess, deletePlaylistSuccess, loadPlaylists, loadPlaylistsError, loadPlaylistsSuccess, loadPlaylistSuccess, savePlaylistSuccess } from './actions';
 
 export const PLAYLIST_FEATURE_KEY = 'playlist';
 
@@ -25,6 +26,8 @@ export const reducer = createReducer(
   on(loadPlaylistsSuccess, (state, { playlists }) => adapter.setAll(playlists, { ...state, loading: false, loaded: true })),
   on(loadPlaylistsError, (state, { error }) => ({ ...state, loading: false, loaded: false, loadError: error })),
   on(createPlaylistSuccess, (state, { playlist }) => adapter.addOne(playlist, { ...state, active: playlist.id })),
-  on(loadPlaylist, (state, { id }) => ({ ...state, active: id })),
-  on(deletePlaylistSuccess, (state, { id }) => adapter.removeOne(id, { ...state, active: undefined }))
+  on(loadPlaylistSuccess, (state, { id }) => ({ ...state, active: id })),
+  on(savePlaylistSuccess, (state, { playlist }) => adapter.updateOne({ id: playlist.id, changes: { ...playlist } }, state)),
+  on(deletePlaylistSuccess, (state, { id }) => adapter.removeOne(id, { ...state, active: undefined })),
+  on(clearPlaylist, (state) => ({ ...state, active: undefined }))
 );

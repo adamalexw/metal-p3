@@ -18,7 +18,7 @@ export interface AlbumDto extends AlbumBase {
   extraFiles?: boolean;
 }
 
-export interface Track extends AlbumBase {
+export interface TrackDto extends AlbumBase {
   id: number;
   fullPath?: string;
   folder?: string;
@@ -28,11 +28,6 @@ export interface Track extends AlbumBase {
   bitrate?: number;
   duration?: number;
   lyrics?: string;
-  trackSaving?: boolean;
-  trackRenaming?: boolean;
-  trackTransferring?: boolean;
-  trackDeleting?: boolean;
-  trackDeletionError?: string;
 }
 
 export interface BandDto extends BandProps {

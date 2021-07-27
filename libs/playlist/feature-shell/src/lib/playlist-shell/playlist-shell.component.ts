@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
-import { createPlaylist, deletePlaylist, loadPlaylist, loadPlaylists, selectActivePlaylist, selectPlaylists } from '@metal-p3/playlist/data-access';
+import { createPlaylist, deletePlaylist, loadPlaylist, loadPlaylists, savePlaylist, selectActivePlaylist, selectActivePlaylistId, selectPlaylists } from '@metal-p3/playlist/data-access';
 import { select, Store } from '@ngrx/store';
+import { map } from 'rxjs/operators';
 
 @Component({
   selector: 'app-playlist-shell',
@@ -19,7 +20,11 @@ export class PlaylistShellComponent {
   readonly closePlaylist = new EventEmitter<void>();
 
   playlists$ = this.store.pipe(select(selectPlaylists));
-  activePlaylist$ = this.store.pipe(select(selectActivePlaylist));
+  activePlaylistId$ = this.store.pipe(select(selectActivePlaylistId));
+  playlistName$ = this.store.pipe(
+    select(selectActivePlaylist),
+    map((playlist) => playlist?.name)
+  );
 
   constructor(private store: Store) {}
 
@@ -29,6 +34,10 @@ export class PlaylistShellComponent {
 
   onCreatePlaylist(name: string) {
     this.store.dispatch(createPlaylist({ name }));
+  }
+
+  onUpdatePlaylist(name: string) {
+    this.store.dispatch(savePlaylist({ name }));
   }
 
   onLoadPlaylist(id: number) {

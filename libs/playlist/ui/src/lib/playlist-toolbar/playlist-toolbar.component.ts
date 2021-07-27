@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
-import { PlaylistDto } from '@metal-p3/player/domain';
+import { PlaylistDto } from '@metal-p3/playlist/domain';
 
 @Component({
   selector: 'app-playlist-toolbar',
@@ -15,13 +15,16 @@ export class PlaylistToolbarComponent {
   playlists: PlaylistDto[] | null = null;
 
   @Input()
-  activePlaylist = 0;
+  activePlaylist: number | null = 0;
+
+  @Input()
+  playlistName: string | null = '';
 
   @Output()
   readonly loadPlaylists = new EventEmitter<void>();
 
   @Output()
-  readonly savePlaylist = new EventEmitter<void>();
+  readonly updatePlaylist = new EventEmitter<string>();
 
   @Output()
   readonly createPlaylist = new EventEmitter<string>();
@@ -39,7 +42,12 @@ export class PlaylistToolbarComponent {
   readonly closePlaylist = new EventEmitter<void>();
 
   saving = false;
-  playlistName: string | undefined;
+
+  onLoadPlaylists() {
+    if (!this.playlists?.length) {
+      this.loadPlaylists.emit();
+    }
+  }
 
   onCreate() {
     if (!this.saving) {
@@ -47,9 +55,10 @@ export class PlaylistToolbarComponent {
       return;
     }
 
-    this.createPlaylist.emit(this.playlistName);
-    this.saving = false;
-    this.playlistName = undefined;
+    if (this.playlistName) {
+      this.createPlaylist.emit(this.playlistName);
+      this.saving = false;
+    }
   }
 
   onDelete(result: boolean) {

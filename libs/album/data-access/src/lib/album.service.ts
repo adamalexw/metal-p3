@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
 import { ApplyLyrics, BASE_PATH, SearchRequest } from '@metal-p3/album/domain';
-import { AlbumDto, ALBUM_ADDED, MetalArchivesSearchResponse, RenameFolder, Track } from '@metal-p3/api-interfaces';
+import { AlbumDto, ALBUM_ADDED, MetalArchivesSearchResponse, RenameFolder, TrackDto } from '@metal-p3/api-interfaces';
 import { Socket } from 'ngx-socket-io';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
@@ -28,12 +28,12 @@ export class AlbumService {
     return this.http.post<AlbumDto>(this.baseUrl, { folder });
   }
 
-  getTrack(file: string): Observable<Track> {
-    return this.http.get<Track>(`/api/trackDetails?file=${file}`);
+  getTrack(file: string): Observable<TrackDto> {
+    return this.http.get<TrackDto>(`/api/trackDetails?file=${file}`);
   }
 
-  getTracks(folder: string): Observable<Track[]> {
-    return this.http.get<Track[]>(`${this.baseUrl}/tracks?folder=${folder}`);
+  getTracks(folder: string): Observable<TrackDto[]> {
+    return this.http.get<TrackDto[]>(`${this.baseUrl}/tracks?folder=${folder}`);
   }
 
   getExtraFiles(folder: string): Observable<boolean> {
@@ -64,7 +64,7 @@ export class AlbumService {
     return this.http.patch<AlbumDto>('/api/applyLyrics', { id, lyrics });
   }
 
-  renameTrack(track: Track): Observable<string> {
+  renameTrack(track: TrackDto): Observable<string> {
     return this.http.patch<string>('/api/track/rename', track, { responseType: 'text' as 'json' });
   }
 

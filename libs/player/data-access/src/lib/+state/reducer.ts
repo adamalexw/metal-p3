@@ -9,7 +9,7 @@ import {
   getItemCoverError,
   getItemCoverSuccess,
   playItem,
-  removeItem,
+  removeItemSuccess,
   reorderPlaylist,
   showPlayer,
   tooglePlayerView,
@@ -41,14 +41,14 @@ export const initialState = adapter.getInitialState({
 
 export const reducer = createReducer(
   initialState,
-  on(showPlayer, (state) => ({ ...state, selectPlaylist: true })),
-  on(closePlayer, (state) => adapter.removeAll({ ...state, selectPlaylist: false })),
+  on(showPlayer, (state) => ({ ...state, visible: true, footerMode: false })),
+  on(closePlayer, (state) => adapter.removeAll({ ...state, visible: false })),
   on(tooglePlayerView, (state) => ({ ...state, footerMode: !state.footerMode })),
   on(addTrackToPlaylist, (state, { track }) => adapter.addOne(track, state)),
   on(addTracksToPlaylist, (state, { tracks }) => adapter.addMany(tracks, state)),
   on(updatePlaylist, reorderPlaylist, (state, { updates }) => adapter.updateMany(updates, state)),
   on(updatePlaylistItem, getItemCoverSuccess, getItemCoverError, (state, { update }) => adapter.updateOne(update, state)),
   on(playItem, (state, { id }) => ({ ...state, activeTrack: id })),
-  on(removeItem, (state, { id }) => adapter.removeOne(id, state)),
+  on(removeItemSuccess, (state, { id }) => adapter.removeOne(id, state)),
   on(clearPlaylist, (state) => adapter.removeAll({ ...state, activeTrack: undefined }))
 );

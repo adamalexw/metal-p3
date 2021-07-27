@@ -1,9 +1,11 @@
 <app-playlist-toolbar
   [duration]="duration"
   [playlists]="playlists$ | async"
-  [activePlaylist]="activePlaylist$ | async"
+  [activePlaylist]="activePlaylistId$ | async"
+  [playlistName]="playlistName$ | async"
   (loadPlaylists)="onLoadPlaylists()"
   (createPlaylist)="onCreatePlaylist($event)"
+  (updatePlaylist)="onUpdatePlaylist($event)"
   (deletePlaylist)="onDeletePlaylist()"
   (loadPlaylist)="onLoadPlaylist($event)"
   (clearPlaylist)="clearPlaylist.emit()"

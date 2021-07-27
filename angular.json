@@ -577,6 +577,28 @@
         }
       }
     },
+    "playlist-domain": {
+      "projectType": "library",
+      "root": "libs/playlist/domain",
+      "sourceRoot": "libs/playlist/domain/src",
+      "prefix": "app",
+      "architect": {
+        "test": {
+          "builder": "@nrwl/jest:jest",
+          "outputs": ["coverage/libs/playlist/domain"],
+          "options": {
+            "jestConfig": "libs/playlist/domain/jest.config.js",
+            "passWithNoTests": true
+          }
+        },
+        "lint": {
+          "builder": "@nrwl/linter:eslint",
+          "options": {
+            "lintFilePatterns": ["libs/playlist/domain/src/**/*.ts", "libs/playlist/domain/src/**/*.html"]
+          }
+        }
+      }
+    },
     "playlist-feature-shell": {
       "projectType": "library",
       "root": "libs/playlist/feature-shell",
@@ -876,6 +898,28 @@
           "builder": "@nrwl/linter:eslint",
           "options": {
             "lintFilePatterns": ["libs/track/data-access/src/**/*.ts", "libs/track/data-access/src/**/*.html"]
+          }
+        }
+      }
+    },
+    "track-domain": {
+      "projectType": "library",
+      "root": "libs/track/domain",
+      "sourceRoot": "libs/track/domain/src",
+      "prefix": "app",
+      "architect": {
+        "test": {
+          "builder": "@nrwl/jest:jest",
+          "outputs": ["coverage/libs/track/domain"],
+          "options": {
+            "jestConfig": "libs/track/domain/jest.config.js",
+            "passWithNoTests": true
+          }
+        },
+        "lint": {
+          "builder": "@nrwl/linter:eslint",
+          "options": {
+            "lintFilePatterns": ["libs/track/domain/src/**/*.ts", "libs/track/domain/src/**/*.html"]
           }
         }
       }

@@ -90,5 +90,6 @@ model PlaylistItem {
   PlaylistItemId Int      @id @default(autoincrement())
   PlaylistId     Int
   ItemPath       String   @db.VarChar(512)
+  ItemIndex      Int
   Playlist       Playlist @relation(fields: [PlaylistId], references: [PlaylistId])
 }

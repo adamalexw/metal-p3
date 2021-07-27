@@ -1,4 +1,5 @@
-import { AlbumDto, BandProps, MetalArchivesAlbumTrack, Track } from '@metal-p3/api-interfaces';
+import { AlbumDto, BandProps, MetalArchivesAlbumTrack } from '@metal-p3/api-interfaces';
+import { Track } from '@metal-p3/track/domain';
 import { EntityState } from '@ngrx/entity';
 
 export interface Album extends AlbumDto {

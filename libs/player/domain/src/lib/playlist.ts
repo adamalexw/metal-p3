@@ -1,16 +1,4 @@
-import { Track } from '@metal-p3/api-interfaces';
-
-export interface PlaylistDto {
-  id: number;
-  name: string;
-  items: PlaylistItemDto[];
-}
-
-export interface PlaylistItemDto {
-  id: number;
-  playlistId: number;
-  itemPath: string;
-}
+import { Track } from '@metal-p3/track/domain';
 
 type PlaylistTrack = Omit<Track, 'id'>;
 
@@ -21,4 +9,5 @@ export interface PlaylistItem extends PlaylistTrack {
   paused?: boolean;
   url?: string;
   albumId?: number;
+  playlistItemId?: number;
 }

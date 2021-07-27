@@ -40,6 +40,7 @@
       "@metal-p3/playlist": ["libs/playlist/feature-shell/src/index.ts"],
       "@metal-p3/playlist/api": ["libs/playlist/api/src/index.ts"],
       "@metal-p3/playlist/data-access": ["libs/playlist/data-access/src/index.ts"],
+      "@metal-p3/playlist/domain": ["libs/playlist/domain/src/index.ts"],
       "@metal-p3/playlist/ui": ["libs/playlist/ui/src/index.ts"],
       "@metal-p3/shared/adb": ["libs/shared/adb/src/index.ts"],
       "@metal-p3/shared/data-access": ["libs/shared/data-access/src/index.ts"],
@@ -53,6 +54,7 @@
       "@metal-p3/shared/utils": ["libs/shared/utils/src/index.ts"],
       "@metal-p3/track/api": ["libs/track/api/src/index.ts"],
       "@metal-p3/track/data-access": ["libs/track/data-access/src/index.ts"],
+      "@metal-p3/track/domain": ["libs/track/domain/src/index.ts"],
       "@metal-p3/track/ui": ["libs/track/ui/src/index.ts"],
       "@metal-p3/track/util": ["libs/track/util/src/index.ts"]
     }

@@ -3,7 +3,6 @@ import { ChangeDetectionStrategy, Component, EventEmitter, OnInit, Output } from
 import { Router } from '@angular/router';
 import { AlbumService } from '@metal-p3/album/data-access';
 import { SearchRequest } from '@metal-p3/album/domain';
-import { Track } from '@metal-p3/api-interfaces';
 import { PlayerService, selectPlaylist, showPlayer } from '@metal-p3/player/data-access';
 import {
   addNewAlbum,
@@ -29,6 +28,7 @@ import {
 } from '@metal-p3/shared/data-access';
 import { NotificationService } from '@metal-p3/shared/feedback';
 import { toChunks } from '@metal-p3/shared/utils';
+import { Track } from '@metal-p3/track/domain';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { select, Store } from '@ngrx/store';
 import { combineLatest, Observable } from 'rxjs';

@@ -1,2 +1,2 @@
-export * from './lib/player-domain.module';
+export * from './lib/mapper';
 export * from './lib/playlist';

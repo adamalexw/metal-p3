@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { Inject, Injectable } from '@angular/core';
 import { BASE_PATH } from '@metal-p3/album/domain';
-import { Track } from '@metal-p3/api-interfaces';
 import { ErrorService } from '@metal-p3/shared/error';
 import { TrackService } from '@metal-p3/track/data-access';
+import { Track } from '@metal-p3/track/domain';
 import { Actions, concatLatestFrom, createEffect, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
 import { EMPTY, of } from 'rxjs';

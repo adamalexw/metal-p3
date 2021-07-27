@@ -1,5 +1,6 @@
 import { ApplyLyrics } from '@metal-p3/album/domain';
-import { MetalArchivesAlbumTrack, Track } from '@metal-p3/api-interfaces';
+import { MetalArchivesAlbumTrack } from '@metal-p3/api-interfaces';
+import { Track } from '@metal-p3/track/domain';
 import { Update } from '@ngrx/entity';
 import { createAction, props } from '@ngrx/store';
 import { Album } from '../model';

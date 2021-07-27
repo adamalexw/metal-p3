@@ -1,6 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { SearchRequest } from '@metal-p3/album/domain';
-import { MetalArchivesAlbumTrack, Track } from '@metal-p3/api-interfaces';
+import { MetalArchivesAlbumTrack } from '@metal-p3/api-interfaces';
+import { Track } from '@metal-p3/track/domain';
 import { createEntityAdapter, EntityAdapter, EntityState } from '@ngrx/entity';
 import { createReducer, on } from '@ngrx/store';
 import {
