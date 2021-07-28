@@ -9,16 +9,19 @@ import { PlaylistDto } from '@metal-p3/playlist/domain';
 })
 export class PlaylistToolbarComponent {
   @Input()
-  duration = 0;
+  duration: number | null | undefined = 0;
+
+  @Input()
+  playlistSize: number | null | undefined;
 
   @Input()
   playlists: PlaylistDto[] | null = null;
 
   @Input()
-  activePlaylist: number | null = 0;
+  activePlaylist: number | null | undefined = 0;
 
   @Input()
-  playlistName: string | null = '';
+  playlistName: string | null | undefined = '';
 
   @Output()
   readonly loadPlaylists = new EventEmitter<void>();
@@ -31,6 +34,9 @@ export class PlaylistToolbarComponent {
 
   @Output()
   readonly loadPlaylist = new EventEmitter<number>();
+
+  @Output()
+  readonly shuffle = new EventEmitter<void>();
 
   @Output()
   readonly clearPlaylist = new EventEmitter<void>();

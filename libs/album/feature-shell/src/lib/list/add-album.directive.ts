@@ -5,7 +5,7 @@ import { Directive, EventEmitter, HostBinding, HostListener, Output } from '@ang
 })
 export class AddAlbumDirective {
   @Output()
-  albumAdded = new EventEmitter<string | string[]>();
+  readonly albumAdded = new EventEmitter<string[]>();
 
   @HostBinding('class') private addClass = '';
 

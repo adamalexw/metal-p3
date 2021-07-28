@@ -2,6 +2,7 @@
 import { Inject, Injectable } from '@angular/core';
 import { BASE_PATH } from '@metal-p3/album/domain';
 import { CoverService } from '@metal-p3/cover/data-access';
+import { shuffleArray } from '@metal-p3/player/util';
 import { ErrorService } from '@metal-p3/shared/error';
 import { Actions, concatLatestFrom, createEffect, ofType } from '@ngrx/effects';
 import { select, Store } from '@ngrx/store';
@@ -20,6 +21,8 @@ import {
   playPrevious,
   removeItem,
   removeItemSuccess,
+  shufflePlaylist,
+  shufflePlaylistSuccess,
   updatePlaylist,
   updatePlaylistItem,
 } from './actions';
@@ -98,6 +101,17 @@ export class PlayerEffects {
           catchError((error) => of(getItemCoverError({ update: { id, changes: { cover: this.errorService.getError(error) } } })))
         )
       )
+    )
+  );
+
+  shuffle$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(shufflePlaylist),
+      withLatestFrom(this.store.pipe(select(selectPlaylist))),
+      map(([_, playlist]) => {
+        shuffleArray(playlist);
+        return shufflePlaylistSuccess({ updates: playlist.map((item, index) => ({ id: item.id, changes: { index } })) });
+      })
     )
   );
 

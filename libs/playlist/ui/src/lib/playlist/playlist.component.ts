@@ -11,10 +11,10 @@ import { cloneDeep } from 'lodash-es';
 })
 export class PlaylistComponent {
   @Input()
-  playlist: PlaylistItem[] = [];
+  playlist: PlaylistItem[] | null | undefined = [];
 
   @Input()
-  currentItem: PlaylistItem | undefined;
+  currentItem: PlaylistItem | null | undefined;
 
   @Output()
   readonly playItem = new EventEmitter<string>();
@@ -34,8 +34,10 @@ export class PlaylistComponent {
   displayedColumns = ['action', 'trackNumber', 'title', 'artist', 'duration'];
 
   drop(event: CdkDragDrop<string[]>) {
-    const newOrder = cloneDeep(this.playlist);
-    moveItemInArray(newOrder, event.previousIndex, event.currentIndex);
-    this.reorder.emit(newOrder);
+    if (this.playlist) {
+      const newOrder = cloneDeep(this.playlist);
+      moveItemInArray(newOrder, event.previousIndex, event.currentIndex);
+      this.reorder.emit(newOrder);
+    }
   }
 }

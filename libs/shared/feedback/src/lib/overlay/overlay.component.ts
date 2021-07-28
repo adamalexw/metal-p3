@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/ban-types */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Component, OnInit, TemplateRef, Type } from '@angular/core';
 import { AppOverlayRef } from './overlay-ref';
 
@@ -9,7 +11,7 @@ import { AppOverlayRef } from './overlay-ref';
 export class OverlayComponent implements OnInit {
   contentType: 'template' | 'string' | 'component' = 'string';
   content: string | TemplateRef<unknown> | Type<unknown> = '';
-  context: unknown;
+  context: Object | null = null;
 
   constructor(private ref: AppOverlayRef) {}
 
@@ -30,5 +32,13 @@ export class OverlayComponent implements OnInit {
     } else {
       this.contentType = 'component';
     }
+  }
+
+  get contentAsTemplate(): TemplateRef<unknown> {
+    return this.content as TemplateRef<unknown>;
+  }
+
+  get contentAsComponent(): Type<any> {
+    return this.content as Type<any>;
   }
 }

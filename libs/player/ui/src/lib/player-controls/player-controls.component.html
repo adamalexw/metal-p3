@@ -6,7 +6,7 @@
         <span class="flex-grow"></span>
         <span class="text-xs">{{ currentItem?.duration | time }}</span>
       </div>
-      <mat-slider class="w-full p-0 h-10" min="0" [max]="currentItem?.duration" step="1" [value]="elapsedTime" (input)="onSliderChangeEnd($event.value)" [disabled]="!currentItem"></mat-slider>
+      <mat-slider class="w-full p-0 h-10" min="0" [max]="currentItem?.duration" step="1" [value]="elapsedTime" (input)="onSeek($event.value)" [disabled]="!currentItem"></mat-slider>
     </div>
   </mat-toolbar-row>
   <mat-toolbar-row>
@@ -20,8 +20,9 @@
         <ng-container *ngTemplateOutlet="detailsTemplate"></ng-container>
       </div>
     </ng-container>
-    <div class="absolute right-2">
-      <button mat-icon-button (click)="toggleView.emit()">
+    <div class="flex absolute right-2">
+      <app-volume (volume)="volume.emit($event)" (mute)="mute.emit()"></app-volume>
+      <button class="self-center" mat-icon-button (click)="toggleView.emit()">
         <mat-icon mat-list-icon>{{ toggleIcon }}</mat-icon>
       </button>
     </div>
@@ -54,8 +55,8 @@
 <ng-template #detailsTemplate>
   <div class="flex-col">
     <ng-container *ngIf="currentItem">
-      <div class="text-sm">{{ currentItem.artist }} - {{ currentItem.album }}</div>
-      <div class="text-sm">{{ currentItem.year }} - {{ currentItem.genre }}</div>
+      <div class="text-sm">{{ currentItem?.artist }} - {{ currentItem?.album }}</div>
+      <div class="text-sm">{{ currentItem?.year }} - {{ currentItem?.genre }}</div>
     </ng-container>
   </div>
 </ng-template>

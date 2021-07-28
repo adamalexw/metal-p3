@@ -534,6 +534,28 @@
         }
       }
     },
+    "player-util": {
+      "projectType": "library",
+      "root": "libs/player/util",
+      "sourceRoot": "libs/player/util/src",
+      "prefix": "app",
+      "architect": {
+        "test": {
+          "builder": "@nrwl/jest:jest",
+          "outputs": ["coverage/libs/player/util"],
+          "options": {
+            "jestConfig": "libs/player/util/jest.config.js",
+            "passWithNoTests": true
+          }
+        },
+        "lint": {
+          "builder": "@nrwl/linter:eslint",
+          "options": {
+            "lintFilePatterns": ["libs/player/util/src/**/*.ts", "libs/player/util/src/**/*.html"]
+          }
+        }
+      }
+    },
     "playlist-api": {
       "root": "libs/playlist/api",
       "sourceRoot": "libs/playlist/api/src",

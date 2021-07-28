@@ -104,7 +104,7 @@ export class TracksComponent implements OnChanges {
     }
   }
 
-  trackByFn(index: number, item: FormGroup) {
+  trackByFn(index: number, item: AbstractControl) {
     return item.get('id')?.value || index;
   }
 }

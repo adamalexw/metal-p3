@@ -1,6 +1,7 @@
 <app-playlist-toolbar
   [duration]="duration"
   [playlists]="playlists$ | async"
+  [playlistSize]="playlistSize$ | async"
   [activePlaylist]="activePlaylistId$ | async"
   [playlistName]="playlistName$ | async"
   (loadPlaylists)="onLoadPlaylists()"
@@ -8,6 +9,7 @@
   (updatePlaylist)="onUpdatePlaylist($event)"
   (deletePlaylist)="onDeletePlaylist()"
   (loadPlaylist)="onLoadPlaylist($event)"
+  (shuffle)="onShuffle()"
   (clearPlaylist)="clearPlaylist.emit()"
   (closePlaylist)="closePlaylist.emit()"
 ></app-playlist-toolbar>

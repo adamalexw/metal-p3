@@ -146,8 +146,12 @@ export class ListComponent implements OnInit {
     );
   }
 
-  trackByFn(index: number, item: Album) {
-    return item.id;
+  trackByVirtualFn(index: number): number {
+    return index;
+  }
+
+  trackByAlbumFn(index: number, item: unknown): number {
+    return (item as Album).id;
   }
 
   onSearch(request: SearchRequest) {

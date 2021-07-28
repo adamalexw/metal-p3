@@ -85,6 +85,9 @@
     "player-ui": {
       "tags": ["scope:player", "type:ui"]
     },
+    "player-util": {
+      "tags": []
+    },
     "playlist-api": {
       "tags": ["scope:playlist", "type:api"]
     },

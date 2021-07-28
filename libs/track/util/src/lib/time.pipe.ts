@@ -3,7 +3,7 @@ import { Pipe, PipeTransform } from '@angular/core';
 
 @Pipe({ name: 'time' })
 export class TimePipe implements PipeTransform {
-  transform(time?: number): string | null {
+  transform(time: number | null | undefined): string | null {
     if (!time) {
       return '00:00';
     }

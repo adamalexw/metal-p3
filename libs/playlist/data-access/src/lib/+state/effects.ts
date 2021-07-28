@@ -2,7 +2,8 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { Injectable } from '@angular/core';
 import { PlayerService, removeItem, selectItemById, selectPlaylist, updatePlaylist } from '@metal-p3/player/data-access';
-import { PlaylistItem, playlistItemToDto } from '@metal-p3/player/domain';
+import { PlaylistItem } from '@metal-p3/player/domain';
+import { playlistItemToDto } from '@metal-p3/player/util';
 import { PlaylistDto } from '@metal-p3/playlist/domain';
 import { ErrorService } from '@metal-p3/shared/error';
 import { TrackService } from '@metal-p3/track/data-access';

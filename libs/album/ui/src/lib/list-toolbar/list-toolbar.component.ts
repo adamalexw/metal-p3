@@ -13,13 +13,13 @@ import { debounceTime, distinctUntilChanged, tap } from 'rxjs/operators';
 })
 export class ListToolbarComponent implements OnInit, OnChanges {
   @Input()
-  creatingNew = false;
+  creatingNew: boolean | null | undefined = false;
 
   @Input()
-  searching = false;
+  searching: boolean | null | undefined = false;
 
   @Input()
-  criteria = '';
+  criteria: string | null | undefined = '';
 
   @Output()
   readonly searchRequest = new EventEmitter<SearchRequest>();

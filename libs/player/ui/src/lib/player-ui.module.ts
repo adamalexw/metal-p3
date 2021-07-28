@@ -6,12 +6,13 @@ import { MatSliderModule } from '@angular/material/slider';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { TrackUtilModule } from '@metal-p3/track/util';
 import { PlayerControlsComponent } from './player-controls/player-controls.component';
+import { VolumeComponent } from './volume/volume.component';
 
 const materialModules = [MatIconModule, MatSliderModule, MatButtonModule, MatToolbarModule];
 
 @NgModule({
   imports: [CommonModule, TrackUtilModule, materialModules],
-  declarations: [PlayerControlsComponent],
+  declarations: [PlayerControlsComponent, VolumeComponent],
   exports: [PlayerControlsComponent],
 })
 export class PlayerUiModule {}

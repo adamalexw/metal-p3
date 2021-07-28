@@ -1,7 +1,7 @@
 <mat-toolbar-row>
   <ng-container>
     <button mat-icon-button [matMenuTriggerFor]="menu" (click)="onLoadPlaylists()"><mat-icon title="load">queue_music</mat-icon></button>
-    <mat-menu #menu="matMenu">
+    <mat-menu #menu="matMenu" yPosition="above">
       <button *ngFor="let playlist of playlists" mat-menu-item (click)="loadPlaylist.emit(playlist.id)">{{ playlist.name }}</button>
     </mat-menu>
   </ng-container>
@@ -18,7 +18,11 @@
     <button *ngIf="duration > 0" mat-icon-button [disabled]="saving && !playlistName" (click)="onCreate()"><mat-icon title="create">playlist_add</mat-icon></button>
   </ng-template>
 
-  <button *ngIf="duration > 0" mat-icon-button (click)="clearPlaylist.emit()">
+  <button *ngIf="playlistSize > 1" mat-icon-button (click)="shuffle.emit()">
+    <mat-icon>shuffle</mat-icon>
+  </button>
+
+  <button *ngIf="playlistSize > 0" mat-icon-button (click)="clearPlaylist.emit()">
     <mat-icon title="clear">clear_all</mat-icon>
   </button>
 

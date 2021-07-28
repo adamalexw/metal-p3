@@ -15,6 +15,8 @@
         (seekTo)="onSeekTo($event)"
         (previous)="onPrevious()"
         (next)="onNext()"
+        (volume)="onVolume($event)"
+        (mute)="onVolume(0)"
         (toggleView)="onToogleView()"
       ></app-player-controls>
     </div>
@@ -34,12 +36,4 @@
   </div>
 </ng-container>
 
-<audio #audio waMediaElementAudioSourceNode autoplay>
-  <!-- <ng-container #node="AudioNode" waDelayNode [delayTime]="delayTime">
-<ng-container waGainNode [gain]="gain">
-  <ng-container [waOutput]="node"></ng-container>
-  <ng-container waAudioDestinationNode></ng-container>
-</ng-container>
-</ng-container> -->
-  <ng-container waAudioDestinationNode></ng-container>
-</audio>
+<audio #audio autoplay></audio>

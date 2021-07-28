@@ -33,9 +33,9 @@ import {
   selectCoverLoading,
   selectedAlbum,
   selectFindingUrl,
+  selectGettingBandProps,
   selectGettingMaTracks,
   selectLyricsLoading,
-  selectLyricsLoadingProgress,
   selectMaTracks,
   selectMaUrls,
   selectRenamingFolder,
@@ -102,12 +102,11 @@ export class AlbumShellComponent implements OnInit {
   renamingFolderError$ = this.store.pipe(select(selectRenamingFolderError));
 
   lyricsLoading$ = this.store.pipe(select(selectLyricsLoading));
-  lyricsLoadingProgress$ = this.store.pipe(select(selectLyricsLoadingProgress));
 
   gettingMaTracks$ = this.store.pipe(select(selectGettingMaTracks));
   maTracks$ = this.store.pipe(select(selectMaTracks));
 
-  gettingBandProps$ = this.store.pipe(select(selectBandProps));
+  gettingBandProps$ = this.store.pipe(select(selectGettingBandProps));
   bandProps$ = this.store.pipe(select(selectBandProps));
 
   routeId$ = this.store.pipe(
@@ -306,7 +305,7 @@ export class AlbumShellComponent implements OnInit {
     this.store.dispatch(renameFolder({ id, src, artist, album }));
   }
 
-  onOpenFolder(id: string, folder: string) {
+  onOpenFolder(id: number, folder: string) {
     this.store.dispatch(setExtraFiles({ update: { id, changes: { extraFiles: false } } }));
     this.albumService.openFolder(folder).subscribe();
   }

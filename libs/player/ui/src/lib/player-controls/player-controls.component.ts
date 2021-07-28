@@ -9,22 +9,25 @@ import { PlaylistItem } from '@metal-p3/player/domain';
 })
 export class PlayerControlsComponent {
   @Input()
-  footerMode = false;
+  footerMode: boolean | null | undefined = false;
 
   @Input()
-  isFirstItemPlaying = false;
+  isFirstItemPlaying: boolean | null | undefined = false;
 
   @Input()
-  isLastItemPlaying = false;
+  isLastItemPlaying: boolean | null | undefined = false;
 
   @Input()
-  currentItem: PlaylistItem | undefined;
+  currentItem: PlaylistItem | null | undefined;
 
   @Input()
-  elapsedTime: number | undefined;
+  elapsedTime: number | null | undefined = 0;
 
   @Input()
-  toggleIcon: 'expand_more' | 'expand_less' = 'expand_more';
+  toggleIcon: 'expand_more' | 'expand_less' | null = 'expand_more';
+
+  @Input()
+  gain = 1;
 
   @Output()
   readonly previous = new EventEmitter<void>();
@@ -42,9 +45,17 @@ export class PlayerControlsComponent {
   readonly seekTo = new EventEmitter<number>();
 
   @Output()
+  readonly volume = new EventEmitter<number>();
+
+  @Output()
+  readonly mute = new EventEmitter<void>();
+
+  @Output()
   readonly toggleView = new EventEmitter<number>();
 
-  onSliderChangeEnd(value: number) {
-    this.seekTo.emit(value);
+  onSeek(value: number | null) {
+    if (value) {
+      this.seekTo.emit(value);
+    }
   }
 }

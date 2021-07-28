@@ -22,6 +22,9 @@ export const removeItemSuccess = createAction('[Player] Remove Item Success', pr
 export const playPrevious = createAction('[Player] Play Previous');
 export const playNext = createAction('[Player] Pause Next');
 
+export const shufflePlaylist = createAction('[Playlist] Shuffle');
+export const shufflePlaylistSuccess = createAction('[Playlist] shuffle Success', props<{ updates: Update<PlaylistItem>[] }>());
+
 export const clearPlaylist = createAction('[Player] Clear');
 export const noopPlaylist = createAction('[Player] Noop');
 

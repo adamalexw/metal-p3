@@ -9,7 +9,7 @@ export const selectFooterMode = createSelector(selectPlaylistState, (state) => s
 
 export const selectPlaylistEntities = createSelector(selectPlaylistState, selectEntities);
 export const selectPlaylist = createSelector(selectPlaylistState, (state) => selectAll(state));
-export const selectPlaylistItemSize = createSelector(selectPlaylistState, selectTotal);
+export const selectPlaylistItemSize = createSelector(selectPlaylistState, (state) => selectTotal(state));
 
 export const selectPlayerVisible = createSelector(selectPlaylistState, (state) => state.visible);
 export const selectPlayerOpen = createSelector(selectPlaylist, selectPlayerVisible, (playlist, visible) => playlist?.length || visible);

@@ -14,73 +14,70 @@ import { WINDOW } from '@ng-web-apis/common';
 })
 export class AlbumComponent implements OnChanges {
   @Input()
-  album!: Album;
+  album: Album | null | undefined;
 
   @Input()
-  albumSaving = false;
+  albumSaving: boolean | null | undefined = false;
 
   @Input()
-  tracks: Track[] = [];
+  tracks: Track[] | null | undefined = [];
 
   @Input()
-  tracksLoading = false;
+  tracksLoading: boolean | null | undefined = false;
 
   @Input()
-  albumDuration = 0;
+  albumDuration: number | null | undefined = 0;
 
   @Input()
-  trackSavingProgress = 0;
+  trackSavingProgress: number | null | undefined = 0;
 
   @Input()
-  coverLoading = false;
+  coverLoading: boolean | null | undefined = false;
 
   @Input()
-  cover: string | undefined;
+  cover: string | null | undefined;
 
   @Input()
-  findingUrl = false;
+  findingUrl: boolean | null | undefined = false;
 
   @Input()
-  maUrls: MetalArchivesUrl | undefined;
+  maUrls: MetalArchivesUrl | null | undefined;
 
   @Input()
-  gettingMaTracks = false;
+  gettingMaTracks: boolean | null | undefined = false;
 
   @Input()
-  maTracks: MetalArchivesAlbumTrack[] = [];
+  maTracks: MetalArchivesAlbumTrack[] | null | undefined = [];
 
   @Input()
-  trackRenaming = false;
+  trackRenaming: boolean | null | undefined = false;
 
   @Input()
-  trackRenamingProgress = 0;
+  trackRenamingProgress: number | null | undefined = 0;
 
   @Input()
-  trackTransferring = false;
+  trackTransferring: boolean | null | undefined = false;
 
   @Input()
-  trackTransferringProgress = 0;
+  trackTransferringProgress: number | null | undefined = 0;
 
   @Input()
-  renamingFolder = false;
+  renamingFolder: boolean | null | undefined = false;
 
   @Input()
-  renamingFolderError: string | undefined;
+  renamingFolderError: string | null | undefined;
 
   @Input()
-  lyricsLoading = false;
+  lyricsLoading: boolean | null | undefined = false;
 
   @Input()
-  lyricsLoadingProgress = false;
+  gettingBandProps: boolean | null | undefined = false;
 
   @Input()
-  gettingBandProps = false;
-
-  @Input()
-  bandProps: BandProps | null = null;
+  bandProps: BandProps | null | undefined;
 
   @Output()
-  readonly save = new EventEmitter<{ album: AlbumDto; tracks: Track[] }>();
+  readonly save = new EventEmitter<{ album: Album; tracks: Track[] }>();
 
   @Output()
   readonly coverUrl = new EventEmitter<{ id: number; url: string }>();
@@ -225,7 +222,7 @@ export class AlbumComponent implements OnChanges {
   }
 
   get albumId(): number {
-    return this.album.id;
+    return this.album?.id || 0;
   }
 
   onImageSearch() {
@@ -249,7 +246,7 @@ export class AlbumComponent implements OnChanges {
   }
 
   onRenameFolder() {
-    this.renameFolder.emit({ id: this.albumId, src: this.album.fullPath || '', artist: this.form.get('artist')?.value, album: this.form.get('album')?.value });
+    this.renameFolder.emit({ id: this.albumId, src: this.album?.fullPath || '', artist: this.form.get('artist')?.value, album: this.form.get('album')?.value });
   }
 
   openLink(url: string) {
@@ -261,8 +258,10 @@ export class AlbumComponent implements OnChanges {
   }
 
   onTransferAlbum() {
-    const tracks = this.tracks.map((track) => ({ id: this.albumId, trackId: track.id }));
-    this.transferAlbum.emit(tracks);
+    if (this.tracks) {
+      const tracks = this.tracks.map((track) => ({ id: this.albumId, trackId: track.id }));
+      this.transferAlbum.emit(tracks);
+    }
   }
 
   onTransferTrack(trackId: number) {

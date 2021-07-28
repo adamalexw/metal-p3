@@ -3,11 +3,10 @@ import { adapter, PlaylistState, PLAYLIST_FEATURE_KEY } from './reducer';
 
 export const selectPlaylistState = createFeatureSelector<PlaylistState>(PLAYLIST_FEATURE_KEY);
 
-const { selectEntities, selectAll, selectTotal } = adapter.getSelectors();
+const { selectEntities, selectAll } = adapter.getSelectors();
 
 export const selectPlaylistEntities = createSelector(selectPlaylistState, selectEntities);
 export const selectPlaylists = createSelector(selectPlaylistState, (state) => selectAll(state));
-export const selectPlaylistItemSize = createSelector(selectPlaylistState, selectTotal);
 
 export const selectActivePlaylistId = createSelector(selectPlaylistState, (state) => state.active);
 export const selectActivePlaylist = createSelector(selectPlaylists, selectActivePlaylistId, (playlists, id) => playlists.find((e) => e.id === id));

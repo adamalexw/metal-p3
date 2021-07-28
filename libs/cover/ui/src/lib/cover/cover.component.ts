@@ -8,19 +8,19 @@ import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from 
 })
 export class CoverComponent {
   @Input()
-  loading = false;
+  loading: boolean | null = false;
 
   @Input()
-  cover: string | undefined;
+  cover: string | null | undefined;
 
   @Input()
   coverError: string | undefined;
 
   @Input()
-  width = 270;
+  width: number | null = 270;
 
   @Input()
-  height = 270;
+  height: number | null = 270;
 
   @Input()
   enableDnd = false;

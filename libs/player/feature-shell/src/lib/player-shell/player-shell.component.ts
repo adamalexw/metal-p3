@@ -52,7 +52,12 @@ export class PlayerShellComponent implements OnInit {
       filter((item) => !!item?.playing),
       distinctUntilKeyChanged('id'), // if we are reordering tracks we want to keep the current item playing
       concatMap((item) => iif(() => !!item?.url, of(item?.url), this.getBlobUrl(item?.id || '', item?.fullPath || ''))),
-      tap((url) => (this.audioElement.src = url!))
+      tap((url) => {
+        if (url) {
+          this.audioElement.src = url;
+          console.log('v', this.audioElement.volume);
+        }
+      })
     )
     .subscribe();
 
@@ -67,7 +72,6 @@ export class PlayerShellComponent implements OnInit {
   isFirstItemPlaying$ = this.store.pipe(select(selectFirstItemPlaying));
   isLastItemPlaying$ = this.store.pipe(select(selectLastItemPlaying));
 
-  playlists$ = this.store.pipe(select(selectPlaylistDuration));
   playlistDuration$ = this.store.pipe(select(selectPlaylistDuration));
 
   constructor(private store: Store, private trackService: TrackService) {}
@@ -141,6 +145,11 @@ export class PlayerShellComponent implements OnInit {
 
   onRemove(id: string) {
     this.store.dispatch(removeItem({ id }));
+  }
+
+  onVolume(value: number) {
+    console.log('🚀 ~ file: player-shell.component.ts ~ line 147 ~ PlayerShellComponent ~ onVolume ~ value', value);
+    this.audioElement.volume = value < 0 ? 0 : value;
   }
 
   onToogleView() {
