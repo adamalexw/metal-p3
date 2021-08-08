@@ -1,0 +1,11 @@
+<app-nav-toolbar>
+  <button mat-icon-button [disabled]="matching" (click)="startMatching.emit()">
+    <mat-icon title="all">play_arrow</mat-icon>
+  </button>
+
+  <button *ngIf="matching" mat-icon-button (click)="stopMatching.emit()">
+    <mat-icon title="stop">stop</mat-icon>
+  </button>
+</app-nav-toolbar>
+
+<mat-progress-bar *ngIf="matching" mode="indeterminate"></mat-progress-bar>

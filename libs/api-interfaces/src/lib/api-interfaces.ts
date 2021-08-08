@@ -51,6 +51,7 @@ export interface MetalArchivesSearchResponse {
 export interface MetalArchivesUrl {
   artistUrl?: string;
   albumUrl?: string;
+  ignore?: boolean;
 }
 
 export interface MetalArchivesAlbumTrack {
@@ -78,3 +79,5 @@ export const LYRICS_HISTORY_UPDATE = 'lyricsHistoryUpdate';
 export const LYRICS_HISTORY_COMPLETE = 'lyricsHistoryComplete';
 export const EXTRA_FILES = 'extraFiles';
 export const EXTRA_FILES_COMPLETE = 'extraFilesComplete';
+export const URL_MATCHER = 'urlMatcher';
+export const URL_MATCHER_COMPLETE = 'urlMatcherComplete';

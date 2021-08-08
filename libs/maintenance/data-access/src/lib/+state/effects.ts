@@ -5,6 +5,7 @@ import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { EMPTY, iif, of } from 'rxjs';
 import { catchError, concatMap, concatMapTo, map, mapTo, tap } from 'rxjs/operators';
 import { LyricsMaintenanceService } from '../lyrics.service';
+import { UrlMaintenanceService } from '../url.service';
 import {
   addLyricsPriority,
   checkedLyricsHistory,
@@ -19,7 +20,12 @@ import {
   getLyricsHistory,
   getLyricsHistoryError,
   getLyricsHistorySuccess,
+  getUrlMatcher,
+  getUrlMatcherError,
+  getUrlMatcherSuccess,
+  startUrlMatcher,
   stopLyricsCheck,
+  stopUrlMatcher,
 } from './actions';
 
 @Injectable()
@@ -86,7 +92,26 @@ export class MaintenanceEffects {
     )
   );
 
-  cancel$ = createEffect(() => this.actions$.pipe(ofType(stopLyricsCheck), concatMapTo(this.lyricsService.cancelHistoryCheck())), { dispatch: false });
+  stopLyricsCheck$ = createEffect(() => this.actions$.pipe(ofType(stopLyricsCheck), concatMapTo(this.lyricsService.cancelHistoryCheck())), { dispatch: false });
 
-  constructor(private actions$: Actions, private lyricsService: LyricsMaintenanceService, private errorService: ErrorService, private notificationService: NotificationService) {}
+  getUrlMatcher$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(getUrlMatcher),
+      concatMapTo(this.urlService.list()),
+      map((albums) => getUrlMatcherSuccess({ albums })),
+      catchError((error) => of(getUrlMatcherError({ error: this.errorService.getError(error) })))
+    )
+  );
+
+  startUrlMatcher$ = createEffect(() => this.actions$.pipe(ofType(startUrlMatcher), concatMapTo(this.urlService.match())), { dispatch: false });
+
+  stopUrlMatcher$ = createEffect(() => this.actions$.pipe(ofType(stopUrlMatcher), concatMapTo(this.urlService.cancel())), { dispatch: false });
+
+  constructor(
+    private actions$: Actions,
+    private lyricsService: LyricsMaintenanceService,
+    private urlService: UrlMaintenanceService,
+    private errorService: ErrorService,
+    private notificationService: NotificationService
+  ) {}
 }

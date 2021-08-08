@@ -1,0 +1,7 @@
+<app-nav-toolbar>
+  <button *ngIf="running" mat-icon-button (click)="stop.emit()">
+    <mat-icon title="stop">stop</mat-icon>
+  </button>
+</app-nav-toolbar>
+
+<mat-progress-bar *ngIf="running" mode="indeterminate"></mat-progress-bar>

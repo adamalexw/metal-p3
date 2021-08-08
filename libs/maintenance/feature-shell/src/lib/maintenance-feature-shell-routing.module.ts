@@ -4,6 +4,7 @@ import { ApplyLyricsShellComponent } from './apply-lyrics/apply-lyrics.component
 import { ExtraFilesShellComponent } from './extra-files/extra-files.component';
 import { LyricsHistoryShellComponent } from './lyrics-history/lyrics-history.component';
 import { UnmappedFoldersShellComponent } from './unmapped-folders/unmapped-folders.component';
+import { UrlShellComponent } from './url/url.component';
 
 const routes: Routes = [
   {
@@ -21,6 +22,10 @@ const routes: Routes = [
   {
     path: 'extraFiles',
     component: ExtraFilesShellComponent,
+  },
+  {
+    path: 'matcher',
+    component: UrlShellComponent,
   },
 ];
 @NgModule({

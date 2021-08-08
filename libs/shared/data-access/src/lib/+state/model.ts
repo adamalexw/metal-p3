@@ -35,6 +35,7 @@ export const AlbumDtoToAlbum = (dto: AlbumDto): Partial<Album> => {
     albumUrl: dto.albumUrl,
     artist: dto.artist,
     artistUrl: dto.artistUrl,
+    ignore: dto.ignore,
     country: dto.country,
     cover: dto.cover,
     genre: dto.genre,

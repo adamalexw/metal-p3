@@ -60,11 +60,18 @@ export class CoverService {
 
   saveCover(folder: string, cover: string): void {
     const location = path.join(folder, 'Folder.jpg');
+
     const buffer = Buffer.from(cover.replace('data:image/png;base64,', ''), 'base64');
 
     fs.writeFile(location, buffer, (err) => {
       if (err) {
-        return console.log(err);
+        if (fs.existsSync(location)) {
+          this.fileSystemService.deleteFile(location);
+        }
+
+        fs.writeFile(location, buffer, (err) => {
+          console.log(err);
+        });
       }
     });
   }

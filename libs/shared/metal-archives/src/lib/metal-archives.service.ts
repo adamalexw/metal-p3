@@ -11,7 +11,9 @@ export class MetalArchivesService {
   constructor(private readonly httpService: HttpService) {}
 
   findUrl(artist: string, album: string): Observable<MetalArchivesSearchResponse> {
-    return this.httpService.get<MetalArchivesSearchResponse>(`${this.baseUrl}search/ajax-advanced/searching/albums/?bandName=${artist}&releaseTitle=${album}`).pipe(map((response) => response.data));
+    return this.httpService
+      .get<MetalArchivesSearchResponse>(`${this.baseUrl}search/ajax-advanced/searching/albums/?bandName=${encodeURIComponent(artist)}&releaseTitle=${encodeURIComponent(album)}`)
+      .pipe(map((response) => response.data));
   }
 
   getTracks(url: string): Observable<MetalArchivesAlbumTrack[]> {

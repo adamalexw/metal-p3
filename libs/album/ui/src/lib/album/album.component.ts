@@ -164,6 +164,7 @@ export class AlbumComponent implements OnChanges {
       country: [],
       artistUrl: [],
       albumUrl: [],
+      ignore: [false],
       transferred: [],
       hasLyrics: [],
     });

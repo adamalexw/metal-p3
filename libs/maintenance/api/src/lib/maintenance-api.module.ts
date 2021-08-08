@@ -7,11 +7,13 @@ import { FileSystemMaintenanceService } from './file-system.service';
 import { LyricsController } from './lyrics.controller';
 import { LyricsService } from './lyrics.service';
 import { MaintenanceGateway } from './maintenance-gateway.service';
+import { UrlController } from './url.controller';
+import { UrlService } from './url.service';
 
 @Module({
   imports: [SharedDatabaseModule, SharedFileSystemModule, SharedMetalArchivesModule],
-  controllers: [LyricsController, FileSystemController],
-  providers: [LyricsService, MaintenanceGateway, FileSystemMaintenanceService],
+  controllers: [LyricsController, FileSystemController, UrlController],
+  providers: [LyricsService, MaintenanceGateway, FileSystemMaintenanceService, UrlService],
   exports: [FileSystemMaintenanceService],
 })
 export class MaintenanceApiModule {

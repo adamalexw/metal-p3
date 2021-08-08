@@ -187,4 +187,12 @@ export class DbService {
   async folders(): Promise<Partial<Album>[]> {
     return this.prisma.album.findMany({ select: { AlbumId: true, Folder: true } });
   }
+
+  async missingUrls(): Promise<Partial<Album>[]> {
+    return this.prisma.album.findMany({
+      select: { AlbumId: true, Name: true, Band: { select: { BandId: true, Name: true, MetalArchiveUrl: true } } },
+      where: { IgnoreMetalArchives: null, MetalArchiveUrl: null, Lyrics: false },
+      orderBy: { Folder: 'asc' },
+    });
+  }
 }

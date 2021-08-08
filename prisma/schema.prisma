@@ -9,20 +9,21 @@ datasource db {
 }
 
 model Album {
-  AlbumId         Int             @id @default(autoincrement())
-  BandId          Int?
-  Folder          String?         @db.VarChar(256)
-  Name            String?         @db.VarChar(256)
-  Year            Int?
-  MetalArchiveUrl String?         @db.VarChar(2083)
-  Lyrics          Boolean?
-  LyricsDate      DateTime?       @db.DateTime
-  Transferred     Boolean?
-  TransferredDate DateTime?       @db.DateTime
-  Created         DateTime        @default(now()) @db.DateTime
-  Band            Band?           @relation(fields: [BandId], references: [BandId])
-  LyricsError     LyricsError[]
-  LyricsHistory   LyricsHistory[]
+  AlbumId             Int             @id @default(autoincrement())
+  BandId              Int?
+  Folder              String?         @db.VarChar(256)
+  Name                String?         @db.VarChar(256)
+  Year                Int?
+  MetalArchiveUrl     String?         @db.VarChar(2083)
+  IgnoreMetalArchives Boolean?
+  Lyrics              Boolean?
+  LyricsDate          DateTime?       @db.DateTime
+  Transferred         Boolean?
+  TransferredDate     DateTime?       @db.DateTime
+  Created             DateTime        @default(now()) @db.DateTime
+  Band                Band?           @relation(fields: [BandId], references: [BandId])
+  LyricsError         LyricsError[]
+  LyricsHistory       LyricsHistory[]
 }
 
 model Band {

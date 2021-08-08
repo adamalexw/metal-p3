@@ -1,0 +1,65 @@
+<mat-table [dataSource]="dataSource">
+  <ng-container matColumnDef="band">
+    <mat-header-cell *matHeaderCellDef>Band</mat-header-cell>
+    <mat-cell *matCellDef="let element">
+      <span>{{ element.band }}</span>
+    </mat-cell>
+  </ng-container>
+
+  <ng-container matColumnDef="artistUrl">
+    <mat-header-cell *matHeaderCellDef>Url</mat-header-cell>
+    <mat-cell *matCellDef="let element">
+      <a *ngIf="element.artistUrl" [href]="element.artistUrl" target="_blank">View</a>
+    </mat-cell>
+  </ng-container>
+
+  <ng-container matColumnDef="album">
+    <mat-header-cell *matHeaderCellDef>Album</mat-header-cell>
+    <mat-cell *matCellDef="let element">
+      <a [routerLink]="['/album', element.id]">{{ element.album }}</a>
+    </mat-cell>
+  </ng-container>
+
+  <ng-container matColumnDef="albumUrl">
+    <mat-header-cell *matHeaderCellDef>Url</mat-header-cell>
+    <mat-cell *matCellDef="let element">
+      <a *ngIf="element.albumUrl" [href]="element.albumUrl" target="_blank">View</a>
+    </mat-cell>
+  </ng-container>
+
+  <ng-container matColumnDef="complete">
+    <mat-header-cell *matHeaderCellDef>Complete</mat-header-cell>
+    <mat-cell *matCellDef="let element">
+      <ng-container *ngIf="element.complete">
+        <ng-container *ngIf="element.error; else successTemplate">
+          <mat-icon [matTooltip]="element.error" matTooltipPosition="left">error_outline</mat-icon>
+        </ng-container>
+        <ng-template #successTemplate>
+          <mat-icon>done</mat-icon>
+        </ng-template>
+      </ng-container>
+    </mat-cell>
+  </ng-container>
+
+  <ng-container matColumnDef="result">
+    <mat-header-cell *matHeaderCellDef></mat-header-cell>
+    <mat-cell *matCellDef="let element">
+      <ng-container [ngSwitch]="element.result">
+        <ng-container *ngSwitchCase="'none'">
+          <mat-icon title="none">link_off</mat-icon>
+        </ng-container>
+
+        <ng-container *ngSwitchCase="'multiple'">
+          <mat-icon title="multiple">add_link</mat-icon>
+        </ng-container>
+
+        <ng-container *ngSwitchCase="'success'">
+          <mat-icon title="success">link</mat-icon>
+        </ng-container>
+      </ng-container>
+    </mat-cell>
+  </ng-container>
+
+  <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+  <mat-row *matRowDef="let row; columns: displayedColumns"></mat-row>
+</mat-table>

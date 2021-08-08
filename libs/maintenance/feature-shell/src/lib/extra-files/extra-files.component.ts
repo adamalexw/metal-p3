@@ -16,12 +16,16 @@ import { concatMapTo, tap } from 'rxjs/operators';
 export class ExtraFilesShellComponent implements OnInit {
   private extraFiles: string[] = [];
   private extraFiles$$ = new BehaviorSubject<string[]>([]);
+  private running$$ = new BehaviorSubject<boolean>(true);
+
   extraFiles$ = this.extraFiles$$.asObservable();
+  running$ = this.running$$.asObservable();
 
   constructor(private readonly service: FileSystemMaintenanceService, private readonly albumService: AlbumService, @Inject(BASE_PATH) private readonly basePath: string) {}
 
   ngOnInit(): void {
     this.service.getExtraFiles().subscribe();
+
     this.updateProgress();
   }
 
@@ -37,10 +41,21 @@ export class ExtraFilesShellComponent implements OnInit {
       )
       .subscribe();
 
-    this.service.extraFilesComplete().pipe(untilDestroyed(this), concatMapTo(this.service.cancelExtraFiles())).subscribe();
+    this.onComplete();
   }
 
   onOpenFolder(folder: string) {
     this.albumService.openFolder(`${this.basePath}/${folder}`).subscribe();
+  }
+
+  onComplete() {
+    this.service
+      .extraFilesComplete()
+      .pipe(untilDestroyed(this), concatMapTo(this.service.cancelExtraFiles()))
+      .subscribe(() => this.running$$.next(false));
+  }
+
+  onStop() {
+    this.onComplete();
   }
 }

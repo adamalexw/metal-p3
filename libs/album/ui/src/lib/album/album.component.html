@@ -60,25 +60,30 @@
             <mat-icon *ngIf="artistUrl" matSuffix (click)="getBandProps(artistUrl)">flag</mat-icon>
           </mat-form-field>
         </mat-list-item>
-        <mat-list-item class="my-2">
-          <mat-form-field class="w-full">
-            <mat-label>Album Url</mat-label>
-            <input matInput formControlName="albumUrl" />
-            <mat-icon *ngIf="albumUrl" matSuffix (click)="openLink(albumUrl)">link</mat-icon>
-          </mat-form-field>
-        </mat-list-item>
-        <mat-list-item class="my-2">
-          <mat-form-field class="w-full">
-            <mat-label>Artist Url</mat-label>
-            <input matInput formControlName="artistUrl" />
-            <mat-icon *ngIf="artistUrl" matSuffix (click)="openLink(artistUrl)">link</mat-icon>
-          </mat-form-field>
-        </mat-list-item>
+        <ng-container *ngIf="!form.get('ignore').value ?? false">
+          <mat-list-item class="my-2">
+            <mat-form-field class="w-full">
+              <mat-label>Album Url</mat-label>
+              <input matInput formControlName="albumUrl" />
+              <mat-icon *ngIf="albumUrl" matSuffix (click)="openLink(albumUrl)">link</mat-icon>
+            </mat-form-field>
+          </mat-list-item>
+          <mat-list-item class="my-2">
+            <mat-form-field class="w-full">
+              <mat-label>Artist Url</mat-label>
+              <input matInput formControlName="artistUrl" />
+              <mat-icon *ngIf="artistUrl" matSuffix (click)="openLink(artistUrl)">link</mat-icon>
+            </mat-form-field>
+          </mat-list-item>
+        </ng-container>
         <mat-list-item class="mt-2">
           <mat-form-field class="w-10">
             <mat-label>Year</mat-label>
             <input matInput formControlName="year" />
           </mat-form-field>
+          <div *ngIf="!albumUrl" class="w-full text-right">
+            <mat-checkbox formControlName="ignore"> Ignore Metal Archives </mat-checkbox>
+          </div>
         </mat-list-item>
         <mat-list-item>
           <mat-checkbox formControlName="transferred"> Transferred </mat-checkbox>

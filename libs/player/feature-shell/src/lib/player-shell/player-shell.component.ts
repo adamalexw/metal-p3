@@ -55,7 +55,6 @@ export class PlayerShellComponent implements OnInit {
       tap((url) => {
         if (url) {
           this.audioElement.src = url;
-          console.log('v', this.audioElement.volume);
         }
       })
     )

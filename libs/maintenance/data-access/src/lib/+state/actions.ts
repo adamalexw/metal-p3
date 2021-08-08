@@ -1,4 +1,4 @@
-import { LyricsHistoryDto } from '@metal-p3/maintenance/domain';
+import { LyricsHistoryDto, UrlMatcher } from '@metal-p3/maintenance/domain';
 import { PlaylistItem } from '@metal-p3/player/domain';
 import { Update } from '@ngrx/entity';
 import { createAction, props } from '@ngrx/store';
@@ -25,3 +25,10 @@ export const checkedLyricsHistorySuccess = createAction('[Maintenance] Checked L
 export const checkedLyricsHistoryError = createAction('[Maintenance] Checked Lyrics History Error', props<{ id: number; error: string }>());
 
 export const stopLyricsCheck = createAction('[Maintenance] Stop Lyrics History Check');
+
+export const getUrlMatcher = createAction('[Maintenance] Get Url Matcher');
+export const getUrlMatcherSuccess = createAction('[Maintenance] Get Url Matcher Success', props<{ albums: UrlMatcher[] }>());
+export const getUrlMatcherError = createAction('[Maintenance] Get Url Matcher Error', props<{ error: string }>());
+export const startUrlMatcher = createAction('[Maintenance] Start Url Matcher');
+export const updateUrlMatcher = createAction('[Maintenance] Update Url Matcher', props<{ update: Update<UrlMatcher> }>());
+export const stopUrlMatcher = createAction('[Maintenance] Stop Url Matcher');

@@ -31,7 +31,7 @@ export class AlbumService {
 
     if (request.criteria) {
       where = {
-        Folder: { startsWith: request.criteria },
+        Folder: { contains: request.criteria },
       };
     }
 
@@ -57,6 +57,7 @@ export class AlbumService {
       country: band.Country,
       albumUrl: album.MetalArchiveUrl,
       artistUrl: band.MetalArchiveUrl,
+      ignore: album.IgnoreMetalArchives ?? false,
       transferred: album.Transferred,
       hasLyrics: album.Lyrics,
       dateCreated: album.Created.toISOString(),
@@ -167,6 +168,7 @@ export class AlbumService {
       Folder: albumDto.folder,
       Lyrics: albumDto.hasLyrics,
       MetalArchiveUrl: albumDto.albumUrl,
+      IgnoreMetalArchives: albumDto.ignore,
       Name: albumDto.album,
       Transferred: albumDto.transferred,
       Year: +albumDto.year,
