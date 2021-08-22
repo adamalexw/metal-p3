@@ -47,10 +47,13 @@ export class FileSystemService {
   }
 
   filenameValidator(filename: string): string {
-    return filename
-      .replace(/\n/g, ' ')
-      .replace(/[<>:"/\\|?*\x00-\x1F]| +$/g, '')
-      .replace(/^(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])$/, (x) => x + '_');
+    return (
+      filename
+        .replace(/\n/g, ' ')
+        // eslint-disable-next-line no-control-regex
+        .replace(/[<>:"/\\|?*\x00-\x1F]| +$/g, '')
+        .replace(/^(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])$/, (x) => x + '_')
+    );
   }
 
   getFileStats(file: string) {

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { Inject, Injectable } from '@angular/core';
 import { AlbumService } from '@metal-p3/album/data-access';
 import { BASE_PATH } from '@metal-p3/album/domain';
@@ -152,7 +151,7 @@ export class AlbumEffects {
       mergeMap(({ album }) =>
         this.service.saveAlbum(album).pipe(
           map(() => {
-            const { cover, ...rest } = album;
+            const { cover: _, ...rest } = album;
             return rest;
           }),
           map((album) => saveAlbumSuccess({ update: { id: album.id, changes: { ...album, saving: false, saveError: undefined } } })),
@@ -241,7 +240,7 @@ export class AlbumEffects {
       ofType(renameFolderSuccess),
       map(({ update }) => ({ id: update.id, fullPath: update.changes.fullPath })),
       concatLatestFrom(() => this.store.pipe(select(selectTracks))),
-      filter(([{ id, fullPath }, tracks]) => !!tracks),
+      filter(([_, tracks]) => !!tracks),
       map(([{ id, fullPath }, tracks]) => {
         const updates = (tracks || []).map((track) => ({ id: track.id, changes: { folder: fullPath, fullPath: `${fullPath}/${track.file}` } })) as Update<Track>[];
 

@@ -14,43 +14,43 @@ export class ApplyLyricsComponent implements OnChanges {
   albumId!: number;
 
   @Input()
-  tracks: Track[] = [];
+  tracks: Track[] | null | undefined = [];
 
   @Input()
-  tracksLoading = false;
+  tracksLoading: boolean | null = false;
 
   @Input()
-  maTracks: MetalArchivesAlbumTrack[] = [];
+  maTracks: MetalArchivesAlbumTrack[] | null | undefined = [];
 
   @Input()
   maTracksLoading = false;
 
   @Input()
-  lyricsLoadingProgress = 0;
+  lyricsLoadingProgress: number | null = 0;
 
   @Input()
-  applyingProgress = 0;
+  applyingProgress: number | null = 0;
 
   @Input()
-  applying = false;
+  applying: boolean | null = false;
 
   @Input()
-  trackTransferring = false;
+  trackTransferring: boolean | null = false;
 
   @Input()
-  trackTransferringProgress = 0;
+  trackTransferringProgress: number | null = 0;
 
   @Input()
-  albumUrl = '';
+  albumUrl: string | null | undefined;
 
   @Input()
-  coverLoading = false;
+  coverLoading: boolean | null = false;
 
   @Input()
-  cover: string | undefined;
+  cover: string | null | undefined;
 
   @Input()
-  folder = '';
+  folder: string | null | undefined;
 
   @Input()
   showClose = true;
@@ -69,11 +69,11 @@ export class ApplyLyricsComponent implements OnChanges {
 
   ngOnChanges(changes: SimpleChanges): void {
     if ((changes.tracks || changes.maTracks) && !this.applyingProgress && !this.trackTransferring) {
-      this.mapDataSource(this.tracks, this.maTracks);
+      this.mapDataSource(this.tracks || [], this.maTracks || []);
     }
   }
 
-  trackByFn(index: number, item: ApplyLyrics) {
+  trackByFn(_index: number, item: ApplyLyrics) {
     return item.id;
   }
 

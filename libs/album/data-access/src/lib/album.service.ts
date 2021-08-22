@@ -21,7 +21,7 @@ export class AlbumService {
   }
 
   getAlbum(id: number): Observable<AlbumDto> {
-    return this.http.get<AlbumDto>(`${this.baseUrl}?id=${id}`);
+    return this.http.get<AlbumDto>(`${this.baseUrl}/${id}`);
   }
 
   addNewAlbum(folder: string): Observable<AlbumDto> {

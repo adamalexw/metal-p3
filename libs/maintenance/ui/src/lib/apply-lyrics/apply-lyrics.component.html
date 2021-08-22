@@ -5,12 +5,12 @@
 
 <ng-template #lyricsTemplate>
   <app-lyrics-toolbar
-    [applying]="applying"
-    [trackTransferring]="trackTransferring"
+    [applying]="applying || false"
+    [trackTransferring]="trackTransferring || false"
     [albumId]="albumId"
     [albumUrl]="albumUrl"
     [cover]="cover"
-    [coverLoading]="coverLoading"
+    [coverLoading]="coverLoading || false"
     [folder]="folder"
     [showClose]="showClose"
     (apply)="onApply()"
@@ -60,7 +60,7 @@
     <ng-container matColumnDef="selected">
       <mat-header-cell *matHeaderCellDef><mat-checkbox [checked]="true" (change)="onSelectAll($event.checked)"></mat-checkbox></mat-header-cell>
       <mat-cell *matCellDef="let element">
-        <mat-checkbox [(checked)]="element.selected" (change)="onSelectItem(element.id, $event.checked)"></mat-checkbox>
+        <mat-checkbox [checked]="element.selected" (change)="onSelectItem(element.id, $event.checked)"></mat-checkbox>
       </mat-cell>
     </ng-container>
 

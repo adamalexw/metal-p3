@@ -8,7 +8,7 @@ import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from 
 })
 export class ExtraFilesComponent {
   @Input()
-  folders: string[] = [];
+  folders: string[] | null = [];
 
   @Output()
   readonly openFolder = new EventEmitter<string>();

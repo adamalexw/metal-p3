@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { Inject, Injectable } from '@angular/core';
 import { BASE_PATH } from '@metal-p3/album/domain';
 import { ErrorService } from '@metal-p3/shared/error';
@@ -122,8 +121,7 @@ export class TrackEffects {
     this.actions$.pipe(
       ofType(deleteTrack),
       mergeMap(({ id, track }) =>
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        this.service.deleteTrack(track.fullPath!).pipe(
+        this.service.deleteTrack(track.fullPath || '').pipe(
           map(() => deleteTrackSuccess({ id, track })),
           catchError((error) => of(deleteTrackError({ id, trackId: track.id, error: this.errorService.getError(error) })))
         )

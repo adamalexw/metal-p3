@@ -104,7 +104,6 @@ export class AlbumService {
           const file = files[index];
           if (path.extname(file) == '.mp3') {
             const tags = this.trackService.getTags(path.join(folder, file));
-
             return tags;
           }
         }
@@ -132,7 +131,7 @@ export class AlbumService {
     const input: Prisma.AlbumCreateInput = {
       Folder: folder,
       Name: tags.album,
-      Year: tags.year && +tags.year,
+      Year: Number.isInteger(tags.year) ? +tags.year : new Date().getFullYear(),
       Transferred: false,
       Lyrics: lyrics,
       LyricsDate: lyrics ? new Date() : null,

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { ChangeDetectionStrategy, Component, EventEmitter, OnInit, Output } from '@angular/core';
 import { Router } from '@angular/router';
 import { AlbumService } from '@metal-p3/album/data-access';
@@ -58,6 +57,7 @@ import {
   viewAlbum,
 } from '@metal-p3/shared/data-access';
 import { NotificationService } from '@metal-p3/shared/feedback';
+import { nonNullable } from '@metal-p3/shared/utils';
 import { Track } from '@metal-p3/track/domain';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { Update } from '@ngrx/entity';
@@ -154,19 +154,19 @@ export class AlbumShellComponent implements OnInit {
       )
       .subscribe();
 
-    combineLatest([this.album$, this.store.pipe(select(selectTracksRequired))])
+    combineLatest([this.album$.pipe(nonNullable()), this.store.pipe(select(selectTracksRequired))])
       .pipe(
         untilDestroyed(this),
-        filter(([album, required]) => album && !album.tracksLoading && required),
+        filter(([album, required]) => !album.tracksLoading && required),
         map(([album]) => ({ id: album?.id, folder: album?.folder })),
         tap(({ id, folder }) => this.store.dispatch(getTracks({ id, folder })))
       )
       .subscribe();
 
-    combineLatest([this.album$, this.cover$])
+    combineLatest([this.album$.pipe(nonNullable()), this.cover$])
       .pipe(
         untilDestroyed(this),
-        filter(([album, cover]) => album && !album.cover && !cover),
+        filter(([album, cover]) => !album.cover && !cover),
         map(([album]) => ({ id: album?.id, folder: album?.folder })),
         take(1),
         tap(({ id, folder }) => this.store.dispatch(getCover({ id, folder })))
@@ -175,9 +175,8 @@ export class AlbumShellComponent implements OnInit {
 
     this.album$
       .pipe(
-        filter((album) => !!album),
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        tap((album) => this.store.dispatch(getExtraFiles({ id: album!.id, folder: album!.folder }))),
+        nonNullable(),
+        tap((album) => this.store.dispatch(getExtraFiles({ id: album.id, folder: album.folder }))),
         take(1)
       )
       .subscribe();
@@ -188,8 +187,8 @@ export class AlbumShellComponent implements OnInit {
       .pipe(
         untilDestroyed(this),
         filter((error) => !!error),
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        tap((error) => this.notificationService.showError(error!, 'Save'))
+        nonNullable(),
+        tap((error) => this.notificationService.showError(error, 'Save'))
       )
       .subscribe();
   }
@@ -257,18 +256,14 @@ export class AlbumShellComponent implements OnInit {
   }
 
   onMaTracks(id: number, url: string) {
-    combineLatest([this.tracks$, this.getMaTracks(id, url)])
+    combineLatest([this.tracks$.pipe(nonNullable()), this.getMaTracks(id, url).pipe(nonNullable())])
       .pipe(
-        filter(([tracks, maTracks]) => !!tracks && !!maTracks),
         tap(([tracks, maTracks]) => {
           const updates: Update<Track>[] = [];
 
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          for (let index = 0; index < tracks!.length; index++) {
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            const track = tracks![index];
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            const maTrack = maTracks![index];
+          for (let index = 0; index < tracks.length; index++) {
+            const track = tracks[index];
+            const maTrack = maTracks[index];
 
             updates.push({ id: track.id, changes: { trackNumber: maTrack.trackNumber, title: maTrack.title } });
           }

@@ -1,0 +1,8 @@
+app-nav-toolbar {
+  ::ng-deep {
+    .mat-toolbar-row,
+    .mat-toolbar-single-row {
+      padding-left: 0;
+    }
+  }
+}

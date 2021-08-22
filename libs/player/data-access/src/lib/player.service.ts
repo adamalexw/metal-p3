@@ -45,8 +45,7 @@ export class PlayerService {
         map((size) => this.mapTrackToPlaylistItem(track, albumId, size ? size + 1 : 0)),
         tap((track) => {
           this.store.dispatch(addTrackToPlaylist({ track }));
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          this.store.dispatch(getItemCover({ id: track.id, folder: track.folder! }));
+          this.store.dispatch(getItemCover({ id: track.id, folder: track.folder || '' }));
         }),
         tap((track) => {
           if (play || track.index === 0) {
@@ -83,8 +82,7 @@ export class PlayerService {
   private addTracks(tracks: PlaylistItem[] | undefined) {
     if (tracks) {
       this.store.dispatch(addTracksToPlaylist({ tracks }));
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      tracks.forEach((track) => this.store.dispatch(getItemCover({ id: track.id, folder: track.folder! })));
+      tracks.forEach((track) => this.store.dispatch(getItemCover({ id: track.id, folder: track.folder || '' })));
     }
   }
 }

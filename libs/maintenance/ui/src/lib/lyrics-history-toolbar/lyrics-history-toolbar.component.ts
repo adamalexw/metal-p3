@@ -8,10 +8,10 @@ import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from 
 })
 export class LyricsHistoryToolbarComponent {
   @Input()
-  getting = false;
+  getting: boolean | null = false;
 
   @Input()
-  checking = false;
+  checking: boolean | null = false;
 
   @Output()
   readonly viewPriority = new EventEmitter<void>();

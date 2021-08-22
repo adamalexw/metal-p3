@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { Inject, Injectable } from '@angular/core';
 import { BASE_PATH } from '@metal-p3/album/domain';
 import { CoverService } from '@metal-p3/cover/data-access';
@@ -81,13 +80,13 @@ export class PlayerEffects {
     this.actions$.pipe(
       ofType(removeItem),
       concatLatestFrom(({ id }) => this.store.pipe(select(selectItemById(id)))),
-      tap(([{ id }, item]) => {
+      tap(([_, item]) => {
         if (item) {
           typeof item.cover === 'string' ? URL.revokeObjectURL(item.cover) : '';
           typeof item.url === 'string' ? URL.revokeObjectURL(item.url) : '';
         }
       }),
-      map(([{ id }, item]) => id),
+      map(([{ id }, _item]) => id),
       map((id) => removeItemSuccess({ id }))
     )
   );

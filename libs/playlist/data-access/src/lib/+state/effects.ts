@@ -1,11 +1,10 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { Injectable } from '@angular/core';
 import { PlayerService, removeItem, selectItemById, selectPlaylist, updatePlaylist } from '@metal-p3/player/data-access';
 import { PlaylistItem } from '@metal-p3/player/domain';
 import { playlistItemToDto } from '@metal-p3/player/util';
 import { PlaylistDto } from '@metal-p3/playlist/domain';
 import { ErrorService } from '@metal-p3/shared/error';
+import { nonNullable } from '@metal-p3/shared/utils';
 import { TrackService } from '@metal-p3/track/data-access';
 import { Track } from '@metal-p3/track/domain';
 import { Actions, concatLatestFrom, createEffect, ofType } from '@ngrx/effects';
@@ -47,14 +46,14 @@ export class PlayerEffects {
     this.actions$.pipe(
       ofType(loadPlaylist),
       concatLatestFrom(({ id }) => this.store.pipe(select(selectPlaylistById(id)))),
-      tap(([{ id }, playlist]) => {
+      tap(([_, playlist]) => {
         const tracks: Observable<Track>[] = [];
 
         playlist?.items.forEach((item) => tracks.push(this.trackService.getTrack(item.itemPath).pipe(map((track) => ({ ...track, playlistItemId: item.id })))));
 
         this.playerService.playPlaylist(tracks);
       }),
-      map(([{ id }, playlist]) => loadPlaylistSuccess({ id }))
+      map(([{ id }, _playlist]) => loadPlaylistSuccess({ id }))
     )
   );
 
@@ -80,9 +79,9 @@ export class PlayerEffects {
   save$ = createEffect(() =>
     this.actions$.pipe(
       ofType(savePlaylist),
-      withLatestFrom(this.store.pipe(select(selectActivePlaylistId)), this.store.pipe(select(selectPlaylist))),
+      withLatestFrom(this.store.pipe(select(selectActivePlaylistId), nonNullable()), this.store.pipe(select(selectPlaylist))),
       map(([{ name }, id, items]) => ({
-        id: id!,
+        id,
         name,
         items: items.map((item) => playlistItemToDto(item, id)),
       })),
@@ -124,10 +123,10 @@ export class PlayerEffects {
     () =>
       this.actions$.pipe(
         ofType(removeItem),
-        concatLatestFrom(({ id }) => this.store.pipe(select(selectItemById(id)))),
-        map(([{ id }, item]) => item),
-        filter((item) => !!item?.playlistItemId),
-        concatMap((item) => this.playlistService.removeItem(item!.playlistItemId!))
+        concatLatestFrom(({ id }) => this.store.pipe(select(selectItemById(id)), nonNullable())),
+        map(([_, item]) => item),
+        filter((item) => !!item.playlistItemId),
+        concatMap((item) => this.playlistService.removeItem(item.playlistItemId || 0))
       ),
     {
       dispatch: false,
@@ -137,10 +136,10 @@ export class PlayerEffects {
   delete$ = createEffect(() =>
     this.actions$.pipe(
       ofType(deletePlaylist),
-      withLatestFrom(this.store.pipe(select(selectActivePlaylistId))),
+      withLatestFrom(this.store.pipe(select(selectActivePlaylistId)).pipe(nonNullable())),
       concatMap(([_, id]) =>
-        this.playlistService.deletePlaylist(id!).pipe(
-          map(() => deletePlaylistSuccess({ id: id! })),
+        this.playlistService.deletePlaylist(id).pipe(
+          map(() => deletePlaylistSuccess({ id })),
           catchError((error) => {
             return of(deletePlaylistError({ error }));
           })

@@ -3,7 +3,7 @@ import { AlbumDto, MetalArchivesAlbumTrack, MetalArchivesSearchResponse, RenameF
 import { FileSystemService } from '@metal-p3/shared/file-system';
 import { MetalArchivesService } from '@metal-p3/shared/metal-archives';
 import { TrackService } from '@metal-p3/track/api';
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Patch, Post, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Patch, Post, Query } from '@nestjs/common';
 import { join } from 'path';
 import { Observable, of } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
@@ -21,11 +21,6 @@ export class AlbumController {
   @Get('search')
   albums(@Query('take') take?: number, @Query('skip') skip?: number, @Query('criteria') criteria?: string): Observable<AlbumDto[]> {
     return this.albumService.getAlbums({ take: +take, skip: +skip, criteria });
-  }
-
-  @Get()
-  album(@Query('id') id: number): Observable<AlbumDto> {
-    return this.albumService.getAlbum(+id);
   }
 
   @Get('tracks')
@@ -90,6 +85,11 @@ export class AlbumController {
   @Get('createAlbumFromRootFiles')
   createAlbumFromRootFiles(@Query('folder') folder: string): string[] {
     return this.albumService.createAlbumFromRootFiles(folder);
+  }
+
+  @Get(':id')
+  album(@Param('id') id: number): Observable<AlbumDto> {
+    return this.albumService.getAlbum(+id);
   }
 
   @Delete()

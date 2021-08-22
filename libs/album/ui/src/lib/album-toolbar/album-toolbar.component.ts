@@ -8,16 +8,16 @@ import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from 
 })
 export class AlbumToolbarComponent {
   @Input()
-  saving = false;
+  saving: boolean | null = false;
 
   @Input()
-  findingUrl = false;
+  findingUrl: boolean | null = false;
 
   @Input()
-  renamingFolder = false;
+  renamingFolder: boolean | null = false;
 
   @Input()
-  trackTransferring = false;
+  trackTransferring: boolean | null = false;
 
   @Input()
   folder = '';

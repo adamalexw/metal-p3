@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { Injectable } from '@angular/core';
 import { BandService } from '@metal-p3/band/data-access';
 import { Actions, createEffect, ofType } from '@ngrx/effects';

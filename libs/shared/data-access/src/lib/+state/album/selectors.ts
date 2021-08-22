@@ -19,11 +19,11 @@ export const selectAlbumsLoaded = createSelector(selectAlbumState, (state: Album
 export const selectAlbumsLoadError = createSelector(selectAlbumState, (state: AlbumState) => state?.loadError);
 export const selectAlbumsSearchCriteria = createSelector(selectAlbumState, (state: AlbumState) => state?.searchRequest?.criteria);
 
-export const selectFindingUrl = createSelector(selectAlbum, (album) => album?.findingUrl);
+export const selectFindingUrl = createSelector(selectAlbum, (album) => album?.findingUrl || false);
 export const selectMaUrls = createSelector(selectAlbum, (album) => ({ artistUrl: album?.artistUrl, albumUrl: album?.albumUrl }));
 
-export const selectCreatingNew = createSelector(selectAlbumState, (state) => state.creatingNew);
-export const selectRenamingFolder = createSelector(selectAlbum, (album) => album?.renamingFolder);
+export const selectCreatingNew = createSelector(selectAlbumState, (state) => state.creatingNew || false);
+export const selectRenamingFolder = createSelector(selectAlbum, (album) => album?.renamingFolder || false);
 export const selectRenamingFolderError = createSelector(selectAlbum, (album) => album?.renamingFolderError);
 
 export const selectAlbumFolder = createSelector(selectAlbum, (album) => album?.folder);

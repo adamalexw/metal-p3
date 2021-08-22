@@ -44,7 +44,6 @@ export class FileSystemMaintenanceService {
         tap((folders) => {
           for (let index = 0; index < folders.length; index++) {
             const folder = folders[index];
-            console.log('🚀 ~ file: file-system.service.ts ~ line 47 ~ FileSystemMaintenanceService ~ tap ~ folder', folder);
             if (this.fileSystemService.hasExtraFiles(this.basePath, folder)) {
               this.maintenanceGateway.extraFiles(folder);
             }

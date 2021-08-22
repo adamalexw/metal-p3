@@ -27,14 +27,12 @@ import {
   viewAlbum,
 } from '@metal-p3/shared/data-access';
 import { NotificationService } from '@metal-p3/shared/feedback';
-import { toChunks } from '@metal-p3/shared/utils';
+import { nonNullable, toChunks } from '@metal-p3/shared/utils';
 import { Track } from '@metal-p3/track/domain';
-import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { select, Store } from '@ngrx/store';
 import { combineLatest, Observable } from 'rxjs';
 import { delay, filter, map, startWith, take, tap } from 'rxjs/operators';
 
-@UntilDestroy()
 @Component({
   selector: 'app-list',
   templateUrl: './list.component.html',
@@ -86,10 +84,8 @@ export class ListComponent implements OnInit {
   ngOnInit(): void {
     this.albumsLoadError$
       .pipe(
-        filter((error) => !!error),
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        tap((error) => this.notificationService.showError(error!, 'Load Albums')),
-        untilDestroyed(this)
+        nonNullable(),
+        tap((error) => this.notificationService.showError(error, 'Load Albums'))
       )
       .subscribe();
 
@@ -97,8 +93,7 @@ export class ListComponent implements OnInit {
       .albumAdded()
       .pipe(
         delay(2000),
-        tap((folder) => this.onAlbumAdded([folder])),
-        untilDestroyed(this)
+        tap((folder) => this.onAlbumAdded([folder]))
       )
       .subscribe();
   }

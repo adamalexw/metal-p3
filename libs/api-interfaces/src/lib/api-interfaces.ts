@@ -20,9 +20,9 @@ export interface AlbumDto extends AlbumBase {
 
 export interface TrackDto extends AlbumBase {
   id: number;
-  fullPath?: string;
-  folder?: string;
-  file?: string;
+  fullPath: string;
+  folder: string;
+  file: string;
   trackNumber?: string;
   title?: string;
   bitrate?: number;

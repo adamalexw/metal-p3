@@ -12,7 +12,7 @@ export class ApplyLyricsToolbarComponent {
   applying = false;
 
   @Input()
-  albumUrl = '';
+  albumUrl: string | null | undefined;
 
   @Input()
   albumId!: number;
@@ -21,10 +21,10 @@ export class ApplyLyricsToolbarComponent {
   coverLoading = false;
 
   @Input()
-  cover: string | undefined;
+  cover: string | null | undefined;
 
   @Input()
-  folder = '';
+  folder: string | null | undefined;
 
   @Input()
   trackTransferring = false;

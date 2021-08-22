@@ -3,7 +3,7 @@
   <button mat-icon-button [disabled]="applying" (click)="apply.emit()">
     <mat-icon title="save">spellcheck</mat-icon>
   </button>
-  <button mat-icon-button (click)="openLink(albumUrl)">
+  <button *ngIf="albumUrl" mat-icon-button (click)="openLink(albumUrl)">
     <mat-icon title="url">link</mat-icon>
   </button>
   <button mat-icon-button [disabled]="trackTransferring" (click)="transfer.emit()">

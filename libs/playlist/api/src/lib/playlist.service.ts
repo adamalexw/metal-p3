@@ -87,7 +87,6 @@ export class PlaylistService {
   }
 
   removeItem(itemId: number): Observable<boolean | Error> {
-    console.log('🚀 ~ file: playlist.service.ts ~ line 91 ~ PlaylistService ~ removeItem ~ itemId', itemId);
     return from(this.dbService.removePlaylistItem({ where: { PlaylistItemId: itemId } })).pipe(
       mapTo(true),
       catchError((error) => {

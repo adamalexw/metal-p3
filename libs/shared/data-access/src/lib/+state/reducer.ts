@@ -85,6 +85,8 @@ export const maTrackAdapter: EntityAdapter<MetalArchivesAlbumTrack> = createEnti
 export const initialState = adapter.getInitialState({
   loading: false,
   loaded: false,
+  tracks: trackAdapter.getInitialState(),
+  maTracks: maTrackAdapter.getInitialState(),
 });
 
 export const reducer = createReducer(
@@ -179,7 +181,7 @@ export const reducer = createReducer(
       {
         id,
         changes: {
-          tracks: trackAdapter.setAll(tracks, state),
+          tracks: trackAdapter.setAll(tracks, state.tracks),
           tracksLoading: false,
         },
       },
@@ -254,7 +256,7 @@ export const reducer = createReducer(
       {
         id,
         changes: {
-          maTracks: maTrackAdapter.setAll(maTracks, state),
+          maTracks: maTrackAdapter.setAll(maTracks, state.maTracks),
           gettingMaTracks: false,
         },
       },

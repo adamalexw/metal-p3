@@ -28,6 +28,7 @@ import {
   transferTrack,
   viewAlbum,
 } from '@metal-p3/shared/data-access';
+import { nonNullable } from '@metal-p3/shared/utils';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { select, Store } from '@ngrx/store';
 import { combineLatest } from 'rxjs';
@@ -93,28 +94,25 @@ export class ApplyLyricsShellComponent implements OnInit {
         filter((album) => !album),
         take(1),
         withLatestFrom(this.albumId$),
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         tap(([_album, id]) => this.store.dispatch(getAlbum({ id })))
       )
       .subscribe();
 
-    combineLatest([this.album$, this.tracks$])
+    combineLatest([this.album$.pipe(nonNullable()), this.tracks$])
       .pipe(
         untilDestroyed(this),
-        filter(([album, tracks]) => !!album && !album.tracksLoading && !tracks),
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        map(([album]) => ({ id: album!.id, folder: album!.folder || '' })),
+        filter(([album, tracks]) => !album.tracksLoading && !tracks),
+        map(([album]) => ({ id: album.id, folder: album.folder })),
         tap(({ id, folder }) => this.store.dispatch(getTracks({ id, folder }))),
         take(1)
       )
       .subscribe();
 
-    combineLatest([this.album$, this.maTracks$])
+    combineLatest([this.album$.pipe(nonNullable()), this.maTracks$])
       .pipe(
         untilDestroyed(this),
-        filter(([album, maTracks]) => !!album?.albumUrl && !album.gettingMaTracks && !maTracks),
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        map(([album]) => ({ id: album!.id, url: album!.albumUrl || '' })),
+        filter(([album, maTracks]) => !!album.albumUrl && !album.gettingMaTracks && !maTracks),
+        map(([album]) => ({ id: album.id, url: album.albumUrl || '' })),
         tap(({ id, url }) => this.store.dispatch(getMaTracks({ id, url }))),
         take(1)
       )
@@ -132,11 +130,11 @@ export class ApplyLyricsShellComponent implements OnInit {
       )
       .subscribe();
 
-    combineLatest([this.album$, this.cover$])
+    combineLatest([this.album$.pipe(nonNullable()), this.cover$])
       .pipe(
         untilDestroyed(this),
-        filter(([album, cover]) => album && !album.cover && !cover),
-        map(([album]) => ({ id: album?.id, folder: album?.folder })),
+        filter(([album, cover]) => !album.cover && !cover),
+        map(([album]) => ({ id: album.id, folder: album.folder })),
         take(1),
         tap(({ id, folder }) => this.store.dispatch(getCover({ id, folder })))
       )

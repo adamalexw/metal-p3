@@ -11,7 +11,7 @@ import { LyricsHistoryDto } from '@metal-p3/maintenance/domain';
 })
 export class LyricsHistoryComponent implements OnChanges, AfterViewInit {
   @Input()
-  lyrics: LyricsHistoryDto[] = [];
+  lyrics: LyricsHistoryDto[] | null = [];
 
   @Output()
   readonly checked = new EventEmitter<{ id: number; checked: boolean }>();
@@ -28,7 +28,7 @@ export class LyricsHistoryComponent implements OnChanges, AfterViewInit {
   dataSource: MatTableDataSource<LyricsHistoryDto> = new MatTableDataSource();
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes.lyrics) {
+    if (changes.lyrics && this.lyrics) {
       this.dataSource = new MatTableDataSource(this.lyrics);
       this.dataSource.sort = this.sort;
     }
@@ -40,7 +40,7 @@ export class LyricsHistoryComponent implements OnChanges, AfterViewInit {
     }
   }
 
-  trackByFn(index: number, item: LyricsHistoryDto) {
+  trackByFn(_index: number, item: LyricsHistoryDto) {
     return item.id;
   }
 

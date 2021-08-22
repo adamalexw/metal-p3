@@ -17,64 +17,64 @@ export class AlbumComponent implements OnChanges {
   album: Album | null | undefined;
 
   @Input()
-  albumSaving: boolean | null | undefined = false;
+  albumSaving: boolean | null = false;
 
   @Input()
   tracks: Track[] | null | undefined = [];
 
   @Input()
-  tracksLoading: boolean | null | undefined = false;
+  tracksLoading: boolean | null = false;
 
   @Input()
-  albumDuration: number | null | undefined = 0;
+  albumDuration: number | null = 0;
 
   @Input()
-  trackSavingProgress: number | null | undefined = 0;
+  trackSavingProgress: number | null = 0;
 
   @Input()
-  coverLoading: boolean | null | undefined = false;
+  coverLoading: boolean | null = false;
 
   @Input()
   cover: string | null | undefined;
 
   @Input()
-  findingUrl: boolean | null | undefined = false;
+  findingUrl: boolean | null = false;
 
   @Input()
-  maUrls: MetalArchivesUrl | null | undefined;
+  maUrls: MetalArchivesUrl | null = null;
 
   @Input()
-  gettingMaTracks: boolean | null | undefined = false;
+  gettingMaTracks: boolean | null = false;
 
   @Input()
   maTracks: MetalArchivesAlbumTrack[] | null | undefined = [];
 
   @Input()
-  trackRenaming: boolean | null | undefined = false;
+  trackRenaming: boolean | null = false;
 
   @Input()
-  trackRenamingProgress: number | null | undefined = 0;
+  trackRenamingProgress: number | null = 0;
 
   @Input()
-  trackTransferring: boolean | null | undefined = false;
+  trackTransferring: boolean | null = false;
 
   @Input()
-  trackTransferringProgress: number | null | undefined = 0;
+  trackTransferringProgress: number | null = 0;
 
   @Input()
-  renamingFolder: boolean | null | undefined = false;
+  renamingFolder: boolean | null = false;
 
   @Input()
   renamingFolderError: string | null | undefined;
 
   @Input()
-  lyricsLoading: boolean | null | undefined = false;
+  lyricsLoading: boolean | null = false;
 
   @Input()
-  gettingBandProps: boolean | null | undefined = false;
+  gettingBandProps: boolean | null = false;
 
   @Input()
-  bandProps: BandProps | null | undefined;
+  bandProps: BandProps | null | undefined = null;
 
   @Output()
   readonly save = new EventEmitter<{ album: Album; tracks: Track[] }>();
@@ -172,8 +172,7 @@ export class AlbumComponent implements OnChanges {
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes.album && changes.album.currentValue && (changes.album.previousValue ? changes.album.currentValue.id !== changes.album.previousValue.id : !changes.album.previousValue)) {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { tracks, maTracks, ...rest } = changes.album.currentValue;
+      const { tracks: _tracks, maTracks: _maTracks, ...rest } = changes.album.currentValue;
       this.patchForm(rest);
     }
 
@@ -197,6 +196,14 @@ export class AlbumComponent implements OnChanges {
   private setMaUrls(urls: MetalArchivesUrl) {
     this.form.get('artistUrl')?.setValue(urls.artistUrl);
     this.form.get('albumUrl')?.setValue(urls.albumUrl);
+
+    this.checkBandProps(urls.artistUrl);
+  }
+
+  private checkBandProps(artistUrl: string | undefined) {
+    if (artistUrl && (!this.form.get('genre')?.value || this.form.get('country')?.value)) {
+      this.findBandProps.emit({ id: this.albumId, url: artistUrl });
+    }
   }
 
   private setBandProps(props: BandProps) {
@@ -206,8 +213,7 @@ export class AlbumComponent implements OnChanges {
 
   onSave(): void {
     const { folder, fullPath } = this.album as AlbumDto;
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { tracks, ...album } = this.form.getRawValue();
+    const { tracks: _tracks, ...album } = this.form.getRawValue();
 
     this.save.emit({
       album: {

@@ -21,6 +21,7 @@ import {
   updatePlaylistItem,
 } from '@metal-p3/player/data-access';
 import { PlaylistItem } from '@metal-p3/player/domain';
+import { nonNullable } from '@metal-p3/shared/utils';
 import { TrackService } from '@metal-p3/track/data-access';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { select, Store } from '@ngrx/store';
@@ -50,6 +51,7 @@ export class PlayerShellComponent implements OnInit {
     .pipe(
       untilDestroyed(this),
       filter((item) => !!item?.playing),
+      nonNullable(),
       distinctUntilKeyChanged('id'), // if we are reordering tracks we want to keep the current item playing
       concatMap((item) => iif(() => !!item?.url, of(item?.url), this.getBlobUrl(item?.id || '', item?.fullPath || ''))),
       tap((url) => {
@@ -95,7 +97,6 @@ export class PlayerShellComponent implements OnInit {
       .pipe(
         untilDestroyed(this),
         withLatestFrom(this.playlist$),
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         tap(([_ended, playlist]) => {
           const currentIndex = playlist.findIndex((pl) => pl.playing);
 
@@ -147,7 +148,6 @@ export class PlayerShellComponent implements OnInit {
   }
 
   onVolume(value: number) {
-    console.log('🚀 ~ file: player-shell.component.ts ~ line 147 ~ PlayerShellComponent ~ onVolume ~ value', value);
     this.audioElement.volume = value < 0 ? 0 : value;
   }
 

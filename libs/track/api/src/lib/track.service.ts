@@ -106,11 +106,11 @@ export class TrackService {
 
     const tags = this.mapTrackToTags(track, baseTags);
 
-    const result = this.updateTrack(tags, track.fullPath!);
+    const result = this.updateTrack(tags, track.fullPath);
 
     if (result instanceof Error) {
-      this.fileSystemService.setReadAndWritePermission(track.fullPath!);
-      return this.updateTrack(tags, track.fullPath!);
+      this.fileSystemService.setReadAndWritePermission(track.fullPath);
+      return this.updateTrack(tags, track.fullPath);
     }
 
     return result;
@@ -126,14 +126,21 @@ export class TrackService {
   }
 
   renameTrack(track: TrackDto): RenameTrack {
-    const file = `${track.trackNumber} - ${this.fileSystemService.filenameValidator(track.title!)}.mp3`;
-    const fullPath = `${track.folder}/${file}`;
+    if (track.title) {
+      const file = `${track.trackNumber} - ${this.fileSystemService.filenameValidator(track.title)}.mp3`;
+      const fullPath = `${track.folder}/${file}`;
 
-    this.fileSystemService.rename(track.fullPath!, fullPath);
+      this.fileSystemService.rename(track.fullPath, fullPath);
+
+      return {
+        file,
+        fullPath,
+      };
+    }
 
     return {
-      file,
-      fullPath,
+      file: track.file,
+      fullPath: track.fullPath,
     };
   }
 
