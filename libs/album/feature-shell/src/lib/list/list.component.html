@@ -9,7 +9,7 @@
   >
   </app-list-toolbar>
 
-  <cdk-virtual-scroll-viewport itemSize="400" minBufferPx="1200" maxBufferPx="2400" (scrolledIndexChange)="scrollIndexChange($event, criteria)" class="flex-grow w-full">
+  <cdk-virtual-scroll-viewport itemSize="360" minBufferPx="1080" maxBufferPx="1800" (scrolledIndexChange)="scrollIndexChange($event, criteria)" class="flex-grow w-full">
     <div appAddAlbum (albumAdded)="onAlbumAdded($event)">
       <div class="flex flex-row flex-wrap" *cdkVirtualFor="let albums of albumsView$; trackBy: trackByVirtualFn">
         <app-list-item
@@ -25,7 +25,6 @@
       </div>
     </div>
   </cdk-virtual-scroll-viewport>
-
   <footer>
     <app-player></app-player>
   </footer>

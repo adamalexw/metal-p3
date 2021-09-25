@@ -7,6 +7,7 @@ export interface OverlayCloseEvent<R> {
   data: R;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export class AppOverlayRef<R = any, T = any> {
   afterClosed$ = new Subject<OverlayCloseEvent<R | undefined>>();
 

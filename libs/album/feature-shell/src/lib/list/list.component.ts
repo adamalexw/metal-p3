@@ -54,9 +54,9 @@ export class ListComponent implements OnInit {
   albumsView$ = combineLatest([this.albums$, this.viewportWidth$, this.store.select(sideNavOpen)]).pipe(
     filter(([albums, width]) => !!albums && !!width),
     map(([albums, width, open]) => {
-      // if the side nav is open we only half the amount of space
-      const listWidth = open ? width / 2 : width;
-      const chunks = Math.floor(listWidth / 319);
+      // if the side nav is open we remove it's width
+      const listWidth = open ? width - 1130 : width;
+      const chunks = Math.floor(listWidth / 272);
 
       return toChunks(albums, chunks);
     })
@@ -179,14 +179,19 @@ export class ListComponent implements OnInit {
       return;
     }
 
-    const initialSize = 40;
+    const initialSize = 60;
     let skip = 0;
-    let take = 24;
+    let take = 36;
 
-    if (page === 0) {
-      take = initialSize;
-    } else {
-      skip = initialSize + take * page;
+    switch (page) {
+      case 0:
+        take = initialSize;
+        break;
+      case 1:
+        skip = initialSize;
+        break;
+      default:
+        skip = initialSize + take * (page - 1);
     }
 
     this.fetchedPages.add(page);

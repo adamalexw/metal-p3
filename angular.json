@@ -163,6 +163,8 @@
               "optimization": true,
               "extractLicenses": true,
               "inspect": false,
+              "generatePackageJson": false,
+              "externalDependencies": "all",
               "fileReplacements": [
                 {
                   "replace": "apps/api/src/environments/environment.ts",
@@ -1055,8 +1057,7 @@
           },
           "configurations": {
             "production": {
-              "browserTarget": "ui:build:production",
-              "proxyConfig": "apps/ui/proxy.conf.json"
+              "browserTarget": "ui:build:production"
             }
           }
         },

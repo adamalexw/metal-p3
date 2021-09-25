@@ -1,4 +1,4 @@
-<div class="modal-content">
+<div>
   <ng-container [ngSwitch]="contentType">
     <ng-container *ngSwitchCase="'string'">
       <div class="box">
@@ -15,5 +15,3 @@
     </ng-container>
   </ng-container>
 </div>
-
-<button (click)="close()" class="modal-close is-large" aria-label="close"></button>

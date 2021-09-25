@@ -1,16 +1,15 @@
-@import 'theme';
-
 .mini-mode {
   max-height: 64px;
 }
 
 .full-mode {
   z-index: 999;
+  transform: translateY(0px) !important;
 }
 
 app-playlist {
   display: block;
   height: calc(100% - 256px);
   overflow: auto;
-  background-color: $bg;
+  transform: translateY(0px) !important;
 }

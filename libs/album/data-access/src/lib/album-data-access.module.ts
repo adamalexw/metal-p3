@@ -1,11 +1,9 @@
 import { CommonModule } from '@angular/common';
 import { HttpClientModule } from '@angular/common/http';
 import { NgModule } from '@angular/core';
-import { SocketIoConfig, SocketIoModule } from 'ngx-socket-io';
-
-const config: SocketIoConfig = { url: 'http://localhost:3000', options: { transports: ['websocket'] } };
+import { SocketIoModule } from 'ngx-socket-io';
 
 @NgModule({
-  imports: [CommonModule, HttpClientModule, SocketIoModule.forRoot(config)],
+  imports: [CommonModule, HttpClientModule, SocketIoModule],
 })
 export class AlbumDataAccessModule {}

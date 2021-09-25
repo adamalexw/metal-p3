@@ -178,6 +178,11 @@ export class AlbumComponent implements OnChanges {
 
     if (changes.maUrls && this.maUrls?.albumUrl) {
       this.setMaUrls(this.maUrls);
+
+      const checkBandProps = !changes.maUrls.previousValue?.artistUrl;
+      if (checkBandProps) {
+        this.checkBandProps(this.maUrls.artistUrl);
+      }
     }
 
     if (changes.bandProps && this.bandProps) {
@@ -196,8 +201,6 @@ export class AlbumComponent implements OnChanges {
   private setMaUrls(urls: MetalArchivesUrl) {
     this.form.get('artistUrl')?.setValue(urls.artistUrl);
     this.form.get('albumUrl')?.setValue(urls.albumUrl);
-
-    this.checkBandProps(urls.artistUrl);
   }
 
   private checkBandProps(artistUrl: string | undefined) {

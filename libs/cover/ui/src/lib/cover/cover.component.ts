@@ -17,10 +17,10 @@ export class CoverComponent {
   coverError: string | undefined;
 
   @Input()
-  width: number | null = 270;
+  width: number | null = 238;
 
   @Input()
-  height: number | null = 270;
+  height: number | null = 238;
 
   @Input()
   enableDnd = false;

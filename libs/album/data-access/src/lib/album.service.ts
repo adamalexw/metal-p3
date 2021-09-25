@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
-import { ApplyLyrics, BASE_PATH, SearchRequest } from '@metal-p3/album/domain';
+import { API, ApplyLyrics, BASE_PATH, SearchRequest } from '@metal-p3/album/domain';
 import { AlbumDto, ALBUM_ADDED, MetalArchivesSearchResponse, RenameFolder, TrackDto } from '@metal-p3/api-interfaces';
 import { Socket } from 'ngx-socket-io';
 import { Observable } from 'rxjs';
@@ -10,9 +10,9 @@ import { map } from 'rxjs/operators';
   providedIn: 'root',
 })
 export class AlbumService {
-  readonly baseUrl = '/api/album';
+  readonly baseUrl = `${this.api}album`;
 
-  constructor(private http: HttpClient, @Inject(BASE_PATH) private readonly basePath: string, private socket: Socket) {}
+  constructor(private http: HttpClient, @Inject(API) private api: string, @Inject(BASE_PATH) private readonly basePath: string, private socket: Socket) {}
 
   getAlbums(request: Partial<SearchRequest>): Observable<AlbumDto[]> {
     const criteria = request.criteria ? `&criteria=${encodeURIComponent(request.criteria)}` : '';
@@ -29,7 +29,7 @@ export class AlbumService {
   }
 
   getTrack(file: string): Observable<TrackDto> {
-    return this.http.get<TrackDto>(`/api/trackDetails?file=${file}`);
+    return this.http.get<TrackDto>(`${this.api}trackDetails?file=${file}`);
   }
 
   getTracks(folder: string): Observable<TrackDto[]> {
@@ -61,11 +61,11 @@ export class AlbumService {
   }
 
   applyLyrics(id: number, lyrics: ApplyLyrics): Observable<AlbumDto> {
-    return this.http.patch<AlbumDto>('/api/applyLyrics', { id, lyrics });
+    return this.http.patch<AlbumDto>(`${this.api}applyLyrics`, { id, lyrics });
   }
 
   renameTrack(track: TrackDto): Observable<string> {
-    return this.http.patch<string>('/api/track/rename', track, { responseType: 'text' as 'json' });
+    return this.http.patch<string>(`${this.api}track/rename`, track, { responseType: 'text' as 'json' });
   }
 
   renameFolder(id: number, src: string, dest: string): Observable<RenameFolder> {

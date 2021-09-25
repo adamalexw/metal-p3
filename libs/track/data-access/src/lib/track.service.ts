@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
-import { ApplyLyrics } from '@metal-p3/album/domain';
+import { Inject, Injectable } from '@angular/core';
+import { API, ApplyLyrics } from '@metal-p3/album/domain';
 import { AlbumDto, MetalArchivesAlbumTrack, RenameTrack, TrackDto } from '@metal-p3/api-interfaces';
 import { Observable } from 'rxjs';
 
@@ -8,15 +8,17 @@ import { Observable } from 'rxjs';
   providedIn: 'root',
 })
 export class TrackService {
-  readonly baseUrl = '/api/track';
-  constructor(private http: HttpClient) {}
+  readonly baseUrl = `${this.api}track`;
+  readonly albumUrl = `${this.api}album`;
+
+  constructor(private http: HttpClient, @Inject(API) private api: string) {}
 
   getTrack(file: string): Observable<TrackDto> {
     return this.http.get<TrackDto>(`${this.baseUrl}/trackDetails?file=${encodeURIComponent(file)}`);
   }
 
   getTracks(folder: string): Observable<TrackDto[]> {
-    return this.http.get<TrackDto[]>(`/api/album/tracks?folder=${encodeURIComponent(folder)}`);
+    return this.http.get<TrackDto[]>(`${this.albumUrl}/tracks?folder=${encodeURIComponent(folder)}`);
   }
 
   saveTrack(track: TrackDto): Observable<never> {
@@ -24,15 +26,15 @@ export class TrackService {
   }
 
   getMaTracks(url: string): Observable<MetalArchivesAlbumTrack[]> {
-    return this.http.get<MetalArchivesAlbumTrack[]>(`/api/album/maTracks?url=${encodeURI(url)}`);
+    return this.http.get<MetalArchivesAlbumTrack[]>(`${this.albumUrl}/maTracks?url=${encodeURI(url)}`);
   }
 
   getLyrics(trackId: number): Observable<string> {
-    return this.http.get(`/api/album/getLyrics?trackId=${trackId}`, { responseType: 'text' });
+    return this.http.get(`${this.albumUrl}getLyrics?trackId=${trackId}`, { responseType: 'text' });
   }
 
   applyLyrics(id: number, lyrics: ApplyLyrics): Observable<AlbumDto> {
-    return this.http.patch<AlbumDto>('/api/applyLyrics', { id, lyrics });
+    return this.http.patch<AlbumDto>(`${this.api}/applyLyrics`, { id, lyrics });
   }
 
   renameTrack(track: TrackDto): Observable<RenameTrack> {

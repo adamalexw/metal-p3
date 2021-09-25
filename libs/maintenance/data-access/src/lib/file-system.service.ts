@@ -1,5 +1,6 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Inject, Injectable } from '@angular/core';
+import { API } from '@metal-p3/album/domain';
 import { EXTRA_FILES, EXTRA_FILES_COMPLETE } from '@metal-p3/api-interfaces';
 import { Socket } from 'ngx-socket-io';
 import { Observable } from 'rxjs';
@@ -8,9 +9,9 @@ import { Observable } from 'rxjs';
   providedIn: 'root',
 })
 export class FileSystemMaintenanceService {
-  readonly baseUrl = '/api/maintenance/file-system';
+  readonly baseUrl = `${this.api}maintenance/file-system`;
 
-  constructor(private http: HttpClient, private socket: Socket) {}
+  constructor(private http: HttpClient, private socket: Socket, @Inject(API) private api: string) {}
 
   getUnmappedFolders(): Observable<string[]> {
     return this.http.get<string[]>(`${this.baseUrl}/unmappedFolders`);

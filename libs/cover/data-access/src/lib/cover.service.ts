@@ -1,5 +1,6 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Inject, Injectable } from '@angular/core';
+import { API } from '@metal-p3/album/domain';
 import { createToObjectUrl, mapBlobToBase64 } from '@metal-p3/shared/utils';
 import { Observable } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
@@ -8,9 +9,9 @@ import { map, switchMap } from 'rxjs/operators';
   providedIn: 'root',
 })
 export class CoverService {
-  readonly baseUrl = '/api/cover';
+  readonly baseUrl = `${this.api}cover`;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, @Inject(API) private api: string) {}
 
   getCover(location: string): Observable<string> {
     return this.http.get(`${this.baseUrl}?location=${encodeURIComponent(location)}`, { responseType: 'text' }).pipe(map(createToObjectUrl));
