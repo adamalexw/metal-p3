@@ -32,6 +32,9 @@
       "style": "scss",
       "prefix": "app",
       "changeDetection": "OnPush"
+    },
+    "@ngneat/spectator:spectator-component": {
+      "jest": true
     }
   },
   "projects": {

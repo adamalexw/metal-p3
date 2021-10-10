@@ -8,9 +8,9 @@ const { selectEntities, selectAll } = adapter.getSelectors();
 export const selectAlbumEntities = createSelector(selectAlbumState, selectEntities);
 export const selectAlbums = createSelector(selectAlbumState, (state: AlbumState) => selectAll(state));
 
-export const selectedAlbum = createSelector(selectAlbumState, (state: AlbumState) => state.selectedAlbum);
+export const selectedAlbumId = createSelector(selectAlbumState, (state: AlbumState) => state.selectedAlbumId);
 
-export const selectAlbum = createSelector(selectAlbumEntities, selectedAlbum, (albums, id) => (albums && id ? albums[id] : undefined));
+export const selectAlbum = createSelector(selectAlbumEntities, selectedAlbumId, (albums, id) => (albums && id ? albums[id] : undefined));
 export const selectAlbumById = (id: number) => createSelector(selectAlbumEntities, (entities) => entities && entities[id]);
 export const selectSaveAlbumError = createSelector(selectAlbum, (album) => album?.saveError);
 

@@ -100,9 +100,23 @@ export class PlayerShellComponent implements OnInit {
         tap(([_ended, playlist]) => {
           const currentIndex = playlist.findIndex((pl) => pl.playing);
 
+          if (playlist.length === 1) {
+            this.onSeekTo(0);
+            this.store.dispatch(pauseItem());
+            return;
+          }
+
+          if (currentIndex === playlist.length - 1) {
+            const id = playlist[0].id;
+            this.store.dispatch(playItem({ id }));
+            this.onPause();
+            return;
+          }
+
           if (currentIndex < playlist.length - 1) {
             const nextTrack = playlist[currentIndex + 1];
             this.onPlayItem(nextTrack.id);
+            return;
           }
         })
       )

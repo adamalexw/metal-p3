@@ -1,8 +1,9 @@
 .mat-column-action {
-    max-width: 72px;
-}
+  max-width: 64px;
+  min-width: 64px;
+  padding-left: 0 !important;
 
-.cover {
-    margin-left: -12px;
-    margin-right: 12px;
+  .mat-icon {
+    margin-left: 15px;
+  }
 }

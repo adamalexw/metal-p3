@@ -154,6 +154,7 @@ export class AlbumComponent implements OnChanges {
   }
 
   form: FormGroup;
+  shouldCheckBandProps = false;
 
   constructor(fb: FormBuilder, @Inject(WINDOW) readonly windowRef: Window, private notificationService: NotificationService) {
     this.form = fb.group({
@@ -176,12 +177,12 @@ export class AlbumComponent implements OnChanges {
       this.patchForm(rest);
     }
 
-    if (changes.maUrls && this.maUrls?.albumUrl) {
+    if (changes.maUrls && this.maUrls) {
       this.setMaUrls(this.maUrls);
 
-      const checkBandProps = !changes.maUrls.previousValue?.artistUrl;
-      if (checkBandProps) {
+      if (this.shouldCheckBandProps && this.maUrls.artistUrl) {
         this.checkBandProps(this.maUrls.artistUrl);
+        this.shouldCheckBandProps = false;
       }
     }
 
@@ -240,6 +241,7 @@ export class AlbumComponent implements OnChanges {
   }
 
   onFindUrl() {
+    this.shouldCheckBandProps = true;
     this.findUrl.emit({ id: this.albumId, artist: this.form.get('artist')?.value, album: this.form.get('album')?.value });
   }
 

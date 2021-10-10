@@ -16,5 +16,5 @@ export class HomeComponent {
 
   opened = true;
 
-  constructor(private store: Store) {}
+  constructor(private readonly store: Store) {}
 }

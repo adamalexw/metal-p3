@@ -69,7 +69,7 @@ export interface AlbumState extends EntityState<Album> {
   searchRequest?: SearchRequest;
   error?: HttpErrorResponse | Error;
   creatingNew?: boolean;
-  selectedAlbum?: number;
+  selectedAlbumId?: number;
 }
 
 function sortByDateCreated(a: Album, b: Album): number {
@@ -142,7 +142,7 @@ export const reducer = createReducer(
   on(clearAlbums, (state) => {
     return adapter.removeAll({ ...state, selectedAlbumId: null });
   }),
-  on(viewAlbum, (state, { id }) => ({ ...state, selectedAlbum: id })),
+  on(viewAlbum, (state, { id }) => ({ ...state, selectedAlbumId: id })),
   on(findMaUrl, (state, { id }) => adapter.updateOne({ id, changes: { findingUrl: true } }, state)),
   on(findMaUrlSuccess, (state, { update }) => {
     return adapter.updateOne(update, state);

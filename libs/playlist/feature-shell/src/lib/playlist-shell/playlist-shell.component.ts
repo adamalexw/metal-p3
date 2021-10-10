@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from 
 import { selectPlaylistItemSize, shufflePlaylist } from '@metal-p3/player/data-access';
 import { createPlaylist, deletePlaylist, loadPlaylist, loadPlaylists, savePlaylist, selectActivePlaylist, selectActivePlaylistId, selectPlaylists } from '@metal-p3/playlist/data-access';
 import { select, Store } from '@ngrx/store';
-import { map, tap } from 'rxjs/operators';
+import { map } from 'rxjs/operators';
 
 @Component({
   selector: 'app-playlist-shell',
@@ -26,7 +26,7 @@ export class PlaylistShellComponent {
     select(selectActivePlaylist),
     map((playlist) => playlist?.name)
   );
-  playlistSize$ = this.store.pipe(select(selectPlaylistItemSize)).pipe(tap(console.log));
+  playlistSize$ = this.store.pipe(select(selectPlaylistItemSize));
 
   constructor(private store: Store) {}
 

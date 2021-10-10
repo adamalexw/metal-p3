@@ -17,7 +17,7 @@ export class AlbumService {
   getAlbums(request: Partial<SearchRequest>): Observable<AlbumDto[]> {
     const criteria = request.criteria ? `&criteria=${encodeURIComponent(request.criteria)}` : '';
 
-    return this.http.get<AlbumDto[]>(`${this.baseUrl}/search?take=${request.take}&skip=${request.skip}${criteria}`);
+    return this.http.get<AlbumDto[]>(`${this.baseUrl}/search?take=${request.take || 25}&skip=${request.skip || 0}${criteria}`);
   }
 
   getAlbum(id: number): Observable<AlbumDto> {
@@ -26,14 +26,6 @@ export class AlbumService {
 
   addNewAlbum(folder: string): Observable<AlbumDto> {
     return this.http.post<AlbumDto>(this.baseUrl, { folder });
-  }
-
-  getTrack(file: string): Observable<TrackDto> {
-    return this.http.get<TrackDto>(`${this.api}trackDetails?file=${file}`);
-  }
-
-  getTracks(folder: string): Observable<TrackDto[]> {
-    return this.http.get<TrackDto[]>(`${this.baseUrl}/tracks?folder=${folder}`);
   }
 
   getExtraFiles(folder: string): Observable<boolean> {
@@ -53,7 +45,7 @@ export class AlbumService {
   }
 
   findMaUrl(artist: string, album: string): Observable<MetalArchivesSearchResponse> {
-    return this.http.get<MetalArchivesSearchResponse>(`${this.baseUrl}/findMaUrl?artist=${artist}&album=${album}`);
+    return this.http.get<MetalArchivesSearchResponse>(`${this.baseUrl}/findMaUrl?artist=${encodeURIComponent(artist)}&album=${encodeURIComponent(album)}`);
   }
 
   getLyrics(trackId: number): Observable<string> {

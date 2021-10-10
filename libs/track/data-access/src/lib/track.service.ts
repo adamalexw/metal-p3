@@ -30,7 +30,7 @@ export class TrackService {
   }
 
   getLyrics(trackId: number): Observable<string> {
-    return this.http.get(`${this.albumUrl}getLyrics?trackId=${trackId}`, { responseType: 'text' });
+    return this.http.get(`${this.albumUrl}/getLyrics?trackId=${trackId}`, { responseType: 'text' });
   }
 
   applyLyrics(id: number, lyrics: ApplyLyrics): Observable<AlbumDto> {

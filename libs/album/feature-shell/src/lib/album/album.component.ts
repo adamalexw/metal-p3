@@ -30,7 +30,7 @@ import {
   selectBandProps,
   selectCover,
   selectCoverLoading,
-  selectedAlbum,
+  selectedAlbumId,
   selectFindingUrl,
   selectGettingBandProps,
   selectGettingMaTracks,
@@ -90,7 +90,10 @@ export class AlbumShellComponent implements OnInit {
   cover$ = this.store.pipe(select(selectCover));
 
   findingUrl$ = this.store.pipe(select(selectFindingUrl));
-  maUrls$ = this.store.pipe(select(selectMaUrls));
+  maUrls$ = this.store.pipe(
+    select(selectMaUrls),
+    filter((urls) => !!urls && !!(urls.albumUrl || urls.artistUrl))
+  );
 
   trackRenaming$ = this.store.pipe(select(selectTrackRenaming));
   trackRenamingProgress$ = this.store.pipe(select(selectTrackRenamingProgress));
@@ -131,25 +134,28 @@ export class AlbumShellComponent implements OnInit {
   }
 
   private setState(): void {
+    // when refreshing the page get the album id from the url
     const albumId$ = this.routeId$.pipe(
-      withLatestFrom(this.store.pipe(select(selectedAlbum))),
+      withLatestFrom(this.store.pipe(select(selectedAlbumId))),
       filter(([routeId, selectedId]) => +routeId !== selectedId),
       tap(([routeId, _albumId]) => this.store.dispatch(viewAlbum({ id: routeId }))),
-      map(([routeId, _albumId]) => routeId),
-      take(1)
+      map(([routeId, _albumId]) => routeId)
     );
 
+    // wait for albums list to load
+    // select the id from the url
+    // if the album doesn't exist in the list get it from the api
     combineLatest([this.store.select(selectAlbumsLoaded), this.album$])
       .pipe(
         untilDestroyed(this),
         filter(([loaded, album]) => loaded && !album),
         withLatestFrom(albumId$),
-        take(1),
         map(([_album, id]) => id),
         filter((id) => !!id),
-        tap((id) => {
+        withLatestFrom(this.album$),
+        filter(([_id, album]) => !album),
+        tap(([id, _album]) => {
           this.store.dispatch(getAlbum({ id }));
-          this.store.dispatch(viewAlbum({ id }));
         })
       )
       .subscribe();
@@ -158,21 +164,23 @@ export class AlbumShellComponent implements OnInit {
       .pipe(
         untilDestroyed(this),
         filter(([album, required]) => !album.tracksLoading && required),
-        map(([album]) => ({ id: album?.id, folder: album?.folder })),
+        map(([album]) => ({ id: album.id, folder: album.folder })),
         tap(({ id, folder }) => this.store.dispatch(getTracks({ id, folder })))
       )
       .subscribe();
 
-    combineLatest([this.album$.pipe(nonNullable()), this.cover$])
+    // if the album doesn't have a cover dispatch an action to load it
+    combineLatest([this.album$.pipe(nonNullable()), this.cover$, this.coverLoading$])
       .pipe(
         untilDestroyed(this),
-        filter(([album, cover]) => !album.cover && !cover),
-        map(([album]) => ({ id: album?.id, folder: album?.folder })),
-        take(1),
+        filter(([album, cover, loading]) => !album.cover && !cover && !loading),
+        map(([album]) => ({ id: album.id, folder: album.folder })),
+        take(3),
         tap(({ id, folder }) => this.store.dispatch(getCover({ id, folder })))
       )
       .subscribe();
 
+    // when opening the album check for extra files
     this.album$
       .pipe(
         nonNullable(),
