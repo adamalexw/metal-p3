@@ -52,9 +52,6 @@
     "cover-data-access": {
       "tags": ["scope:cover", "type:data-access"]
     },
-    "cover-feature-shell": {
-      "tags": ["scope:cover", "type:feature"]
-    },
     "cover-ui": {
       "tags": ["scope:cover", "type:ui"]
     },

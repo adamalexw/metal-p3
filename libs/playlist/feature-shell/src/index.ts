@@ -1,1 +1,1 @@
-export * from './lib/playlist-feature-shell.module';
+export * from './lib/playlist-shell.module';

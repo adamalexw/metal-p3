@@ -1,1 +1,1 @@
-export * from './lib/shared-navigation.module';
+export * from './lib/nav-toolbar.module';

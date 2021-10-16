@@ -1,4 +1,5 @@
-import { Pipe, PipeTransform } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { NgModule, Pipe, PipeTransform } from '@angular/core';
 
 @Pipe({ name: 'bitrate' })
 export class BitRatePipe implements PipeTransform {
@@ -6,3 +7,10 @@ export class BitRatePipe implements PipeTransform {
     return bitrate / 1000;
   }
 }
+
+@NgModule({
+  imports: [CommonModule],
+  declarations: [BitRatePipe],
+  exports: [BitRatePipe],
+})
+export class BitRatePipeModule {}

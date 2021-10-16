@@ -10,13 +10,13 @@ import { UrlMatcher } from '@metal-p3/maintenance/domain';
 })
 export class UrlMatcherComponent implements OnChanges {
   @Input()
-  albums: UrlMatcher[] = [];
+  albums: UrlMatcher[] | null | undefined = [];
 
   displayedColumns = ['band', 'artistUrl', 'album', 'albumUrl', 'result', 'complete'];
   dataSource: MatTableDataSource<UrlMatcher> = new MatTableDataSource();
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes.albums) {
+    if (changes.albums && this.albums) {
       this.dataSource = new MatTableDataSource(this.albums);
     }
   }

@@ -1,5 +1,4 @@
 import { ErrorHandler, NgModule } from '@angular/core';
-import { MatSidenavModule } from '@angular/material/sidenav';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { RouterModule } from '@angular/router';
@@ -15,7 +14,7 @@ const config: SocketIoConfig = { url: environment.wsUrl, options: { transports: 
 
 @NgModule({
   declarations: [AppComponent],
-  imports: [BrowserModule, BrowserAnimationsModule, RouterModule, SharedDataAccessModule, AlbumFeatureShellModule, MatSidenavModule, SocketIoModule.forRoot(config)],
+  imports: [BrowserModule, BrowserAnimationsModule, RouterModule, SharedDataAccessModule, AlbumFeatureShellModule, SocketIoModule.forRoot(config)],
   providers: [
     { provide: API, useValue: environment.api },
     { provide: BASE_PATH, useValue: environment.baseFolderLocation },

@@ -1,8 +1,8 @@
 import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
-import { SharedFeedbackModule } from '@metal-p3/shared/feedback';
+import { NotificationModule } from '@metal-p3/shared/feedback';
 
 @NgModule({
-  imports: [CommonModule, SharedFeedbackModule],
+  imports: [CommonModule, NotificationModule],
 })
 export class SharedErrorModule {}

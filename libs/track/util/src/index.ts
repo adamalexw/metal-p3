@@ -1,1 +1,2 @@
-export * from './lib/track-util.module';
+export * from './lib/bitrate.pipe';
+export * from './lib/time.pipe';

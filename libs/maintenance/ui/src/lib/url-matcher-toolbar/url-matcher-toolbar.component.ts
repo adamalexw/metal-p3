@@ -11,7 +11,7 @@ export class UrlMatcherToolbarComponent {
   getting = false;
 
   @Input()
-  matching = false;
+  matching: boolean | null | undefined = false;
 
   @Output()
   readonly startMatching = new EventEmitter<void>();

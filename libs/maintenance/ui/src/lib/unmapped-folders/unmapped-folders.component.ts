@@ -8,7 +8,7 @@ import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from 
 })
 export class UnmappedFoldersComponent {
   @Input()
-  folders: string[] = [];
+  folders: string[] | null | undefined = [];
 
   @Output()
   readonly openFolder = new EventEmitter<string>();

@@ -1,5 +1,5 @@
-import { DatePipe } from '@angular/common';
-import { Pipe, PipeTransform } from '@angular/core';
+import { CommonModule, DatePipe } from '@angular/common';
+import { NgModule, Pipe, PipeTransform } from '@angular/core';
 
 @Pipe({ name: 'time' })
 export class TimePipe implements PipeTransform {
@@ -13,3 +13,10 @@ export class TimePipe implements PipeTransform {
     return new DatePipe('en-AU').transform(Math.ceil(time * 1000), format, 'UTC');
   }
 }
+
+@NgModule({
+  imports: [CommonModule],
+  declarations: [TimePipe],
+  exports: [TimePipe],
+})
+export class TimePipeModule {}

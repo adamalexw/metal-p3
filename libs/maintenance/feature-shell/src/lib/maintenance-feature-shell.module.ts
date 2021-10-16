@@ -1,17 +1,31 @@
-import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Routes } from '@angular/router';
 import { MaintenanceDataAccessModule } from '@metal-p3/maintenance/data-access';
-import { MaintenanceUiModule } from '@metal-p3/maintenance/ui';
-import { ApplyLyricsShellComponent } from './apply-lyrics/apply-lyrics.component';
-import { ExtraFilesShellComponent } from './extra-files/extra-files.component';
-import { LyricsHistoryShellComponent } from './lyrics-history/lyrics-history.component';
-import { MaintenanceFeatureShellRoutingModule } from './maintenance-feature-shell-routing.module';
-import { UnmappedFoldersShellComponent } from './unmapped-folders/unmapped-folders.component';
-import { UrlShellComponent } from './url/url.component';
 
+const routes: Routes = [
+  {
+    path: 'lyrics',
+    loadChildren: () => import('../lib/lyrics-history/lyrics-history.component.module').then((m) => m.LyricsHistoryShellComponentModule),
+  },
+  {
+    path: 'lyrics/:id',
+    loadChildren: () => import('../lib/apply-lyrics/apply-lyrics.component.module').then((m) => m.ApplyLyricsShellComponentModule),
+  },
+  {
+    path: 'folders',
+    loadChildren: () => import('../lib/unmapped-folders/unmapped-folders.component.module').then((m) => m.UnmappedFoldersShellComponentModule),
+  },
+  {
+    path: 'extraFiles',
+    loadChildren: () => import('../lib/extra-files/extra-files.component.module').then((m) => m.ExtraFilesShellComponentModule),
+  },
+  {
+    path: 'matcher',
+    loadChildren: () => import('../lib/url-matcher/url-matcher.component.module').then((m) => m.UrlMatcherShellComponentModule),
+  },
+];
 @NgModule({
-  imports: [CommonModule, RouterModule, MaintenanceFeatureShellRoutingModule, MaintenanceDataAccessModule, MaintenanceUiModule],
-  declarations: [LyricsHistoryShellComponent, ApplyLyricsShellComponent, UnmappedFoldersShellComponent, ExtraFilesShellComponent, UrlShellComponent],
+  imports: [MaintenanceDataAccessModule, RouterModule.forChild(routes)],
+  exports: [RouterModule],
 })
 export class MaintenanceFeatureShellModule {}

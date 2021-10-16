@@ -8,21 +8,21 @@
 
   <ng-container *ngIf="activePlaylist; else createTemplate">
     <input matInput placeholder="playlist name" class="w-auto" required [(ngModel)]="playlistName" />
-    <button mat-icon-button (click)="updatePlaylist.emit(playlistName)">
+    <button mat-icon-button (click)="updatePlaylist.emit(playlistName || '')">
       <mat-icon title="save">save</mat-icon>
     </button>
   </ng-container>
 
   <ng-template #createTemplate>
     <input *ngIf="saving" matInput placeholder="playlist name" class="w-auto" required [(ngModel)]="playlistName" />
-    <button *ngIf="duration > 0" mat-icon-button [disabled]="saving && !playlistName" (click)="onCreate()"><mat-icon title="create">playlist_add</mat-icon></button>
+    <button *ngIf="duration ?? 0 > 0" mat-icon-button [disabled]="saving && !playlistName" (click)="onCreate()"><mat-icon title="create">playlist_add</mat-icon></button>
   </ng-template>
 
-  <button *ngIf="playlistSize > 1" mat-icon-button (click)="shuffle.emit()">
+  <button *ngIf="playlistSize ?? 0 > 1" mat-icon-button (click)="shuffle.emit()">
     <mat-icon>shuffle</mat-icon>
   </button>
 
-  <button *ngIf="playlistSize > 0" mat-icon-button (click)="clearPlaylist.emit()">
+  <button *ngIf="playlistSize ?? 0 > 0" mat-icon-button (click)="clearPlaylist.emit()">
     <mat-icon title="clear">clear_all</mat-icon>
   </button>
 

@@ -4,9 +4,7 @@ import { Injectable, Injector, TemplateRef, Type } from '@angular/core';
 import { AppOverlayRef } from './overlay-ref';
 import { OverlayComponent } from './overlay.component';
 
-@Injectable({
-  providedIn: 'root',
-})
+@Injectable()
 export class OverlayService {
   constructor(private overlay: Overlay) {}
 

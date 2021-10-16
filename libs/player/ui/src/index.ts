@@ -1,1 +1,1 @@
-export * from './lib/player-ui.module';
+export * from './lib/player-controls/player-controls.component.module';

@@ -298,28 +298,6 @@
         }
       }
     },
-    "cover-feature-shell": {
-      "projectType": "library",
-      "root": "libs/cover/feature-shell",
-      "sourceRoot": "libs/cover/feature-shell/src",
-      "prefix": "app",
-      "architect": {
-        "test": {
-          "builder": "@nrwl/jest:jest",
-          "outputs": ["coverage/libs/cover/feature-shell"],
-          "options": {
-            "jestConfig": "libs/cover/feature-shell/jest.config.js",
-            "passWithNoTests": true
-          }
-        },
-        "lint": {
-          "builder": "@nrwl/linter:eslint",
-          "options": {
-            "lintFilePatterns": ["libs/cover/feature-shell/src/**/*.ts", "libs/cover/feature-shell/src/**/*.html"]
-          }
-        }
-      }
-    },
     "cover-ui": {
       "projectType": "library",
       "root": "libs/cover/ui",
