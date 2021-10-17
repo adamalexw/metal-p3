@@ -8,7 +8,7 @@ import { PrismaService } from './prisma.service';
 export class DbService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async albums(params: { skip?: number; take?: number; cursor?: Prisma.AlbumWhereUniqueInput; where?: Prisma.AlbumWhereInput; orderBy?: Prisma.AlbumOrderByInput }): Promise<Album[]> {
+  async albums(params: { skip?: number; take?: number; cursor?: Prisma.AlbumWhereUniqueInput; where?: Prisma.AlbumWhereInput; orderBy?: Prisma.AlbumOrderByWithRelationInput }): Promise<Album[]> {
     const { skip, take, cursor, where, orderBy } = params;
 
     return this.prisma.album.findMany({
