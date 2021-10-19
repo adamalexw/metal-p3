@@ -10,7 +10,6 @@ import {
   cancelLoadAlbums,
   clearCovers,
   createNew,
-  getCover,
   getTracks,
   loadAlbums,
   renameFolder,
@@ -45,6 +44,8 @@ export class ListComponent implements OnInit {
   albumsLoadError$ = this.store.pipe(select(selectAlbumsLoadError));
   albums$ = this.store.pipe(select(selectAlbums));
   criteria$ = this.store.pipe(select(selectAlbumsSearchCriteria));
+  showPlayer$ = this.store.pipe(select(selectPlaylist)).pipe(map((playlist) => playlist?.length));
+  creatingNew$ = this.store.pipe(select(selectCreatingNew));
 
   viewportWidth$ = this.viewportRuler.change().pipe(
     startWith(true),
@@ -61,10 +62,6 @@ export class ListComponent implements OnInit {
       return toChunks(albums, chunks);
     })
   );
-
-  showPlayer$ = this.store.pipe(select(selectPlaylist)).pipe(map((playlist) => playlist?.length));
-
-  creatingNew$ = this.store.pipe(select(selectCreatingNew));
 
   private fetchedPages = new Set<number>();
   criteria: string | undefined;
@@ -96,10 +93,6 @@ export class ListComponent implements OnInit {
         tap((folder) => this.onAlbumAdded([folder]))
       )
       .subscribe();
-  }
-
-  onGetCover(id: number, folder: string) {
-    this.store.dispatch(getCover({ id, folder }));
   }
 
   onRenameFolder(id: number, src: string, artist: string, album: string) {

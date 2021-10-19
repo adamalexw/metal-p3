@@ -30,6 +30,7 @@ import {
   selectBandProps,
   selectCover,
   selectCoverLoading,
+  selectCoverRequired,
   selectedAlbumId,
   selectFindingUrl,
   selectGettingBandProps,
@@ -63,7 +64,7 @@ import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { Update } from '@ngrx/entity';
 import { select, Store } from '@ngrx/store';
 import { combineLatest, Observable, of } from 'rxjs';
-import { exhaustMap, filter, map, take, tap, withLatestFrom } from 'rxjs/operators';
+import { distinctUntilChanged, exhaustMap, filter, map, take, tap, withLatestFrom } from 'rxjs/operators';
 
 @UntilDestroy()
 @Component({
@@ -135,12 +136,14 @@ export class AlbumShellComponent implements OnInit {
 
   private setState(): void {
     // when refreshing the page get the album id from the url
-    const albumId$ = this.routeId$.pipe(
-      withLatestFrom(this.store.pipe(select(selectedAlbumId))),
-      filter(([routeId, selectedId]) => +routeId !== selectedId),
-      tap(([routeId, _albumId]) => this.store.dispatch(viewAlbum({ id: routeId }))),
-      map(([routeId, _albumId]) => routeId)
-    );
+    this.routeId$
+      .pipe(
+        withLatestFrom(this.store.pipe(select(selectedAlbumId))),
+        filter(([routeId, selectedId]) => +routeId !== selectedId),
+        tap(([routeId, _albumId]) => this.store.dispatch(viewAlbum({ id: routeId }))),
+        take(1)
+      )
+      .subscribe();
 
     // wait for albums list to load
     // select the id from the url
@@ -149,34 +152,40 @@ export class AlbumShellComponent implements OnInit {
       .pipe(
         untilDestroyed(this),
         filter(([loaded, album]) => loaded && !album),
-        withLatestFrom(albumId$),
+        withLatestFrom(this.store.pipe(select(selectedAlbumId))),
         map(([_album, id]) => id),
         filter((id) => !!id),
         withLatestFrom(this.album$),
         filter(([_id, album]) => !album),
         tap(([id, _album]) => {
-          this.store.dispatch(getAlbum({ id }));
+          if (id) {
+            this.store.dispatch(getAlbum({ id }));
+          }
         })
       )
       .subscribe();
 
-    combineLatest([this.album$.pipe(nonNullable()), this.store.pipe(select(selectTracksRequired))])
+    const dispatchProps$ = this.album$.pipe(
+      nonNullable(),
+      map((album) => ({ id: album.id, folder: album.folder })),
+      distinctUntilChanged((prev, curr) => prev.id === curr.id)
+    );
+
+    // if tracks haven't been loaded dispatch an action to the load them
+    combineLatest([dispatchProps$, this.tracksLoading$, this.store.pipe(select(selectTracksRequired))])
       .pipe(
         untilDestroyed(this),
-        filter(([album, required]) => !album.tracksLoading && required),
-        map(([album]) => ({ id: album.id, folder: album.folder })),
-        tap(({ id, folder }) => this.store.dispatch(getTracks({ id, folder })))
+        filter(([_props, loading, required]) => required && !loading),
+        tap(([props, _loading, _required]) => this.store.dispatch(getTracks(props)))
       )
       .subscribe();
 
     // if the album doesn't have a cover dispatch an action to load it
-    combineLatest([this.album$.pipe(nonNullable()), this.cover$, this.coverLoading$])
+    combineLatest([dispatchProps$, this.coverLoading$, this.store.pipe(select(selectCoverRequired))])
       .pipe(
         untilDestroyed(this),
-        filter(([album, cover, loading]) => !album.cover && !cover && !loading),
-        map(([album]) => ({ id: album.id, folder: album.folder })),
-        take(3),
-        tap(({ id, folder }) => this.store.dispatch(getCover({ id, folder })))
+        filter(([_props, loading, required]) => required && !loading),
+        tap(([props, _loading, _required]) => this.store.dispatch(getCover(props)))
       )
       .subscribe();
 
