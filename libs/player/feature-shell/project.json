@@ -1,0 +1,23 @@
+{
+  "projectType": "library",
+  "root": "libs/player/feature-shell",
+  "sourceRoot": "libs/player/feature-shell/src",
+  "prefix": "app",
+  "targets": {
+    "test": {
+      "executor": "@nrwl/jest:jest",
+      "outputs": ["coverage/libs/player/feature-shell"],
+      "options": {
+        "jestConfig": "libs/player/feature-shell/jest.config.js",
+        "passWithNoTests": true
+      }
+    },
+    "lint": {
+      "executor": "@nrwl/linter:eslint",
+      "options": {
+        "lintFilePatterns": ["libs/player/feature-shell/src/**/*.ts", "libs/player/feature-shell/src/**/*.html"]
+      }
+    }
+  },
+  "tags": ["scope:player", "type:feature"]
+}

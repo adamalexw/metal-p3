@@ -1,0 +1,22 @@
+{
+  "root": "libs/playlist/api",
+  "sourceRoot": "libs/playlist/api/src",
+  "projectType": "library",
+  "targets": {
+    "lint": {
+      "executor": "@nrwl/linter:eslint",
+      "options": {
+        "lintFilePatterns": ["libs/playlist/api/**/*.ts"]
+      }
+    },
+    "test": {
+      "executor": "@nrwl/jest:jest",
+      "outputs": ["coverage/libs/playlist/api"],
+      "options": {
+        "jestConfig": "libs/playlist/api/jest.config.js",
+        "passWithNoTests": true
+      }
+    }
+  },
+  "tags": ["scope:playlist", "type:api"]
+}

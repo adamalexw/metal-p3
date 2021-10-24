@@ -1,0 +1,22 @@
+{
+  "root": "libs/cover/api",
+  "sourceRoot": "libs/cover/api/src",
+  "projectType": "library",
+  "targets": {
+    "lint": {
+      "executor": "@nrwl/linter:eslint",
+      "options": {
+        "lintFilePatterns": ["libs/cover/api/**/*.ts"]
+      }
+    },
+    "test": {
+      "executor": "@nrwl/jest:jest",
+      "outputs": ["coverage/libs/cover/api"],
+      "options": {
+        "jestConfig": "libs/cover/api/jest.config.js",
+        "passWithNoTests": true
+      }
+    }
+  },
+  "tags": ["scope:cover", "type:api"]
+}

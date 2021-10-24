@@ -1,0 +1,23 @@
+{
+  "projectType": "library",
+  "root": "libs/player/data-access",
+  "sourceRoot": "libs/player/data-access/src",
+  "prefix": "app",
+  "targets": {
+    "test": {
+      "executor": "@nrwl/jest:jest",
+      "outputs": ["coverage/libs/player/data-access"],
+      "options": {
+        "jestConfig": "libs/player/data-access/jest.config.js",
+        "passWithNoTests": true
+      }
+    },
+    "lint": {
+      "executor": "@nrwl/linter:eslint",
+      "options": {
+        "lintFilePatterns": ["libs/player/data-access/src/**/*.ts", "libs/player/data-access/src/**/*.html"]
+      }
+    }
+  },
+  "tags": ["scope:player", "type:data-access"]
+}

@@ -1,0 +1,23 @@
+{
+  "projectType": "library",
+  "root": "libs/playlist/ui",
+  "sourceRoot": "libs/playlist/ui/src",
+  "prefix": "app",
+  "targets": {
+    "test": {
+      "executor": "@nrwl/jest:jest",
+      "outputs": ["coverage/libs/playlist/ui"],
+      "options": {
+        "jestConfig": "libs/playlist/ui/jest.config.js",
+        "passWithNoTests": true
+      }
+    },
+    "lint": {
+      "executor": "@nrwl/linter:eslint",
+      "options": {
+        "lintFilePatterns": ["libs/playlist/ui/src/**/*.ts", "libs/playlist/ui/src/**/*.html"]
+      }
+    }
+  },
+  "tags": ["scope:playlist", "type:ui"]
+}

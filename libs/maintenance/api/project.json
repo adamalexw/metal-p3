@@ -1,0 +1,22 @@
+{
+  "root": "libs/maintenance/api",
+  "sourceRoot": "libs/maintenance/api/src",
+  "projectType": "library",
+  "targets": {
+    "lint": {
+      "executor": "@nrwl/linter:eslint",
+      "options": {
+        "lintFilePatterns": ["libs/maintenance/api/**/*.ts"]
+      }
+    },
+    "test": {
+      "executor": "@nrwl/jest:jest",
+      "outputs": ["coverage/libs/maintenance/api"],
+      "options": {
+        "jestConfig": "libs/maintenance/api/jest.config.js",
+        "passWithNoTests": true
+      }
+    }
+  },
+  "tags": ["scope:maintenance", "type:api"]
+}

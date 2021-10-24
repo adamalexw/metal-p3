@@ -1,0 +1,23 @@
+{
+  "projectType": "library",
+  "root": "libs/shared/ngrx-store",
+  "sourceRoot": "libs/shared/ngrx-store/src",
+  "prefix": "app",
+  "targets": {
+    "test": {
+      "executor": "@nrwl/jest:jest",
+      "outputs": ["coverage/libs/shared/ngrx-store"],
+      "options": {
+        "jestConfig": "libs/shared/ngrx-store/jest.config.js",
+        "passWithNoTests": true
+      }
+    },
+    "lint": {
+      "executor": "@nrwl/linter:eslint",
+      "options": {
+        "lintFilePatterns": ["libs/shared/ngrx-store/src/**/*.ts", "libs/shared/ngrx-store/src/**/*.html"]
+      }
+    }
+  },
+  "tags": ["scope:shared", "type:util"]
+}

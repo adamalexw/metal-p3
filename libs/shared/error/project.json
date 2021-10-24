@@ -1,0 +1,23 @@
+{
+  "projectType": "library",
+  "root": "libs/shared/error",
+  "sourceRoot": "libs/shared/error/src",
+  "prefix": "app",
+  "targets": {
+    "test": {
+      "executor": "@nrwl/jest:jest",
+      "outputs": ["coverage/libs/shared/error"],
+      "options": {
+        "jestConfig": "libs/shared/error/jest.config.js",
+        "passWithNoTests": true
+      }
+    },
+    "lint": {
+      "executor": "@nrwl/linter:eslint",
+      "options": {
+        "lintFilePatterns": ["libs/shared/error/src/**/*.ts", "libs/shared/error/src/**/*.html"]
+      }
+    }
+  },
+  "tags": ["scope:shared", "type:util"]
+}

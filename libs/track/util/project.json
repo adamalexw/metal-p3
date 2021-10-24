@@ -1,0 +1,23 @@
+{
+  "projectType": "library",
+  "root": "libs/track/util",
+  "sourceRoot": "libs/track/util/src",
+  "prefix": "app",
+  "targets": {
+    "test": {
+      "executor": "@nrwl/jest:jest",
+      "outputs": ["coverage/libs/track/util"],
+      "options": {
+        "jestConfig": "libs/track/util/jest.config.js",
+        "passWithNoTests": true
+      }
+    },
+    "lint": {
+      "executor": "@nrwl/linter:eslint",
+      "options": {
+        "lintFilePatterns": ["libs/track/util/src/**/*.ts", "libs/track/util/src/**/*.html"]
+      }
+    }
+  },
+  "tags": ["scope:track", "type:util"]
+}

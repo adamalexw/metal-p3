@@ -10,7 +10,7 @@
     </div>
   </mat-toolbar-row>
   <mat-toolbar-row>
-    <div [ngClass]="{ 'w-full': !footerMode, flex: !footerMode, 'justify-center': !footerMode }">
+    <div class="flex" [ngClass]="{ 'w-full': !footerMode, 'justify-center': !footerMode, 'mr-2 mt-2': footerMode }">
       <ng-container *ngTemplateOutlet="controlsTemplate"></ng-container>
     </div>
     <ng-container *ngIf="footerMode">
@@ -53,7 +53,7 @@
 </ng-template>
 
 <ng-template #detailsTemplate>
-  <div class="flex-col">
+  <div class="flex-col text-center">
     <ng-container *ngIf="currentItem">
       <div class="text-sm">{{ currentItem?.artist }} - {{ currentItem?.album }}</div>
       <div class="text-sm">{{ currentItem?.year }} - {{ currentItem?.genre }}</div>

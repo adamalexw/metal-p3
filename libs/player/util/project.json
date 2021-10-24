@@ -1,0 +1,23 @@
+{
+  "projectType": "library",
+  "root": "libs/player/util",
+  "sourceRoot": "libs/player/util/src",
+  "prefix": "app",
+  "targets": {
+    "test": {
+      "executor": "@nrwl/jest:jest",
+      "outputs": ["coverage/libs/player/util"],
+      "options": {
+        "jestConfig": "libs/player/util/jest.config.js",
+        "passWithNoTests": true
+      }
+    },
+    "lint": {
+      "executor": "@nrwl/linter:eslint",
+      "options": {
+        "lintFilePatterns": ["libs/player/util/src/**/*.ts", "libs/player/util/src/**/*.html"]
+      }
+    }
+  },
+  "tags": []
+}

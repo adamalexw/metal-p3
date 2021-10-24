@@ -1,0 +1,23 @@
+{
+  "projectType": "library",
+  "root": "libs/album/ui",
+  "sourceRoot": "libs/album/ui/src",
+  "prefix": "app",
+  "targets": {
+    "lint": {
+      "executor": "@nrwl/linter:eslint",
+      "options": {
+        "lintFilePatterns": ["libs/album/ui/src/**/*.ts", "libs/album/ui/src/**/*.html"]
+      }
+    },
+    "test": {
+      "executor": "@nrwl/jest:jest",
+      "outputs": ["coverage/libs/album/ui"],
+      "options": {
+        "jestConfig": "libs/album/ui/jest.config.js",
+        "passWithNoTests": true
+      }
+    }
+  },
+  "tags": ["scope:album", "tags:ui"]
+}

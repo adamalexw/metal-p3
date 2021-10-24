@@ -1,0 +1,23 @@
+{
+  "projectType": "library",
+  "root": "libs/band/data-access",
+  "sourceRoot": "libs/band/data-access/src",
+  "prefix": "app",
+  "targets": {
+    "test": {
+      "executor": "@nrwl/jest:jest",
+      "outputs": ["coverage/libs/band/data-access"],
+      "options": {
+        "jestConfig": "libs/band/data-access/jest.config.js",
+        "passWithNoTests": true
+      }
+    },
+    "lint": {
+      "executor": "@nrwl/linter:eslint",
+      "options": {
+        "lintFilePatterns": ["libs/band/data-access/src/**/*.ts", "libs/band/data-access/src/**/*.html"]
+      }
+    }
+  },
+  "tags": ["scope:band", "type:data-access"]
+}

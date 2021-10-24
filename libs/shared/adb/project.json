@@ -1,0 +1,22 @@
+{
+  "root": "libs/shared/adb",
+  "sourceRoot": "libs/shared/adb/src",
+  "projectType": "library",
+  "targets": {
+    "lint": {
+      "executor": "@nrwl/linter:eslint",
+      "options": {
+        "lintFilePatterns": ["libs/shared/adb/**/*.ts"]
+      }
+    },
+    "test": {
+      "executor": "@nrwl/jest:jest",
+      "outputs": ["coverage/libs/shared/adb"],
+      "options": {
+        "jestConfig": "libs/shared/adb/jest.config.js",
+        "passWithNoTests": true
+      }
+    }
+  },
+  "tags": ["scope:shared", "type:api"]
+}

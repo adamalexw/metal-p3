@@ -1,0 +1,23 @@
+{
+  "projectType": "library",
+  "root": "libs/maintenance/data-access",
+  "sourceRoot": "libs/maintenance/data-access/src",
+  "prefix": "app",
+  "targets": {
+    "test": {
+      "executor": "@nrwl/jest:jest",
+      "outputs": ["coverage/libs/maintenance/data-access"],
+      "options": {
+        "jestConfig": "libs/maintenance/data-access/jest.config.js",
+        "passWithNoTests": true
+      }
+    },
+    "lint": {
+      "executor": "@nrwl/linter:eslint",
+      "options": {
+        "lintFilePatterns": ["libs/maintenance/data-access/src/**/*.ts", "libs/maintenance/data-access/src/**/*.html"]
+      }
+    }
+  },
+  "tags": ["scope:maintenance", "type:data-access"]
+}

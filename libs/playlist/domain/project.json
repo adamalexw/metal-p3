@@ -1,0 +1,23 @@
+{
+  "projectType": "library",
+  "root": "libs/playlist/domain",
+  "sourceRoot": "libs/playlist/domain/src",
+  "prefix": "app",
+  "targets": {
+    "test": {
+      "executor": "@nrwl/jest:jest",
+      "outputs": ["coverage/libs/playlist/domain"],
+      "options": {
+        "jestConfig": "libs/playlist/domain/jest.config.js",
+        "passWithNoTests": true
+      }
+    },
+    "lint": {
+      "executor": "@nrwl/linter:eslint",
+      "options": {
+        "lintFilePatterns": ["libs/playlist/domain/src/**/*.ts", "libs/playlist/domain/src/**/*.html"]
+      }
+    }
+  },
+  "tags": []
+}
