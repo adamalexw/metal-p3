@@ -10,7 +10,7 @@ export class NotificationService {
   }
 
   showComplete(message: string, action?: string | undefined) {
-    this.snackBar.open(message, action, { duration: 2000 });
+    this.snackBar.open(message, action, { duration: 2000, panelClass: 'bg-blue-300' });
   }
 
   showProgress(message: string, action?: string | undefined): MatSnackBarRef<TextOnlySnackBar> {
@@ -18,6 +18,6 @@ export class NotificationService {
   }
 
   showInfo(message: string, action?: string | undefined) {
-    this.snackBar.open(message, action, { duration: 2000, panelClass: 'bg-blue-400' });
+    this.snackBar.open(message, action, { duration: 2000, panelClass: 'bg-blue-300' });
   }
 }

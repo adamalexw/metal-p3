@@ -26,5 +26,5 @@ export class CoverComponent {
   enableDnd = false;
 
   @Output()
-  coverUrl = new EventEmitter<string>();
+  readonly coverUrl = new EventEmitter<string>();
 }

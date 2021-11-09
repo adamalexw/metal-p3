@@ -1,4 +1,5 @@
 module.exports = {
+  important: true,
   purge: {
       enabled: true,
       content: [
@@ -7,7 +8,7 @@ module.exports = {
       ],
       safelist: [
         'bg-red-700',
-        'bg-blue-400',
+        'bg-blue-300',
         'text-white'
       ]
   },

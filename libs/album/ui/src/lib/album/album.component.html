@@ -37,26 +37,26 @@
         <mat-list-item class="mb-2">
           <mat-form-field class="w-full">
             <mat-label>Band</mat-label>
-            <input matInput formControlName="artist" />
+            <input matInput formControlName="artist" placeholder="band" />
           </mat-form-field>
         </mat-list-item>
         <mat-list-item class="my-2">
           <mat-form-field class="w-full">
             <mat-label>Album</mat-label>
-            <input matInput formControlName="album" />
+            <input matInput formControlName="album" placeholder="album" />
           </mat-form-field>
         </mat-list-item>
         <mat-list-item class="my-2">
           <mat-form-field class="w-full">
             <mat-label>Genre</mat-label>
-            <input matInput formControlName="genre" />
+            <input matInput formControlName="genre" placeholder="genre" />
             <mat-icon *ngIf="artistUrl" matSuffix (click)="getBandProps(artistUrl)" class="cursor-pointer">music_note</mat-icon>
           </mat-form-field>
         </mat-list-item>
         <mat-list-item class="my-2">
           <mat-form-field class="w-full">
             <mat-label>Country</mat-label>
-            <input matInput formControlName="country" />
+            <input matInput formControlName="country" placeholder="country" />
             <mat-icon *ngIf="artistUrl" matSuffix (click)="getBandProps(artistUrl)" class="cursor-pointer">flag</mat-icon>
           </mat-form-field>
         </mat-list-item>
@@ -64,14 +64,14 @@
           <mat-list-item class="my-2">
             <mat-form-field class="w-full">
               <mat-label>Album Url</mat-label>
-              <input matInput formControlName="albumUrl" />
+              <input matInput formControlName="albumUrl" placeholder="album url" />
               <mat-icon *ngIf="albumUrl" matSuffix (click)="openLink(albumUrl)" class="cursor-pointer">link</mat-icon>
             </mat-form-field>
           </mat-list-item>
           <mat-list-item class="my-2">
             <mat-form-field class="w-full">
               <mat-label>Artist Url</mat-label>
-              <input matInput formControlName="artistUrl" />
+              <input matInput formControlName="artistUrl" placeholder="band url" />
               <mat-icon *ngIf="artistUrl" matSuffix (click)="openLink(artistUrl)" class="cursor-pointer">link</mat-icon>
             </mat-form-field>
           </mat-list-item>
@@ -79,7 +79,7 @@
         <mat-list-item class="mt-2">
           <mat-form-field class="w-10">
             <mat-label>Year</mat-label>
-            <input matInput formControlName="year" />
+            <input matInput formControlName="year" placeholder="year" />
           </mat-form-field>
           <div *ngIf="!albumUrl" class="w-full text-right">
             <mat-checkbox formControlName="ignore"> Ignore Metal Archives </mat-checkbox>
@@ -92,7 +92,7 @@
           <mat-checkbox formControlName="hasLyrics"> Lyrics </mat-checkbox>
 
           <div *ngIf="!hasLyrics" class="w-full text-right">
-            <button mat-button class="p-0" (click)="lyricsPriority.emit(albumId)">
+            <button mat-button class="p-0" type="button" (click)="lyricsPriority.emit(albumId)">
               <mat-icon>new_releases</mat-icon>
               <span class="ml-2">Priority</span>
             </button>

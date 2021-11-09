@@ -205,7 +205,7 @@ export class AlbumComponent implements OnChanges {
   }
 
   private checkBandProps(artistUrl: string | undefined) {
-    if (artistUrl && (!this.form.get('genre')?.value || this.form.get('country')?.value)) {
+    if (artistUrl && (!this.form.get('genre')?.value || !this.form.get('country')?.value)) {
       this.findBandProps.emit({ id: this.albumId, url: artistUrl });
     }
   }
