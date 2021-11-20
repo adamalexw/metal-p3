@@ -64,7 +64,7 @@ import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { Update } from '@ngrx/entity';
 import { select, Store } from '@ngrx/store';
 import { combineLatest, Observable, of } from 'rxjs';
-import { distinctUntilChanged, exhaustMap, filter, map, take, tap, withLatestFrom } from 'rxjs/operators';
+import { delay, distinctUntilChanged, exhaustMap, filter, map, take, tap, withLatestFrom } from 'rxjs/operators';
 
 @UntilDestroy()
 @Component({
@@ -176,6 +176,7 @@ export class AlbumShellComponent implements OnInit {
       .pipe(
         untilDestroyed(this),
         filter(([_props, loading, required]) => required && !loading),
+        delay(1000),
         tap(([props, _loading, _required]) => this.store.dispatch(getTracks(props)))
       )
       .subscribe();
@@ -185,6 +186,7 @@ export class AlbumShellComponent implements OnInit {
       .pipe(
         untilDestroyed(this),
         filter(([_props, loading, required]) => required && !loading),
+        delay(1000),
         tap(([props, _loading, _required]) => this.store.dispatch(getCover(props)))
       )
       .subscribe();

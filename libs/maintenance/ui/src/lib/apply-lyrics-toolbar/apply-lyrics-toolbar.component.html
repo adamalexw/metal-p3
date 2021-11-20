@@ -1,15 +1,17 @@
 <app-nav-toolbar [showClose]="showClose">
-  <app-cover [loading]="coverLoading" [cover]="cover" [width]="64" [height]="64"></app-cover>
-  <button mat-icon-button [disabled]="applying" (click)="apply.emit()">
-    <mat-icon title="save">spellcheck</mat-icon>
-  </button>
-  <button *ngIf="albumUrl" mat-icon-button (click)="openLink(albumUrl)">
-    <mat-icon title="url">link</mat-icon>
-  </button>
-  <button mat-icon-button [disabled]="trackTransferring" (click)="transfer.emit()">
-    <mat-icon title="transfer">adb</mat-icon>
-  </button>
-  <h3 class="ml-3" [routerLink]="['/album', albumId]">{{ folder }}</h3>
+  <div class="flex items-center gap-3 leading-5">
+    <app-cover [loading]="coverLoading" [cover]="cover" [width]="64" [height]="64"></app-cover>
+    <button mat-icon-button type="button" [disabled]="applying" (click)="apply.emit()">
+      <mat-icon title="apply">spellcheck</mat-icon>
+    </button>
+    <button *ngIf="albumUrl" mat-icon-button type="button" (click)="openLink(albumUrl)">
+      <mat-icon title="metal archives">link</mat-icon>
+    </button>
+    <button mat-icon-button type="button" [disabled]="trackTransferring" (click)="transfer.emit()">
+      <mat-icon title="transfer">adb</mat-icon>
+    </button>
+    <h3 class="cursor-pointer" [routerLink]="['/album', albumId]">{{ folder }}</h3>
+  </div>
   <div *ngIf="!showClose" class="flex flex-row-reverse w-full">
     <mat-icon class="cursor-pointer" (click)="done.emit()">close</mat-icon>
   </div>

@@ -48,7 +48,7 @@ export class ListComponent implements OnInit {
   creatingNew$ = this.store.pipe(select(selectCreatingNew));
 
   viewportWidth$ = this.viewportRuler.change().pipe(
-    startWith(true),
+    startWith(this.viewportRuler.getViewportSize().width),
     map(() => this.viewportRuler.getViewportSize().width)
   );
 
@@ -138,8 +138,8 @@ export class ListComponent implements OnInit {
     return index;
   }
 
-  trackByAlbumFn(index: number, item: unknown): number {
-    return (item as Album).id;
+  trackByAlbumFn(_index: number, item: Album): number {
+    return item.id;
   }
 
   onSearch(request: SearchRequest) {
