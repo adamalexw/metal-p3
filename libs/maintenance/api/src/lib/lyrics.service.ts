@@ -10,7 +10,7 @@ import { MaintenanceGateway } from './maintenance-gateway.service';
 
 @Injectable()
 export class LyricsService {
-  notifier = new Subject();
+  notifier = new Subject<void>();
 
   constructor(private readonly dbService: DbService, private readonly metalArchivesService: MetalArchivesService, private readonly maintenanceGateway: MaintenanceGateway) {}
 
@@ -62,7 +62,7 @@ export class LyricsService {
   }
 
   checkPriority(): Observable<LyricsHistoryDto[]> {
-    this.notifier = new Subject();
+    this.notifier = new Subject<void>();
     return this.checkLyrics(this.getPriority()).pipe(
       takeUntil(this.notifier),
       finalize(() => this.maintenanceGateway.lyricsHistoryComplete())

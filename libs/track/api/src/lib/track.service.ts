@@ -4,11 +4,11 @@ import { FileSystemService } from '@metal-p3/shared/file-system';
 import { Injectable } from '@nestjs/common';
 import { createReadStream } from 'fs';
 import * as mm from 'music-metadata';
-import { read, Tags, update } from 'node-id3';
+import * as NodeID3 from 'node-id3';
 import { ReadStream } from 'node:fs';
 import { basename, dirname, extname } from 'path';
 import { EMPTY, from, Observable } from 'rxjs';
-import { catchError, concatAll, map, toArray } from 'rxjs/operators';
+import { catchError, concatAll, map, tap, toArray } from 'rxjs/operators';
 
 @Injectable()
 export class TrackService {
@@ -28,15 +28,17 @@ export class TrackService {
     return from(mm.parseFile(file, options));
   }
 
-  getTags(file: string): Tags {
-    return read(file);
+  getTags(file: string): NodeID3.Tags {
+    return NodeID3.read(file);
   }
 
   trackDetails(file: string, index: number): Observable<TrackDto> {
     if (extname(file) === '.mp3') {
       return this.getMetadata(file, { skipCovers: true }).pipe(
+        tap(console.log),
         map((metadata) => this.mapTrack(file, this.getTags(file), metadata, index)),
         catchError((error) => {
+          console.log('🚀 ~ file: track.service.ts ~ line 43 ~ TrackService ~ catchError ~ error', error);
           console.log(error);
           return EMPTY;
         })
@@ -46,7 +48,8 @@ export class TrackService {
     return EMPTY;
   }
 
-  private mapTrack(fullPath: string, tags: Tags, mm: mm.IAudioMetadata, index: number): TrackDto {
+  private mapTrack(fullPath: string, tags: NodeID3.Tags, mm: mm.IAudioMetadata, index: number): TrackDto {
+    console.log('🚀 ~ file: track.service.ts ~ line 54 ~ TrackService ~ mapTrack ~ tags', tags);
     return {
       id: index + 1,
       fullPath,
@@ -71,7 +74,7 @@ export class TrackService {
   }
 
   saveTrack(track: TrackDto): boolean | Error {
-    let baseTags: Partial<Tags> = {
+    let baseTags: Partial<NodeID3.Tags> = {
       album: track.album,
       artist: track.artist,
       year: track.year?.toString(),
@@ -116,13 +119,13 @@ export class TrackService {
     return result;
   }
 
-  private mapTrackToTags(track: TrackDto, baseTags: Tags): Tags {
-    const tags = { ...baseTags, trackNumber: track.trackNumber, title: track.title } as Tags;
+  private mapTrackToTags(track: TrackDto, baseTags: NodeID3.Tags): NodeID3.Tags {
+    const tags = { ...baseTags, trackNumber: track.trackNumber, title: track.title } as NodeID3.Tags;
     return tags;
   }
 
-  updateTrack(tags: Tags, location: string): boolean | Error {
-    return update(tags, location);
+  updateTrack(tags: NodeID3.Tags, location: string): boolean | Error {
+    return NodeID3.update(tags, location);
   }
 
   renameTrack(track: TrackDto): RenameTrack {

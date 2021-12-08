@@ -6,7 +6,7 @@ import { Inject, Injectable, Logger } from '@nestjs/common';
 import { Album, Band, Prisma } from '@prisma/client';
 import * as chokidar from 'chokidar';
 import * as fs from 'fs';
-import { Tags } from 'node-id3';
+import * as NodeID3 from 'node-id3';
 import * as path from 'path';
 import { EMPTY, forkJoin, from, iif, Observable, of } from 'rxjs';
 import { catchError, concatMap, filter, map, mapTo, mergeMap, tap } from 'rxjs/operators';
@@ -121,7 +121,7 @@ export class AlbumService {
     );
   }
 
-  private mapTagsToAlbum(folder: string, tags: Tags, band: Band): Prisma.AlbumCreateInput {
+  private mapTagsToAlbum(folder: string, tags: NodeID3.Tags, band: Band): Prisma.AlbumCreateInput {
     const bandInput: Prisma.BandCreateNestedOneWithoutAlbumInput = {
       connect: { BandId: band.BandId },
     };

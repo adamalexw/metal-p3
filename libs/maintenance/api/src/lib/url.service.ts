@@ -11,7 +11,7 @@ import { MaintenanceGateway } from './maintenance-gateway.service';
 
 @Injectable()
 export class UrlService {
-  notifier = new Subject();
+  notifier = new Subject<void>();
 
   constructor(private readonly dbService: DbService, private readonly metalArchivesService: MetalArchivesService, private readonly maintenanceGateway: MaintenanceGateway) {}
 

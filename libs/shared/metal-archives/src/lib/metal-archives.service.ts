@@ -1,5 +1,6 @@
 import { BandProps, MetalArchivesAlbumTrack, MetalArchivesSearchResponse } from '@metal-p3/api-interfaces';
-import { HttpService, Injectable } from '@nestjs/common';
+import { HttpService } from '@nestjs/axios';
+import { Injectable } from '@nestjs/common';
 import { parse } from 'node-html-parser';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
