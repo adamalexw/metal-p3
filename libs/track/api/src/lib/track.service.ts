@@ -8,7 +8,7 @@ import * as NodeID3 from 'node-id3';
 import { ReadStream } from 'node:fs';
 import { basename, dirname, extname } from 'path';
 import { EMPTY, from, Observable } from 'rxjs';
-import { catchError, concatAll, map, tap, toArray } from 'rxjs/operators';
+import { catchError, concatAll, map, toArray } from 'rxjs/operators';
 
 @Injectable()
 export class TrackService {
@@ -35,10 +35,8 @@ export class TrackService {
   trackDetails(file: string, index: number): Observable<TrackDto> {
     if (extname(file) === '.mp3') {
       return this.getMetadata(file, { skipCovers: true }).pipe(
-        tap(console.log),
         map((metadata) => this.mapTrack(file, this.getTags(file), metadata, index)),
         catchError((error) => {
-          console.log('🚀 ~ file: track.service.ts ~ line 43 ~ TrackService ~ catchError ~ error', error);
           console.log(error);
           return EMPTY;
         })
@@ -49,7 +47,6 @@ export class TrackService {
   }
 
   private mapTrack(fullPath: string, tags: NodeID3.Tags, mm: mm.IAudioMetadata, index: number): TrackDto {
-    console.log('🚀 ~ file: track.service.ts ~ line 54 ~ TrackService ~ mapTrack ~ tags', tags);
     return {
       id: index + 1,
       fullPath,
