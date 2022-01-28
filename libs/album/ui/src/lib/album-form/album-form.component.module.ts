@@ -13,9 +13,8 @@ import { AlbumDataAccessModule } from '@metal-p3/album/data-access';
 import { CoverComponentModule } from '@metal-p3/cover/ui';
 import { NotificationModule } from '@metal-p3/shared/feedback';
 import { TracksComponentModule, TracksToolbarComponentModule } from '@metal-p3/track/ui';
-import { AlbumFormComponentModule } from '../album-form/album-form.component.module';
 import { AlbumToolbarComponentModule } from '../album-toolbar/album-toolbar.component.module';
-import { AlbumComponent } from './album.component';
+import { AlbumFormComponent } from './album-form.component';
 
 @NgModule({
   imports: [
@@ -23,7 +22,6 @@ import { AlbumComponent } from './album.component';
     RouterModule,
     FormsModule,
     ReactiveFormsModule,
-    AlbumFormComponentModule,
     AlbumDataAccessModule,
     AlbumToolbarComponentModule,
     CoverComponentModule,
@@ -38,7 +36,7 @@ import { AlbumComponent } from './album.component';
     MatInputModule,
     MatButtonModule,
   ],
-  declarations: [AlbumComponent],
-  exports: [AlbumComponent],
+  declarations: [AlbumFormComponent],
+  exports: [AlbumFormComponent],
 })
-export class AlbumComponentModule {}
+export class AlbumFormComponentModule {}

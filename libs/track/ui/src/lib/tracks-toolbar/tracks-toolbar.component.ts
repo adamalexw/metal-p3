@@ -23,6 +23,9 @@ export class TracksToolbarComponent {
   albumDuration = 0;
 
   @Output()
+  readonly trackNumbers = new EventEmitter<void>();
+
+  @Output()
   readonly renameTracks = new EventEmitter<void>();
 
   @Output()

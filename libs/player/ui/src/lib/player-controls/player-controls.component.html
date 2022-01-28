@@ -38,7 +38,7 @@
 </mat-toolbar>
 
 <ng-template #controlsTemplate>
-  <button mat-icon-button [disabled]="isFirstItemPlaying" (click)="previous.emit()">
+  <button mat-icon-button (click)="onPrevious()">
     <mat-icon mat-list-icon>skip_previous</mat-icon>
   </button>
   <button mat-icon-button (click)="playItem.emit()" *ngIf="!currentItem?.playing">

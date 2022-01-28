@@ -12,7 +12,7 @@ export const selectPlaylist = createSelector(selectPlaylistState, (state) => sel
 export const selectPlaylistItemSize = createSelector(selectPlaylistState, (state) => selectTotal(state));
 
 export const selectPlayerVisible = createSelector(selectPlaylistState, (state) => state.visible);
-export const selectPlayerOpen = createSelector(selectPlaylist, selectPlayerVisible, (playlist, visible) => playlist?.length || visible);
+export const selectPlayerOpen = createSelector(selectPlaylist, selectPlayerVisible, (playlist, visible) => !!playlist?.length || visible);
 
 export const selectActiveItemId = createSelector(selectPlaylistState, (state) => state.activeTrack);
 export const selectActivePlaylistItem = createSelector(selectPlaylistEntities, selectActiveItemId, (playlist, id) => (playlist && id ? playlist[id] : undefined));

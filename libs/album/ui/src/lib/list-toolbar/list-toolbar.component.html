@@ -1,7 +1,8 @@
 <mat-toolbar>
   <form [formGroup]="form">
-    <mat-form-field floatLabel="never">
+    <mat-form-field class="w-80" floatLabel="never">
       <input matInput placeholder="Search" formControlName="criteria" type="search" />
+      <mat-icon *ngIf="criteriaControl?.value" matSuffix class="cursor-pointer relative top-2 text-2xl" (click)="onClear()">clear</mat-icon>
     </mat-form-field>
   </form>
 

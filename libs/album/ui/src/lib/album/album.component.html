@@ -22,108 +22,43 @@
     <mat-progress-bar class="w-full h-3" mode="determinate" [value]="progress"> </mat-progress-bar>
   </ng-container>
 
-  <form [formGroup]="form" autocomplete="off">
-    <section class="flex flex-row">
-      <app-cover
-        [loading]="coverLoading"
-        [cover]="album.cover"
-        [coverError]="album.coverError"
-        [enableDnd]="true"
-        [width]="500"
-        [height]="500"
-        (coverUrl)="coverUrl.emit({ id: album.id, url: $event })"
-      ></app-cover>
-      <mat-list class="m-2 summary-list">
-        <mat-list-item class="mb-2">
-          <mat-form-field class="w-full">
-            <mat-label>Band</mat-label>
-            <input matInput formControlName="artist" placeholder="band" />
-          </mat-form-field>
-        </mat-list-item>
-        <mat-list-item class="my-2">
-          <mat-form-field class="w-full">
-            <mat-label>Album</mat-label>
-            <input matInput formControlName="album" placeholder="album" />
-          </mat-form-field>
-        </mat-list-item>
-        <mat-list-item class="my-2">
-          <mat-form-field class="w-full">
-            <mat-label>Genre</mat-label>
-            <input matInput formControlName="genre" placeholder="genre" />
-            <mat-icon *ngIf="artistUrl" matSuffix (click)="getBandProps(artistUrl)" class="cursor-pointer">music_note</mat-icon>
-          </mat-form-field>
-        </mat-list-item>
-        <mat-list-item class="my-2">
-          <mat-form-field class="w-full">
-            <mat-label>Country</mat-label>
-            <input matInput formControlName="country" placeholder="country" />
-            <mat-icon *ngIf="artistUrl" matSuffix (click)="getBandProps(artistUrl)" class="cursor-pointer">flag</mat-icon>
-          </mat-form-field>
-        </mat-list-item>
-        <ng-container *ngIf="!form.get('ignore')?.value ?? false">
-          <mat-list-item class="my-2">
-            <mat-form-field class="w-full">
-              <mat-label>Album Url</mat-label>
-              <input matInput formControlName="albumUrl" placeholder="album url" />
-              <mat-icon *ngIf="albumUrl" matSuffix (click)="openLink(albumUrl)" class="cursor-pointer">link</mat-icon>
-            </mat-form-field>
-          </mat-list-item>
-          <mat-list-item class="my-2">
-            <mat-form-field class="w-full">
-              <mat-label>Artist Url</mat-label>
-              <input matInput formControlName="artistUrl" placeholder="band url" />
-              <mat-icon *ngIf="artistUrl" matSuffix (click)="openLink(artistUrl)" class="cursor-pointer">link</mat-icon>
-            </mat-form-field>
-          </mat-list-item>
-        </ng-container>
-        <mat-list-item class="mt-2">
-          <mat-form-field class="w-10">
-            <mat-label>Year</mat-label>
-            <input matInput formControlName="year" placeholder="year" />
-          </mat-form-field>
-          <div *ngIf="!albumUrl" class="w-full text-right">
-            <mat-checkbox formControlName="ignore"> Ignore Metal Archives </mat-checkbox>
-          </div>
-        </mat-list-item>
-        <mat-list-item>
-          <mat-checkbox formControlName="transferred"> Transferred </mat-checkbox>
-        </mat-list-item>
-        <mat-list-item>
-          <mat-checkbox formControlName="hasLyrics"> Lyrics </mat-checkbox>
+  <section class="flex flex-row">
+    <app-cover
+      [loading]="coverLoading"
+      [cover]="album.cover"
+      [coverError]="album.coverError"
+      [enableDnd]="true"
+      [width]="500"
+      [height]="500"
+      (coverUrl)="coverUrl.emit({ id: album.id, url: $event })"
+    ></app-cover>
 
-          <div *ngIf="!hasLyrics" class="w-full text-right">
-            <button mat-button class="p-0" type="button" (click)="lyricsPriority.emit(albumId)">
-              <mat-icon>new_releases</mat-icon>
-              <span class="ml-2">Priority</span>
-            </button>
-          </div>
-        </mat-list-item>
-      </mat-list>
-    </section>
+    <app-album-form [form]="form" (findBandProps)="findBandProps.emit({ id: albumId, url: $event })" (lyricsPriority)="lyricsPriority.emit(albumId)"></app-album-form>
+  </section>
 
-    <section>
-      <app-tracks-toolbar
-        [trackRenaming]="trackRenaming || false"
-        [lyricsLoading]="lyricsLoading || false"
-        [enableMaActions]="!!albumUrl"
-        [albumDuration]="albumDuration || 0"
-        (maTracks)="onMaTracks()"
-        (renameTracks)="onRenameTracks()"
-        (lyrics)="onLyrics()"
-        (refreshTracks)="refreshTracks.emit({ id: album.id, folder: album.folder })"
-        (playAlbum)="playAlbum.emit(this.albumId)"
-        (addAlbumToPlaylist)="addAlbumToPlaylist.emit(this.albumId)"
-      >
-      </app-tracks-toolbar>
-      <app-tracks
-        [form]="form"
-        [tracksLoading]="tracksLoading || false"
-        [tracks]="tracks || []"
-        (transferTrack)="onTransferTrack($event)"
-        (playTrack)="playTrack.emit({ track: $event, albumId: albumId })"
-        (addTrackToPlaylist)="addTrackToPlaylist.emit({ track: $event, albumId: albumId })"
-        (delete)="deleteTrack.emit({ track: $event, albumId: albumId })"
-      ></app-tracks>
-    </section>
-  </form>
+  <section>
+    <app-tracks-toolbar
+      [trackRenaming]="trackRenaming || false"
+      [lyricsLoading]="lyricsLoading || false"
+      [enableMaActions]="!!albumUrl"
+      [albumDuration]="albumDuration || 0"
+      (renameTracks)="onRenameTracks()"
+      (trackNumbers)="onTrackNumbers()"
+      (maTracks)="onMaTracks()"
+      (lyrics)="onLyrics()"
+      (refreshTracks)="refreshTracks.emit({ id: album.id, folder: album.folder })"
+      (playAlbum)="playAlbum.emit(this.albumId)"
+      (addAlbumToPlaylist)="addAlbumToPlaylist.emit(this.albumId)"
+    >
+    </app-tracks-toolbar>
+    <app-tracks
+      [form]="form"
+      [tracksLoading]="tracksLoading || false"
+      [tracks]="tracks || []"
+      (transferTrack)="onTransferTrack($event)"
+      (playTrack)="playTrack.emit({ track: $event, albumId: albumId })"
+      (addTrackToPlaylist)="addTrackToPlaylist.emit({ track: $event, albumId: albumId })"
+      (delete)="deleteTrack.emit({ track: $event, albumId: albumId })"
+    ></app-tracks>
+  </section>
 </ng-container>

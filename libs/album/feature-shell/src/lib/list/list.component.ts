@@ -1,5 +1,6 @@
 import { ViewportRuler } from '@angular/cdk/scrolling';
-import { ChangeDetectionStrategy, Component, EventEmitter, OnInit, Output } from '@angular/core';
+import { DOCUMENT } from '@angular/common';
+import { ChangeDetectionStrategy, Component, EventEmitter, Inject, OnInit, Output } from '@angular/core';
 import { Router } from '@angular/router';
 import { AlbumService } from '@metal-p3/album/data-access';
 import { SearchRequest } from '@metal-p3/album/domain';
@@ -44,8 +45,9 @@ export class ListComponent implements OnInit {
   albumsLoadError$ = this.store.pipe(select(selectAlbumsLoadError));
   albums$ = this.store.pipe(select(selectAlbums));
   criteria$ = this.store.pipe(select(selectAlbumsSearchCriteria));
-  showPlayer$ = this.store.pipe(select(selectPlaylist)).pipe(map((playlist) => playlist?.length));
+  showPlayer$ = this.store.pipe(select(selectPlaylist)).pipe(map((playlist) => !!playlist?.length));
   creatingNew$ = this.store.pipe(select(selectCreatingNew));
+  sideNavOpen$ = this.store.pipe(select(sideNavOpen));
 
   viewportWidth$ = this.viewportRuler.change().pipe(
     startWith(this.viewportRuler.getViewportSize().width),
@@ -75,7 +77,8 @@ export class ListComponent implements OnInit {
     private readonly playerService: PlayerService,
     private readonly notificationService: NotificationService,
     private readonly service: AlbumService,
-    private readonly viewportRuler: ViewportRuler
+    private readonly viewportRuler: ViewportRuler,
+    @Inject(DOCUMENT) private readonly document: Document
   ) {}
 
   ngOnInit(): void {
@@ -93,6 +96,23 @@ export class ListComponent implements OnInit {
         tap((folder) => this.onAlbumAdded([folder]))
       )
       .subscribe();
+
+    combineLatest([
+      this.showPlayer$,
+      this.viewportRuler.change(300).pipe(
+        map((resizeEvent) => resizeEvent?.currentTarget['innerHeight'] ?? 0),
+        startWith(this.viewportRuler.getViewportSize().height)
+      ),
+      this.albumsLoading$,
+    ])
+      .pipe(
+        map(([playerOpen, height, loading]) => {
+          const listHeight = playerOpen ? height - 128 : height - 64;
+
+          return loading ? listHeight - 12 : listHeight;
+        })
+      )
+      .subscribe((height) => this.document.documentElement.style.setProperty('--list-height', height.toString() + 'px'));
   }
 
   onRenameFolder(id: number, src: string, artist: string, album: string) {

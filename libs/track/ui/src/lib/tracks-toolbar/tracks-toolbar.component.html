@@ -2,6 +2,9 @@
   <button mat-icon-button [disabled]="trackRenaming" (click)="renameTracks.emit()">
     <mat-icon title="rename tracks">drive_file_rename_outline</mat-icon>
   </button>
+  <button mat-icon-button (click)="trackNumbers.emit()">
+    <mat-icon title="track numbers">tag</mat-icon>
+  </button>
   <ng-container *ngIf="enableMaActions">
     <button mat-icon-button [disabled]="gettingMaTracks" (click)="maTracks.emit()">
       <mat-icon title="ma tracks">format_list_numbered</mat-icon>

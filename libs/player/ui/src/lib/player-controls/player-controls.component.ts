@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from 
 import { PlaylistItem } from '@metal-p3/player/domain';
 
 @Component({
-  selector: 'app-player-controls',
+  selector: '`app-player-controls`',
   templateUrl: './player-controls.component.html',
   styleUrls: ['./player-controls.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -52,6 +52,15 @@ export class PlayerControlsComponent {
 
   @Output()
   readonly toggleView = new EventEmitter<number>();
+
+  onPrevious() {
+    if ((this.elapsedTime ?? 0) > 10 || this.isFirstItemPlaying) {
+      this.seekTo.emit(0);
+      return;
+    }
+
+    this.previous.emit();
+  }
 
   onSeek(value: number | null) {
     if (value) {

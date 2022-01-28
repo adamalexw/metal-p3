@@ -294,6 +294,26 @@ export class AlbumShellComponent implements OnInit {
       .subscribe();
   }
 
+  onTrackNumbers(id: number) {
+    this.tracks$
+      .pipe(nonNullable())
+      .pipe(
+        tap((tracks) => {
+          const updates: Update<Track>[] = [];
+
+          for (let index = 0; index < tracks.length; index++) {
+            const track = tracks[index];
+
+            updates.push({ id: track.id, changes: { trackNumber: (index + 1).toString().padStart(2, '0') } });
+          }
+
+          this.store.dispatch(updateTracks({ id, updates }));
+        }),
+        take(1)
+      )
+      .subscribe();
+  }
+
   onLyrics(id: number, url: string): void {
     const maTracks$ = this.getMaTracks(id, url);
 

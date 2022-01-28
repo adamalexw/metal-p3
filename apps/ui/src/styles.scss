@@ -1,3 +1,4 @@
+@use '@angular/material' as mat;
 @import 'tailwindcss/base';
 @import 'tailwindcss/components';
 @import 'tailwindcss/utilities';
@@ -26,7 +27,7 @@ body {
 ::-webkit-scrollbar-thumb {
   -webkit-border-radius: 5px;
   border-radius: 5px;
-  background: mat-color($app-primary);
+  background: mat.get-color-from-palette($app-primary, 500);
 }
 
 .mat-column-trackNumber {

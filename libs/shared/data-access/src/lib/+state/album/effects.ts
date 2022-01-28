@@ -199,11 +199,11 @@ export class AlbumEffects {
           mergeMap((response) => {
             if (response.iTotalRecords > 1) {
               this.windowRef.open(`https://www.metal-archives.com/search/advanced/searching/albums?bandName=${encodeURI(artist)}&releaseTitle=${encodeURI(album)}`);
-              return throwError('too many results');
+              return throwError(() => new Error('too many results'));
             }
             if (response.iTotalRecords === 0) {
               this.windowRef.open(`https://www.metal-archives.com/search/advanced/searching/albums?bandName=${encodeURI(artist)}`);
-              return throwError('no results');
+              return throwError(() => new Error('no results'));
             }
 
             return of(response);

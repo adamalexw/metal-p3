@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Inject, Input, Output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Inject, Input, Output, ViewEncapsulation } from '@angular/core';
 import { WINDOW } from '@ng-web-apis/common';
 
 @Component({
@@ -6,6 +6,7 @@ import { WINDOW } from '@ng-web-apis/common';
   templateUrl: './apply-lyrics-toolbar.component.html',
   styleUrls: ['./apply-lyrics-toolbar.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  encapsulation: ViewEncapsulation.None,
 })
 export class ApplyLyricsToolbarComponent {
   @Input()

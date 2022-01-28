@@ -9,8 +9,10 @@ export const getTracks = createAction('[Tracks] Get Tracks', props<{ id: number;
 export const getTracksSuccess = createAction('[Tracks] Get Tracks Success', props<{ id: number; tracks: Track[] }>());
 export const saveTrack = createAction('[Tracks] Save Track', props<{ id: number; track: Track }>());
 export const saveTrackSuccess = createAction('[Tracks] Save Track Success', props<{ id: number; track: Track }>());
+
 export const renameTrack = createAction('[Tracks] Rename Track', props<{ id: number; track: Track }>());
 export const renameTrackSuccess = createAction('[Tracks] Rename Track Success', props<{ id: number; trackId: number; file: string; fullPath: string }>());
+
 export const transferTrack = createAction('[Tracks] Transfer Track', props<{ id: number; trackId: number }>());
 export const transferTrackSuccess = createAction('[Tracks] Transfer Track Success', props<{ id: number; track: Track }>());
 export const updateTracks = createAction('[Tracks] Update Tracks Success', props<{ id: number; updates: Update<Track>[] }>());

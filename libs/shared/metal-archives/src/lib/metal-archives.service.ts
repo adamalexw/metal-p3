@@ -42,7 +42,7 @@ export class MetalArchivesService {
             switch (i) {
               case 0:
                 track.id = +(td.querySelector('a')?.getAttribute('name') || 0);
-                track.trackNumber = td.textContent.replace('.', '');
+                track.trackNumber = td.textContent.trim().replace('.', '').padStart(2, '0');
                 break;
               case 1:
                 track.title = td.textContent.replace(/\n/g, '');

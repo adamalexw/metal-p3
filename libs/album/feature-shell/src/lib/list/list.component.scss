@@ -1,3 +1,8 @@
-// cdk-virtual-scroll-viewport {
-//   height: calc(100vh - 128px);
-// }
+cdk-virtual-scroll-viewport {
+  height: var(--list-height);
+  width: 100%;
+}
+
+.footer-with-side-panel {
+  width: calc(100vw - 1129px) !important;
+}

@@ -92,6 +92,9 @@ export class AlbumComponent implements OnChanges {
   readonly lyrics = new EventEmitter<{ id: number; url: string }>();
 
   @Output()
+  readonly trackNumbers = new EventEmitter<number>();
+
+  @Output()
   readonly renameTracks = new EventEmitter<{ id: number; tracks: Track[] }>();
 
   @Output()
@@ -245,16 +248,20 @@ export class AlbumComponent implements OnChanges {
     this.findUrl.emit({ id: this.albumId, artist: this.form.get('artist')?.value, album: this.form.get('album')?.value });
   }
 
+  onRenameTracks() {
+    this.renameTracks.emit({ id: this.albumId, tracks: this.form.get('tracks')?.value });
+  }
+
+  onTrackNumbers() {
+    this.trackNumbers.emit(this.albumId);
+  }
+
   onMaTracks() {
     this.getMaTracks.emit({ id: this.albumId, url: this.albumUrl });
   }
 
   onLyrics() {
     this.lyrics.emit({ id: this.albumId, url: this.albumUrl });
-  }
-
-  onRenameTracks() {
-    this.renameTracks.emit({ id: this.albumId, tracks: this.form.get('tracks')?.value });
   }
 
   onRenameFolder() {

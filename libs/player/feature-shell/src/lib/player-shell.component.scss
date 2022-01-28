@@ -3,13 +3,13 @@
 }
 
 .full-mode {
-  z-index: 999;
   transform: translateY(0px) !important;
+  max-height: calc(100vh - 64px);
 }
 
 app-playlist {
   display: block;
-  height: calc(100% - 256px);
+  max-height: calc(100vh - 384px);
   overflow: auto;
   transform: translateY(0px) !important;
 }
