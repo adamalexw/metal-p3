@@ -117,7 +117,7 @@ export class FileSystemService {
           return true;
         }
 
-        if (file.toLowerCase() !== 'folder.jpg') {
+        if (file.toLowerCase() !== 'cover.jpg') {
           return true;
         }
       }

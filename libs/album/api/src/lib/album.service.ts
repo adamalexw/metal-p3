@@ -72,7 +72,7 @@ export class AlbumService {
     const watcher = chokidar.watch(basePath, {
       persistent: true,
       ignoreInitial: true,
-      alwaysStat: false,
+      alwaysStat: true,
     });
 
     watcher.on('addDir', (path) => {

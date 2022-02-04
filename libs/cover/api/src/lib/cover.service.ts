@@ -16,13 +16,7 @@ export class CoverService {
       return this.getCoverFromAudioFile(location);
     }
 
-    const folderPath = path.join(location, 'folder.jpg');
-
-    if (fs.existsSync(folderPath)) {
-      return this.getCoverFromImageFile(folderPath);
-    }
-
-    const coverPath = path.join(location, 'cover.jpg');
+    const coverPath = path.join(location, 'Cover.jpg');
 
     if (fs.existsSync(coverPath)) {
       return this.getCoverFromImageFile(coverPath);
@@ -60,7 +54,7 @@ export class CoverService {
   }
 
   saveCover(folder: string, cover: string): void {
-    const location = path.join(folder, 'Folder.jpg');
+    const location = path.join(folder, 'Cover.jpg');
 
     const buffer = Buffer.from(cover.replace('data:image/png;base64,', ''), 'base64');
 
