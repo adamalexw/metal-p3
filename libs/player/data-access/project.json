@@ -1,6 +1,5 @@
 {
   "projectType": "library",
-  "root": "libs/player/data-access",
   "sourceRoot": "libs/player/data-access/src",
   "prefix": "app",
   "targets": {
@@ -8,7 +7,7 @@
       "executor": "@nrwl/jest:jest",
       "outputs": ["coverage/libs/player/data-access"],
       "options": {
-        "jestConfig": "libs/player/data-access/jest.config.js",
+        "jestConfig": "libs/player/data-access/jest.config.ts",
         "passWithNoTests": true
       }
     },

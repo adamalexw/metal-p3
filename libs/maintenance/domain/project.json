@@ -1,6 +1,5 @@
 {
   "projectType": "library",
-  "root": "libs/maintenance/domain",
   "sourceRoot": "libs/maintenance/domain/src",
   "prefix": "app",
   "targets": {
@@ -8,7 +7,7 @@
       "executor": "@nrwl/jest:jest",
       "outputs": ["coverage/libs/maintenance/domain"],
       "options": {
-        "jestConfig": "libs/maintenance/domain/jest.config.js",
+        "jestConfig": "libs/maintenance/domain/jest.config.ts",
         "passWithNoTests": true
       }
     },

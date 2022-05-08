@@ -1,6 +1,5 @@
 {
   "projectType": "library",
-  "root": "libs/player/util",
   "sourceRoot": "libs/player/util/src",
   "prefix": "app",
   "targets": {
@@ -8,7 +7,7 @@
       "executor": "@nrwl/jest:jest",
       "outputs": ["coverage/libs/player/util"],
       "options": {
-        "jestConfig": "libs/player/util/jest.config.js",
+        "jestConfig": "libs/player/util/jest.config.ts",
         "passWithNoTests": true
       }
     },

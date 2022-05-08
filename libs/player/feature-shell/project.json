@@ -1,6 +1,5 @@
 {
   "projectType": "library",
-  "root": "libs/player/feature-shell",
   "sourceRoot": "libs/player/feature-shell/src",
   "prefix": "app",
   "targets": {
@@ -8,7 +7,7 @@
       "executor": "@nrwl/jest:jest",
       "outputs": ["coverage/libs/player/feature-shell"],
       "options": {
-        "jestConfig": "libs/player/feature-shell/jest.config.js",
+        "jestConfig": "libs/player/feature-shell/jest.config.ts",
         "passWithNoTests": true
       }
     },

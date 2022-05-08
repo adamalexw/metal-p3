@@ -1,6 +1,5 @@
 {
   "projectType": "library",
-  "root": "libs/shared/data-access",
   "sourceRoot": "libs/shared/data-access/src",
   "prefix": "app",
   "targets": {
@@ -8,7 +7,7 @@
       "executor": "@nrwl/jest:jest",
       "outputs": ["coverage/libs/shared/data-access"],
       "options": {
-        "jestConfig": "libs/shared/data-access/jest.config.js",
+        "jestConfig": "libs/shared/data-access/jest.config.ts",
         "passWithNoTests": true
       }
     },

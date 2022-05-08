@@ -1,6 +1,5 @@
 {
   "projectType": "library",
-  "root": "libs/track/ui",
   "sourceRoot": "libs/track/ui/src",
   "prefix": "app",
   "targets": {
@@ -8,7 +7,7 @@
       "executor": "@nrwl/jest:jest",
       "outputs": ["coverage/libs/track/ui"],
       "options": {
-        "jestConfig": "libs/track/ui/jest.config.js",
+        "jestConfig": "libs/track/ui/jest.config.ts",
         "passWithNoTests": true
       }
     },

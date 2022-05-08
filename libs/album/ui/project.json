@@ -1,6 +1,5 @@
 {
   "projectType": "library",
-  "root": "libs/album/ui",
   "sourceRoot": "libs/album/ui/src",
   "prefix": "app",
   "targets": {
@@ -14,7 +13,7 @@
       "executor": "@nrwl/jest:jest",
       "outputs": ["coverage/libs/album/ui"],
       "options": {
-        "jestConfig": "libs/album/ui/jest.config.js",
+        "jestConfig": "libs/album/ui/jest.config.ts",
         "passWithNoTests": true
       }
     }

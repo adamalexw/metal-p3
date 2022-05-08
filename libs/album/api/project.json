@@ -1,5 +1,4 @@
 {
-  "root": "libs/album/api",
   "sourceRoot": "libs/album/api/src",
   "projectType": "library",
   "targets": {
@@ -13,7 +12,7 @@
       "executor": "@nrwl/jest:jest",
       "outputs": ["coverage/libs/album/api"],
       "options": {
-        "jestConfig": "libs/album/api/jest.config.js",
+        "jestConfig": "libs/album/api/jest.config.ts",
         "passWithNoTests": true
       }
     }

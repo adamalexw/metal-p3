@@ -1,5 +1,4 @@
 {
-  "root": "libs/shared/metal-archives",
   "sourceRoot": "libs/shared/metal-archives/src",
   "projectType": "library",
   "targets": {
@@ -13,7 +12,7 @@
       "executor": "@nrwl/jest:jest",
       "outputs": ["coverage/libs/shared/metal-archives"],
       "options": {
-        "jestConfig": "libs/shared/metal-archives/jest.config.js",
+        "jestConfig": "libs/shared/metal-archives/jest.config.ts",
         "passWithNoTests": true
       }
     }

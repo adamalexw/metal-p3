@@ -1,6 +1,5 @@
 {
   "projectType": "library",
-  "root": "libs/maintenance/feature-shell",
   "sourceRoot": "libs/maintenance/feature-shell/src",
   "prefix": "app",
   "targets": {
@@ -8,7 +7,7 @@
       "executor": "@nrwl/jest:jest",
       "outputs": ["coverage/libs/maintenance/feature-shell"],
       "options": {
-        "jestConfig": "libs/maintenance/feature-shell/jest.config.js",
+        "jestConfig": "libs/maintenance/feature-shell/jest.config.ts",
         "passWithNoTests": true
       }
     },

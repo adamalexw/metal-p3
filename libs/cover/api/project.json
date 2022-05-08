@@ -1,5 +1,4 @@
 {
-  "root": "libs/cover/api",
   "sourceRoot": "libs/cover/api/src",
   "projectType": "library",
   "targets": {
@@ -13,7 +12,7 @@
       "executor": "@nrwl/jest:jest",
       "outputs": ["coverage/libs/cover/api"],
       "options": {
-        "jestConfig": "libs/cover/api/jest.config.js",
+        "jestConfig": "libs/cover/api/jest.config.ts",
         "passWithNoTests": true
       }
     }

@@ -1,6 +1,5 @@
 {
   "projectType": "library",
-  "root": "libs/playlist/domain",
   "sourceRoot": "libs/playlist/domain/src",
   "prefix": "app",
   "targets": {
@@ -8,7 +7,7 @@
       "executor": "@nrwl/jest:jest",
       "outputs": ["coverage/libs/playlist/domain"],
       "options": {
-        "jestConfig": "libs/playlist/domain/jest.config.js",
+        "jestConfig": "libs/playlist/domain/jest.config.ts",
         "passWithNoTests": true
       }
     },

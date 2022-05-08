@@ -1,5 +1,4 @@
 {
-  "root": "libs/maintenance/api",
   "sourceRoot": "libs/maintenance/api/src",
   "projectType": "library",
   "targets": {
@@ -13,7 +12,7 @@
       "executor": "@nrwl/jest:jest",
       "outputs": ["coverage/libs/maintenance/api"],
       "options": {
-        "jestConfig": "libs/maintenance/api/jest.config.js",
+        "jestConfig": "libs/maintenance/api/jest.config.ts",
         "passWithNoTests": true
       }
     }

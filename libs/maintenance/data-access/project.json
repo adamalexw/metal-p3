@@ -1,6 +1,5 @@
 {
   "projectType": "library",
-  "root": "libs/maintenance/data-access",
   "sourceRoot": "libs/maintenance/data-access/src",
   "prefix": "app",
   "targets": {
@@ -8,7 +7,7 @@
       "executor": "@nrwl/jest:jest",
       "outputs": ["coverage/libs/maintenance/data-access"],
       "options": {
-        "jestConfig": "libs/maintenance/data-access/jest.config.js",
+        "jestConfig": "libs/maintenance/data-access/jest.config.ts",
         "passWithNoTests": true
       }
     },

@@ -1,6 +1,5 @@
 {
   "projectType": "library",
-  "root": "libs/album/data-access",
   "sourceRoot": "libs/album/data-access/src",
   "prefix": "app",
   "targets": {
@@ -14,7 +13,7 @@
       "executor": "@nrwl/jest:jest",
       "outputs": ["coverage/libs/album/data-access"],
       "options": {
-        "jestConfig": "libs/album/data-access/jest.config.js",
+        "jestConfig": "libs/album/data-access/jest.config.ts",
         "passWithNoTests": true
       }
     }
