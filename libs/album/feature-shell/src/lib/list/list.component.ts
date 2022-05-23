@@ -4,16 +4,10 @@ import { ChangeDetectionStrategy, Component, EventEmitter, Inject, OnInit, Outpu
 import { Router } from '@angular/router';
 import { AlbumService } from '@metal-p3/album/data-access';
 import { SearchRequest } from '@metal-p3/album/domain';
-import { PlayerService, selectPlaylist, showPlayer } from '@metal-p3/player/data-access';
+import { PlayerActions, PlayerService, selectShowPlayer } from '@metal-p3/player/data-access';
 import {
-  addNewAlbum,
   Album,
-  cancelLoadAlbums,
-  clearCovers,
-  createNew,
-  getTracks,
-  loadAlbums,
-  renameFolder,
+  AlbumActions,
   selectAlbums,
   selectAlbumsLoaded,
   selectAlbumsLoadError,
@@ -23,15 +17,14 @@ import {
   selectTracksById,
   selectTracksRequiredById,
   sideNavOpen,
-  transferTrack,
-  viewAlbum,
+  TrackActions,
 } from '@metal-p3/shared/data-access';
 import { NotificationService } from '@metal-p3/shared/feedback';
 import { nonNullable, toChunks } from '@metal-p3/shared/utils';
 import { Track } from '@metal-p3/track/domain';
-import { select, Store } from '@ngrx/store';
+import { Store } from '@ngrx/store';
 import { combineLatest, Observable } from 'rxjs';
-import { delay, filter, map, startWith, take, tap } from 'rxjs/operators';
+import { delay, filter, map, mapTo, startWith, take, tap } from 'rxjs/operators';
 
 @Component({
   selector: 'app-list',
@@ -40,14 +33,14 @@ import { delay, filter, map, startWith, take, tap } from 'rxjs/operators';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ListComponent implements OnInit {
-  albumsLoading$ = this.store.pipe(select(selectAlbumsLoading));
-  albumsLoaded$ = this.store.pipe(select(selectAlbumsLoaded));
-  albumsLoadError$ = this.store.pipe(select(selectAlbumsLoadError));
-  albums$ = this.store.pipe(select(selectAlbums));
-  criteria$ = this.store.pipe(select(selectAlbumsSearchCriteria));
-  showPlayer$ = this.store.pipe(select(selectPlaylist)).pipe(map((playlist) => !!playlist?.length));
-  creatingNew$ = this.store.pipe(select(selectCreatingNew));
-  sideNavOpen$ = this.store.pipe(select(sideNavOpen));
+  albumsLoading$ = this.store.select(selectAlbumsLoading);
+  albumsLoaded$ = this.store.select(selectAlbumsLoaded);
+  albumsLoadError$ = this.store.select(selectAlbumsLoadError);
+  albums$ = this.store.select(selectAlbums);
+  criteria$ = this.store.select(selectAlbumsSearchCriteria);
+  showPlayer$ = this.store.select(selectShowPlayer);
+  creatingNew$ = this.store.select(selectCreatingNew);
+  sideNavOpen$ = this.store.select(sideNavOpen);
 
   viewportWidth$ = this.viewportRuler.change().pipe(
     startWith(this.viewportRuler.getViewportSize().width),
@@ -99,10 +92,7 @@ export class ListComponent implements OnInit {
 
     combineLatest([
       this.showPlayer$,
-      this.viewportRuler.change(300).pipe(
-        map((resizeEvent) => resizeEvent?.currentTarget['innerHeight'] ?? 0),
-        startWith(this.viewportRuler.getViewportSize().height)
-      ),
+      this.viewportRuler.change(300).pipe(mapTo(this.viewportRuler.getViewportSize().height), startWith(this.viewportRuler.getViewportSize().height)),
       this.albumsLoading$,
     ])
       .pipe(
@@ -116,7 +106,7 @@ export class ListComponent implements OnInit {
   }
 
   onRenameFolder(id: number, src: string, artist: string, album: string) {
-    this.store.dispatch(renameFolder({ id, src, artist, album }));
+    this.store.dispatch(AlbumActions.renameFolder({ id, src, artist, album }));
   }
 
   onTransferAlbum(id: number, folder: string) {
@@ -124,7 +114,7 @@ export class ListComponent implements OnInit {
 
     tracks$
       .pipe(
-        tap((tracks) => tracks?.forEach((track) => this.store.dispatch(transferTrack({ id, trackId: track.id })))),
+        tap((tracks) => tracks?.forEach((track) => this.store.dispatch(TrackActions.transferTrack({ id, trackId: track.id })))),
         take(1)
       )
       .subscribe();
@@ -140,18 +130,15 @@ export class ListComponent implements OnInit {
 
   private getTracks(id: number, folder: string): Observable<Track[] | undefined> {
     this.store
-      .pipe(select(selectTracksRequiredById(id)))
+      .select(selectTracksRequiredById(id))
       .pipe(
         take(1),
         filter((required) => !!required),
-        tap(() => this.store.dispatch(getTracks({ id, folder })))
+        tap(() => this.store.dispatch(TrackActions.getTracks({ id, folder })))
       )
       .subscribe();
 
-    return this.store.pipe(
-      select(selectTracksById(id)),
-      filter((tracks) => !!tracks)
-    );
+    return this.store.select(selectTracksById(id)).pipe(filter((tracks) => !!tracks));
   }
 
   trackByVirtualFn(index: number): number {
@@ -164,26 +151,25 @@ export class ListComponent implements OnInit {
 
   onSearch(request: SearchRequest) {
     this.fetchedPages.clear();
-    this.store.dispatch(clearCovers());
-    this.store.dispatch(cancelLoadAlbums({ request: { cancel: true } }));
+    this.store.dispatch(AlbumActions.search({ request: { cancel: true } }));
     this.criteria = request.criteria;
     this.scrollIndexChange(0, this.criteria);
   }
 
   onAlbumAdded(folders: string[]) {
-    folders.forEach((folder) => this.store.dispatch(addNewAlbum({ folder })));
+    folders.forEach((folder) => this.store.dispatch(AlbumActions.addNewAlbum({ folder })));
   }
 
   onShowPlayer() {
-    this.store.dispatch(showPlayer());
+    this.store.dispatch(PlayerActions.show());
   }
 
   onCreateNew() {
-    this.store.dispatch(createNew());
+    this.store.dispatch(AlbumActions.createNew());
   }
 
   onOpenAlbum(id: number) {
-    this.store.dispatch(viewAlbum({ id }));
+    this.store.dispatch(AlbumActions.viewAlbum({ id }));
     this.router.navigate(['album', id]);
   }
 
@@ -208,6 +194,6 @@ export class ListComponent implements OnInit {
     }
 
     this.fetchedPages.add(page);
-    this.store.dispatch(loadAlbums({ request: { take, skip, criteria } }));
+    this.store.dispatch(AlbumActions.loadAlbums({ request: { take, skip, criteria } }));
   }
 }

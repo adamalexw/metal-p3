@@ -1,8 +1,7 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
-import { selectPlaylistItemSize, shufflePlaylist } from '@metal-p3/player/data-access';
-import { createPlaylist, deletePlaylist, loadPlaylist, loadPlaylists, savePlaylist, selectActivePlaylist, selectActivePlaylistId, selectPlaylists } from '@metal-p3/playlist/data-access';
-import { select, Store } from '@ngrx/store';
-import { map } from 'rxjs/operators';
+import { PlayerActions, selectPlaylistItemSize } from '@metal-p3/player/data-access';
+import { PlaylistActions, selectActivePlaylistId, selectActivePlaylistName, selectPlaylists } from '@metal-p3/playlist/data-access';
+import { Store } from '@ngrx/store';
 
 @Component({
   selector: 'app-playlist-shell',
@@ -20,37 +19,34 @@ export class PlaylistShellComponent {
   @Output()
   readonly closePlaylist = new EventEmitter<void>();
 
-  playlists$ = this.store.pipe(select(selectPlaylists));
-  activePlaylistId$ = this.store.pipe(select(selectActivePlaylistId));
-  playlistName$ = this.store.pipe(
-    select(selectActivePlaylist),
-    map((playlist) => playlist?.name)
-  );
-  playlistSize$ = this.store.pipe(select(selectPlaylistItemSize));
+  playlists$ = this.store.select(selectPlaylists);
+  activePlaylistId$ = this.store.select(selectActivePlaylistId);
+  playlistName$ = this.store.select(selectActivePlaylistName);
+  playlistSize$ = this.store.select(selectPlaylistItemSize);
 
   constructor(private store: Store) {}
 
   onLoadPlaylists() {
-    this.store.dispatch(loadPlaylists());
+    this.store.dispatch(PlaylistActions.loadPlaylists());
   }
 
   onCreatePlaylist(name: string) {
-    this.store.dispatch(createPlaylist({ name }));
+    this.store.dispatch(PlaylistActions.create({ name }));
   }
 
   onUpdatePlaylist(name: string) {
-    this.store.dispatch(savePlaylist({ name }));
+    this.store.dispatch(PlaylistActions.save({ name }));
   }
 
   onLoadPlaylist(id: number) {
-    this.store.dispatch(loadPlaylist({ id }));
+    this.store.dispatch(PlaylistActions.loadPlaylist({ id }));
   }
 
   onShuffle() {
-    this.store.dispatch(shufflePlaylist());
+    this.store.dispatch(PlayerActions.shuffle());
   }
 
   onDeletePlaylist() {
-    this.store.dispatch(deletePlaylist());
+    this.store.dispatch(PlaylistActions.delete());
   }
 }

@@ -1,35 +1,31 @@
 import { PlaylistItem } from '@metal-p3/player/domain';
 import { Update } from '@ngrx/entity';
-import { createAction, props } from '@ngrx/store';
+import { createActionGroup, emptyProps, props } from '@ngrx/store';
 
-export const showPlayer = createAction('[Player] Show');
-export const closePlayer = createAction('[Player] Close');
-export const tooglePlayerView = createAction('[Player] Toogle View');
-
-export const addTrackToPlaylist = createAction('[Player] Add Items', props<{ track: PlaylistItem }>());
-export const addTracksToPlaylist = createAction('[Player] Add Item', props<{ tracks: PlaylistItem[] }>());
-
-export const updatePlaylist = createAction('[Player] Update Items', props<{ updates: Update<PlaylistItem>[] }>());
-export const updatePlaylistItem = createAction('[Player] Update Item', props<{ update: Update<PlaylistItem> }>());
-export const reorderPlaylist = createAction('[Player] Reorder', props<{ updates: Update<PlaylistItem>[] }>());
-
-export const playItem = createAction('[Player] Play Item', props<{ id: string }>());
-export const pauseItem = createAction('[Player] Pause Item');
-
-export const removeItem = createAction('[Player] Remove Item', props<{ id: string }>());
-export const removeItemSuccess = createAction('[Player] Remove Item Success', props<{ id: string }>());
-
-export const playPrevious = createAction('[Player] Play Previous');
-export const playNext = createAction('[Player] Pause Next');
-
-export const shufflePlaylist = createAction('[Playlist] Shuffle');
-export const shufflePlaylistSuccess = createAction('[Playlist] shuffle Success', props<{ updates: Update<PlaylistItem>[] }>());
-
-export const clearPlaylist = createAction('[Player] Clear');
-export const noopPlaylist = createAction('[Player] Noop');
-
-export const getItemCover = createAction('[Player] Get Cover', props<{ id: string; folder: string }>());
-export const getItemCoverSuccess = createAction('[Player] Get Cover Success', props<{ update: Update<PlaylistItem> }>());
-export const getItemCoverError = createAction('[Player] Get Cover Error', props<{ update: Update<PlaylistItem> }>());
-
-export const clearBlobs = createAction('[Player] Clear Blobs');
+export const PlayerActions = createActionGroup({
+  source: 'Player',
+  events: {
+    Show: emptyProps(),
+    Close: emptyProps(),
+    'Toogle View': emptyProps(),
+    'Add Item': props<{ track: PlaylistItem }>(),
+    'Add Items': props<{ tracks: PlaylistItem[] }>(),
+    'Update Items': props<{ updates: Update<PlaylistItem>[] }>(),
+    'Update Item': props<{ update: Update<PlaylistItem> }>(),
+    Reorder: props<{ updates: Update<PlaylistItem>[] }>(),
+    Play: props<{ id: string }>(),
+    Pause: emptyProps(),
+    Remove: props<{ id: string }>(),
+    'Remove Success': props<{ id: string }>(),
+    'Play Previous': emptyProps(),
+    'Play Next': emptyProps(),
+    Clear: emptyProps(),
+    'Clear Success': emptyProps(),
+    Noop: emptyProps(),
+    Shuffle: emptyProps(),
+    'Shuffle Success': props<{ updates: Update<PlaylistItem>[] }>(),
+    'Get Cover': props<{ id: string; folder: string }>(),
+    'Get Cover Success': props<{ update: Update<PlaylistItem> }>(),
+    'Get Cover Error': props<{ update: Update<PlaylistItem> }>(),
+  },
+});

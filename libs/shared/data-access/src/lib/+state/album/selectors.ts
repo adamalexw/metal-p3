@@ -1,16 +1,16 @@
 import { createFeatureSelector, createSelector } from '@ngrx/store';
-import { adapter, AlbumState, ALBUMS_FEATURE_KEY } from '../reducer';
+import { albumAdapter, AlbumState, ALBUMS_FEATURE_KEY } from '../reducer';
 
 export const selectAlbumState = createFeatureSelector<AlbumState>(ALBUMS_FEATURE_KEY);
 
-const { selectEntities, selectAll } = adapter.getSelectors();
+const { selectEntities, selectAll } = albumAdapter.getSelectors();
 
 export const selectAlbumEntities = createSelector(selectAlbumState, selectEntities);
 export const selectAlbums = createSelector(selectAlbumState, (state: AlbumState) => selectAll(state));
 
-export const selectedAlbumId = createSelector(selectAlbumState, (state: AlbumState) => state.selectedAlbumId);
+export const selectSelectedAlbumId = createSelector(selectAlbumState, (state: AlbumState) => state.selectedAlbumId);
 
-export const selectAlbum = createSelector(selectAlbumEntities, selectedAlbumId, (albums, id) => (albums && id ? albums[id] : undefined));
+export const selectAlbum = createSelector(selectAlbumEntities, selectSelectedAlbumId, (albums, id) => (albums && id ? albums[id] : undefined));
 export const selectAlbumById = (id: number) => createSelector(selectAlbumEntities, (entities) => entities && entities[id]);
 export const selectSaveAlbumError = createSelector(selectAlbum, (album) => album?.saveError);
 

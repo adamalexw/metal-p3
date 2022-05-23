@@ -31,8 +31,8 @@ import {
 @Injectable()
 export class MaintenanceEffects {
   addLyricsPriority$ = createEffect(
-    () =>
-      this.actions$.pipe(
+    () => {
+      return this.actions$.pipe(
         ofType(addLyricsPriority),
         concatMap(({ albumId }) => this.lyricsService.addPriority(albumId)),
         tap(() => this.notificationService.showComplete('Lyrics Priority Added')),
@@ -40,30 +40,31 @@ export class MaintenanceEffects {
           this.notificationService.showError(this.errorService.getError(error), 'Lyrics Priority Added');
           return EMPTY;
         })
-      ),
+      );
+    },
     { dispatch: false }
   );
 
-  getLyricsHistory$ = createEffect(() =>
-    this.actions$.pipe(
+  getLyricsHistory$ = createEffect(() => {
+    return this.actions$.pipe(
       ofType(getLyricsHistory),
       concatMap(({ priority }) => iif(() => priority, this.lyricsService.getPriority(), this.lyricsService.getHistory())),
       map((history) => getLyricsHistorySuccess({ history })),
       catchError((error) => of(getLyricsHistoryError({ error: this.errorService.getError(error) })))
-    )
-  );
+    );
+  });
 
-  checkLyricsHistory$ = createEffect(() =>
-    this.actions$.pipe(
+  checkLyricsHistory$ = createEffect(() => {
+    return this.actions$.pipe(
       ofType(checkLyricsHistory),
       concatMap(({ priority }) => iif(() => priority, this.lyricsService.checkPriority(), this.lyricsService.checkHistory())),
       mapTo(checkLyricsHistorySuccess()),
       catchError((error) => of(checkLyricsHistoryError({ error: this.errorService.getError(error) })))
-    )
-  );
+    );
+  });
 
-  checkedLyricsHistory$ = createEffect(() =>
-    this.actions$.pipe(
+  checkedLyricsHistory$ = createEffect(() => {
+    return this.actions$.pipe(
       ofType(checkedLyricsHistory),
       concatMap(({ id, checked }) =>
         this.lyricsService.checkedLyricsHistory(id, checked).pipe(
@@ -74,11 +75,11 @@ export class MaintenanceEffects {
           })
         )
       )
-    )
-  );
+    );
+  });
 
-  deleteLyricsHistory$ = createEffect(() =>
-    this.actions$.pipe(
+  deleteLyricsHistory$ = createEffect(() => {
+    return this.actions$.pipe(
       ofType(deleteLyricsHistory),
       concatMap(({ id }) =>
         this.lyricsService.deleteLyricsHistory(id).pipe(
@@ -89,23 +90,38 @@ export class MaintenanceEffects {
           })
         )
       )
-    )
+    );
+  });
+
+  stopLyricsCheck$ = createEffect(
+    () => {
+      return this.actions$.pipe(ofType(stopLyricsCheck), concatMapTo(this.lyricsService.cancelHistoryCheck()));
+    },
+    { dispatch: false }
   );
 
-  stopLyricsCheck$ = createEffect(() => this.actions$.pipe(ofType(stopLyricsCheck), concatMapTo(this.lyricsService.cancelHistoryCheck())), { dispatch: false });
-
-  getUrlMatcher$ = createEffect(() =>
-    this.actions$.pipe(
+  getUrlMatcher$ = createEffect(() => {
+    return this.actions$.pipe(
       ofType(getUrlMatcher),
       concatMapTo(this.urlService.list()),
       map((albums) => getUrlMatcherSuccess({ albums })),
       catchError((error) => of(getUrlMatcherError({ error: this.errorService.getError(error) })))
-    )
+    );
+  });
+
+  startUrlMatcher$ = createEffect(
+    () => {
+      return this.actions$.pipe(ofType(startUrlMatcher), concatMapTo(this.urlService.match()));
+    },
+    { dispatch: false }
   );
 
-  startUrlMatcher$ = createEffect(() => this.actions$.pipe(ofType(startUrlMatcher), concatMapTo(this.urlService.match())), { dispatch: false });
-
-  stopUrlMatcher$ = createEffect(() => this.actions$.pipe(ofType(stopUrlMatcher), concatMapTo(this.urlService.cancel())), { dispatch: false });
+  stopUrlMatcher$ = createEffect(
+    () => {
+      return this.actions$.pipe(ofType(stopUrlMatcher), concatMapTo(this.urlService.cancel()));
+    },
+    { dispatch: false }
+  );
 
   constructor(
     private actions$: Actions,

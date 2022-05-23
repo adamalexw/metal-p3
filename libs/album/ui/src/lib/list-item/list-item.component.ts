@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
 import { Album } from '@metal-p3/shared/data-access';
 
 @Component({
@@ -7,7 +7,7 @@ import { Album } from '@metal-p3/shared/data-access';
   styleUrls: ['./list-item.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ListItemComponent implements OnChanges {
+export class ListItemComponent {
   @Input()
   album: Album | undefined;
 
@@ -16,9 +16,6 @@ export class ListItemComponent implements OnChanges {
 
   @Output()
   readonly openAlbum = new EventEmitter<number>();
-
-  @Output()
-  readonly getCover = new EventEmitter<void>();
 
   @Output()
   readonly renameFolder = new EventEmitter<void>();
@@ -31,10 +28,4 @@ export class ListItemComponent implements OnChanges {
 
   @Output()
   readonly addToPlaylist = new EventEmitter<void>();
-
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes.album && this.album && !this.album.coverLoading && !this.album.cover && !this.album.coverError) {
-      this.getCover.emit();
-    }
-  }
 }

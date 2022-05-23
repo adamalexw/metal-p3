@@ -1,8 +1,8 @@
-import { clearPlaylist } from '@metal-p3/player/data-access';
+import { PlayerActions } from '@metal-p3/player/data-access';
 import { PlaylistDto } from '@metal-p3/playlist/domain';
 import { createEntityAdapter, EntityAdapter, EntityState } from '@ngrx/entity';
 import { createReducer, on } from '@ngrx/store';
-import { createPlaylistSuccess, deletePlaylistSuccess, loadPlaylists, loadPlaylistsError, loadPlaylistsSuccess, loadPlaylistSuccess, savePlaylistSuccess } from './actions';
+import { PlaylistActions } from './actions';
 
 export const PLAYLIST_FEATURE_KEY = 'playlist';
 
@@ -22,12 +22,12 @@ export const initialState = adapter.getInitialState({
 
 export const reducer = createReducer(
   initialState,
-  on(loadPlaylists, (state) => ({ ...state, loading: true })),
-  on(loadPlaylistsSuccess, (state, { playlists }) => adapter.setAll(playlists, { ...state, loading: false, loaded: true })),
-  on(loadPlaylistsError, (state, { error }) => ({ ...state, loading: false, loaded: false, loadError: error })),
-  on(createPlaylistSuccess, (state, { playlist }) => adapter.addOne(playlist, { ...state, active: playlist.id })),
-  on(loadPlaylistSuccess, (state, { id }) => ({ ...state, active: id })),
-  on(savePlaylistSuccess, (state, { playlist }) => adapter.updateOne({ id: playlist.id, changes: { ...playlist } }, state)),
-  on(deletePlaylistSuccess, (state, { id }) => adapter.removeOne(id, { ...state, active: undefined })),
-  on(clearPlaylist, (state) => ({ ...state, active: undefined }))
+  on(PlaylistActions.loadPlaylists, (state): PlaylistState => ({ ...state, loading: true })),
+  on(PlaylistActions.loadPlaylistsSuccess, (state, { playlists }): PlaylistState => adapter.setAll(playlists, { ...state, loading: false, loaded: true })),
+  on(PlaylistActions.loadPlaylistsError, (state, { error }): PlaylistState => ({ ...state, loading: false, loaded: false, loadError: error })),
+  on(PlaylistActions.createSuccess, (state, { playlist }) => adapter.addOne(playlist, { ...state, active: playlist.id })),
+  on(PlaylistActions.loadPlaylistSuccess, (state, { id }): PlaylistState => ({ ...state, active: id })),
+  on(PlaylistActions.saveSuccess, (state, { playlist }) => adapter.updateOne({ id: playlist.id, changes: { ...playlist } }, state)),
+  on(PlaylistActions.deleteSuccess, (state, { id }) => adapter.removeOne(id, { ...state, active: undefined })),
+  on(PlayerActions.clear, (state): PlaylistState => ({ ...state, active: undefined }))
 );

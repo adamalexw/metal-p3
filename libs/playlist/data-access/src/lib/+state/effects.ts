@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { PlayerService, removeItem, selectItemById, selectPlaylist, updatePlaylist } from '@metal-p3/player/data-access';
+import { PlayerActions, PlayerService, selectItemById, selectPlaylist } from '@metal-p3/player/data-access';
 import { PlaylistItem } from '@metal-p3/player/domain';
 import { playlistItemToDto } from '@metal-p3/player/util';
 import { PlaylistDto } from '@metal-p3/playlist/domain';
@@ -9,43 +9,28 @@ import { TrackService } from '@metal-p3/track/data-access';
 import { Track } from '@metal-p3/track/domain';
 import { Actions, concatLatestFrom, createEffect, ofType } from '@ngrx/effects';
 import { Update } from '@ngrx/entity';
-import { select, Store } from '@ngrx/store';
+import { Store } from '@ngrx/store';
 import { Observable, of } from 'rxjs';
-import { catchError, concatMap, concatMapTo, filter, map, tap, withLatestFrom } from 'rxjs/operators';
+import { catchError, concatMap, concatMapTo, filter, map, tap } from 'rxjs/operators';
 import { PlaylistService } from '../playlist.service';
-import {
-  createPlaylist,
-  createPlaylistError,
-  createPlaylistSuccess,
-  deletePlaylist,
-  deletePlaylistError,
-  deletePlaylistSuccess,
-  loadPlaylist,
-  loadPlaylists,
-  loadPlaylistsError,
-  loadPlaylistsSuccess,
-  loadPlaylistSuccess,
-  savePlaylist,
-  savePlaylistError,
-  savePlaylistSuccess,
-} from './actions';
+import { PlaylistActions } from './actions';
 import { selectActivePlaylistId, selectPlaylistById } from './selectors';
 
 @Injectable()
 export class PlayerEffects {
-  loadPlaylists$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(loadPlaylists),
+  loadPlaylists$ = createEffect(() => {
+    return this.actions$.pipe(
+      ofType(PlaylistActions.loadPlaylists),
       concatMapTo(this.playlistService.getPlaylists()),
-      map((playlists) => loadPlaylistsSuccess({ playlists })),
-      catchError((error) => of(loadPlaylistsError({ error: this.errorService.getError(error) })))
-    )
-  );
+      map((playlists) => PlaylistActions.loadPlaylistsSuccess({ playlists })),
+      catchError((error) => of(PlaylistActions.loadPlaylistsError({ error: this.errorService.getError(error) })))
+    );
+  });
 
-  loadPlaylist$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(loadPlaylist),
-      concatLatestFrom(({ id }) => this.store.pipe(select(selectPlaylistById(id)))),
+  loadPlaylist$ = createEffect(() => {
+    return this.actions$.pipe(
+      ofType(PlaylistActions.loadPlaylist),
+      concatLatestFrom(({ id }) => this.store.select(selectPlaylistById(id))),
       tap(([_, playlist]) => {
         const tracks: Observable<Track>[] = [];
 
@@ -53,14 +38,14 @@ export class PlayerEffects {
 
         this.playerService.playPlaylist(tracks);
       }),
-      map(([{ id }, _playlist]) => loadPlaylistSuccess({ id }))
-    )
-  );
+      map(([{ id }, _playlist]) => PlaylistActions.loadPlaylistSuccess({ id }))
+    );
+  });
 
-  create$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(createPlaylist),
-      withLatestFrom(this.store.pipe(select(selectPlaylist))),
+  create$ = createEffect(() => {
+    return this.actions$.pipe(
+      ofType(PlaylistActions.create),
+      concatLatestFrom(() => this.store.select(selectPlaylist)),
       map(([{ name }, items]) => {
         const playlist: PlaylistDto = {
           id: -1,
@@ -71,30 +56,30 @@ export class PlayerEffects {
         return playlist;
       }),
       concatMap((playlist) => this.playlistService.createPlaylist(playlist)),
-      map((playlist) => createPlaylistSuccess({ playlist })),
-      catchError((error) => of(createPlaylistError({ error: this.errorService.getError(error) })))
-    )
-  );
+      map((playlist) => PlaylistActions.createSuccess({ playlist })),
+      catchError((error) => of(PlaylistActions.createError({ error: this.errorService.getError(error) })))
+    );
+  });
 
-  save$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(savePlaylist),
-      withLatestFrom(this.store.pipe(select(selectActivePlaylistId), nonNullable()), this.store.pipe(select(selectPlaylist))),
+  save$ = createEffect(() => {
+    return this.actions$.pipe(
+      ofType(PlaylistActions.save),
+      concatLatestFrom(() => [this.store.select(selectActivePlaylistId).pipe(nonNullable()), this.store.select(selectPlaylist)]),
       map(([{ name }, id, items]) => ({
         id,
         name,
         items: items.map((item) => playlistItemToDto(item, id)),
       })),
       concatMap((playlist: PlaylistDto) => this.playlistService.updatePlaylist(playlist)),
-      map((playlist) => savePlaylistSuccess({ playlist })),
-      catchError((error) => of(savePlaylistError({ error: this.errorService.getError(error) })))
-    )
-  );
+      map((playlist) => PlaylistActions.saveSuccess({ playlist })),
+      catchError((error) => of(PlaylistActions.saveError({ error: this.errorService.getError(error) })))
+    );
+  });
 
-  saveSuccess$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(savePlaylistSuccess),
-      withLatestFrom(this.store.pipe(select(selectPlaylist))),
+  saveSuccess$ = createEffect(() => {
+    return this.actions$.pipe(
+      ofType(PlaylistActions.saveSuccess),
+      concatLatestFrom(() => this.store.select(selectPlaylist)),
       map(([{ playlist }, items]) => {
         const newItems = items.filter((item) => item.playlistItemId ?? -1 < 0);
 
@@ -115,38 +100,37 @@ export class PlayerEffects {
         return updateItems;
       }),
       filter((updates) => updates?.length > 0),
-      map((updates) => updatePlaylist({ updates }))
-    )
-  );
+      map((updates) => PlayerActions.updateItems({ updates }))
+    );
+  });
 
   removeItem$ = createEffect(
-    () =>
-      this.actions$.pipe(
-        ofType(removeItem),
-        concatLatestFrom(({ id }) => this.store.pipe(select(selectItemById(id)), nonNullable())),
+    () => {
+      return this.actions$.pipe(
+        ofType(PlayerActions.remove),
+        concatLatestFrom(({ id }) => this.store.select(selectItemById(id)).pipe(nonNullable())),
         map(([_, item]) => item),
         filter((item) => !!item.playlistItemId),
         concatMap((item) => this.playlistService.removeItem(item.playlistItemId || 0))
-      ),
+      );
+    },
     {
       dispatch: false,
     }
   );
 
-  delete$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(deletePlaylist),
-      withLatestFrom(this.store.pipe(select(selectActivePlaylistId)).pipe(nonNullable())),
+  delete$ = createEffect(() => {
+    return this.actions$.pipe(
+      ofType(PlaylistActions.delete),
+      concatLatestFrom(() => this.store.select(selectActivePlaylistId).pipe(nonNullable())),
       concatMap(([_, id]) =>
         this.playlistService.deletePlaylist(id).pipe(
-          map(() => deletePlaylistSuccess({ id })),
-          catchError((error) => {
-            return of(deletePlaylistError({ error }));
-          })
+          map(() => PlaylistActions.deleteSuccess({ id })),
+          catchError((error) => of(PlaylistActions.deleteError({ error })))
         )
       )
-    )
-  );
+    );
+  });
 
   constructor(
     private actions$: Actions,

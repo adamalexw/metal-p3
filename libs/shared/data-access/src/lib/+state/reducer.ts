@@ -4,61 +4,8 @@ import { MetalArchivesAlbumTrack } from '@metal-p3/api-interfaces';
 import { Track } from '@metal-p3/track/domain';
 import { createEntityAdapter, EntityAdapter, EntityState } from '@ngrx/entity';
 import { createReducer, on } from '@ngrx/store';
-import {
-  addAlbum,
-  addAlbums,
-  clearAlbums,
-  deleteAlbum,
-  deleteAlbums,
-  deleteAlbumsByPredicate,
-  downloadCoverSuccess,
-  findMaUrl,
-  findMaUrlSuccess,
-  getBandProps,
-  getBandPropsSuccess,
-  getCover,
-  getCoverError,
-  getCoverSuccess,
-  getLyrics,
-  getLyricsSuccess,
-  getMaTracks,
-  getMaTracksSuccess,
-  getTracks,
-  getTracksSuccess,
-  loadAlbums,
-  loadAlbumsSuccess,
-  mapAlbum,
-  mapAlbums,
-  renameTrack,
-  renameTrackSuccess,
-  saveAlbum,
-  saveAlbumSuccess,
-  saveCover,
-  saveCoverSuccess,
-  saveTrack,
-  saveTrackSuccess,
-  setAlbum,
-  updateAlbum,
-  updateAlbums,
-  upsertAlbum,
-  upsertAlbums,
-} from './actions';
-import {
-  createNew,
-  createNewSuccess,
-  deleteAlbumError,
-  deleteAlbumSuccess,
-  loadAlbumsError,
-  loadAlbumsPageSuccess,
-  renameFolder,
-  renameFolderError,
-  renameFolderSuccess,
-  saveAlbumError,
-  setExtraFiles,
-  viewAlbum,
-} from './album/actions';
+import { AlbumActions, BandActions, CoverActions, TrackActions } from './actions';
 import { Album } from './model';
-import { deleteTrack, deleteTrackError, deleteTrackSuccess, getLyricsError, transferTrack, transferTrackSuccess, updateTracks } from './track/actions';
 
 export const ALBUMS_FEATURE_KEY = 'albums';
 
@@ -70,19 +17,21 @@ export interface AlbumState extends EntityState<Album> {
   error?: HttpErrorResponse | Error;
   creatingNew?: boolean;
   selectedAlbumId?: number;
+  tracks: EntityState<Track>;
+  maTracks: EntityState<MetalArchivesAlbumTrack>;
 }
 
 function sortByDateCreated(a: Album, b: Album): number {
   return b.dateCreated.localeCompare(a.dateCreated);
 }
 
-export const adapter: EntityAdapter<Album> = createEntityAdapter<Album>({
+export const albumAdapter: EntityAdapter<Album> = createEntityAdapter<Album>({
   sortComparer: sortByDateCreated,
 });
 export const trackAdapter: EntityAdapter<Track> = createEntityAdapter<Track>();
 export const maTrackAdapter: EntityAdapter<MetalArchivesAlbumTrack> = createEntityAdapter<MetalArchivesAlbumTrack>();
 
-export const initialState = adapter.getInitialState({
+export const initialState = albumAdapter.getInitialState({
   loading: false,
   loaded: false,
   tracks: trackAdapter.getInitialState(),
@@ -91,93 +40,51 @@ export const initialState = adapter.getInitialState({
 
 export const reducer = createReducer(
   initialState,
-  on(addAlbum, (state, { album }) => {
-    return adapter.addOne(album, { ...state, getAlbumError: undefined });
-  }),
-  on(setAlbum, (state, { album }) => {
-    return adapter.setOne(album, state);
-  }),
-  on(upsertAlbum, (state, { album }) => {
-    return adapter.upsertOne(album, state);
-  }),
-  on(addAlbums, (state, { albums }) => {
-    return adapter.addMany(albums, state);
-  }),
-  on(upsertAlbums, (state, { albums }) => {
-    return adapter.upsertMany(albums, state);
-  }),
-  on(updateAlbum, (state, { update }) => {
-    return adapter.updateOne(update, state);
-  }),
-  on(updateAlbums, (state, { updates }) => {
-    return adapter.updateMany(updates, state);
-  }),
-  on(mapAlbum, (state, { entityMap }) => {
-    return adapter.mapOne(entityMap, state);
-  }),
-  on(mapAlbums, (state, { entityMap }) => {
-    return adapter.map(entityMap, state);
-  }),
-  on(deleteAlbum, (state, { id }) => adapter.updateOne({ id, changes: { deleting: true, deleteError: undefined } }, state)),
-  on(deleteAlbumSuccess, (state, { id }) => {
-    return adapter.removeOne(id, state);
-  }),
-  on(deleteAlbumError, (state, { id, error }) => adapter.updateOne({ id, changes: { deleting: false, deleteError: error } }, state)),
-  on(deleteAlbums, (state, { ids }) => {
-    return adapter.removeMany(ids, state);
-  }),
-  on(deleteAlbumsByPredicate, (state, { predicate }) => {
-    return adapter.removeMany(predicate, state);
-  }),
-  on(loadAlbums, (state, { request }) => {
-    return { ...state, searchRequest: request, loading: true };
-  }),
-  on(loadAlbumsSuccess, (state, { albums }) => {
-    return adapter.setAll(albums, { ...state, loading: false, loaded: true, loadError: undefined });
-  }),
-  on(loadAlbumsPageSuccess, (state, { albums }) => {
-    return adapter.addMany(albums, { ...state, loading: false, loaded: true, loadError: undefined });
-  }),
-  on(loadAlbumsError, (state, { loadError }) => ({ ...state, loading: false, loaded: false, loadError })),
-  on(clearAlbums, (state) => {
-    return adapter.removeAll({ ...state, selectedAlbumId: null });
-  }),
-  on(viewAlbum, (state, { id }) => ({ ...state, selectedAlbumId: id })),
-  on(findMaUrl, (state, { id }) => adapter.updateOne({ id, changes: { findingUrl: true } }, state)),
-  on(findMaUrlSuccess, (state, { update }) => {
-    return adapter.updateOne(update, state);
-  }),
-  on(saveAlbum, (state, { album }) => {
-    return adapter.updateOne({ id: album.id, changes: { saving: true } }, state);
-  }),
-  on(saveAlbumSuccess, saveAlbumError, (state, { update }) => {
-    return adapter.updateOne(update, state);
-  }),
-  on(createNew, (state) => ({ ...state, creatingNew: true })),
-  on(createNewSuccess, (state) => ({ ...state, creatingNew: false })),
-  on(renameFolder, (state, { id }) => adapter.updateOne({ id, changes: { renamingFolder: true, renamingFolderError: undefined } }, state)),
-  on(renameFolderSuccess, renameFolderError, setExtraFiles, (state, { update }) => adapter.updateOne(update, state)),
+  on(AlbumActions.addAlbum, (state, { album }) => albumAdapter.addOne(album, { ...state, getAlbumError: undefined })),
+  on(AlbumActions.setAlbum, (state, { album }) => albumAdapter.setOne(album, state)),
+  on(AlbumActions.upsertAlbum, (state, { album }) => albumAdapter.upsertOne(album, state)),
+  on(AlbumActions.upsertAlbums, (state, { albums }) => albumAdapter.upsertMany(albums, state)),
+  on(AlbumActions.updateAlbum, (state, { update }) => albumAdapter.updateOne(update, state)),
+  on(AlbumActions.updateAlbums, (state, { updates }) => albumAdapter.updateMany(updates, state)),
+  on(AlbumActions.mapAlbum, (state, { entityMap }) => albumAdapter.mapOne(entityMap, state)),
+  on(AlbumActions.mapAlbums, (state, { entityMap }) => albumAdapter.map(entityMap, state)),
+  on(AlbumActions.deleteAlbum, (state, { id }) => albumAdapter.updateOne({ id, changes: { deleting: true, deleteError: undefined } }, state)),
+  on(AlbumActions.deleteAlbumSuccess, (state, { id }) => albumAdapter.removeOne(id, state)),
+  on(AlbumActions.deleteAlbumError, (state, { id, error }) => albumAdapter.updateOne({ id, changes: { deleting: false, deleteError: error } }, state)),
+  on(AlbumActions.deleteAlbums, (state, { ids }) => albumAdapter.removeMany(ids, state)),
+  on(AlbumActions.deleteAlbumsByPredicate, (state, { predicate }) => albumAdapter.removeMany(predicate, state)),
+  on(AlbumActions.loadAlbums, (state, { request }): AlbumState => ({ ...state, searchRequest: request, loading: true, loaded: false })),
+  on(AlbumActions.loadAlbumsSuccess, (state, { albums }) => albumAdapter.setAll(albums, { ...state, loading: false, loaded: true, loadError: undefined })),
+  on(AlbumActions.loadAlbumsPageSuccess, (state, { albums }) => albumAdapter.addMany(albums, { ...state, loading: false, loaded: true, loadError: undefined })),
+  on(AlbumActions.loadAlbumsError, (state, { loadError }): AlbumState => ({ ...state, loading: false, loaded: false, loadError })),
+  on(AlbumActions.clearAlbums, (state) => albumAdapter.removeAll({ ...state, selectedAlbumId: null })),
+  on(AlbumActions.viewAlbum, (state, { id }): AlbumState => ({ ...state, selectedAlbumId: id })),
+  on(AlbumActions.findMetalArchivesUrl, (state, { id }) => albumAdapter.updateOne({ id, changes: { findingUrl: true } }, state)),
+  on(AlbumActions.findMetalArchivesUrlSuccess, (state, { update }) => albumAdapter.updateOne(update, state)),
+  on(AlbumActions.saveAlbum, (state, { album }) => albumAdapter.updateOne({ id: album.id, changes: { saving: true } }, state)),
+  on(AlbumActions.saveAlbumSuccess, AlbumActions.saveAlbumError, (state, { update }) => albumAdapter.updateOne(update, state)),
+  on(AlbumActions.createNew, (state): AlbumState => ({ ...state, creatingNew: true })),
+  on(AlbumActions.createNewSuccess, (state): AlbumState => ({ ...state, creatingNew: false })),
+  on(AlbumActions.renameFolder, (state, { id }) => albumAdapter.updateOne({ id, changes: { renamingFolder: true, renamingFolderError: undefined } }, state)),
+  on(AlbumActions.renameFolderSuccess, AlbumActions.renameFolderError, AlbumActions.setExtraFiles, (state, { update }) => albumAdapter.updateOne(update, state)),
 
   /** COVER */
-  on(getCover, (state, { id }) => {
-    return adapter.updateOne({ id, changes: { coverLoading: true } }, state);
-  }),
-  on(getCoverSuccess, getCoverError, (state, { update }) => {
-    return adapter.updateOne(update, state);
-  }),
-  on(saveCover, (state, { id }) => {
-    return adapter.updateOne({ id: id, changes: { savingCover: true } }, state);
-  }),
-  on(saveCoverSuccess, downloadCoverSuccess, (state, { update }) => {
-    return adapter.updateOne(update, state);
-  }),
+  on(CoverActions.get, (state, { id }) => albumAdapter.updateOne({ id, changes: { coverLoading: true } }, state)),
+  on(CoverActions.getSuccess, CoverActions.getError, (state, { update }) => albumAdapter.updateOne(update, state)),
+  on(CoverActions.getMany, (state, { request }) =>
+    albumAdapter.updateMany(
+      request.map((r) => ({ id: r.id, changes: { coverLoading: true } })),
+      state
+    )
+  ),
+  on(CoverActions.getManySuccess, (state, { update }) => albumAdapter.updateMany(update, state)),
+  on(CoverActions.save, (state, { id }) => albumAdapter.updateOne({ id: id, changes: { savingCover: true } }, state)),
+  on(CoverActions.saveSuccess, CoverActions.downloadSuccess, (state, { update }) => albumAdapter.updateOne(update, state)),
 
   /** TRACK */
-  on(getTracks, (state, { id }) => {
-    return adapter.updateOne({ id, changes: { tracksLoading: true } }, state);
-  }),
-  on(getTracksSuccess, (state, { id, tracks }) =>
-    adapter.updateOne(
+  on(TrackActions.getTracks, (state, { id }) => albumAdapter.updateOne({ id, changes: { tracksLoading: true } }, state)),
+  on(TrackActions.getTracksSuccess, (state, { id, tracks }) =>
+    albumAdapter.updateOne(
       {
         id,
         changes: {
@@ -188,8 +95,8 @@ export const reducer = createReducer(
       state
     )
   ),
-  on(saveTrack, (state, { id, track }) =>
-    adapter.mapOne(
+  on(TrackActions.saveTrack, (state, { id, track }) =>
+    albumAdapter.mapOne(
       {
         id,
         map: (album) => ({
@@ -200,8 +107,8 @@ export const reducer = createReducer(
       state
     )
   ),
-  on(saveTrackSuccess, (state, { id, track }) =>
-    adapter.mapOne(
+  on(TrackActions.saveTrackSuccess, (state, { id, track }) =>
+    albumAdapter.mapOne(
       {
         id,
         map: (album) => ({
@@ -212,8 +119,8 @@ export const reducer = createReducer(
       state
     )
   ),
-  on(getLyrics, (state, { id, trackId }) =>
-    adapter.mapOne(
+  on(TrackActions.getLyrics, (state, { id, trackId }) =>
+    albumAdapter.mapOne(
       {
         id,
         map: (album) => ({
@@ -224,8 +131,8 @@ export const reducer = createReducer(
       state
     )
   ),
-  on(getLyricsSuccess, (state, { id, trackId, lyrics }) =>
-    adapter.mapOne(
+  on(TrackActions.getLyricsSuccess, (state, { id, trackId, lyrics }) =>
+    albumAdapter.mapOne(
       {
         id,
         map: (album) => ({
@@ -236,8 +143,8 @@ export const reducer = createReducer(
       state
     )
   ),
-  on(getLyricsError, (state, { id, trackId, error }) =>
-    adapter.mapOne(
+  on(TrackActions.getLyricsError, (state, { id, trackId, error }) =>
+    albumAdapter.mapOne(
       {
         id,
         map: (album) => ({
@@ -248,11 +155,9 @@ export const reducer = createReducer(
       state
     )
   ),
-  on(getMaTracks, (state, { id }) => {
-    return adapter.updateOne({ id, changes: { gettingMaTracks: true } }, state);
-  }),
-  on(getMaTracksSuccess, (state, { id, maTracks }) =>
-    adapter.updateOne(
+  on(TrackActions.getMetalArchivesTracks, (state, { id }) => albumAdapter.updateOne({ id, changes: { gettingMaTracks: true } }, state)),
+  on(TrackActions.getMetalArchivesTracksSuccess, (state, { id, maTracks }) =>
+    albumAdapter.updateOne(
       {
         id,
         changes: {
@@ -263,8 +168,8 @@ export const reducer = createReducer(
       state
     )
   ),
-  on(renameTrack, (state, { id, track }) =>
-    adapter.mapOne(
+  on(TrackActions.renameTrack, (state, { id, track }) =>
+    albumAdapter.mapOne(
       {
         id,
         map: (album) => ({
@@ -275,8 +180,8 @@ export const reducer = createReducer(
       state
     )
   ),
-  on(renameTrackSuccess, (state, { id, trackId, file, fullPath }) =>
-    adapter.mapOne(
+  on(TrackActions.renameTrackSuccess, (state, { id, trackId, file, fullPath }) =>
+    albumAdapter.mapOne(
       {
         id,
         map: (album) => ({
@@ -287,8 +192,8 @@ export const reducer = createReducer(
       state
     )
   ),
-  on(updateTracks, (state, { id, updates }) =>
-    adapter.mapOne(
+  on(TrackActions.updateTracksSuccess, (state, { id, updates }) =>
+    albumAdapter.mapOne(
       {
         id,
         map: (album) => ({
@@ -299,8 +204,8 @@ export const reducer = createReducer(
       state
     )
   ),
-  on(transferTrack, (state, { id, trackId }) =>
-    adapter.mapOne(
+  on(TrackActions.transferTrack, (state, { id, trackId }) =>
+    albumAdapter.mapOne(
       {
         id,
         map: (album) => ({
@@ -311,8 +216,8 @@ export const reducer = createReducer(
       state
     )
   ),
-  on(transferTrackSuccess, (state, { id, track }) =>
-    adapter.mapOne(
+  on(TrackActions.transferTrackSuccess, (state, { id, track }) =>
+    albumAdapter.mapOne(
       {
         id,
         map: (album) => ({
@@ -323,8 +228,8 @@ export const reducer = createReducer(
       state
     )
   ),
-  on(deleteTrack, (state, { id, track }) =>
-    adapter.mapOne(
+  on(TrackActions.deleteTrack, (state, { id, track }) =>
+    albumAdapter.mapOne(
       {
         id,
         map: (album) => ({
@@ -335,8 +240,8 @@ export const reducer = createReducer(
       state
     )
   ),
-  on(deleteTrackSuccess, (state, { id, track }) =>
-    adapter.mapOne(
+  on(TrackActions.deleteTrackSuccess, (state, { id, track }) =>
+    albumAdapter.mapOne(
       {
         id,
         map: (album) => ({
@@ -347,8 +252,8 @@ export const reducer = createReducer(
       state
     )
   ),
-  on(deleteTrackError, (state, { id, trackId, error }) =>
-    adapter.mapOne(
+  on(TrackActions.deleteTrackError, (state, { id, trackId, error }) =>
+    albumAdapter.mapOne(
       {
         id,
         map: (album) => ({
@@ -361,10 +266,10 @@ export const reducer = createReducer(
   ),
 
   /** BAND */
-  on(getBandProps, (state, { id }) => {
-    return adapter.updateOne({ id, changes: { gettingBandProps: true } }, state);
+  on(BandActions.getProps, (state, { id }) => {
+    return albumAdapter.updateOne({ id, changes: { gettingBandProps: true } }, state);
   }),
-  on(getBandPropsSuccess, (state, { update }) => {
-    return adapter.updateOne(update, state);
+  on(BandActions.getPropsSuccess, (state, { update }) => {
+    return albumAdapter.updateOne(update, state);
   })
 );

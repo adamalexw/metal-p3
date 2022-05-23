@@ -1,29 +1,15 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, OnInit, Output } from '@angular/core';
 import { Router } from '@angular/router';
 import { AlbumService } from '@metal-p3/album/data-access';
-import { BandDto, MetalArchivesAlbumTrack } from '@metal-p3/api-interfaces';
+import { MetalArchivesAlbumTrack } from '@metal-p3/api-interfaces';
 import { CoverService } from '@metal-p3/cover/data-access';
 import { addLyricsPriority } from '@metal-p3/maintenance/data-access';
 import { PlayerService } from '@metal-p3/player/data-access';
 import {
   Album,
-  deleteAlbum,
-  deleteTrack,
-  downloadCover,
-  findMaUrl,
-  getAlbum,
-  getBandProps,
-  getCover,
-  getExtraFiles,
-  getLyrics,
-  getMaTracks,
-  getTracks,
-  renameFolder,
-  renameTrack,
-  saveAlbum,
-  saveBand,
-  saveCover,
-  saveTrack,
+  AlbumActions,
+  BandActions,
+  CoverActions,
   selectAlbum,
   selectAlbumSaving,
   selectAlbumsLoaded,
@@ -31,7 +17,6 @@ import {
   selectCover,
   selectCoverLoading,
   selectCoverRequired,
-  selectedAlbumId,
   selectFindingUrl,
   selectGettingBandProps,
   selectGettingMaTracks,
@@ -42,6 +27,7 @@ import {
   selectRenamingFolderError,
   selectRouteParams,
   selectSaveAlbumError,
+  selectSelectedAlbumId,
   selectTrackRenaming,
   selectTrackRenamingProgress,
   selectTracks,
@@ -51,18 +37,14 @@ import {
   selectTracksRequired,
   selectTrackTransferring,
   selectTrackTransferringProgress,
-  setExtraFiles,
-  setTransferred,
-  transferTrack,
-  updateTracks,
-  viewAlbum,
+  TrackActions,
 } from '@metal-p3/shared/data-access';
 import { NotificationService } from '@metal-p3/shared/feedback';
 import { nonNullable } from '@metal-p3/shared/utils';
 import { Track } from '@metal-p3/track/domain';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { Update } from '@ngrx/entity';
-import { select, Store } from '@ngrx/store';
+import { Store } from '@ngrx/store';
 import { combineLatest, Observable, of } from 'rxjs';
 import { delay, distinctUntilChanged, exhaustMap, filter, map, take, tap, withLatestFrom } from 'rxjs/operators';
 
@@ -77,45 +59,41 @@ export class AlbumShellComponent implements OnInit {
   @Output()
   readonly closeAlbum = new EventEmitter<void>();
 
-  album$ = this.store.pipe(select(selectAlbum));
-  albumSaving$ = this.store.pipe(select(selectAlbumSaving));
-  saveError$ = this.store.pipe(select(selectSaveAlbumError));
+  album$ = this.store.select(selectAlbum);
+  albumSaving$ = this.store.select(selectAlbumSaving);
+  saveError$ = this.store.select(selectSaveAlbumError);
 
-  tracksLoading$ = this.store.pipe(select(selectTracksLoading));
-  tracks$ = this.store.pipe(select(selectTracks));
-  albumDuration$ = this.store.pipe(select(selectTracksDuration));
+  tracksLoading$ = this.store.select(selectTracksLoading);
+  tracks$ = this.store.select(selectTracks);
+  albumDuration$ = this.store.select(selectTracksDuration);
 
-  trackSavingProgress$ = this.store.pipe(select(selectTrackSavingProgress));
+  trackSavingProgress$ = this.store.select(selectTrackSavingProgress);
 
-  coverLoading$ = this.store.pipe(select(selectCoverLoading));
-  cover$ = this.store.pipe(select(selectCover));
+  coverLoading$ = this.store.select(selectCoverLoading);
+  cover$ = this.store.select(selectCover);
 
-  findingUrl$ = this.store.pipe(select(selectFindingUrl));
-  maUrls$ = this.store.pipe(
-    select(selectMaUrls),
-    filter((urls) => !!urls && !!(urls.albumUrl || urls.artistUrl))
-  );
+  findingUrl$ = this.store.select(selectFindingUrl);
+  maUrls$ = this.store.select(selectMaUrls).pipe(filter((urls) => !!urls && !!(urls.albumUrl || urls.artistUrl)));
 
-  trackRenaming$ = this.store.pipe(select(selectTrackRenaming));
-  trackRenamingProgress$ = this.store.pipe(select(selectTrackRenamingProgress));
+  trackRenaming$ = this.store.select(selectTrackRenaming);
+  trackRenamingProgress$ = this.store.select(selectTrackRenamingProgress);
 
-  trackTransferring$ = this.store.pipe(select(selectTrackTransferring));
-  trackTransferringProgress$ = this.store.pipe(select(selectTrackTransferringProgress));
+  trackTransferring$ = this.store.select(selectTrackTransferring);
+  trackTransferringProgress$ = this.store.select(selectTrackTransferringProgress);
 
-  renamingFolder$ = this.store.pipe(select(selectRenamingFolder));
-  renamingFolderError$ = this.store.pipe(select(selectRenamingFolderError));
+  renamingFolder$ = this.store.select(selectRenamingFolder);
+  renamingFolderError$ = this.store.select(selectRenamingFolderError);
 
-  lyricsLoading$ = this.store.pipe(select(selectLyricsLoading));
+  lyricsLoading$ = this.store.select(selectLyricsLoading);
 
-  gettingMaTracks$ = this.store.pipe(select(selectGettingMaTracks));
-  maTracks$ = this.store.pipe(select(selectMaTracks));
+  gettingMaTracks$ = this.store.select(selectGettingMaTracks);
+  maTracks$ = this.store.select(selectMaTracks);
 
-  gettingBandProps$ = this.store.pipe(select(selectGettingBandProps));
-  bandProps$ = this.store.pipe(select(selectBandProps));
+  gettingBandProps$ = this.store.select(selectGettingBandProps);
+  bandProps$ = this.store.select(selectBandProps);
 
-  routeId$ = this.store.pipe(
+  routeId$ = this.store.select(selectRouteParams).pipe(
     untilDestroyed(this),
-    select(selectRouteParams),
     map((params) => params?.id),
     filter((id) => !!id)
   );
@@ -138,9 +116,9 @@ export class AlbumShellComponent implements OnInit {
     // when refreshing the page get the album id from the url
     this.routeId$
       .pipe(
-        withLatestFrom(this.store.pipe(select(selectedAlbumId))),
+        withLatestFrom(this.store.select(selectSelectedAlbumId)),
         filter(([routeId, selectedId]) => +routeId !== selectedId),
-        tap(([routeId, _albumId]) => this.store.dispatch(viewAlbum({ id: routeId }))),
+        tap(([routeId, _albumId]) => this.store.dispatch(AlbumActions.viewAlbum({ id: routeId }))),
         take(1)
       )
       .subscribe();
@@ -152,14 +130,14 @@ export class AlbumShellComponent implements OnInit {
       .pipe(
         untilDestroyed(this),
         filter(([loaded, album]) => loaded && !album),
-        withLatestFrom(this.store.pipe(select(selectedAlbumId))),
+        withLatestFrom(this.store.select(selectSelectedAlbumId)),
         map(([_album, id]) => id),
         filter((id) => !!id),
         withLatestFrom(this.album$),
         filter(([_id, album]) => !album),
         tap(([id, _album]) => {
           if (id) {
-            this.store.dispatch(getAlbum({ id }));
+            this.store.dispatch(AlbumActions.getAlbum({ id }));
           }
         })
       )
@@ -172,22 +150,22 @@ export class AlbumShellComponent implements OnInit {
     );
 
     // if tracks haven't been loaded dispatch an action to the load them
-    combineLatest([dispatchProps$, this.tracksLoading$, this.store.pipe(select(selectTracksRequired))])
+    combineLatest([dispatchProps$, this.tracksLoading$, this.store.select(selectTracksRequired)])
       .pipe(
         untilDestroyed(this),
         filter(([_props, loading, required]) => required && !loading),
         delay(1000),
-        tap(([props, _loading, _required]) => this.store.dispatch(getTracks(props)))
+        tap(([props, _loading, _required]) => this.store.dispatch(TrackActions.getTracks(props)))
       )
       .subscribe();
 
     // if the album doesn't have a cover dispatch an action to load it
-    combineLatest([dispatchProps$, this.coverLoading$, this.store.pipe(select(selectCoverRequired))])
+    combineLatest([dispatchProps$, this.coverLoading$, this.store.select(selectCoverRequired)])
       .pipe(
         untilDestroyed(this),
         filter(([_props, loading, required]) => required && !loading),
         delay(1000),
-        tap(([props, _loading, _required]) => this.store.dispatch(getCover(props)))
+        tap(([props, _loading, _required]) => this.store.dispatch(CoverActions.get(props)))
       )
       .subscribe();
 
@@ -195,7 +173,7 @@ export class AlbumShellComponent implements OnInit {
     this.album$
       .pipe(
         nonNullable(),
-        tap((album) => this.store.dispatch(getExtraFiles({ id: album.id, folder: album.folder }))),
+        tap((album) => this.store.dispatch(AlbumActions.getExtraFiles({ id: album.id, folder: album.folder }))),
         take(1)
       )
       .subscribe();
@@ -205,7 +183,6 @@ export class AlbumShellComponent implements OnInit {
     this.saveError$
       .pipe(
         untilDestroyed(this),
-        filter((error) => !!error),
         nonNullable(),
         tap((error) => this.notificationService.showError(error, 'Save'))
       )
@@ -213,12 +190,11 @@ export class AlbumShellComponent implements OnInit {
   }
 
   onDownloadCover(id: number, url: string) {
-    this.store.dispatch(downloadCover({ id, url }));
+    this.store.dispatch(CoverActions.download({ id, url }));
   }
 
   onSave(album: Album, tracks: Track[]) {
-    this.store.dispatch(saveBand({ band: this.getBandDto(album) }));
-    this.store.dispatch(saveAlbum({ album }));
+    this.store.dispatch(AlbumActions.saveAlbum({ album }));
 
     if (album.cover) {
       this.coverService
@@ -226,7 +202,7 @@ export class AlbumShellComponent implements OnInit {
         .pipe(
           map((cover) => cover as string),
           tap((cover) => this.dispatchTracks({ ...album, cover }, tracks)),
-          tap((cover) => this.store.dispatch(saveCover({ id: album.id, folder: album.fullPath, cover })))
+          tap((cover) => this.store.dispatch(CoverActions.save({ id: album.id, folder: album.fullPath, cover })))
         )
         .subscribe();
     } else {
@@ -237,7 +213,7 @@ export class AlbumShellComponent implements OnInit {
   private dispatchTracks(album: Album, tracks: Track[]) {
     tracks.forEach((albumTrack) => {
       const track = this.getTrack(album, albumTrack);
-      this.store.dispatch(saveTrack({ id: album.id, track }));
+      this.store.dispatch(TrackActions.saveTrack({ id: album.id, track }));
     });
   }
 
@@ -247,18 +223,8 @@ export class AlbumShellComponent implements OnInit {
     return track;
   }
 
-  private getBandDto(album: Album): BandDto {
-    return {
-      id: album.bandId,
-      name: album.artist || '',
-      country: album.country,
-      genre: album.genre,
-      metalArchiveUrl: album.artistUrl,
-    };
-  }
-
   onFindUrl(id: number, artist: string, album: string) {
-    this.store.dispatch(findMaUrl({ id, artist, album }));
+    this.store.dispatch(AlbumActions.findMetalArchivesUrl({ id, artist, album }));
   }
 
   private getMaTracks(id: number, url: string): Observable<MetalArchivesAlbumTrack[] | undefined> {
@@ -266,7 +232,7 @@ export class AlbumShellComponent implements OnInit {
       untilDestroyed(this),
       tap((maTracks) => {
         if (!maTracks) {
-          this.store.dispatch(getMaTracks({ id, url }));
+          this.store.dispatch(TrackActions.getMetalArchivesTracks({ id, url }));
         }
       }),
       filter((maTracks) => !!maTracks),
@@ -287,7 +253,7 @@ export class AlbumShellComponent implements OnInit {
             updates.push({ id: track.id, changes: { trackNumber: maTrack.trackNumber, title: maTrack.title } });
           }
 
-          this.store.dispatch(updateTracks({ id, updates }));
+          this.store.dispatch(TrackActions.updateTracksSuccess({ id, updates }));
         }),
         take(1)
       )
@@ -296,8 +262,8 @@ export class AlbumShellComponent implements OnInit {
 
   onTrackNumbers(id: number) {
     this.tracks$
-      .pipe(nonNullable())
       .pipe(
+        nonNullable(),
         tap((tracks) => {
           const updates: Update<Track>[] = [];
 
@@ -307,7 +273,7 @@ export class AlbumShellComponent implements OnInit {
             updates.push({ id: track.id, changes: { trackNumber: (index + 1).toString().padStart(2, '0') } });
           }
 
-          this.store.dispatch(updateTracks({ id, updates }));
+          this.store.dispatch(TrackActions.updateTracksSuccess({ id, updates }));
         }),
         take(1)
       )
@@ -320,7 +286,7 @@ export class AlbumShellComponent implements OnInit {
     maTracks$
       .pipe(
         exhaustMap((maTracks) => {
-          maTracks?.forEach((track) => this.store.dispatch(getLyrics({ id, trackId: track.id })));
+          maTracks?.forEach((track) => this.store.dispatch(TrackActions.getLyrics({ id, trackId: track.id })));
           return of(maTracks);
         }),
         take(1),
@@ -331,16 +297,16 @@ export class AlbumShellComponent implements OnInit {
 
   onRenameTracks(id: number, tracks: Track[]) {
     tracks.forEach((track) => {
-      this.store.dispatch(renameTrack({ id, track }));
+      this.store.dispatch(TrackActions.renameTrack({ id, track }));
     });
   }
 
   onRenameFolder(id: number, src: string, artist: string, album: string) {
-    this.store.dispatch(renameFolder({ id, src, artist, album }));
+    this.store.dispatch(AlbumActions.renameFolder({ id, src, artist, album }));
   }
 
   onOpenFolder(id: number, folder: string) {
-    this.store.dispatch(setExtraFiles({ update: { id, changes: { extraFiles: false } } }));
+    this.store.dispatch(AlbumActions.setExtraFiles({ update: { id, changes: { extraFiles: false } } }));
     this.albumService.openFolder(folder).subscribe();
   }
 
@@ -349,7 +315,7 @@ export class AlbumShellComponent implements OnInit {
   }
 
   onRefreshTracks(id: number, folder: string) {
-    this.store.dispatch(getTracks({ id, folder }));
+    this.store.dispatch(TrackActions.getTracks({ id, folder }));
   }
 
   onFindBandProps(id: number, url: string) {
@@ -357,7 +323,7 @@ export class AlbumShellComponent implements OnInit {
       .pipe(
         untilDestroyed(this),
         filter((props) => !props),
-        tap(() => this.store.dispatch(getBandProps({ id, url }))),
+        tap(() => this.store.dispatch(BandActions.getProps({ id, url }))),
         take(1)
       )
       .subscribe();
@@ -366,11 +332,11 @@ export class AlbumShellComponent implements OnInit {
   onTransferAlbum(tracks: { id: number; trackId: number }[]) {
     tracks.forEach((track) => this.onTransferTrack(track.id, track.trackId));
 
-    this.store.dispatch(setTransferred({ id: tracks[0].id, transferred: true }));
+    this.store.dispatch(AlbumActions.setTransferred({ id: tracks[0].id, transferred: true }));
   }
 
   onTransferTrack(id: number, trackId: number) {
-    this.store.dispatch(transferTrack({ id, trackId }));
+    this.store.dispatch(TrackActions.transferTrack({ id, trackId }));
   }
 
   onPlayAlbum(albumId: number) {
@@ -390,11 +356,11 @@ export class AlbumShellComponent implements OnInit {
   }
 
   onDeleteTrack(track: Track, albumId: number): void {
-    this.store.dispatch(deleteTrack({ id: albumId, track }));
+    this.store.dispatch(TrackActions.deleteTrack({ id: albumId, track }));
   }
 
   onDeleteAlbum(id: number) {
-    this.store.dispatch(deleteAlbum({ id }));
+    this.store.dispatch(AlbumActions.deleteAlbum({ id }));
     this.router.navigate(['/']);
   }
 }

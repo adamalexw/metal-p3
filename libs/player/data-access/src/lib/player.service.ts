@@ -7,7 +7,7 @@ import { UUID } from 'angular2-uuid';
 import { from, Observable } from 'rxjs';
 import { concatAll, filter, map, take, tap, toArray, withLatestFrom } from 'rxjs/operators';
 import { selectPlaylistItemSize } from '..';
-import { addTracksToPlaylist, addTrackToPlaylist, clearBlobs, clearPlaylist, getItemCover, playItem } from './+state/actions';
+import { PlayerActions } from './+state/actions';
 
 @Injectable({
   providedIn: 'root',
@@ -44,12 +44,11 @@ export class PlayerService {
         take(1),
         map((size) => this.mapTrackToPlaylistItem(track, albumId, size ? size + 1 : 0)),
         tap((track) => {
-          this.store.dispatch(addTrackToPlaylist({ track }));
-          this.store.dispatch(getItemCover({ id: track.id, folder: track.folder || '' }));
+          this.store.dispatch(PlayerActions.addItem({ track }));
         }),
         tap((track) => {
           if (play || track.index === 0) {
-            this.store.dispatch(playItem({ id: track.id }));
+            this.store.dispatch(PlayerActions.play({ id: track.id }));
           }
         })
       )
@@ -75,14 +74,13 @@ export class PlayerService {
   }
 
   private clear() {
-    this.store.dispatch(clearBlobs());
-    this.store.dispatch(clearPlaylist());
+    this.store.dispatch(PlayerActions.clear());
   }
 
   private addTracks(tracks: PlaylistItem[] | undefined) {
     if (tracks) {
-      this.store.dispatch(addTracksToPlaylist({ tracks }));
-      tracks.forEach((track) => this.store.dispatch(getItemCover({ id: track.id, folder: track.folder || '' })));
+      this.store.dispatch(PlayerActions.addItems({ tracks }));
+      tracks.forEach((track) => this.store.dispatch(PlayerActions.getCover({ id: track.id, folder: track.folder || '' })));
     }
   }
 }

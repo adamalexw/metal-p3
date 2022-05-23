@@ -1,85 +1,74 @@
-import { Inject, Injectable } from '@angular/core';
-import { BASE_PATH } from '@metal-p3/album/domain';
+import { Injectable } from '@angular/core';
 import { CoverService } from '@metal-p3/cover/data-access';
 import { shuffleArray } from '@metal-p3/player/util';
 import { ErrorService } from '@metal-p3/shared/error';
 import { Actions, concatLatestFrom, createEffect, ofType } from '@ngrx/effects';
-import { select, Store } from '@ngrx/store';
+import { Store } from '@ngrx/store';
 import { of } from 'rxjs';
-import { catchError, filter, map, mergeMap, tap, withLatestFrom } from 'rxjs/operators';
-import {
-  addTracksToPlaylist,
-  clearBlobs,
-  getItemCover,
-  getItemCoverError,
-  getItemCoverSuccess,
-  noopPlaylist,
-  pauseItem,
-  playItem,
-  playNext,
-  playPrevious,
-  removeItem,
-  removeItemSuccess,
-  shufflePlaylist,
-  shufflePlaylistSuccess,
-  updatePlaylist,
-  updatePlaylistItem,
-} from './actions';
+import { catchError, filter, map, mapTo, mergeMap, tap } from 'rxjs/operators';
+import { PlayerActions } from './actions';
 import { selectActiveItemIndex, selectActivePlaylistItem, selectItemById, selectPlaylist, selectPlaylistBlobs } from './selectors';
 
 @Injectable()
 export class PlayerEffects {
-  playItem$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(playItem),
-      withLatestFrom(this.store.pipe(select(selectPlaylist))),
+  play$ = createEffect(() => {
+    return this.actions$.pipe(
+      ofType(PlayerActions.play),
+      concatLatestFrom(() => this.store.select(selectPlaylist)),
       map(([{ id }, playlistItems]) => playlistItems.map((item) => ({ id: item.id, changes: { playing: item.id === id, paused: false } }))),
-      map((updates) => updatePlaylist({ updates }))
-    )
-  );
+      map((updates) => PlayerActions.updateItems({ updates }))
+    );
+  });
 
-  pauseItem$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(pauseItem),
-      withLatestFrom(this.store.pipe(select(selectActivePlaylistItem))),
-      map(([_, item]) => updatePlaylistItem({ update: { id: item?.id || '', changes: { playing: false, paused: true } } }))
-    )
-  );
+  pause$ = createEffect(() => {
+    return this.actions$.pipe(
+      ofType(PlayerActions.pause),
+      concatLatestFrom(() => this.store.select(selectActivePlaylistItem)),
+      map(([_, item]) => PlayerActions.updateItem({ update: { id: item?.id || '', changes: { playing: false, paused: true } } }))
+    );
+  });
 
-  playPrevious$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(playPrevious),
-      withLatestFrom(this.store.pipe(select(selectPlaylist)), this.store.pipe(select(selectActiveItemIndex))),
+  playPrevious$ = createEffect(() => {
+    return this.actions$.pipe(
+      ofType(PlayerActions.playPrevious),
+      concatLatestFrom(() => [this.store.select(selectPlaylist), this.store.select(selectActiveItemIndex)]),
       map(([_, playlist, index]) => {
         const id = playlist[index - 1].id;
-        return playItem({ id });
+        return PlayerActions.play({ id });
       })
-    )
-  );
+    );
+  });
 
-  playNext$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(playNext),
-      withLatestFrom(this.store.pipe(select(selectPlaylist)), this.store.pipe(select(selectActiveItemIndex))),
+  playNext$ = createEffect(() => {
+    return this.actions$.pipe(
+      ofType(PlayerActions.playNext),
+      concatLatestFrom(() => [this.store.select(selectPlaylist), this.store.select(selectActiveItemIndex)]),
       map(([_, playlist, index]) => {
         const id = playlist[index + 1].id;
-        return playItem({ id });
+        return PlayerActions.play({ id });
       })
-    )
-  );
+    );
+  });
 
-  addToPlaylist$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(addTracksToPlaylist),
-      withLatestFrom(this.store.pipe(select(selectActivePlaylistItem))),
-      map(([{ tracks }, item]) => (item?.playing || item?.paused ? noopPlaylist() : playItem({ id: tracks[0]?.id })))
-    )
-  );
+  addItem$ = createEffect(() => {
+    return this.actions$.pipe(
+      ofType(PlayerActions.addItem),
+      map(({ track }) => PlayerActions.getCover({ id: track.id, folder: track.folder || '' }))
+    );
+  });
 
-  removeItem$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(removeItem),
-      concatLatestFrom(({ id }) => this.store.pipe(select(selectItemById(id)))),
+  addItems$ = createEffect(() => {
+    return this.actions$.pipe(
+      ofType(PlayerActions.addItems),
+      concatLatestFrom(() => this.store.select(selectActivePlaylistItem)),
+      map(([{ tracks }, item]) => (item?.playing || item?.paused ? PlayerActions.noop() : PlayerActions.play({ id: tracks[0]?.id })))
+    );
+  });
+
+  remove$ = createEffect(() => {
+    return this.actions$.pipe(
+      ofType(PlayerActions.remove),
+      concatLatestFrom(({ id }) => this.store.select(selectItemById(id))),
       tap(([_, item]) => {
         if (item) {
           typeof item.cover === 'string' ? URL.revokeObjectURL(item.cover) : '';
@@ -87,47 +76,46 @@ export class PlayerEffects {
         }
       }),
       map(([{ id }, _item]) => id),
-      map((id) => removeItemSuccess({ id }))
-    )
-  );
+      map((id) => PlayerActions.removeSuccess({ id }))
+    );
+  });
 
-  getCover$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(getItemCover),
+  getCover$ = createEffect(() => {
+    return this.actions$.pipe(
+      ofType(PlayerActions.getCover),
       mergeMap(({ id, folder }) =>
         this.coverService.getCover(folder).pipe(
-          map((cover) => getItemCoverSuccess({ update: { id, changes: { cover } } })),
-          catchError((error) => of(getItemCoverError({ update: { id, changes: { cover: this.errorService.getError(error) } } })))
+          map((cover) => PlayerActions.getCoverSuccess({ update: { id, changes: { cover } } })),
+          catchError((error) => of(PlayerActions.getCoverError({ update: { id, changes: { cover: this.errorService.getError(error) } } })))
         )
       )
-    )
-  );
+    );
+  });
 
-  shuffle$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(shufflePlaylist),
-      withLatestFrom(this.store.pipe(select(selectPlaylist))),
+  shuffle$ = createEffect(() => {
+    return this.actions$.pipe(
+      ofType(PlayerActions.shuffle),
+      concatLatestFrom(() => this.store.select(selectPlaylist)),
       map(([_, playlist]) => {
         shuffleArray(playlist);
-        return shufflePlaylistSuccess({ updates: playlist.map((item, index) => ({ id: item.id, changes: { index } })) });
+        return PlayerActions.shuffleSuccess({ updates: playlist.map((item, index) => ({ id: item.id, changes: { index } })) });
       })
-    )
-  );
+    );
+  });
 
-  clearBlobs$ = createEffect(
-    () =>
-      this.actions$.pipe(
-        ofType(clearBlobs),
-        concatLatestFrom(() => this.store.pipe(select(selectPlaylistBlobs))),
-        filter(([_, blobs]) => blobs.length > 0),
-        tap(([_, blobs]) =>
-          blobs.forEach((blob) => {
-            typeof blob === 'string' ? URL.revokeObjectURL(blob) : '';
-          })
-        )
+  clear$ = createEffect(() => {
+    return this.actions$.pipe(
+      ofType(PlayerActions.clear),
+      concatLatestFrom(() => this.store.select(selectPlaylistBlobs)),
+      filter(([_, blobs]) => blobs.length > 0),
+      tap(([_, blobs]) =>
+        blobs.forEach((blob) => {
+          typeof blob === 'string' ? URL.revokeObjectURL(blob) : '';
+        })
       ),
-    { dispatch: false }
-  );
+      mapTo(PlayerActions.clearSuccess())
+    );
+  });
 
-  constructor(private actions$: Actions, private store: Store, private coverService: CoverService, private errorService: ErrorService, @Inject(BASE_PATH) private readonly basePath: string) {}
+  constructor(private actions$: Actions, private store: Store, private coverService: CoverService, private errorService: ErrorService) {}
 }

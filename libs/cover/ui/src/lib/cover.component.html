@@ -1,5 +1,5 @@
 <ng-container *ngIf="loading; else coverTemplate">
-  <img src="/assets/blank.png" class="w-full h-full" alt="blank cover" />
+  <img src="/assets/blank.png" [style.width.px]="width" [style.height.px]="height" alt="blank cover" />
 </ng-container>
 
 <ng-template #coverTemplate>
@@ -8,6 +8,6 @@
   </div>
 
   <div *ngIf="cover && !coverError" appCoverDnd [enableDnd]="enableDnd" (coverUrl)="coverUrl.emit($event)" [style.width.px]="width" [style.height.px]="height">
-    <img [src]="cover | safe: 'resourceUrl'" alt="album cover" [style.width.px]="width" [style.height.px]="height" />
+    <img [src]="cover | safe: 'resourceUrl'" alt="album cover" [style.width.px]="width" [style.height.px]="height" loading="lazy" />
   </div>
 </ng-template>

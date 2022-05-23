@@ -1,199 +1,166 @@
 import { Inject, Injectable } from '@angular/core';
 import { AlbumService } from '@metal-p3/album/data-access';
 import { BASE_PATH } from '@metal-p3/album/domain';
-import { MetalArchivesSearchResponse } from '@metal-p3/api-interfaces';
+import { BandDto, MetalArchivesSearchResponse } from '@metal-p3/api-interfaces';
 import { CoverService } from '@metal-p3/cover/data-access';
 import { ErrorService } from '@metal-p3/shared/error';
 import { NotificationService } from '@metal-p3/shared/feedback';
-import { extractUrl } from '@metal-p3/shared/utils';
+import { extractUrl, nonNullable } from '@metal-p3/shared/utils';
 import { Track } from '@metal-p3/track/domain';
 import { WINDOW } from '@ng-web-apis/common';
 import { Actions, concatLatestFrom, createEffect, ofType } from '@ngrx/effects';
 import { Update } from '@ngrx/entity';
-import { select, Store } from '@ngrx/store';
-import { EMPTY, forkJoin, iif, Observable, of, throwError } from 'rxjs';
-import { catchError, concatMap, filter, map, mergeMap, switchMap, tap } from 'rxjs/operators';
-import { getCoverError } from '../cover/actions';
+import { Store } from '@ngrx/store';
+import { EMPTY, iif, of, throwError } from 'rxjs';
+import { catchError, concatMap, filter, map, mapTo, mergeMap, switchMap, tap } from 'rxjs/operators';
+import { CoverActions } from '../actions';
+import { BandActions } from '../band/actions';
 import { Album, AlbumDtoToAlbum } from '../model';
 import { selectTracks } from '../selectors';
-import { updateTracks } from '../track/actions';
-import {
-  addAlbum,
-  addNewAlbum,
-  addNewError,
-  cancelLoadAlbums,
-  cancelLoadAlbumsSuccess,
-  createNew,
-  createNewSuccess,
-  deleteAlbum,
-  deleteAlbumError,
-  deleteAlbumSuccess,
-  findMaUrl,
-  findMaUrlSuccess,
-  getAlbum,
-  getAlbumError,
-  getExtraFiles,
-  loadAlbums,
-  loadAlbumsError,
-  loadAlbumsPageSuccess,
-  loadAlbumsSuccess,
-  renameFolder,
-  renameFolderError,
-  renameFolderSuccess,
-  saveAlbum,
-  saveAlbumError,
-  saveAlbumSuccess,
-  setExtraFiles,
-  setHasLyrics,
-  setTransferred,
-  updateAlbum,
-} from './actions';
+import { TrackActions } from '../track/actions';
+import { AlbumActions } from './actions';
 
 @Injectable()
 export class AlbumEffects {
-  loadAlbums$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(loadAlbums, cancelLoadAlbums),
+  loadAlbums$ = createEffect(() => {
+    return this.actions$.pipe(
+      ofType(AlbumActions.loadAlbums, AlbumActions.search),
       switchMap(({ request }) =>
         iif(
           () => !!request.cancel,
-          of(cancelLoadAlbumsSuccess()),
+          of(AlbumActions.searchSuccess()),
           this.service.getAlbums(request).pipe(
-            map((albums) => albums as Album[]),
-            mergeMap((albums) => {
-              if (!albums.length) {
-                return of(albums);
-              }
-
-              const sources: Record<number, Observable<string>> = {};
-              albums.forEach(
-                (album) =>
-                  (sources[album.id] = this.coverService.getCover(`${this.basePath}/${album.folder}`).pipe(
-                    catchError((error) => {
-                      this.store.dispatch(getCoverError({ update: { id: album.id, changes: { coverLoading: false, coverError: this.errorService.getError(error) } } }));
-                      return of('/assets/blank.png');
-                    })
-                  ))
-              );
-
-              return forkJoin(sources).pipe(
-                map((covers) => {
-                  Object.keys(covers).forEach((key) => {
-                    const album = albums.find((a) => a.id === +key);
-
-                    if (album) {
-                      album.cover = covers[key];
-                    }
-                  });
-
-                  return albums;
-                })
-              );
-            }),
-            map((albums) => (!request.skip ? loadAlbumsSuccess({ albums }) : loadAlbumsPageSuccess({ albums }))),
-            catchError((error) => of(loadAlbumsError({ loadError: error })))
+            map((albums) => albums.map((a) => ({ ...a, coverLoading: true })) as Album[]),
+            map((albums) => (!request.skip ? AlbumActions.loadAlbumsSuccess({ albums }) : AlbumActions.loadAlbumsPageSuccess({ albums }))),
+            catchError((error) => of(AlbumActions.loadAlbumsError({ loadError: error })))
           )
         )
       )
-    )
-  );
+    );
+  });
 
-  getAlbum$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(getAlbum),
+  loadAlbumsSuccess$ = createEffect(() => {
+    return this.actions$.pipe(
+      ofType(AlbumActions.loadAlbumsSuccess, AlbumActions.loadAlbumsPageSuccess),
+      map(({ albums }) => CoverActions.getMany({ request: albums.map((a) => ({ id: a.id, folder: a.folder })) }))
+    );
+  });
+
+  getAlbum$ = createEffect(() => {
+    return this.actions$.pipe(
+      ofType(AlbumActions.getAlbum),
       mergeMap(({ id }) =>
         this.service.getAlbum(id).pipe(
           map((album) => AlbumDtoToAlbum(album) as Album),
-          map((album) => addAlbum({ album })),
-          catchError((error) => of(getAlbumError({ update: { id, changes: { getError: this.errorService.getError(error) } } })))
+          map((album) => AlbumActions.addAlbum({ album })),
+          catchError((error) => of(AlbumActions.getAlbumError({ update: { id, changes: { getError: this.errorService.getError(error) } } })))
         )
       )
-    )
-  );
+    );
+  });
 
-  addNewAlbum$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(addNewAlbum),
+  addNewAlbum$ = createEffect(() => {
+    return this.actions$.pipe(
+      ofType(AlbumActions.addNewAlbum),
       mergeMap(({ folder }) =>
         this.service.addNewAlbum(`${this.basePath}/${folder}`).pipe(
-          filter((album) => !!album),
+          nonNullable(),
           tap((album) => this.notificationService.showInfo(album.folder, 'New Album')),
           map((album) => AlbumDtoToAlbum(album) as Album),
           concatMap((album) => this.coverService.getCover(`${this.basePath}/${album.folder}`).pipe(map((cover) => ({ ...album, cover })))),
-          map((album) => addAlbum({ album })),
+          map((album) => AlbumActions.addAlbum({ album })),
           catchError((error) => {
             this.notificationService.showError(`${folder}: ${this.errorService.getError(error)}`, 'New Album');
-            return of(addNewError({ error }));
+            return of(AlbumActions.addNewAlbumError({ error }));
           })
         )
       )
-    )
-  );
+    );
+  });
 
-  extraFiles$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(getExtraFiles),
+  extraFiles$ = createEffect(() => {
+    return this.actions$.pipe(
+      ofType(AlbumActions.getExtraFiles),
       mergeMap(({ id, folder }) =>
         this.service.getExtraFiles(folder).pipe(
-          map((extraFiles) => setExtraFiles({ update: { id, changes: { extraFiles } } })),
+          map((extraFiles) => AlbumActions.setExtraFiles({ update: { id, changes: { extraFiles } } })),
           catchError((error) => {
             this.notificationService.showError(`${folder}: ${this.errorService.getError(error)}`, 'Extra Files');
-            return of(setExtraFiles({ update: { id, changes: { extraFiles: false } } }));
+            return of(AlbumActions.setExtraFiles({ update: { id, changes: { extraFiles: false } } }));
           })
         )
       )
-    )
-  );
+    );
+  });
 
-  saveAlbum$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(saveAlbum),
+  saveAlbum$ = createEffect(() => {
+    return this.actions$.pipe(
+      ofType(AlbumActions.saveAlbum),
       mergeMap(({ album }) =>
         this.service.saveAlbum(album).pipe(
           map(() => {
             const { cover: _, ...rest } = album;
             return rest;
           }),
-          map((album) => saveAlbumSuccess({ update: { id: album.id, changes: { ...album, saving: false, saveError: undefined } } })),
-          catchError((error) => of(saveAlbumError({ update: { id: album.id, changes: { saving: false, saveError: this.errorService.getError(error) } } })))
+          map((album) => AlbumActions.saveAlbumSuccess({ update: { id: album.id, changes: { ...album, saving: false, saveError: undefined } } })),
+          catchError((error) => of(AlbumActions.saveAlbumError({ update: { id: album.id, changes: { saving: false, saveError: this.errorService.getError(error) } } })))
         )
       )
-    )
-  );
+    );
+  });
 
-  setHasLyrics$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(setHasLyrics),
+  saveAlbumSuccess$ = createEffect(() => {
+    return this.actions$.pipe(
+      ofType(AlbumActions.saveAlbumSuccess),
+      map(({ update }) => {
+        const { changes: album } = update;
+
+        const band: BandDto = {
+          id: album.bandId ?? 0,
+          name: album.artist || '',
+          country: album.country,
+          genre: album.genre,
+          metalArchiveUrl: album.artistUrl,
+        };
+
+        return BandActions.save({ band });
+      })
+    );
+  });
+
+  setHasLyrics$ = createEffect(() => {
+    return this.actions$.pipe(
+      ofType(AlbumActions.setHasLyrics),
       mergeMap(({ id, hasLyrics }) =>
         this.service.setHasLyrics(id, hasLyrics).pipe(
-          map(() => updateAlbum({ update: { id, changes: { hasLyrics } } })),
+          map(() => AlbumActions.updateAlbum({ update: { id, changes: { hasLyrics } } })),
           catchError((error) => {
             console.error(error);
             return EMPTY;
           })
         )
       )
-    )
-  );
+    );
+  });
 
-  setTransferred$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(setTransferred),
+  setTransferred$ = createEffect(() => {
+    return this.actions$.pipe(
+      ofType(AlbumActions.setTransferred),
       mergeMap(({ id, transferred }) =>
         this.service.setTransferred(id, transferred).pipe(
-          map(() => updateAlbum({ update: { id, changes: { transferred } } })),
+          map(() => AlbumActions.updateAlbum({ update: { id, changes: { transferred } } })),
           catchError((error) => {
             console.error(error);
             return EMPTY;
           })
         )
       )
-    )
-  );
+    );
+  });
 
-  findMaUrl$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(findMaUrl),
+  findMaUrl$ = createEffect(() => {
+    return this.actions$.pipe(
+      ofType(AlbumActions.findMetalArchivesUrl),
       mergeMap(({ id, artist, album }) =>
         this.service.findMaUrl(artist, album).pipe(
           mergeMap((response) => {
@@ -212,78 +179,73 @@ export class AlbumEffects {
           map((response: MetalArchivesSearchResponse) => {
             return { artistUrl: extractUrl(response.aaData[0][0]), albumUrl: extractUrl(response.aaData[0][1]) };
           }),
-          map(({ artistUrl, albumUrl }) => findMaUrlSuccess({ update: { id, changes: { artistUrl, albumUrl, findingUrl: false } } })),
+          map(({ artistUrl, albumUrl }) => AlbumActions.findMetalArchivesUrlSuccess({ update: { id, changes: { artistUrl, albumUrl, findingUrl: false } } })),
           catchError((error) => {
             console.error(error);
-            return of(findMaUrlSuccess({ update: { id, changes: { findingUrl: false } } }));
+            return of(AlbumActions.findMetalArchivesUrlSuccess({ update: { id, changes: { findingUrl: false } } }));
           })
         )
       )
-    )
-  );
+    );
+  });
 
-  renameFolder$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(renameFolder),
+  renameFolder$ = createEffect(() => {
+    return this.actions$.pipe(
+      ofType(AlbumActions.renameFolder),
       map(({ id, src, artist, album }) => ({ id, src, dest: `${artist} - ${album}` })),
       mergeMap(({ id, src, dest }) =>
         this.service.renameFolder(id, src, dest).pipe(
-          map(({ fullPath, folder }) => renameFolderSuccess({ update: { id, changes: { fullPath, folder, renamingFolder: false, renamingFolderError: undefined } } })),
-          catchError((error) => of(renameFolderError({ update: { id, changes: { renamingFolder: false, renamingFolderError: this.errorService.getError(error) } } })))
+          map(({ fullPath, folder }) => AlbumActions.renameFolderSuccess({ update: { id, changes: { fullPath, folder, renamingFolder: false, renamingFolderError: undefined } } })),
+          catchError((error) => of(AlbumActions.renameFolderError({ update: { id, changes: { renamingFolder: false, renamingFolderError: this.errorService.getError(error) } } })))
         )
       )
-    )
-  );
+    );
+  });
 
-  renameFolderSuccess$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(renameFolderSuccess),
+  renameFolderSuccess$ = createEffect(() => {
+    return this.actions$.pipe(
+      ofType(AlbumActions.renameFolderSuccess),
       map(({ update }) => ({ id: update.id, fullPath: update.changes.fullPath })),
-      concatLatestFrom(() => this.store.pipe(select(selectTracks))),
+      concatLatestFrom(() => this.store.select(selectTracks)),
       filter(([_, tracks]) => !!tracks),
       map(([{ id, fullPath }, tracks]) => {
         const updates = (tracks || []).map((track) => ({ id: track.id, changes: { folder: fullPath, fullPath: `${fullPath}/${track.file}` } })) as Update<Track>[];
 
-        return updateTracks({ id: +id, updates });
+        return TrackActions.updateTracksSuccess({ id: +id, updates });
       })
-    )
-  );
+    );
+  });
 
-  createNew$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(createNew),
+  createNew$ = createEffect(() => {
+    return this.actions$.pipe(
+      ofType(AlbumActions.createNew),
       mergeMap(() =>
+        // folder watcher will pick up these new folders
         this.service.createAlbumFromRootFiles().pipe(
-          map((newAlbums) => {
-            if (newAlbums.length) {
-              newAlbums.forEach((folder) => this.store.dispatch(addNewAlbum({ folder })));
-            }
-
-            return createNewSuccess();
-          }),
+          mapTo(AlbumActions.createNewSuccess()),
           catchError((error) => {
-            console.error(error);
+            this.notificationService.showError(`${this.errorService.getError(error)}`, 'Create New Album');
             return EMPTY;
           })
         )
       )
-    )
-  );
+    );
+  });
 
-  deleteAlbum$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(deleteAlbum),
+  deleteAlbum$ = createEffect(() => {
+    return this.actions$.pipe(
+      ofType(AlbumActions.deleteAlbum),
       mergeMap(({ id }) =>
         this.service.deleteAlbum(id).pipe(
-          map(() => deleteAlbumSuccess({ id })),
+          map(() => AlbumActions.deleteAlbumSuccess({ id })),
           catchError((error) => {
             this.notificationService.showError(`${this.errorService.getError(error)}`, 'Delete Album');
-            return of(deleteAlbumError({ id, error }));
+            return of(AlbumActions.deleteAlbumError({ id, error }));
           })
         )
       )
-    )
-  );
+    );
+  });
 
   constructor(
     private actions$: Actions,
