@@ -50,7 +50,7 @@ export class LyricsMaintenanceService {
     return this.http.delete<boolean | Error>(`${this.baseUrl}?id=${id}`, {});
   }
 
-  cancelHistoryCheck(): Observable<never> {
+  cancelHistoryCheck(): Observable<void> {
     return this.http.get<never>(`${this.baseUrl}/cancel`);
   }
 }

@@ -3,9 +3,23 @@ import { AlbumService } from '@metal-p3/album/data-access';
 import { AlbumComponent } from '@metal-p3/album/ui';
 import { CoverService } from '@metal-p3/cover/data-access';
 import { PlayerService } from '@metal-p3/player/data-access';
-import { Album, selectAlbum, selectRouteParams } from '@metal-p3/shared/data-access';
+import {
+  Album,
+  AlbumActions,
+  CoverActions,
+  selectAlbum,
+  selectAlbumsLoaded,
+  selectCoverLoading,
+  selectCoverRequired,
+  selectRouteId,
+  selectSaveAlbumError,
+  selectSelectedAlbumId,
+  selectTracksLoading,
+  selectTracksRequired,
+  TrackActions,
+} from '@metal-p3/shared/data-access';
 import { NotificationService } from '@metal-p3/shared/feedback';
-import { createComponentFactory, mockProvider, Spectator } from '@ngneat/spectator/jest';
+import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { Action } from '@ngrx/store';
 import { MockStore, provideMockStore } from '@ngrx/store/testing';
 import { MockComponent } from 'ng-mocks';
@@ -18,11 +32,10 @@ describe('AlbumShellComponent', () => {
 
   const album: Album = {
     id: 123,
-    fullPath: 'path',
+    fullPath: 'fullPath',
     folder: 'folder',
-    bandId: 1,
-    dateCreated: '',
-    album: 'album',
+    bandId: 234,
+    dateCreated: new Date().toISOString(),
     tracks: {
       ids: [],
       entities: {},
@@ -35,24 +48,15 @@ describe('AlbumShellComponent', () => {
 
   const initialState = {
     router: {},
-    albums: {
-      ids: [1],
-      entities: {
-        '1': {
-          ...album,
-        },
-      },
-      loading: false,
-      loaded: true,
-    },
+    albums: {},
   };
 
   const createComponent = createComponentFactory({
     component: AlbumShellComponent,
     imports: [RouterTestingModule],
     declarations: [MockComponent(AlbumComponent)],
-    providers: [provideMockStore({ initialState }), mockProvider(AlbumService), mockProvider(CoverService), mockProvider(NotificationService), mockProvider(PlayerService)],
-    detectChanges: false,
+    providers: [provideMockStore({ initialState })],
+    mocks: [AlbumService, CoverService, NotificationService, PlayerService],
   });
 
   beforeEach(() => {
@@ -61,46 +65,70 @@ describe('AlbumShellComponent', () => {
     dispatcher = jest.spyOn(store, 'dispatch');
   });
 
-  it('should get album from route id', () => {
-    selectRouteParams.setResult({
-      params: {
-        id: 123,
-      },
-    });
+  afterEach(() => store?.resetSelectors());
+
+  it('should dispatch AlbumActions.viewAlbum action with route id', () => {
+    const routeId = 123;
+    selectSelectedAlbumId.setResult(undefined);
+    selectRouteId.setResult(routeId.toString());
+    selectAlbumsLoaded.setResult(false);
+    selectTracksRequired.setResult(false);
+    selectCoverRequired.setResult(false);
 
     store.refreshState();
-    spectator.detectChanges();
 
-    // const selectedAlbumSpy = subscribeSpyTo(store.select(selectedAlbum));
-
-    // expect(selectedAlbumSpy.getLastValue()).toBe(123);
-    expect(dispatcher).toBeCalled();
+    expect(dispatcher).toHaveBeenCalled();
+    expect(dispatcher).toHaveBeenCalledWith(AlbumActions.viewAlbum({ id: routeId }));
   });
 
-  it('should get album from route id', () => {
-    selectAlbum.setResult({
-      id: 123,
-      fullPath: 'path',
-      folder: 'folder',
-      bandId: 1,
-      dateCreated: '',
-      album: 'album',
-      tracks: {
-        ids: [1],
-        entities: {},
-      },
-      maTracks: {
-        ids: [1],
-        entities: {},
-      },
-    });
+  it('should dispatch AlbumActions.getAlbum action when selected album is not in the list', () => {
+    const id = 123;
+    selectAlbumsLoaded.setResult(true);
+    selectAlbum.setResult();
+    selectSelectedAlbumId.setResult(id);
 
-    //store.refreshState();
-    //spectator.detectChanges();
+    store.refreshState();
 
-    // const selectedAlbumSpy = subscribeSpyTo(store.select(selectedAlbum));
+    expect(dispatcher).toBeCalledWith(AlbumActions.getAlbum({ id }));
+  });
 
-    // expect(selectedAlbumSpy.getLastValue()).toBe(123);
-    expect(dispatcher).toBeCalled();
+  it('should dispatch TrackActions.getTracks action when tracks have not yet been loaded', () => {
+    selectAlbum.setResult(album);
+    selectTracksLoading.setResult(false);
+    selectTracksRequired.setResult(true);
+    selectCoverRequired.setResult(false);
+
+    store.refreshState();
+
+    expect(dispatcher).toHaveBeenCalledWith(expect.objectContaining(TrackActions.getTracks({ id: album.id, folder: album.folder })));
+  });
+
+  it('should dispatch CoverActions.get action when cover has not been loaded', () => {
+    selectAlbum.setResult(album);
+    selectCoverLoading.setResult(false);
+    selectCoverRequired.setResult(true);
+    selectTracksRequired.setResult(false);
+
+    store.refreshState();
+
+    expect(dispatcher).toHaveBeenCalledWith(expect.objectContaining(CoverActions.get({ id: album.id, folder: album.folder })));
+  });
+
+  it('should dispatch AlbumActions.getExtraFiles', () => {
+    selectAlbum.setResult(album);
+    selectTracksRequired.setResult(false);
+    selectCoverRequired.setResult(false);
+
+    store.refreshState();
+
+    expect(dispatcher).toHaveBeenCalledWith(expect.objectContaining(AlbumActions.getExtraFiles({ id: album.id, folder: album.folder })));
+  });
+
+  it('should show notification error', () => {
+    selectSaveAlbumError.setResult('Error');
+
+    store.refreshState();
+
+    expect(spectator.inject(NotificationService).showError).toHaveBeenCalled();
   });
 });

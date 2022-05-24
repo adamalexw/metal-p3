@@ -28,7 +28,7 @@ export class AlbumEffects {
       switchMap(({ request }) =>
         iif(
           () => !!request.cancel,
-          of(AlbumActions.searchSuccess()),
+          of(AlbumActions.cancelSearch()),
           this.service.getAlbums(request).pipe(
             map((albums) => albums.map((a) => ({ ...a, coverLoading: true })) as Album[]),
             map((albums) => (!request.skip ? AlbumActions.loadAlbumsSuccess({ albums }) : AlbumActions.loadAlbumsPageSuccess({ albums }))),
@@ -42,7 +42,7 @@ export class AlbumEffects {
   loadAlbumsSuccess$ = createEffect(() => {
     return this.actions$.pipe(
       ofType(AlbumActions.loadAlbumsSuccess, AlbumActions.loadAlbumsPageSuccess),
-      map(({ albums }) => CoverActions.getMany({ request: albums.map((a) => ({ id: a.id, folder: a.folder })) }))
+      map(({ albums }) => CoverActions.getMany({ request: { requests: albums.map((a) => ({ id: a.id, folder: a.folder })) } }))
     );
   });
 

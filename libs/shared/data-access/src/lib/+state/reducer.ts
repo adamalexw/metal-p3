@@ -73,7 +73,7 @@ export const reducer = createReducer(
   on(CoverActions.getSuccess, CoverActions.getError, (state, { update }) => albumAdapter.updateOne(update, state)),
   on(CoverActions.getMany, (state, { request }) =>
     albumAdapter.updateMany(
-      request.map((r) => ({ id: r.id, changes: { coverLoading: true } })),
+      request.requests.map((r) => ({ id: r.id, changes: { coverLoading: true } })),
       state
     )
   ),

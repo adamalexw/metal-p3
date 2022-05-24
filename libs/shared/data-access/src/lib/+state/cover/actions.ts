@@ -1,4 +1,4 @@
-import { FolderRequest } from '@metal-p3/album/domain';
+import { CoversRequest } from '@metal-p3/album/domain';
 import { Update } from '@ngrx/entity';
 import { createActionGroup, emptyProps, props } from '@ngrx/store';
 import { Album } from '../model';
@@ -9,7 +9,7 @@ export const CoverActions = createActionGroup({
     Get: props<{ id: number; folder: string }>(),
     'Get Success': props<{ update: Update<Album> }>(),
     'Get Error': props<{ update: Update<Album> }>(),
-    'Get Many': props<{ request: FolderRequest[] }>(),
+    'Get Many': props<{ request: CoversRequest }>(),
     'Get Many Success': props<{ update: Update<Album>[] }>(),
     'Get Many Error': props<{ update: Update<Album>[] }>(),
     Download: props<{ id: number; url: string }>(),

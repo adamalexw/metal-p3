@@ -1,13 +1,15 @@
 import { Inject, Injectable } from '@angular/core';
-import { BASE_PATH } from '@metal-p3/album/domain';
+import { BASE_PATH, CoverRequest } from '@metal-p3/album/domain';
 import { CoverService } from '@metal-p3/cover/data-access';
 import { ErrorService } from '@metal-p3/shared/error';
 import { WINDOW } from '@ng-web-apis/common';
 import { Actions, concatLatestFrom, createEffect, ofType } from '@ngrx/effects';
+import { Update } from '@ngrx/entity';
 import { Store } from '@ngrx/store';
-import { EMPTY, forkJoin, Observable, of } from 'rxjs';
-import { catchError, filter, map, mergeMap, tap } from 'rxjs/operators';
+import { EMPTY, forkJoin, iif, Observable, of } from 'rxjs';
+import { catchError, filter, map, mergeMap, switchMap, tap } from 'rxjs/operators';
 import { AlbumActions } from '../actions';
+import { Album } from '../model';
 import { CoverActions } from './actions';
 import { selectBlobCovers } from './selectors';
 
@@ -25,26 +27,17 @@ export class CoverEffects {
     );
   });
 
+  cancelCovers$ = createEffect(() => {
+    return this.actions$.pipe(
+      ofType(AlbumActions.cancelSearch),
+      map(() => CoverActions.getMany({ request: { requests: [], cancel: true } }))
+    );
+  });
+
   getMany$ = createEffect(() => {
     return this.actions$.pipe(
       ofType(CoverActions.getMany),
-      mergeMap(({ request }) => {
-        const sources: Record<number, Observable<{ cover: string; coverError: string | undefined }>> = {};
-
-        request.map(
-          ({ id, folder }) =>
-            (sources[id] = this.service.getCover(`${this.basePath}/${folder}`).pipe(
-              map((cover) => ({ cover, coverError: undefined })),
-              catchError((error) => {
-                const coverError = this.errorService.getError(error);
-                return of({ cover: '/assets/blank.png', coverError });
-              })
-            ))
-        );
-
-        return forkJoin(sources).pipe(map((covers) => Object.entries(covers).map(([id, value]) => ({ id, changes: { coverLoading: false, cover: value.cover, coverError: value.coverError } }))));
-      }),
-      map((update) => CoverActions.getManySuccess({ update }))
+      switchMap(({ request }) => iif(() => !!request.cancel, of(CoverActions.clearAll()), this.covers$(request.requests).pipe(map((update) => CoverActions.getManySuccess({ update })))))
     );
   });
 
@@ -93,6 +86,23 @@ export class CoverEffects {
       )
     );
   });
+
+  private covers$(requests: CoverRequest[]): Observable<Update<Album>[]> {
+    const sources: Record<number, Observable<{ cover: string; coverError: string | undefined }>> = {};
+
+    requests.map(
+      ({ id, folder }) =>
+        (sources[id] = this.service.getCover(`${this.basePath}/${folder}`).pipe(
+          map((cover) => ({ cover, coverError: undefined })),
+          catchError((error) => {
+            const coverError = this.errorService.getError(error);
+            return of({ cover: '/assets/blank.png', coverError });
+          })
+        ))
+    );
+
+    return forkJoin(sources).pipe(map((covers) => Object.entries(covers).map(([id, value]) => ({ id, changes: { coverLoading: false, cover: value.cover, coverError: value.coverError } }))));
+  }
 
   constructor(
     private actions$: Actions,

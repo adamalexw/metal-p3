@@ -1,5 +1,5 @@
 import { getSelectors, RouterReducerState } from '@ngrx/router-store';
-import { createFeatureSelector } from '@ngrx/store';
+import { createFeatureSelector, createSelector } from '@ngrx/store';
 
 export const selectRouter = createFeatureSelector<RouterReducerState>('router');
 
@@ -13,3 +13,5 @@ export const {
   selectRouteData, // select the current route data
   selectUrl, // select the current url
 } = getSelectors(selectRouter);
+
+export const selectRouteId = createSelector(selectRouteParam('id'), (routeId) => routeId);

@@ -17,7 +17,8 @@ export const selectSaveAlbumError = createSelector(selectAlbum, (album) => album
 export const selectAlbumsLoading = createSelector(selectAlbumState, (state: AlbumState) => state?.loading);
 export const selectAlbumsLoaded = createSelector(selectAlbumState, (state: AlbumState) => state?.loaded);
 export const selectAlbumsLoadError = createSelector(selectAlbumState, (state: AlbumState) => state?.loadError);
-export const selectAlbumsSearchCriteria = createSelector(selectAlbumState, (state: AlbumState) => state?.searchRequest?.criteria);
+export const selectAlbumsSearchRequest = createSelector(selectAlbumState, (state: AlbumState) => state?.searchRequest);
+export const selectAlbumsSearchCriteria = createSelector(selectAlbumsSearchRequest, (request) => request?.criteria);
 
 export const selectFindingUrl = createSelector(selectAlbum, (album) => album?.findingUrl || false);
 export const selectMaUrls = createSelector(selectAlbum, (album) => ({ artistUrl: album?.artistUrl, albumUrl: album?.albumUrl }));

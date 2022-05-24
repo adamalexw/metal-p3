@@ -1,21 +1,9 @@
 import { ViewportRuler } from '@angular/cdk/scrolling';
 import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
-import {
-  checkedLyricsHistory,
-  checkLyricsHistory,
-  deleteLyricsHistory,
-  deleteLyricsHistorySuccess,
-  getLyricsHistory,
-  LyricsMaintenanceService,
-  selectCheckingLyrics,
-  selectGettingLyrics,
-  selectLyrics,
-  stopLyricsCheck,
-  updateLyricsHistory,
-} from '@metal-p3/maintenance/data-access';
+import { LyricsMaintenanceService, MaintenanceActions, selectCheckingLyrics, selectGettingLyrics, selectLyrics } from '@metal-p3/maintenance/data-access';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
-import { select, Store } from '@ngrx/store';
+import { Store } from '@ngrx/store';
 import { tap } from 'rxjs/operators';
 import { ApplyLyricsShellComponent } from '../apply-lyrics/apply-lyrics.component';
 
@@ -27,9 +15,9 @@ import { ApplyLyricsShellComponent } from '../apply-lyrics/apply-lyrics.componen
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LyricsHistoryShellComponent implements OnInit {
-  getting$ = this.store.pipe(select(selectGettingLyrics));
-  checking$ = this.store.pipe(select(selectCheckingLyrics));
-  lyrics$ = this.store.pipe(select(selectLyrics));
+  getting$ = this.store.select(selectGettingLyrics);
+  checking$ = this.store.select(selectCheckingLyrics);
+  lyrics$ = this.store.select(selectLyrics);
 
   constructor(private readonly store: Store, private readonly lyricsMaintenanceService: LyricsMaintenanceService, private readonly dialog: MatDialog, private readonly viewportRuler: ViewportRuler) {}
 
@@ -42,7 +30,7 @@ export class LyricsHistoryShellComponent implements OnInit {
       .lyricsHistoryUpdate()
       .pipe(
         untilDestroyed(this),
-        tap((lyricsHistory) => this.store.dispatch(updateLyricsHistory({ update: { id: lyricsHistory.id, changes: { ...lyricsHistory, complete: true } } })))
+        tap((lyricsHistory) => this.store.dispatch(MaintenanceActions.updateLyricsHistory({ update: { id: lyricsHistory.id, changes: { ...lyricsHistory, complete: true } } })))
       )
       .subscribe();
 
@@ -50,35 +38,35 @@ export class LyricsHistoryShellComponent implements OnInit {
       .lyricsHistoryComplete()
       .pipe(
         untilDestroyed(this),
-        tap(() => this.store.dispatch(stopLyricsCheck()))
+        tap(() => this.store.dispatch(MaintenanceActions.stopLyricsHistoryCheck()))
       )
       .subscribe();
   }
 
   onViewPriority() {
-    this.store.dispatch(getLyricsHistory({ priority: true }));
+    this.store.dispatch(MaintenanceActions.getLyricsHistory({ priority: true }));
   }
 
   onCheckPriority() {
     this.onViewPriority();
-    this.store.dispatch(checkLyricsHistory({ priority: true }));
+    this.store.dispatch(MaintenanceActions.checkLyricsHistory({ priority: true }));
   }
 
   onViewCheck() {
-    this.store.dispatch(getLyricsHistory({ priority: false }));
+    this.store.dispatch(MaintenanceActions.getLyricsHistory({ priority: false }));
   }
 
   onStartCheck() {
     this.onViewCheck();
-    this.store.dispatch(checkLyricsHistory({ priority: false }));
+    this.store.dispatch(MaintenanceActions.checkLyricsHistory({ priority: false }));
   }
 
   onStopCheck() {
-    this.store.dispatch(stopLyricsCheck());
+    this.store.dispatch(MaintenanceActions.stopLyricsHistoryCheck());
   }
 
   onChecked(id: number, checked: boolean) {
-    this.store.dispatch(checkedLyricsHistory({ id, checked }));
+    this.store.dispatch(MaintenanceActions.checkedLyricsHistory({ id, checked }));
   }
 
   onApplyLyrics(albumId: number, historyId: number) {
@@ -92,12 +80,12 @@ export class LyricsHistoryShellComponent implements OnInit {
       .pipe(untilDestroyed(this))
       .subscribe((result: { id: number; apply: boolean } | undefined) => {
         if (result?.apply) {
-          this.store.dispatch(deleteLyricsHistorySuccess({ id: result.id }));
+          this.store.dispatch(MaintenanceActions.deleteLyricsHistorySuccess({ id: result.id }));
         }
       });
   }
 
   onDeleteHistory(id: number) {
-    this.store.dispatch(deleteLyricsHistory({ id }));
+    this.store.dispatch(MaintenanceActions.deleteLyricsHistory({ id }));
   }
 }

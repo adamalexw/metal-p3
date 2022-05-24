@@ -12,7 +12,7 @@ export const AlbumActions = createActionGroup({
     'Load Albums Page Success': props<{ albums: Album[] }>(),
     'Load Albums Error': props<{ loadError: string }>(),
     Search: props<{ request: Partial<SearchRequest> }>(),
-    'Search Success': emptyProps(),
+    'Cancel Search': emptyProps(),
     'Add Album': props<{ album: Album }>(),
     'Set Album': props<{ album: Album }>(),
     'Upsert Album': props<{ album: Album }>(),

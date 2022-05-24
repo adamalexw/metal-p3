@@ -12,7 +12,7 @@ import { map } from 'rxjs/operators';
 export class AlbumService {
   readonly baseUrl = `${this.api}album`;
 
-  constructor(private http: HttpClient, @Inject(API) private api: string, @Inject(BASE_PATH) private readonly basePath: string, private socket: Socket) {}
+  constructor(private readonly http: HttpClient, @Inject(API) private readonly api: string, @Inject(BASE_PATH) private readonly basePath: string, private readonly socket: Socket) {}
 
   getAlbums(request: Partial<SearchRequest>): Observable<AlbumDto[]> {
     const criteria = request.criteria ? `&criteria=${encodeURIComponent(request.criteria)}` : '';

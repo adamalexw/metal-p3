@@ -1,16 +1,7 @@
 import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
-import {
-  getUrlMatcher,
-  selectGettingMetalArchivesMatcher,
-  selectMetalArchivesMatcher,
-  selectMetalArchivesMatcherLoaded,
-  startUrlMatcher,
-  stopUrlMatcher,
-  updateUrlMatcher,
-  UrlMaintenanceService,
-} from '@metal-p3/maintenance/data-access';
+import { MaintenanceActions, selectGettingMetalArchivesMatcher, selectMetalArchivesMatcher, selectMetalArchivesMatcherLoaded, UrlMaintenanceService } from '@metal-p3/maintenance/data-access';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
-import { select, Store } from '@ngrx/store';
+import { Store } from '@ngrx/store';
 import { filter, take, tap } from 'rxjs/operators';
 
 @UntilDestroy()
@@ -21,9 +12,9 @@ import { filter, take, tap } from 'rxjs/operators';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class UrlMatcherShellComponent implements OnInit {
-  albums$ = this.store.pipe(select(selectMetalArchivesMatcher));
-  matching$ = this.store.pipe(select(selectGettingMetalArchivesMatcher));
-  loaded$ = this.store.pipe(select(selectMetalArchivesMatcherLoaded));
+  albums$ = this.store.select(selectMetalArchivesMatcher);
+  matching$ = this.store.select(selectGettingMetalArchivesMatcher);
+  loaded$ = this.store.select(selectMetalArchivesMatcherLoaded);
 
   constructor(private readonly store: Store, private urlMaintenanceService: UrlMaintenanceService) {}
 
@@ -33,7 +24,7 @@ export class UrlMatcherShellComponent implements OnInit {
         untilDestroyed(this),
         filter((loaded) => !loaded),
         take(1),
-        tap(() => this.store.dispatch(getUrlMatcher()))
+        tap(() => this.store.dispatch(MaintenanceActions.getUrlMatcher()))
       )
       .subscribe();
 
@@ -45,16 +36,16 @@ export class UrlMatcherShellComponent implements OnInit {
       .update()
       .pipe(
         untilDestroyed(this),
-        tap((album) => this.store.dispatch(updateUrlMatcher({ update: { id: album.id, changes: { ...album, complete: true } } })))
+        tap((album) => this.store.dispatch(MaintenanceActions.updateUrlMatcher({ update: { id: album.id, changes: { ...album, complete: true } } })))
       )
       .subscribe();
   }
 
   onStartMatching() {
-    this.store.dispatch(startUrlMatcher());
+    this.store.dispatch(MaintenanceActions.startUrlMatcher());
   }
 
   onStopMatching() {
-    this.store.dispatch(stopUrlMatcher());
+    this.store.dispatch(MaintenanceActions.stopUrlMatcher());
   }
 }

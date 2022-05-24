@@ -3,7 +3,7 @@ import { Router } from '@angular/router';
 import { AlbumService } from '@metal-p3/album/data-access';
 import { MetalArchivesAlbumTrack } from '@metal-p3/api-interfaces';
 import { CoverService } from '@metal-p3/cover/data-access';
-import { addLyricsPriority } from '@metal-p3/maintenance/data-access';
+import { MaintenanceActions } from '@metal-p3/maintenance/data-access';
 import { PlayerService } from '@metal-p3/player/data-access';
 import {
   Album,
@@ -25,7 +25,7 @@ import {
   selectMaUrls,
   selectRenamingFolder,
   selectRenamingFolderError,
-  selectRouteParams,
+  selectRouteId,
   selectSaveAlbumError,
   selectSelectedAlbumId,
   selectTrackRenaming,
@@ -46,7 +46,7 @@ import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { Update } from '@ngrx/entity';
 import { Store } from '@ngrx/store';
 import { combineLatest, Observable, of } from 'rxjs';
-import { delay, distinctUntilChanged, exhaustMap, filter, map, take, tap, withLatestFrom } from 'rxjs/operators';
+import { distinctUntilChanged, exhaustMap, filter, map, take, tap, withLatestFrom } from 'rxjs/operators';
 
 @UntilDestroy()
 @Component({
@@ -92,11 +92,7 @@ export class AlbumShellComponent implements OnInit {
   gettingBandProps$ = this.store.select(selectGettingBandProps);
   bandProps$ = this.store.select(selectBandProps);
 
-  routeId$ = this.store.select(selectRouteParams).pipe(
-    untilDestroyed(this),
-    map((params) => params?.id),
-    filter((id) => !!id)
-  );
+  routeId$ = this.store.select(selectRouteId).pipe(untilDestroyed(this), nonNullable());
 
   constructor(
     private readonly store: Store,
@@ -118,7 +114,7 @@ export class AlbumShellComponent implements OnInit {
       .pipe(
         withLatestFrom(this.store.select(selectSelectedAlbumId)),
         filter(([routeId, selectedId]) => +routeId !== selectedId),
-        tap(([routeId, _albumId]) => this.store.dispatch(AlbumActions.viewAlbum({ id: routeId }))),
+        tap(([routeId, _albumId]) => this.store.dispatch(AlbumActions.viewAlbum({ id: +routeId }))),
         take(1)
       )
       .subscribe();
@@ -131,15 +127,9 @@ export class AlbumShellComponent implements OnInit {
         untilDestroyed(this),
         filter(([loaded, album]) => loaded && !album),
         withLatestFrom(this.store.select(selectSelectedAlbumId)),
-        map(([_album, id]) => id),
-        filter((id) => !!id),
-        withLatestFrom(this.album$),
-        filter(([_id, album]) => !album),
-        tap(([id, _album]) => {
-          if (id) {
-            this.store.dispatch(AlbumActions.getAlbum({ id }));
-          }
-        })
+        map(([[_loaded, _album], id]) => id),
+        nonNullable(),
+        tap((id) => this.store.dispatch(AlbumActions.getAlbum({ id })))
       )
       .subscribe();
 
@@ -154,7 +144,6 @@ export class AlbumShellComponent implements OnInit {
       .pipe(
         untilDestroyed(this),
         filter(([_props, loading, required]) => required && !loading),
-        delay(1000),
         tap(([props, _loading, _required]) => this.store.dispatch(TrackActions.getTracks(props)))
       )
       .subscribe();
@@ -164,7 +153,6 @@ export class AlbumShellComponent implements OnInit {
       .pipe(
         untilDestroyed(this),
         filter(([_props, loading, required]) => required && !loading),
-        delay(1000),
         tap(([props, _loading, _required]) => this.store.dispatch(CoverActions.get(props)))
       )
       .subscribe();
@@ -260,20 +248,13 @@ export class AlbumShellComponent implements OnInit {
       .subscribe();
   }
 
-  onTrackNumbers(id: number) {
+  onTrackNumbers(albumId: number) {
     this.tracks$
       .pipe(
         nonNullable(),
         tap((tracks) => {
-          const updates: Update<Track>[] = [];
-
-          for (let index = 0; index < tracks.length; index++) {
-            const track = tracks[index];
-
-            updates.push({ id: track.id, changes: { trackNumber: (index + 1).toString().padStart(2, '0') } });
-          }
-
-          this.store.dispatch(TrackActions.updateTracksSuccess({ id, updates }));
+          const updates: Update<Track>[] = tracks.map((track, index) => ({ id: track.id, changes: { trackNumber: (index + 1).toString().padStart(2, '0') } }));
+          this.store.dispatch(TrackActions.updateTracksSuccess({ id: albumId, updates }));
         }),
         take(1)
       )
@@ -311,7 +292,7 @@ export class AlbumShellComponent implements OnInit {
   }
 
   onLyricsPriority(albumId: number) {
-    this.store.dispatch(addLyricsPriority({ albumId }));
+    this.store.dispatch(MaintenanceActions.addLyricsPriority({ albumId }));
   }
 
   onRefreshTracks(id: number, folder: string) {
