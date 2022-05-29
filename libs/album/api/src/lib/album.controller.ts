@@ -1,5 +1,5 @@
 import { Album } from '.prisma/client';
-import { AlbumDto, MetalArchivesAlbumTrack, MetalArchivesSearchResponse, RenameFolder, TrackDto } from '@metal-p3/api-interfaces';
+import { AlbumDto, MetalArchivesAlbumTrack, MetalArchivesSearchResponse, RenameFolder, SearchRequest, TrackDto } from '@metal-p3/api-interfaces';
 import { FileSystemService } from '@metal-p3/shared/file-system';
 import { MetalArchivesService } from '@metal-p3/shared/metal-archives';
 import { TrackService } from '@metal-p3/track/api';
@@ -19,8 +19,8 @@ export class AlbumController {
   ) {}
 
   @Get('search')
-  albums(@Query('take') take?: number, @Query('skip') skip?: number, @Query('criteria') criteria?: string): Observable<AlbumDto[]> {
-    return this.albumService.getAlbums({ take: +take, skip: +skip, criteria });
+  albums(@Query() request: SearchRequest): Observable<AlbumDto[]> {
+    return this.albumService.getAlbums(request);
   }
 
   @Get('tracks')

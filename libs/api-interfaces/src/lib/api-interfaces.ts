@@ -1,3 +1,17 @@
+export interface SearchRequest {
+  take?: number;
+  skip?: number;
+  artist?: string;
+  album?: string;
+  year?: string;
+  genre?: string;
+  country?: string;
+  transferred?: boolean;
+  hasLyrics?: boolean;
+  folder?: string;
+  cancel?: boolean;
+}
+
 export interface AlbumBase extends MetalArchivesUrl {
   artist?: string;
   album?: string;

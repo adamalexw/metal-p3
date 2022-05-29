@@ -27,7 +27,7 @@ export class UnmappedFoldersShellComponent {
   }
 
   onSearch(folder: string) {
-    this.store.dispatch(AlbumActions.loadAlbums({ request: { skip: 0, take: 40, criteria: folder } }));
+    this.store.dispatch(AlbumActions.loadAlbums({ request: { skip: 0, take: 40, folder } }));
   }
 
   onAdd(folder: string) {

@@ -1,4 +1,8 @@
 <mat-sidenav-container fullscreen>
+  <mat-sidenav [opened]="avancedSearchOpen$ | async" #searchnav mode="over" position="start" (closedStart)="onCloseAdvancedSearch()">
+    <app-advanced-search-shell></app-advanced-search-shell>
+  </mat-sidenav>
+
   <mat-sidenav-content>
     <app-list></app-list>
   </mat-sidenav-content>

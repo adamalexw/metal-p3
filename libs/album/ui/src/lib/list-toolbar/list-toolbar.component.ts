@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
 import { AbstractControl, FormBuilder, FormGroup } from '@angular/forms';
-import { SearchRequest } from '@metal-p3/album/domain';
+import { SearchRequest } from '@metal-p3/api-interfaces';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { debounceTime, distinctUntilChanged, tap } from 'rxjs/operators';
 
@@ -19,7 +19,10 @@ export class ListToolbarComponent implements OnInit, OnChanges {
   searching: boolean | null | undefined = false;
 
   @Input()
-  criteria: string | null | undefined = '';
+  folder: string | null | undefined = '';
+
+  @Output()
+  readonly advancedSearch = new EventEmitter<void>();
 
   @Output()
   readonly searchRequest = new EventEmitter<SearchRequest>();
@@ -35,19 +38,19 @@ export class ListToolbarComponent implements OnInit, OnChanges {
 
   form: FormGroup;
 
-  get criteriaControl(): AbstractControl | null {
-    return this.form.get('criteria');
+  get folderControl(): AbstractControl | null {
+    return this.form.get('folder');
   }
 
   constructor(fb: FormBuilder) {
     this.form = fb.group({
-      criteria: [],
+      folder: [],
     });
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes.criteria && this.form && this.criteria !== this.criteriaControl?.value) {
-      this.criteriaControl?.setValue(this.criteria);
+    if (changes.folder && this.form && this.folder !== this.folderControl?.value) {
+      this.folderControl?.setValue(this.folder, { emitEvent: false });
     }
   }
 
@@ -63,6 +66,6 @@ export class ListToolbarComponent implements OnInit, OnChanges {
   }
 
   onClear() {
-    this.criteriaControl?.reset();
+    this.folderControl?.reset();
   }
 }

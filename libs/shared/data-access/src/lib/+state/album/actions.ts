@@ -1,4 +1,4 @@
-import { SearchRequest } from '@metal-p3/album/domain';
+import { SearchRequest } from '@metal-p3/api-interfaces';
 import { EntityMap, EntityMapOne, Predicate, Update } from '@ngrx/entity';
 import { createActionGroup, emptyProps, props } from '@ngrx/store';
 import { Album } from '../model';
@@ -6,13 +6,14 @@ import { Album } from '../model';
 export const AlbumActions = createActionGroup({
   source: 'Album',
   events: {
-    'Load Albums': props<{ request: Partial<SearchRequest> }>(),
+    'Load Albums': props<{ request: SearchRequest }>(),
     'Load Albums Success': props<{ albums: Album[] }>(),
-    'Load Albums Page': props<{ request: Partial<SearchRequest> }>(),
+    'Load Albums Page': props<{ request: SearchRequest }>(),
     'Load Albums Page Success': props<{ albums: Album[] }>(),
     'Load Albums Error': props<{ loadError: string }>(),
-    Search: props<{ request: Partial<SearchRequest> }>(),
-    'Cancel Search': emptyProps(),
+    'Advanced Search': emptyProps(),
+    'Cancel Previous Search': props<{ request: SearchRequest }>(),
+    'Cancel Previous Search Success': emptyProps(),
     'Add Album': props<{ album: Album }>(),
     'Set Album': props<{ album: Album }>(),
     'Upsert Album': props<{ album: Album }>(),

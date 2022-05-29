@@ -10,6 +10,7 @@ export const CoverActions = createActionGroup({
     'Get Success': props<{ update: Update<Album> }>(),
     'Get Error': props<{ update: Update<Album> }>(),
     'Get Many': props<{ request: CoversRequest }>(),
+    'Cancel Previous Get Many': props<{ request: CoversRequest }>(),
     'Get Many Success': props<{ update: Update<Album>[] }>(),
     'Get Many Error': props<{ update: Update<Album>[] }>(),
     Download: props<{ id: number; url: string }>(),

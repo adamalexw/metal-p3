@@ -1,6 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { SearchRequest } from '@metal-p3/album/domain';
-import { MetalArchivesAlbumTrack } from '@metal-p3/api-interfaces';
+import { MetalArchivesAlbumTrack, SearchRequest } from '@metal-p3/api-interfaces';
 import { Track } from '@metal-p3/track/domain';
 import { createEntityAdapter, EntityAdapter, EntityState } from '@ngrx/entity';
 import { createReducer, on } from '@ngrx/store';
@@ -13,7 +12,8 @@ export interface AlbumState extends EntityState<Album> {
   loading: boolean;
   loaded: boolean;
   loadError?: string;
-  searchRequest?: SearchRequest;
+  advancedSearchOpen: boolean;
+  searchRequest: SearchRequest;
   error?: HttpErrorResponse | Error;
   creatingNew?: boolean;
   selectedAlbumId?: number;
@@ -31,15 +31,20 @@ export const albumAdapter: EntityAdapter<Album> = createEntityAdapter<Album>({
 export const trackAdapter: EntityAdapter<Track> = createEntityAdapter<Track>();
 export const maTrackAdapter: EntityAdapter<MetalArchivesAlbumTrack> = createEntityAdapter<MetalArchivesAlbumTrack>();
 
+const initalSearchRequest: SearchRequest = { skip: 60, take: 0 };
+
 export const initialState = albumAdapter.getInitialState({
   loading: false,
   loaded: false,
+  advancedSearchOpen: false,
+  searchRequest: initalSearchRequest,
   tracks: trackAdapter.getInitialState(),
   maTracks: maTrackAdapter.getInitialState(),
 });
 
 export const reducer = createReducer(
   initialState,
+  on(AlbumActions.advancedSearch, (state): AlbumState => ({ ...state, advancedSearchOpen: !state.advancedSearchOpen })),
   on(AlbumActions.addAlbum, (state, { album }) => albumAdapter.addOne(album, { ...state, getAlbumError: undefined })),
   on(AlbumActions.setAlbum, (state, { album }) => albumAdapter.setOne(album, state)),
   on(AlbumActions.upsertAlbum, (state, { album }) => albumAdapter.upsertOne(album, state)),

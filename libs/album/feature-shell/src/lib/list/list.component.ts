@@ -3,7 +3,8 @@ import { DOCUMENT } from '@angular/common';
 import { ChangeDetectionStrategy, Component, EventEmitter, Inject, OnInit, Output } from '@angular/core';
 import { Router } from '@angular/router';
 import { AlbumService } from '@metal-p3/album/data-access';
-import { SearchRequest } from '@metal-p3/album/domain';
+import { TAKE } from '@metal-p3/album/domain';
+import { SearchRequest } from '@metal-p3/api-interfaces';
 import { PlayerActions, PlayerService, selectShowPlayer } from '@metal-p3/player/data-access';
 import {
   Album,
@@ -12,11 +13,12 @@ import {
   selectAlbumsLoaded,
   selectAlbumsLoadError,
   selectAlbumsLoading,
-  selectAlbumsSearchCriteria,
+  selectAlbumsSearchRequest,
+  selectAlbumsSearchRequestFolder,
   selectCreatingNew,
+  selectSideNavOpen,
   selectTracksById,
   selectTracksRequiredById,
-  sideNavOpen,
   TrackActions,
 } from '@metal-p3/shared/data-access';
 import { NotificationService } from '@metal-p3/shared/feedback';
@@ -37,17 +39,18 @@ export class ListComponent implements OnInit {
   albumsLoaded$ = this.store.select(selectAlbumsLoaded);
   albumsLoadError$ = this.store.select(selectAlbumsLoadError);
   albums$ = this.store.select(selectAlbums);
-  criteria$ = this.store.select(selectAlbumsSearchCriteria);
+  searchRequest$ = this.store.select(selectAlbumsSearchRequest);
+  searchRequestFolder$ = this.store.select(selectAlbumsSearchRequestFolder);
   showPlayer$ = this.store.select(selectShowPlayer);
   creatingNew$ = this.store.select(selectCreatingNew);
-  sideNavOpen$ = this.store.select(sideNavOpen);
+  sideNavOpen$ = this.store.select(selectSideNavOpen);
 
   viewportWidth$ = this.viewportRuler.change().pipe(
     startWith(this.viewportRuler.getViewportSize().width),
     map(() => this.viewportRuler.getViewportSize().width)
   );
 
-  albumsView$ = combineLatest([this.albums$, this.viewportWidth$, this.store.select(sideNavOpen)]).pipe(
+  albumsView$ = combineLatest([this.albums$, this.viewportWidth$, this.store.select(selectSideNavOpen)]).pipe(
     filter(([albums, width]) => !!albums && !!width),
     map(([albums, width, open]) => {
       // if the side nav is open we remove it's width
@@ -59,7 +62,6 @@ export class ListComponent implements OnInit {
   );
 
   private fetchedPages = new Set<number>();
-  criteria: string | undefined;
 
   @Output()
   readonly openAlbum = new EventEmitter<number>();
@@ -71,7 +73,8 @@ export class ListComponent implements OnInit {
     private readonly notificationService: NotificationService,
     private readonly service: AlbumService,
     private readonly viewportRuler: ViewportRuler,
-    @Inject(DOCUMENT) private readonly document: Document
+    @Inject(DOCUMENT) private readonly document: Document,
+    @Inject(TAKE) private readonly take: number
   ) {}
 
   ngOnInit(): void {
@@ -149,11 +152,14 @@ export class ListComponent implements OnInit {
     return item.id;
   }
 
+  onAdvancedSearch() {
+    this.store.dispatch(AlbumActions.advancedSearch());
+  }
+
   onSearch(request: SearchRequest) {
     this.fetchedPages.clear();
-    this.store.dispatch(AlbumActions.search({ request: { cancel: true } }));
-    this.criteria = request.criteria;
-    this.scrollIndexChange(0, this.criteria);
+    this.store.dispatch(AlbumActions.cancelPreviousSearch({ request: { cancel: true } }));
+    this.scrollIndexChange(0, request);
   }
 
   onAlbumAdded(folders: string[]) {
@@ -173,12 +179,12 @@ export class ListComponent implements OnInit {
     this.router.navigate(['album', id]);
   }
 
-  scrollIndexChange(page: number, criteria: string | undefined) {
+  scrollIndexChange(page: number, request: SearchRequest) {
     if (this.fetchedPages.has(page)) {
       return;
     }
 
-    const initialSize = 60;
+    const initialSize = this.take;
     let skip = 0;
     let take = 36;
 
@@ -194,6 +200,6 @@ export class ListComponent implements OnInit {
     }
 
     this.fetchedPages.add(page);
-    this.store.dispatch(AlbumActions.loadAlbums({ request: { take, skip, criteria } }));
+    this.store.dispatch(AlbumActions.loadAlbums({ request: { ...request, take, skip } }));
   }
 }

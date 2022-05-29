@@ -1,7 +1,8 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
-import { API, ApplyLyrics, BASE_PATH, SearchRequest } from '@metal-p3/album/domain';
-import { AlbumDto, ALBUM_ADDED, MetalArchivesSearchResponse, RenameFolder, TrackDto } from '@metal-p3/api-interfaces';
+import { API, ApplyLyrics, BASE_PATH, TAKE } from '@metal-p3/album/domain';
+import { AlbumDto, ALBUM_ADDED, MetalArchivesSearchResponse, RenameFolder, SearchRequest, TrackDto } from '@metal-p3/api-interfaces';
+import { removeNullValuesFromQueryParams } from '@metal-p3/shared/utils';
 import { Socket } from 'ngx-socket-io';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
@@ -12,12 +13,19 @@ import { map } from 'rxjs/operators';
 export class AlbumService {
   readonly baseUrl = `${this.api}album`;
 
-  constructor(private readonly http: HttpClient, @Inject(API) private readonly api: string, @Inject(BASE_PATH) private readonly basePath: string, private readonly socket: Socket) {}
+  constructor(
+    private readonly http: HttpClient,
+    @Inject(API) private readonly api: string,
+    @Inject(BASE_PATH) private readonly basePath: string,
+    @Inject(TAKE) private readonly take: number,
+    private readonly socket: Socket
+  ) {}
 
   getAlbums(request: Partial<SearchRequest>): Observable<AlbumDto[]> {
-    const criteria = request.criteria ? `&criteria=${encodeURIComponent(request.criteria)}` : '';
+    const url = `${this.baseUrl}/search`;
+    const params = removeNullValuesFromQueryParams(new HttpParams({ fromObject: { ...request, take: request.take ?? this.take, skip: request.skip ?? 0 } }));
 
-    return this.http.get<AlbumDto[]>(`${this.baseUrl}/search?take=${request.take || 25}&skip=${request.skip || 0}${criteria}`);
+    return this.http.get<AlbumDto[]>(url, { params });
   }
 
   getAlbum(id: number): Observable<AlbumDto> {

@@ -3,7 +3,7 @@ import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { RouterModule } from '@angular/router';
 import { AlbumFeatureShellModule } from '@metal-p3/album';
-import { API, BASE_PATH } from '@metal-p3/album/domain';
+import { API, BASE_PATH, TAKE } from '@metal-p3/album/domain';
 import { SharedDataAccessModule } from '@metal-p3/shared/data-access';
 import { ErrorsHandler } from '@metal-p3/shared/error';
 import { StoreDevtoolsModule } from '@ngrx/store-devtools';
@@ -35,6 +35,7 @@ const config: SocketIoConfig = { url: environment.wsUrl, options: { transports: 
   providers: [
     { provide: API, useValue: environment.api },
     { provide: BASE_PATH, useValue: environment.baseFolderLocation },
+    { provide: TAKE, useValue: environment.take },
     { provide: ErrorHandler, useClass: ErrorsHandler },
   ],
   bootstrap: [AppComponent],

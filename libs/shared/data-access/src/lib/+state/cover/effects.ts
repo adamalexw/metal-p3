@@ -29,14 +29,14 @@ export class CoverEffects {
 
   cancelCovers$ = createEffect(() => {
     return this.actions$.pipe(
-      ofType(AlbumActions.cancelSearch),
-      map(() => CoverActions.getMany({ request: { requests: [], cancel: true } }))
+      ofType(AlbumActions.cancelPreviousSearchSuccess),
+      map(() => CoverActions.cancelPreviousGetMany({ request: { requests: [], cancel: true } }))
     );
   });
 
   getMany$ = createEffect(() => {
     return this.actions$.pipe(
-      ofType(CoverActions.getMany),
+      ofType(CoverActions.getMany, CoverActions.cancelPreviousGetMany),
       switchMap(({ request }) => iif(() => !!request.cancel, of(CoverActions.clearAll()), this.covers$(request.requests).pipe(map((update) => CoverActions.getManySuccess({ update })))))
     );
   });
@@ -59,7 +59,7 @@ export class CoverEffects {
   clearAll$ = createEffect(
     () => {
       return this.actions$.pipe(
-        ofType(CoverActions.clearAll, AlbumActions.search),
+        ofType(CoverActions.clearAll, AlbumActions.cancelPreviousSearch),
         concatLatestFrom(() => this.store.select(selectBlobCovers)),
         filter(([_, covers]) => covers.length > 0),
         tap(([_, covers]) =>

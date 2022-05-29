@@ -1,5 +1,5 @@
 import { createSelector } from '@ngrx/store';
-import { selectAlbum } from './album/selectors';
+import { selectAlbum, selectAlbumState } from './album/selectors';
 import { selectCurrentRoute } from './router.selectors';
 import { selectMaTracks, selectTrackCount, selectTracks } from './track/selectors';
 
@@ -9,7 +9,8 @@ export * from './cover/selectors';
 export * from './router.selectors';
 export * from './track/selectors';
 
-export const sideNavOpen = createSelector(selectCurrentRoute, (route) => !!route?.routeConfig);
+export const selectAdvancedSearchOpen = createSelector(selectAlbumState, (album) => album.advancedSearchOpen);
+export const selectSideNavOpen = createSelector(selectCurrentRoute, (route) => !!route?.routeConfig);
 
 export const selectTrackSavingCount = createSelector(selectTracks, (tracks) => tracks?.filter((track) => track.trackSaving)?.length || 0);
 export const selectAlbumSaving = createSelector(selectAlbum, selectTrackSavingCount, (album, tracks) => album?.saving || tracks > 0);

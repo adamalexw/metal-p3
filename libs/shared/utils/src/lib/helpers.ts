@@ -1,5 +1,5 @@
+import { HttpParams } from '@angular/common/http';
 import { from } from 'rxjs';
-
 
 export function extractUrl(url: string): string | undefined {
   const regex = /(?:(?:https?|ftp|file):\/\/|www\.|ftp\.)(?:\([-A-Z0-9+&@#/%=~_|$?!:,.]*\)|[-A-Z0-9+&@#/%=~_|$?!:,.])*(?:\([-A-Z0-9+&@#/%=~_|$?!:,.]*\)|[A-Z0-9+&@#/%=~_|$])/gim;
@@ -41,4 +41,16 @@ export const mapBlobToBase64 = (blob: Blob) => {
       reader.onerror = () => reject(reader.error);
     })
   );
+};
+
+export const removeNullValuesFromQueryParams = (params: HttpParams) => {
+  const paramsKeysAux = params.keys();
+  paramsKeysAux.forEach((key) => {
+    const value = params.get(key);
+    if (value === null || value === undefined || value === '') {
+      params['map'].delete(key);
+    }
+  });
+
+  return params;
 };

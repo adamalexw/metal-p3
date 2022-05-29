@@ -10,7 +10,7 @@ import { environment } from '../environments/environment.prod';
 
 @Module({
   imports: [
-    AlbumModule.forRoot(environment.basePath),
+    AlbumModule.forRoot(environment.basePath, environment.take),
     BandModule,
     CoverModule,
     TrackModule,

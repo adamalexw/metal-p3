@@ -1,4 +1,4 @@
-import { AlbumDto, RenameFolder } from '@metal-p3/api-interfaces';
+import { AlbumDto, RenameFolder, SearchRequest } from '@metal-p3/api-interfaces';
 import { DbService } from '@metal-p3/shared/database';
 import { FileSystemService } from '@metal-p3/shared/file-system';
 import { TrackService } from '@metal-p3/track/api';
@@ -19,23 +19,79 @@ export class AlbumService {
     private readonly fileSystemService: FileSystemService,
     private readonly trackService: TrackService,
     private readonly albumGateway: AlbumGateway,
-    @Inject('BASE_PATH') private basePath: string
+    @Inject('BASE_PATH') private readonly basePath: string,
+    @Inject('TAKE') private readonly take: number
   ) {
     if (basePath) {
       this.addFileWatcher(basePath);
     }
   }
 
-  getAlbums(request: { skip?: number; take?: number; criteria?: string }): Observable<AlbumDto[]> {
+  getAlbums(request: SearchRequest): Observable<AlbumDto[]> {
     let where: Prisma.AlbumWhereInput;
+    let bandWhere: Prisma.BandWhereInput;
 
-    if (request.criteria) {
+    if (request.folder) {
       where = {
-        Folder: { contains: request.criteria },
+        Folder: { contains: request.folder },
       };
     }
 
-    return from(this.dbService.albums({ skip: request.skip, take: request.take, where, orderBy: { Created: 'desc' } })).pipe(map((albums) => albums.map((album) => this.mapAlbumToAlbumDto(album))));
+    if (request.artist) {
+      bandWhere = {
+        Name: { contains: request.artist },
+      };
+    }
+
+    if (request.album) {
+      where = {
+        ...where,
+        Name: { contains: request.artist },
+      };
+    }
+
+    if (request.country) {
+      bandWhere = {
+        ...bandWhere,
+        Country: { contains: request.country },
+      };
+    }
+
+    if (request.genre) {
+      bandWhere = {
+        ...bandWhere,
+        Genre: { contains: request.genre },
+      };
+    }
+
+    if (request.hasLyrics) {
+      where = {
+        ...where,
+        Lyrics: Boolean(request.hasLyrics),
+      };
+    }
+
+    if (request.transferred) {
+      where = {
+        ...where,
+        Transferred: Boolean(request.transferred),
+      };
+    }
+
+    if (bandWhere) {
+      where = {
+        ...where,
+        Band: bandWhere,
+      };
+    }
+
+    return from(this.dbService.albums({ skip: +(request.skip ?? 0), take: +(request.take ?? this.take), where, orderBy: { Created: 'desc' } })).pipe(
+      catchError((err) => {
+        console.log(err);
+        return of([]);
+      }),
+      map((albums) => albums.map((album) => this.mapAlbumToAlbumDto(album)))
+    );
   }
 
   getAlbum(id: number): Observable<AlbumDto> {
@@ -93,7 +149,7 @@ export class AlbumService {
   addAlbum(folder: string): Observable<AlbumDto> {
     const dirName = this.fileSystemService.getFilename(folder);
 
-    return this.getAlbums({ take: 1, criteria: dirName }).pipe(
+    return this.getAlbums({ take: 1, folder: dirName }).pipe(
       filter((album) => !album.length),
       map(() => {
         this.fileSystemService.moveFilesToTheRoot(folder, folder);

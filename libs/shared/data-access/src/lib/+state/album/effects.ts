@@ -24,13 +24,13 @@ import { AlbumActions } from './actions';
 export class AlbumEffects {
   loadAlbums$ = createEffect(() => {
     return this.actions$.pipe(
-      ofType(AlbumActions.loadAlbums, AlbumActions.search),
+      ofType(AlbumActions.loadAlbums, AlbumActions.cancelPreviousSearch),
       switchMap(({ request }) =>
         iif(
           () => !!request.cancel,
-          of(AlbumActions.cancelSearch()),
+          of(AlbumActions.cancelPreviousSearchSuccess()),
           this.service.getAlbums(request).pipe(
-            map((albums) => albums.map((a) => ({ ...a, coverLoading: true })) as Album[]),
+            map((albums) => albums as Album[]),
             map((albums) => (!request.skip ? AlbumActions.loadAlbumsSuccess({ albums }) : AlbumActions.loadAlbumsPageSuccess({ albums }))),
             catchError((error) => of(AlbumActions.loadAlbumsError({ loadError: error })))
           )

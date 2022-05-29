@@ -1,4 +1,5 @@
-import { API, BASE_PATH, SearchRequest } from '@metal-p3/album/domain';
+import { API, BASE_PATH } from '@metal-p3/album/domain';
+import { SearchRequest } from '@metal-p3/api-interfaces';
 import { createHttpFactory, HttpMethod, mockProvider, SpectatorHttp } from '@ngneat/spectator/jest';
 import { Socket } from 'ngx-socket-io';
 import { AlbumService } from './album.service';
@@ -14,30 +15,30 @@ describe('AlbumService', () => {
 
   describe('Get Albums', () => {
     it('should use default params', () => {
-      const request: Partial<SearchRequest> = {};
+      const request: SearchRequest = {};
 
       spectator.service.getAlbums(request).subscribe();
       spectator.expectOne('api/album/search?take=25&skip=0', HttpMethod.GET);
     });
 
     it('should use provided with params', () => {
-      const request: Partial<SearchRequest> = {
-        criteria: 'kreator',
+      const request: SearchRequest = {
+        folder: 'kreator',
         take: 5,
         skip: 2,
       };
 
       spectator.service.getAlbums(request).subscribe();
-      spectator.expectOne('api/album/search?take=5&skip=2&criteria=kreator', HttpMethod.GET);
+      spectator.expectOne('api/album/search?folder=kreator&take=5&skip=2', HttpMethod.GET);
     });
 
-    it('should encode criteria param', () => {
-      const request: Partial<SearchRequest> = {
-        criteria: 'in flames',
+    it('should encode folder param', () => {
+      const request: SearchRequest = {
+        folder: 'in flames',
       };
 
       spectator.service.getAlbums(request).subscribe();
-      spectator.expectOne('api/album/search?take=25&skip=0&criteria=in%20flames', HttpMethod.GET);
+      spectator.expectOne('api/album/search?folder=in%20flames&take=25&skip=0', HttpMethod.GET);
     });
   });
 });

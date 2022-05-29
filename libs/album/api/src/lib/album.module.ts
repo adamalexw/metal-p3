@@ -14,10 +14,13 @@ import { AlbumService } from './album.service';
   exports: [AlbumService],
 })
 export class AlbumModule {
-  static forRoot(basePath: string): DynamicModule {
+  static forRoot(basePath: string, take: number): DynamicModule {
     return {
       module: AlbumModule,
-      providers: [{ provide: 'BASE_PATH', useValue: basePath }],
+      providers: [
+        { provide: 'BASE_PATH', useValue: basePath },
+        { provide: 'TAKE', useValue: take },
+      ],
       exports: [{ provide: 'BASE_PATH', useValue: basePath }],
     };
   }
