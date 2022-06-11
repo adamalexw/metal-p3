@@ -14,12 +14,7 @@
     "default": {
       "runner": "nx/tasks-runners/default",
       "options": {
-        "cacheableOperations": [
-          "build",
-          "lint",
-          "test",
-          "e2e"
-        ],
+        "cacheableOperations": ["build", "lint", "test", "e2e"],
         "parallel": 1
       }
     }
@@ -31,9 +26,6 @@
         "projects": "dependencies"
       }
     ]
-  },
-  "cli": {
-    "defaultCollection": "@nrwl/angular"
   },
   "generators": {
     "@nrwl/angular": {
@@ -67,5 +59,6 @@
       "jest": true
     }
   },
-  "defaultProject": "ui"
+  "defaultProject": "ui",
+  "$schema": "./node_modules/nx/schemas/nx-schema.json"
 }

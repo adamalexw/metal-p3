@@ -3,7 +3,7 @@ export interface SearchRequest {
   skip?: number;
   artist?: string;
   album?: string;
-  year?: string;
+  year?: number;
   genre?: string;
   country?: string;
   transferred?: boolean;
@@ -32,17 +32,19 @@ export interface AlbumDto extends AlbumBase {
   extraFiles?: boolean;
 }
 
-export interface TrackDto extends AlbumBase {
+export interface TrackBase {
   id: number;
   fullPath: string;
   folder: string;
   file: string;
-  trackNumber?: string;
-  title?: string;
+  trackNumber: string;
+  title: string;
   bitrate?: number;
   duration?: number;
   lyrics?: string;
 }
+
+export interface TrackDto extends TrackBase, AlbumBase {}
 
 export interface BandDto extends BandProps {
   id: number;

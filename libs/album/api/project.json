@@ -1,21 +1,29 @@
 {
+  "$schema": "..\\..\\..\\node_modules\\nx\\schemas\\project-schema.json",
   "sourceRoot": "libs/album/api/src",
   "projectType": "library",
   "targets": {
     "lint": {
       "executor": "@nrwl/linter:eslint",
       "options": {
-        "lintFilePatterns": ["libs/album/api/**/*.ts"]
+        "lintFilePatterns": [
+          "libs/album/api/**/*.ts"
+        ]
       }
     },
     "test": {
       "executor": "@nrwl/jest:jest",
-      "outputs": ["coverage/libs/album/api"],
+      "outputs": [
+        "coverage/libs/album/api"
+      ],
       "options": {
         "jestConfig": "libs/album/api/jest.config.ts",
         "passWithNoTests": true
       }
     }
   },
-  "tags": ["scope:album", "type:api"]
+  "tags": [
+    "scope:album",
+    "type:api"
+  ]
 }

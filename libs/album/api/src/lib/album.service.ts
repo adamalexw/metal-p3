@@ -64,6 +64,13 @@ export class AlbumService {
       };
     }
 
+    if (request.year) {
+      where = {
+        ...where,
+        Year: request.year,
+      };
+    }
+
     if (request.hasLyrics) {
       where = {
         ...where,

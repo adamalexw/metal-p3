@@ -1,9 +1,9 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, HostBinding, Inject, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
-import { FormBuilder, FormGroup } from '@angular/forms';
-import { AlbumDto, BandProps, MetalArchivesAlbumTrack, MetalArchivesUrl } from '@metal-p3/api-interfaces';
+import { NonNullableFormBuilder, Validators } from '@angular/forms';
+import { AlbumDto, BandProps, MetalArchivesAlbumTrack, MetalArchivesUrl, TrackBase } from '@metal-p3/api-interfaces';
 import { Album, AlbumWithoutTracks } from '@metal-p3/shared/data-access';
 import { NotificationService } from '@metal-p3/shared/feedback';
-import { Track } from '@metal-p3/track/domain';
+import { Track, tracksFormArray } from '@metal-p3/track/domain';
 import { WINDOW } from '@ng-web-apis/common';
 
 @Component({
@@ -77,7 +77,7 @@ export class AlbumComponent implements OnChanges {
   bandProps: BandProps | null | undefined = null;
 
   @Output()
-  readonly save = new EventEmitter<{ album: Album; tracks: Track[] }>();
+  readonly save = new EventEmitter<{ album: AlbumWithoutTracks; tracks: TrackBase[] }>();
 
   @Output()
   readonly coverUrl = new EventEmitter<{ id: number; url: string }>();
@@ -144,35 +144,36 @@ export class AlbumComponent implements OnChanges {
 
   @HostBinding('class') class = 'block h-screen overflow-hidden';
 
-  get albumUrl(): string {
+  get albumUrl(): string | undefined {
     return this.form.get('albumUrl')?.value;
   }
 
-  get artistUrl(): string {
+  get artistUrl(): string | undefined {
     return this.form.get('artistUrl')?.value;
   }
 
   get hasLyrics(): boolean {
-    return this.form.get('hasLyrics')?.value;
+    return this.form.get('hasLyrics')?.value ?? false;
   }
 
-  form: FormGroup;
+  form = this.fb.group({
+    artist: ['', Validators.required],
+    album: ['', Validators.required],
+    year: [0, Validators.required],
+    genre: [undefined as string | undefined, Validators.required],
+    country: [undefined as string | undefined, Validators.required],
+    artistUrl: [undefined as string | undefined],
+    albumUrl: [undefined as string | undefined],
+    ignore: [false],
+    transferred: [undefined as boolean | undefined],
+    hasLyrics: [undefined as boolean | undefined],
+    dateCreated: [''],
+    tracks: this.fb.array<typeof tracksFormArray>([]),
+  });
+
   shouldCheckBandProps = false;
 
-  constructor(fb: FormBuilder, @Inject(WINDOW) readonly windowRef: Window, private notificationService: NotificationService) {
-    this.form = fb.group({
-      artist: [],
-      album: [],
-      year: [],
-      genre: [],
-      country: [],
-      artistUrl: [],
-      albumUrl: [],
-      ignore: [false],
-      transferred: [],
-      hasLyrics: [],
-    });
-  }
+  constructor(private readonly fb: NonNullableFormBuilder, @Inject(WINDOW) readonly windowRef: Window, private notificationService: NotificationService) {}
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes.album && changes.album.currentValue && (changes.album.previousValue ? changes.album.currentValue.id !== changes.album.previousValue.id : !changes.album.previousValue)) {
@@ -218,20 +219,32 @@ export class AlbumComponent implements OnChanges {
     this.form.get('country')?.setValue(props.country);
   }
 
+  private getTracks(): TrackBase[] {
+    const tracks = this.form.value.tracks;
+
+    if (tracks) {
+      tracks as unknown as TrackBase[];
+    }
+
+    return [];
+  }
+
   onSave(): void {
     const { folder, fullPath } = this.album as AlbumDto;
     const { tracks: _tracks, ...album } = this.form.getRawValue();
 
+    console.log(this.form.value);
+
     this.save.emit({
       album: {
         ...album,
-        id: this.album?.id,
+        id: this.album?.id ?? 0,
         folder,
         fullPath,
-        bandId: this.album?.bandId,
-        cover: this.cover,
+        bandId: this.album?.bandId ?? 0,
+        cover: this.cover ?? '',
       },
-      tracks: this.form.get('tracks')?.value,
+      tracks: this.getTracks(),
     });
   }
 
@@ -244,12 +257,20 @@ export class AlbumComponent implements OnChanges {
   }
 
   onFindUrl() {
-    this.shouldCheckBandProps = true;
-    this.findUrl.emit({ id: this.albumId, artist: this.form.get('artist')?.value, album: this.form.get('album')?.value });
+    const { artist, album } = this.form.value;
+
+    if (artist && album) {
+      this.shouldCheckBandProps = true;
+      this.findUrl.emit({ id: this.albumId, artist, album });
+    }
   }
 
   onRenameTracks() {
-    this.renameTracks.emit({ id: this.albumId, tracks: this.form.get('tracks')?.value });
+    const tracks = this.form.value.tracks;
+
+    if (tracks) {
+      this.renameTracks.emit({ id: this.albumId, tracks: this.getTracks() });
+    }
   }
 
   onTrackNumbers() {
@@ -257,15 +278,23 @@ export class AlbumComponent implements OnChanges {
   }
 
   onMaTracks() {
-    this.getMaTracks.emit({ id: this.albumId, url: this.albumUrl });
+    if (this.albumUrl) {
+      this.getMaTracks.emit({ id: this.albumId, url: this.albumUrl });
+    }
   }
 
   onLyrics() {
-    this.lyrics.emit({ id: this.albumId, url: this.albumUrl });
+    if (this.albumUrl) {
+      this.lyrics.emit({ id: this.albumId, url: this.albumUrl });
+    }
   }
 
   onRenameFolder() {
-    this.renameFolder.emit({ id: this.albumId, src: this.album?.fullPath || '', artist: this.form.get('artist')?.value, album: this.form.get('album')?.value });
+    const { artist, album } = this.form.value;
+
+    if (artist && album) {
+      this.renameFolder.emit({ id: this.albumId, src: this.album?.fullPath || '', artist, album });
+    }
   }
 
   openLink(url: string) {

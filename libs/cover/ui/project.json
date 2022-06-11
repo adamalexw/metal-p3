@@ -1,11 +1,14 @@
 {
+  "$schema": "..\\..\\..\\node_modules\\nx\\schemas\\project-schema.json",
   "projectType": "library",
   "sourceRoot": "libs/cover/ui/src",
   "prefix": "app",
   "targets": {
     "test": {
       "executor": "@nrwl/jest:jest",
-      "outputs": ["coverage/libs/cover/ui"],
+      "outputs": [
+        "coverage/libs/cover/ui"
+      ],
       "options": {
         "jestConfig": "libs/cover/ui/jest.config.ts",
         "passWithNoTests": true
@@ -14,9 +17,15 @@
     "lint": {
       "executor": "@nrwl/linter:eslint",
       "options": {
-        "lintFilePatterns": ["libs/cover/ui/src/**/*.ts", "libs/cover/ui/src/**/*.html"]
+        "lintFilePatterns": [
+          "libs/cover/ui/src/**/*.ts",
+          "libs/cover/ui/src/**/*.html"
+        ]
       }
     }
   },
-  "tags": ["scope:cover", "type:ui"]
+  "tags": [
+    "scope:cover",
+    "type:ui"
+  ]
 }

@@ -23,7 +23,15 @@
   </ng-container>
 
   <section class="flex flex-row">
-    <app-cover [loading]="coverLoading" [cover]="album.cover" [coverError]="album.coverError" [width]="500" [height]="500" (coverUrl)="coverUrl.emit({ id: album.id, url: $event })"></app-cover>
+    <app-cover
+      [loading]="coverLoading"
+      [cover]="album.cover"
+      [coverError]="album.coverError"
+      [enableDnd]="true"
+      [width]="500"
+      [height]="500"
+      (coverUrl)="coverUrl.emit({ id: album.id, url: $event })"
+    ></app-cover>
 
     <app-album-form [form]="form" (findBandProps)="findBandProps.emit({ id: albumId, url: $event })" (lyricsPriority)="lyricsPriority.emit(albumId)"></app-album-form>
   </section>

@@ -1,21 +1,29 @@
 {
+  "$schema": "..\\..\\..\\node_modules\\nx\\schemas\\project-schema.json",
   "sourceRoot": "libs/maintenance/api/src",
   "projectType": "library",
   "targets": {
     "lint": {
       "executor": "@nrwl/linter:eslint",
       "options": {
-        "lintFilePatterns": ["libs/maintenance/api/**/*.ts"]
+        "lintFilePatterns": [
+          "libs/maintenance/api/**/*.ts"
+        ]
       }
     },
     "test": {
       "executor": "@nrwl/jest:jest",
-      "outputs": ["coverage/libs/maintenance/api"],
+      "outputs": [
+        "coverage/libs/maintenance/api"
+      ],
       "options": {
         "jestConfig": "libs/maintenance/api/jest.config.ts",
         "passWithNoTests": true
       }
     }
   },
-  "tags": ["scope:maintenance", "type:api"]
+  "tags": [
+    "scope:maintenance",
+    "type:api"
+  ]
 }

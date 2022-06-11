@@ -1,21 +1,29 @@
 {
+  "$schema": "..\\..\\..\\node_modules\\nx\\schemas\\project-schema.json",
   "sourceRoot": "libs/shared/metal-archives/src",
   "projectType": "library",
   "targets": {
     "lint": {
       "executor": "@nrwl/linter:eslint",
       "options": {
-        "lintFilePatterns": ["libs/shared/metal-archives/**/*.ts"]
+        "lintFilePatterns": [
+          "libs/shared/metal-archives/**/*.ts"
+        ]
       }
     },
     "test": {
       "executor": "@nrwl/jest:jest",
-      "outputs": ["coverage/libs/shared/metal-archives"],
+      "outputs": [
+        "coverage/libs/shared/metal-archives"
+      ],
       "options": {
         "jestConfig": "libs/shared/metal-archives/jest.config.ts",
         "passWithNoTests": true
       }
     }
   },
-  "tags": ["scope:shared", "type:api"]
+  "tags": [
+    "scope:shared",
+    "type:api"
+  ]
 }

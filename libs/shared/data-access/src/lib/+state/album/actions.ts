@@ -1,7 +1,7 @@
 import { SearchRequest } from '@metal-p3/api-interfaces';
 import { EntityMap, EntityMapOne, Predicate, Update } from '@ngrx/entity';
 import { createActionGroup, emptyProps, props } from '@ngrx/store';
-import { Album } from '../model';
+import { Album, AlbumWithoutTracks } from '../model';
 
 export const AlbumActions = createActionGroup({
   source: 'Album',
@@ -33,7 +33,7 @@ export const AlbumActions = createActionGroup({
     'Rename Folder': props<{ id: number; src: string; artist: string; album: string }>(),
     'Rename Folder Success': props<{ update: Update<Album> }>(),
     'Rename Folder Error': props<{ update: Update<Album> }>(),
-    'Save Album': props<{ album: Album }>(),
+    'Save Album': props<{ album: AlbumWithoutTracks }>(),
     'Save Album Success': props<{ update: Update<Album> }>(),
     'Save Album Error': props<{ update: Update<Album> }>(),
     'Set Has Lyrics': props<{ id: number; hasLyrics: boolean }>(),

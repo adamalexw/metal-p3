@@ -1,11 +1,14 @@
 {
+  "$schema": "..\\..\\..\\node_modules\\nx\\schemas\\project-schema.json",
   "projectType": "library",
   "sourceRoot": "libs/playlist/feature-shell/src",
   "prefix": "app",
   "targets": {
     "test": {
       "executor": "@nrwl/jest:jest",
-      "outputs": ["coverage/libs/playlist/feature-shell"],
+      "outputs": [
+        "coverage/libs/playlist/feature-shell"
+      ],
       "options": {
         "jestConfig": "libs/playlist/feature-shell/jest.config.ts",
         "passWithNoTests": true
@@ -14,9 +17,15 @@
     "lint": {
       "executor": "@nrwl/linter:eslint",
       "options": {
-        "lintFilePatterns": ["libs/playlist/feature-shell/src/**/*.ts", "libs/playlist/feature-shell/src/**/*.html"]
+        "lintFilePatterns": [
+          "libs/playlist/feature-shell/src/**/*.ts",
+          "libs/playlist/feature-shell/src/**/*.html"
+        ]
       }
     }
   },
-  "tags": ["scope:playlist", "type:feature"]
+  "tags": [
+    "scope:playlist",
+    "type:feature"
+  ]
 }

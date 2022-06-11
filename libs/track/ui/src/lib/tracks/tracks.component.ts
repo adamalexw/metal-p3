@@ -1,8 +1,8 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
-import { AbstractControl, FormArray, FormBuilder, FormGroup } from '@angular/forms';
+import { AbstractControl, FormArray, FormControl, FormGroup, NonNullableFormBuilder } from '@angular/forms';
 import { MatBottomSheet } from '@angular/material/bottom-sheet';
 import { MatTableDataSource } from '@angular/material/table';
-import { Track } from '@metal-p3/track/domain';
+import { Track, tracksFormArray } from '@metal-p3/track/domain';
 import { filter, take, tap } from 'rxjs/operators';
 import { LyricsComponent } from '../lyrics/lyrics.component';
 
@@ -14,7 +14,7 @@ import { LyricsComponent } from '../lyrics/lyrics.component';
 })
 export class TracksComponent implements OnChanges {
   @Input()
-  form: FormGroup | undefined;
+  form!: FormGroup;
 
   @Input()
   tracksLoading = false;
@@ -35,18 +35,16 @@ export class TracksComponent implements OnChanges {
   delete = new EventEmitter<Track>();
 
   displayedColumns = ['trackNumber', 'title', 'duration', 'bitrate', 'lyrics'];
-  dataSource: MatTableDataSource<AbstractControl> = new MatTableDataSource();
+  dataSource: MatTableDataSource<typeof tracksFormArray> = new MatTableDataSource();
 
-  private tracksArray: FormArray = new FormArray([]);
+  private get tracksArray(): FormArray<typeof tracksFormArray> {
+    return this.form.get('tracks') as FormArray<typeof tracksFormArray>;
+  }
 
-  constructor(private fb: FormBuilder, private bottomSheet: MatBottomSheet) {}
+  constructor(private fb: NonNullableFormBuilder, private bottomSheet: MatBottomSheet) {}
 
   ngOnChanges(changes: SimpleChanges): void {
     if (this.form && changes.tracks && this.tracks?.length) {
-      if (!this.form.get('tracks')) {
-        this.form.addControl('tracks', this.tracksArray);
-      }
-
       this.addTracks(this.tracks);
     }
   }
@@ -61,16 +59,17 @@ export class TracksComponent implements OnChanges {
     this.dataSource = new MatTableDataSource(this.tracksArray.controls);
   }
 
-  private addTrack(track: Track): FormGroup {
-    return this.fb.group({
-      id: [track.id],
-      trackNumber: [track.trackNumber],
-      title: [track.title],
-      duration: [track.duration],
-      bitrate: [track.bitrate],
-      lyrics: [track.lyrics],
-      folder: [track.folder],
-      fullPath: [track.fullPath],
+  private addTrack(track: Track): typeof tracksFormArray {
+    return new FormGroup({
+      id: new FormControl<number>(track.id, { nonNullable: true }),
+      trackNumber: new FormControl<string>(track.trackNumber, { nonNullable: true }),
+      title: new FormControl<string>(track.title, { nonNullable: true }),
+      duration: new FormControl<number | undefined>(track.duration, { nonNullable: true }),
+      bitrate: new FormControl<number | undefined>(track.bitrate, { nonNullable: true }),
+      lyrics: new FormControl<string | undefined>(track.lyrics, { nonNullable: true }),
+      file: new FormControl<string>(track.file, { nonNullable: true }),
+      folder: new FormControl<string>(track.folder, { nonNullable: true }),
+      fullPath: new FormControl<string>(track.fullPath, { nonNullable: true }),
     });
   }
 

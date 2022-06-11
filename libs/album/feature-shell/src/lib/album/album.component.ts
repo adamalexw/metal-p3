@@ -1,13 +1,13 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, OnInit, Output } from '@angular/core';
 import { Router } from '@angular/router';
 import { AlbumService } from '@metal-p3/album/data-access';
-import { MetalArchivesAlbumTrack } from '@metal-p3/api-interfaces';
+import { MetalArchivesAlbumTrack, TrackBase } from '@metal-p3/api-interfaces';
 import { CoverService } from '@metal-p3/cover/data-access';
 import { MaintenanceActions } from '@metal-p3/maintenance/data-access';
 import { PlayerService } from '@metal-p3/player/data-access';
 import {
-  Album,
   AlbumActions,
+  AlbumWithoutTracks,
   BandActions,
   CoverActions,
   selectAlbum,
@@ -181,7 +181,7 @@ export class AlbumShellComponent implements OnInit {
     this.store.dispatch(CoverActions.download({ id, url }));
   }
 
-  onSave(album: Album, tracks: Track[]) {
+  onSave(album: AlbumWithoutTracks, tracks: TrackBase[]) {
     this.store.dispatch(AlbumActions.saveAlbum({ album }));
 
     if (album.cover) {
@@ -198,14 +198,14 @@ export class AlbumShellComponent implements OnInit {
     }
   }
 
-  private dispatchTracks(album: Album, tracks: Track[]) {
+  private dispatchTracks(album: AlbumWithoutTracks, tracks: TrackBase[]) {
     tracks.forEach((albumTrack) => {
       const track = this.getTrack(album, albumTrack);
       this.store.dispatch(TrackActions.saveTrack({ id: album.id, track }));
     });
   }
 
-  private getTrack(album: Album, albumTrack: Track): Track {
+  private getTrack(album: AlbumWithoutTracks, albumTrack: Track): Track {
     const { artist, genre, year, artistUrl, albumUrl, cover } = album;
     const track = { ...albumTrack, artist, genre, year, artistUrl, albumUrl, cover, album: album.album };
     return track;

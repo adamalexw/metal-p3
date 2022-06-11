@@ -1,21 +1,29 @@
 {
+  "$schema": "..\\..\\..\\node_modules\\nx\\schemas\\project-schema.json",
   "sourceRoot": "libs/track/api/src",
   "projectType": "library",
   "targets": {
     "lint": {
       "executor": "@nrwl/linter:eslint",
       "options": {
-        "lintFilePatterns": ["libs/track/api/**/*.ts"]
+        "lintFilePatterns": [
+          "libs/track/api/**/*.ts"
+        ]
       }
     },
     "test": {
       "executor": "@nrwl/jest:jest",
-      "outputs": ["coverage/libs/track/api"],
+      "outputs": [
+        "coverage/libs/track/api"
+      ],
       "options": {
         "jestConfig": "libs/track/api/jest.config.ts",
         "passWithNoTests": true
       }
     }
   },
-  "tags": ["scope:track", "type:api"]
+  "tags": [
+    "scope:track",
+    "type:api"
+  ]
 }

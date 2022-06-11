@@ -1,4 +1,4 @@
-module.exports = {
+export default {
   displayName: 'shared-file-system',
 
   globals: {
@@ -12,5 +12,5 @@ module.exports = {
   },
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx'],
   coverageDirectory: '../../../coverage/libs/shared/file-system',
-  preset: '../../../jest.preset.ts',
+  preset: '../../../jest.preset.js',
 };

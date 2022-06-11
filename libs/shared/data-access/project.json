@@ -1,11 +1,14 @@
 {
+  "$schema": "..\\..\\..\\node_modules\\nx\\schemas\\project-schema.json",
   "projectType": "library",
   "sourceRoot": "libs/shared/data-access/src",
   "prefix": "app",
   "targets": {
     "test": {
       "executor": "@nrwl/jest:jest",
-      "outputs": ["coverage/libs/shared/data-access"],
+      "outputs": [
+        "coverage/libs/shared/data-access"
+      ],
       "options": {
         "jestConfig": "libs/shared/data-access/jest.config.ts",
         "passWithNoTests": true
@@ -14,9 +17,15 @@
     "lint": {
       "executor": "@nrwl/linter:eslint",
       "options": {
-        "lintFilePatterns": ["libs/shared/data-access/src/**/*.ts", "libs/shared/data-access/src/**/*.html"]
+        "lintFilePatterns": [
+          "libs/shared/data-access/src/**/*.ts",
+          "libs/shared/data-access/src/**/*.html"
+        ]
       }
     }
   },
-  "tags": ["scope:shared", "type:data-access"]
+  "tags": [
+    "scope:shared",
+    "type:data-access"
+  ]
 }

@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
-import { AbstractControl, FormBuilder, FormGroup } from '@angular/forms';
+import { FormControl, FormGroup } from '@angular/forms';
 import { SearchRequest } from '@metal-p3/api-interfaces';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { debounceTime, distinctUntilChanged, tap } from 'rxjs/operators';
@@ -36,21 +36,15 @@ export class ListToolbarComponent implements OnInit, OnChanges {
   @Output()
   readonly lyricsPriority = new EventEmitter<void>();
 
-  form: FormGroup;
+  protected folderControl = new FormControl<string | undefined>('', { nonNullable: true });
 
-  get folderControl(): AbstractControl | null {
-    return this.form.get('folder');
-  }
-
-  constructor(fb: FormBuilder) {
-    this.form = fb.group({
-      folder: [],
-    });
-  }
+  form = new FormGroup({
+    folder: this.folderControl,
+  });
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes.folder && this.form && this.folder !== this.folderControl?.value) {
-      this.folderControl?.setValue(this.folder, { emitEvent: false });
+    if (changes.folder && this.form && this.folder !== this.form.value.folder) {
+      this.folderControl.setValue(this.folder ?? '', { emitEvent: false });
     }
   }
 
@@ -66,6 +60,6 @@ export class ListToolbarComponent implements OnInit, OnChanges {
   }
 
   onClear() {
-    this.folderControl?.reset();
+    this.form.reset();
   }
 }

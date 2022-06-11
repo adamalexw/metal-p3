@@ -1,11 +1,14 @@
 {
+  "$schema": "..\\..\\..\\node_modules\\nx\\schemas\\project-schema.json",
   "projectType": "library",
   "sourceRoot": "libs/maintenance/domain/src",
   "prefix": "app",
   "targets": {
     "test": {
       "executor": "@nrwl/jest:jest",
-      "outputs": ["coverage/libs/maintenance/domain"],
+      "outputs": [
+        "coverage/libs/maintenance/domain"
+      ],
       "options": {
         "jestConfig": "libs/maintenance/domain/jest.config.ts",
         "passWithNoTests": true
@@ -14,9 +17,15 @@
     "lint": {
       "executor": "@nrwl/linter:eslint",
       "options": {
-        "lintFilePatterns": ["libs/maintenance/domain/src/**/*.ts", "libs/maintenance/domain/src/**/*.html"]
+        "lintFilePatterns": [
+          "libs/maintenance/domain/src/**/*.ts",
+          "libs/maintenance/domain/src/**/*.html"
+        ]
       }
     }
   },
-  "tags": ["scope:maintenance", "type:domain"]
+  "tags": [
+    "scope:maintenance",
+    "type:domain"
+  ]
 }

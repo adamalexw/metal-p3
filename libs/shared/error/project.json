@@ -1,11 +1,14 @@
 {
+  "$schema": "..\\..\\..\\node_modules\\nx\\schemas\\project-schema.json",
   "projectType": "library",
   "sourceRoot": "libs/shared/error/src",
   "prefix": "app",
   "targets": {
     "test": {
       "executor": "@nrwl/jest:jest",
-      "outputs": ["coverage/libs/shared/error"],
+      "outputs": [
+        "coverage/libs/shared/error"
+      ],
       "options": {
         "jestConfig": "libs/shared/error/jest.config.ts",
         "passWithNoTests": true
@@ -14,9 +17,15 @@
     "lint": {
       "executor": "@nrwl/linter:eslint",
       "options": {
-        "lintFilePatterns": ["libs/shared/error/src/**/*.ts", "libs/shared/error/src/**/*.html"]
+        "lintFilePatterns": [
+          "libs/shared/error/src/**/*.ts",
+          "libs/shared/error/src/**/*.html"
+        ]
       }
     }
   },
-  "tags": ["scope:shared", "type:util"]
+  "tags": [
+    "scope:shared",
+    "type:util"
+  ]
 }
