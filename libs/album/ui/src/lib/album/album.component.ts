@@ -223,7 +223,7 @@ export class AlbumComponent implements OnChanges {
     const tracks = this.form.value.tracks;
 
     if (tracks) {
-      tracks as unknown as TrackBase[];
+      return tracks as unknown as TrackBase[];
     }
 
     return [];
@@ -232,8 +232,6 @@ export class AlbumComponent implements OnChanges {
   onSave(): void {
     const { folder, fullPath } = this.album as AlbumDto;
     const { tracks: _tracks, ...album } = this.form.getRawValue();
-
-    console.log(this.form.value);
 
     this.save.emit({
       album: {
@@ -266,10 +264,10 @@ export class AlbumComponent implements OnChanges {
   }
 
   onRenameTracks() {
-    const tracks = this.form.value.tracks;
+    const tracks = this.getTracks();
 
-    if (tracks) {
-      this.renameTracks.emit({ id: this.albumId, tracks: this.getTracks() });
+    if (tracks.length) {
+      this.renameTracks.emit({ id: this.albumId, tracks });
     }
   }
 
