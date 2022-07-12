@@ -30,6 +30,10 @@
     <mat-icon title="delete">delete</mat-icon>
   </button>
 
+  <button *ngIf="playlistSize ?? 0 > 1" mat-icon-button (click)="transfer.emit()" [disabled]="transferring">
+    <mat-icon title="transfer">adb</mat-icon>
+  </button>
+
   <div class="w-full flex flex-row-reverse items-center">
     <mat-icon class="cursor-pointer" (click)="closePlaylist.emit()">close</mat-icon>
     <div class="ml-1 mr-1">{{ duration | time }}</div>

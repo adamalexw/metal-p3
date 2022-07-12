@@ -23,6 +23,9 @@ export class PlaylistToolbarComponent {
   @Input()
   playlistName: string | null | undefined = '';
 
+  @Input()
+  transferring: boolean | null = false;
+
   @Output()
   readonly loadPlaylists = new EventEmitter<void>();
 
@@ -46,6 +49,9 @@ export class PlaylistToolbarComponent {
 
   @Output()
   readonly closePlaylist = new EventEmitter<void>();
+
+  @Output()
+  readonly transfer = new EventEmitter<void>();
 
   saving = false;
 

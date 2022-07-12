@@ -10,7 +10,7 @@ import { Track } from '@metal-p3/track/domain';
 import { Actions, concatLatestFrom, createEffect, ofType } from '@ngrx/effects';
 import { Update } from '@ngrx/entity';
 import { Store } from '@ngrx/store';
-import { Observable, of } from 'rxjs';
+import { forkJoin, Observable, of } from 'rxjs';
 import { catchError, concatMap, concatMapTo, filter, map, tap } from 'rxjs/operators';
 import { PlaylistService } from '../playlist.service';
 import { PlaylistActions } from './actions';
@@ -129,6 +129,21 @@ export class PlayerEffects {
           catchError((error) => of(PlaylistActions.deleteError({ error })))
         )
       )
+    );
+  });
+
+  transfer$ = createEffect(() => {
+    return this.actions$.pipe(
+      ofType(PlaylistActions.transfer),
+      concatLatestFrom(() => this.store.select(selectPlaylist).pipe(nonNullable())),
+      concatMap(([_, tracks]) => {
+        console.log(tracks);
+
+        const tracks$ = tracks.map((track) => this.trackService.transferTrack(track.fullPath));
+
+        return forkJoin(tracks$);
+      }),
+      map(() => PlaylistActions.transferComplete())
     );
   });
 

@@ -12,4 +12,6 @@ export const selectActivePlaylistId = createSelector(selectPlaylistState, (state
 export const selectActivePlaylist = createSelector(selectPlaylists, selectActivePlaylistId, (playlists, id) => playlists.find((e) => e.id === id));
 export const selectActivePlaylistName = createSelector(selectActivePlaylist, (playlist) => playlist?.name);
 
+export const selectPlaylistTransferring = createSelector(selectPlaylistState, (state) => state.transferring);
+
 export const selectPlaylistById = (id: number) => createSelector(selectPlaylists, (playlists) => playlists.find((item) => item.id === id));

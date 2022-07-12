@@ -18,5 +18,7 @@ export const PlaylistActions = createActionGroup({
     Delete: emptyProps(),
     'Delete Success': props<{ id: number }>(),
     'Delete Error': props<{ error: string }>(),
+    Transfer: emptyProps(),
+    'Transfer Complete': emptyProps(),
   },
 });

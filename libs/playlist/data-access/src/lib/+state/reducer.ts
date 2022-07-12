@@ -11,6 +11,7 @@ export interface PlaylistState extends EntityState<PlaylistDto> {
   loading: boolean;
   loadError?: string;
   active?: number;
+  transferring: boolean;
 }
 
 export const adapter: EntityAdapter<PlaylistDto> = createEntityAdapter<PlaylistDto>({});
@@ -18,6 +19,7 @@ export const adapter: EntityAdapter<PlaylistDto> = createEntityAdapter<PlaylistD
 export const initialState = adapter.getInitialState({
   loaded: false,
   loading: false,
+  transferring: false,
 });
 
 export const reducer = createReducer(
@@ -29,5 +31,7 @@ export const reducer = createReducer(
   on(PlaylistActions.loadPlaylistSuccess, (state, { id }): PlaylistState => ({ ...state, active: id })),
   on(PlaylistActions.saveSuccess, (state, { playlist }) => adapter.updateOne({ id: playlist.id, changes: { ...playlist } }, state)),
   on(PlaylistActions.deleteSuccess, (state, { id }) => adapter.removeOne(id, { ...state, active: undefined })),
+  on(PlaylistActions.transfer, (state): PlaylistState => ({ ...state, transferring: true })),
+  on(PlaylistActions.transferComplete, (state): PlaylistState => ({ ...state, transferring: false })),
   on(PlayerActions.clear, (state): PlaylistState => ({ ...state, active: undefined }))
 );

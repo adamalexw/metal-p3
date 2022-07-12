@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
 import { PlayerActions, selectPlaylistItemSize } from '@metal-p3/player/data-access';
-import { PlaylistActions, selectActivePlaylistId, selectActivePlaylistName, selectPlaylists } from '@metal-p3/playlist/data-access';
+import { PlaylistActions, selectActivePlaylistId, selectActivePlaylistName, selectPlaylists, selectPlaylistTransferring } from '@metal-p3/playlist/data-access';
 import { Store } from '@ngrx/store';
 
 @Component({
@@ -23,6 +23,7 @@ export class PlaylistShellComponent {
   activePlaylistId$ = this.store.select(selectActivePlaylistId);
   playlistName$ = this.store.select(selectActivePlaylistName);
   playlistSize$ = this.store.select(selectPlaylistItemSize);
+  transferring$ = this.store.select(selectPlaylistTransferring);
 
   constructor(private store: Store) {}
 
@@ -48,5 +49,10 @@ export class PlaylistShellComponent {
 
   onDeletePlaylist() {
     this.store.dispatch(PlaylistActions.delete());
+  }
+
+  onTransfer() {
+    console.log('yo');
+    this.store.dispatch(PlaylistActions.transfer());
   }
 }
