@@ -5,7 +5,7 @@ import { MetalArchivesService } from '@metal-p3/shared/metal-archives';
 import { Injectable, Logger } from '@nestjs/common';
 import { Album, LyricsHistory, Prisma } from '@prisma/client';
 import { from, Observable, of, Subject } from 'rxjs';
-import { catchError, concatMap, finalize, map, mapTo, takeUntil, tap, toArray } from 'rxjs/operators';
+import { catchError, concatMap, finalize, map, takeUntil, tap, toArray } from 'rxjs/operators';
 import { MaintenanceGateway } from './maintenance-gateway.service';
 
 @Injectable()
@@ -131,7 +131,7 @@ export class LyricsService {
 
   deleteHistory(id: number): Observable<boolean | Error> {
     return from(this.dbService.deleteLyricsHistory({ where: { LyricsHistoryId: id } })).pipe(
-      mapTo(true),
+      map(() => true),
       catchError((error) => {
         Logger.error(error);
         return of(error);

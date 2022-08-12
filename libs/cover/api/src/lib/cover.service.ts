@@ -5,7 +5,7 @@ import { Injectable } from '@nestjs/common';
 import * as fs from 'fs';
 import * as path from 'path';
 import { EMPTY, Observable, of } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { filter, map } from 'rxjs/operators';
 
 @Injectable()
 export class CoverService {
@@ -13,7 +13,7 @@ export class CoverService {
 
   getCover(location: string): Observable<string> {
     if (path.extname(location) == '.mp3') {
-      return this.getCoverFromAudioFile(location);
+      return this.getCoverFromAudioFile(location).pipe(filter(Boolean));
     }
 
     const coverPath = path.join(location, 'Cover.jpg');
@@ -33,7 +33,7 @@ export class CoverService {
   }
 
   private getCoverFromAudioFile(location: string): Observable<string> {
-    return this.trackService.getMetadata(location).pipe(map((metadata) => metadata.common.picture?.length && this.toBase64Image(metadata.common.picture[0].data)));
+    return this.trackService.getMetadata(location).pipe(map((metadata) => (metadata.common.picture?.length ? this.toBase64Image(metadata.common.picture[0].data) : '')));
   }
 
   private getCoverFromImageFile(location: string): Observable<string> {

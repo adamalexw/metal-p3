@@ -12,7 +12,7 @@ import { Actions, concatLatestFrom, createEffect, ofType } from '@ngrx/effects';
 import { Update } from '@ngrx/entity';
 import { Store } from '@ngrx/store';
 import { EMPTY, iif, of, throwError } from 'rxjs';
-import { catchError, concatMap, filter, map, mapTo, mergeMap, switchMap, tap } from 'rxjs/operators';
+import { catchError, concatMap, filter, map, mergeMap, switchMap, tap } from 'rxjs/operators';
 import { CoverActions } from '../actions';
 import { BandActions } from '../band/actions';
 import { Album, AlbumDtoToAlbum } from '../model';
@@ -222,7 +222,7 @@ export class AlbumEffects {
       mergeMap(() =>
         // folder watcher will pick up these new folders
         this.service.createAlbumFromRootFiles().pipe(
-          mapTo(AlbumActions.createNewSuccess()),
+          map(() => AlbumActions.createNewSuccess()),
           catchError((error) => {
             this.notificationService.showError(`${this.errorService.getError(error)}`, 'Create New Album');
             return EMPTY;

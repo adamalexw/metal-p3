@@ -8,7 +8,7 @@ datasource db {
 }
 
 model Album {
-  AlbumId             Int             @id @default(autoincrement())
+  AlbumId             Int             @id(map: "PK_Album") @default(autoincrement())
   BandId              Int?
   Folder              String?         @db.VarChar(256)
   Name                String?         @db.VarChar(256)
@@ -19,26 +19,26 @@ model Album {
   LyricsDate          DateTime?       @db.DateTime
   Transferred         Boolean?
   TransferredDate     DateTime?       @db.DateTime
-  Created             DateTime        @default(now()) @db.DateTime
-  Band                Band?           @relation(fields: [BandId], references: [BandId])
+  Created             DateTime        @default(now(), map: "DF_Album_Created") @db.DateTime
+  Band                Band?           @relation(fields: [BandId], references: [BandId], onDelete: Cascade, map: "FK_Album_Band")
   LyricsError         LyricsError[]
   LyricsHistory       LyricsHistory[]
 }
 
 model Band {
-  BandId          Int             @id @default(autoincrement())
+  BandId          Int             @id(map: "PK_Band") @default(autoincrement())
   Name            String?         @db.VarChar(256)
   Genre           String?         @db.VarChar(256)
   Country         String?         @db.VarChar(256)
   MetalArchiveUrl String?         @db.VarChar(2083)
-  Created         DateTime        @default(now()) @db.DateTime
+  Created         DateTime        @default(now(), map: "DF_Band_Created") @db.DateTime
   Album           Album[]
   NewAlbum        NewAlbum[]
   NewAlbumError   NewAlbumError[]
 }
 
 model iPhoneTracks {
-  iPhoneTrackId Int       @id @default(autoincrement())
+  iPhoneTrackId Int       @id(map: "PK_iPhoneTracks") @default(autoincrement())
   Band          String?   @db.VarChar(256)
   Album         String?   @db.VarChar(256)
   Track         String?   @db.VarChar(256)
@@ -46,50 +46,50 @@ model iPhoneTracks {
 }
 
 model LyricsError {
-  LyricsErrorId Int     @id @default(autoincrement())
+  LyricsErrorId Int     @id(map: "PK_LyricsError") @default(autoincrement())
   AlbumId       Int
   Url           String? @db.VarChar(2083)
   Error         String? @db.VarChar(Max)
-  Album         Album   @relation(fields: [AlbumId], references: [AlbumId])
+  Album         Album   @relation(fields: [AlbumId], references: [AlbumId], onDelete: Cascade, map: "FK_LyricsError_Album")
 }
 
 model LyricsHistory {
-  LyricsHistoryId  Int      @id @default(autoincrement())
+  LyricsHistoryId  Int      @id(map: "PK_LyricsHistory") @default(autoincrement())
   AlbumId          Int
   NumTracks        Int?
   NumLyrics        Int?
   NumLyricsHistory Int?
   Checked          Boolean?
   Priority         Boolean?
-  Album            Album    @relation(fields: [AlbumId], references: [AlbumId])
+  Album            Album    @relation(fields: [AlbumId], references: [AlbumId], onDelete: Cascade, map: "FK_LyricsHistory_LyricsHistory")
 }
 
 model NewAlbum {
-  NewAlbumId      Int     @id @default(autoincrement())
+  NewAlbumId      Int     @id(map: "PK_NewAlbum") @default(autoincrement())
   BandId          Int
   Album           String? @db.VarChar(256)
   Year            Int?
   MetalArchiveUrl String? @db.VarChar(2083)
-  Band            Band    @relation(fields: [BandId], references: [BandId])
+  Band            Band    @relation(fields: [BandId], references: [BandId], onDelete: Cascade, map: "FK_NewAlbum_Band")
 }
 
 model NewAlbumError {
-  NewAlbumErrorId Int     @id @default(autoincrement())
+  NewAlbumErrorId Int     @id(map: "PK_NewAlbumError") @default(autoincrement())
   BandId          Int
   Error           String? @db.VarChar(Max)
-  Band            Band    @relation(fields: [BandId], references: [BandId])
+  Band            Band    @relation(fields: [BandId], references: [BandId], onDelete: Cascade, map: "FK_NewAlbumError_Band")
 }
 
 model Playlist {
-  PlaylistId   Int            @id @default(autoincrement())
+  PlaylistId   Int            @id(map: "PK_Playlist") @default(autoincrement())
   PlaylistName String         @db.VarChar(255)
   PlaylistItem PlaylistItem[]
 }
 
 model PlaylistItem {
-  PlaylistItemId Int      @id @default(autoincrement())
+  PlaylistItemId Int      @id(map: "PK_PlaylistItem") @default(autoincrement())
   PlaylistId     Int
   ItemPath       String   @db.VarChar(512)
   ItemIndex      Int
-  Playlist       Playlist @relation(fields: [PlaylistId], references: [PlaylistId])
+  Playlist       Playlist @relation(fields: [PlaylistId], references: [PlaylistId], onDelete: Cascade, map: "FK_PlaylistItem_Playlist")
 }

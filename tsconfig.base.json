@@ -52,6 +52,7 @@
       "@metal-p3/shared/metal-archives": ["libs/shared/metal-archives/src/index.ts"],
       "@metal-p3/shared/navigation": ["libs/shared/navigation/src/index.ts"],
       "@metal-p3/shared/ngrx-store": ["libs/shared/ngrx-store/src/index.ts"],
+      "@metal-p3/shared/safe-pipe": ["libs/shared/safe-pipe/src/index.ts"],
       "@metal-p3/shared/utils": ["libs/shared/utils/src/index.ts"],
       "@metal-p3/track/api": ["libs/track/api/src/index.ts"],
       "@metal-p3/track/data-access": ["libs/track/data-access/src/index.ts"],

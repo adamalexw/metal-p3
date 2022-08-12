@@ -26,7 +26,7 @@ import { nonNullable, toChunks } from '@metal-p3/shared/utils';
 import { Track } from '@metal-p3/track/domain';
 import { Store } from '@ngrx/store';
 import { combineLatest, Observable } from 'rxjs';
-import { delay, filter, map, mapTo, startWith, take, tap } from 'rxjs/operators';
+import { delay, filter, map, startWith, take, tap } from 'rxjs/operators';
 
 @Component({
   selector: 'app-list',
@@ -95,7 +95,10 @@ export class ListComponent implements OnInit {
 
     combineLatest([
       this.showPlayer$,
-      this.viewportRuler.change(300).pipe(mapTo(this.viewportRuler.getViewportSize().height), startWith(this.viewportRuler.getViewportSize().height)),
+      this.viewportRuler.change(300).pipe(
+        map(() => this.viewportRuler.getViewportSize().height),
+        startWith(this.viewportRuler.getViewportSize().height)
+      ),
       this.albumsLoading$,
     ])
       .pipe(

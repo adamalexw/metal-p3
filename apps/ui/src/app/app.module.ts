@@ -22,7 +22,7 @@ const config: SocketIoConfig = { url: environment.wsUrl, options: { transports: 
     SharedDataAccessModule,
     StoreDevtoolsModule.instrument({
       maxAge: 100,
-      logOnly: !environment.production,
+      logOnly: environment.production,
       features: {
         pause: false,
         lock: true,

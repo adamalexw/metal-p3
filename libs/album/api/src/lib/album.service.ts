@@ -9,7 +9,7 @@ import * as fs from 'fs';
 import * as NodeID3 from 'node-id3';
 import * as path from 'path';
 import { EMPTY, forkJoin, from, iif, Observable, of } from 'rxjs';
-import { catchError, concatMap, filter, map, mapTo, mergeMap, tap } from 'rxjs/operators';
+import { catchError, concatMap, filter, map, mergeMap, tap } from 'rxjs/operators';
 import { AlbumGateway } from './album-gateway.service';
 
 @Injectable()
@@ -278,7 +278,7 @@ export class AlbumService {
     return this.getAlbum(id).pipe(
       tap((album) => this.fileSystemService.deleteFolder(album.fullPath)),
       mergeMap(() => from(this.dbService.deleteAlbum(id))),
-      mapTo(true),
+      map(() => true),
       catchError((error) => {
         Logger.error(error);
         return of(false);

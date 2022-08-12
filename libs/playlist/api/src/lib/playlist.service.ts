@@ -3,7 +3,7 @@ import { DbService } from '@metal-p3/shared/database';
 import { Injectable, Logger } from '@nestjs/common';
 import { Playlist, PlaylistItem, Prisma } from '@prisma/client';
 import { from, Observable, of } from 'rxjs';
-import { catchError, map, mapTo } from 'rxjs/operators';
+import { catchError, map } from 'rxjs/operators';
 
 @Injectable()
 export class PlaylistService {
@@ -60,8 +60,8 @@ export class PlaylistService {
     );
   }
 
-  private getPlaylistUpdateInput(items: PlaylistItemDto[]): Prisma.PlaylistItemUpdateManyWithoutPlaylistInput {
-    const playlistUpdateInput: Prisma.PlaylistItemUpdateManyWithoutPlaylistInput = {
+  private getPlaylistUpdateInput(items: PlaylistItemDto[]): Prisma.PlaylistItemUpdateManyWithoutPlaylistNestedInput {
+    const playlistUpdateInput: Prisma.PlaylistItemUpdateManyWithoutPlaylistNestedInput = {
       updateMany: items.filter((item) => item.id > 0).map((item) => ({ where: { PlaylistItemId: item.id }, data: this.playlistItemDtoToPrisma(item) as Prisma.PlaylistItemUpdateManyMutationInput })),
     };
 
@@ -88,7 +88,7 @@ export class PlaylistService {
 
   removeItem(itemId: number): Observable<boolean | Error> {
     return from(this.dbService.removePlaylistItem({ where: { PlaylistItemId: itemId } })).pipe(
-      mapTo(true),
+      map(() => true),
       catchError((error) => {
         Logger.error(error);
         return of(error);
@@ -98,7 +98,7 @@ export class PlaylistService {
 
   deletePlaylist(playlistId: number): Observable<boolean | Error> {
     return from(this.dbService.deletePlaylist({ where: { PlaylistId: playlistId } })).pipe(
-      mapTo(true),
+      map(() => true),
       catchError((error) => {
         Logger.error(error);
         return of(error);

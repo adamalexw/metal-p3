@@ -5,7 +5,7 @@ import { ErrorService } from '@metal-p3/shared/error';
 import { Actions, concatLatestFrom, createEffect, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
 import { of } from 'rxjs';
-import { catchError, filter, map, mapTo, mergeMap, tap } from 'rxjs/operators';
+import { catchError, filter, map, mergeMap, tap } from 'rxjs/operators';
 import { PlayerActions } from './actions';
 import { selectActiveItemIndex, selectActivePlaylistItem, selectItemById, selectPlaylist, selectPlaylistBlobs } from './selectors';
 
@@ -113,7 +113,7 @@ export class PlayerEffects {
           typeof blob === 'string' ? URL.revokeObjectURL(blob) : '';
         })
       ),
-      mapTo(PlayerActions.clearSuccess())
+      map(() => PlayerActions.clearSuccess())
     );
   });
 

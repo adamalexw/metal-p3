@@ -3,7 +3,7 @@ import { ErrorService } from '@metal-p3/shared/error';
 import { NotificationService } from '@metal-p3/shared/feedback';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { EMPTY, iif, of } from 'rxjs';
-import { catchError, concatMap, concatMapTo, map, mapTo, tap } from 'rxjs/operators';
+import { catchError, concatMap, concatMapTo, map, tap } from 'rxjs/operators';
 import { LyricsMaintenanceService } from '../lyrics.service';
 import { UrlMaintenanceService } from '../url.service';
 import { MaintenanceActions } from './actions';
@@ -38,7 +38,7 @@ export class MaintenanceEffects {
     return this.actions$.pipe(
       ofType(MaintenanceActions.checkLyricsHistory),
       concatMap(({ priority }) => iif(() => priority, this.lyricsService.checkPriority(), this.lyricsService.checkHistory())),
-      mapTo(MaintenanceActions.checkLyricsHistorySuccess()),
+      map(() => MaintenanceActions.checkLyricsHistorySuccess()),
       catchError((error) => of(MaintenanceActions.checkLyricsHistoryError({ error: this.errorService.getError(error) })))
     );
   });
