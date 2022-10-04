@@ -20,15 +20,12 @@ const config: SocketIoConfig = { url: environment.wsUrl, options: { transports: 
     BrowserAnimationsModule,
     RouterModule,
     SharedDataAccessModule,
-    StoreDevtoolsModule.instrument({
-      maxAge: 100,
-      logOnly: environment.production,
-      features: {
-        pause: false,
-        lock: true,
-        persist: true,
-      },
-    }),
+    !environment.production
+      ? StoreDevtoolsModule.instrument({
+          maxAge: 100,
+          logOnly: environment.production,
+        })
+      : [],
     AlbumFeatureShellModule,
     SocketIoModule.forRoot(config),
   ],

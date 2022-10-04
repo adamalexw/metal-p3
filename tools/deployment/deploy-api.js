@@ -5,7 +5,7 @@ const { execSync } = require('child_process');
 
 const dest = 'c:\\metal-p3\\api';
 
-fs.rmdirSync(dest, { recursive: true });
+fs.rmSync(dest, { recursive: true });
 
 fs.copySync('.\\dist\\apps\\api', dest);
 fs.copySync('.env', path.join(dest, '.env'));

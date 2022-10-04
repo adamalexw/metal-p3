@@ -3,7 +3,7 @@ import { TrackDto } from '@metal-p3/api-interfaces';
 import { PlaylistItem } from '@metal-p3/player/domain';
 import { Track } from '@metal-p3/track/domain';
 import { Store } from '@ngrx/store';
-import { UUID } from 'angular2-uuid';
+import { nanoid } from 'nanoid';
 import { from, Observable } from 'rxjs';
 import { concatAll, filter, map, take, tap, toArray, withLatestFrom } from 'rxjs/operators';
 import { selectPlaylistItemSize } from '..';
@@ -56,7 +56,7 @@ export class PlayerService {
   }
 
   mapTrackToPlaylistItem(track: TrackDto, albumId: number, index: number): PlaylistItem {
-    return { ...track, id: UUID.UUID(), albumId, index };
+    return { ...track, id: nanoid(), albumId, index };
   }
 
   playPlaylist(tracks: Observable<Track>[]) {

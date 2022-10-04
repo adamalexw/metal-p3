@@ -58,7 +58,7 @@ export class TrackService {
       duration: mm.format.duration,
       genre: mm.common.genre && mm.common.genre[0],
       lyrics: tags.unsynchronisedLyrics?.text,
-      title: mm.common.title,
+      title: mm.common.title ?? tags.title ?? '',
       trackNumber: this.getTrackNo(mm.common.track),
       year: mm.common.year,
       albumUrl: tags.fileUrl,

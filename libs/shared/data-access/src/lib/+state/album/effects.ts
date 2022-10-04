@@ -42,7 +42,7 @@ export class AlbumEffects {
   loadAlbumsSuccess$ = createEffect(() => {
     return this.actions$.pipe(
       ofType(AlbumActions.loadAlbumsSuccess, AlbumActions.loadAlbumsPageSuccess),
-      map(({ albums }) => CoverActions.getMany({ request: { requests: albums.map((a) => ({ id: a.id, folder: a.folder })) } }))
+      map(({ albums }) => CoverActions.getMany({ request: { requests: albums.map(({ id, folder }) => ({ id, folder })) } }))
     );
   });
 
