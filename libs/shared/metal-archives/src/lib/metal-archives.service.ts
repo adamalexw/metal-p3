@@ -34,14 +34,14 @@ export class MetalArchivesService {
         const row = rows[index];
         const tds = row.querySelectorAll('td');
 
-        if (tds.length) {
-          const track: MetalArchivesAlbumTrack = { id: 0, hasLyrics: false };
+        if (tds.length > 3) {
+          const track: MetalArchivesAlbumTrack = { id: '', hasLyrics: false };
           for (let i = 0; i < tds.length; i++) {
             const td = tds[i];
 
             switch (i) {
               case 0:
-                track.id = +(td.querySelector('a')?.getAttribute('name') || 0);
+                track.id = td.querySelector('a')?.getAttribute('name') || '';
                 track.trackNumber = td.textContent.trim().replace('.', '').padStart(2, '0');
                 break;
               case 1:

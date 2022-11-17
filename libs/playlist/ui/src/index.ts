@@ -1,2 +1,2 @@
-export * from './lib/playlist-toolbar/playlist-toolbar.component.module';
-export * from './lib/playlist/playlist.component.module';
+export * from './lib/playlist-toolbar/playlist-toolbar.component';
+export * from './lib/playlist/playlist.component';

@@ -1,1 +1,1 @@
-export * from './lib/maintenance-feature-shell.module';
+export * from './lib/routes';

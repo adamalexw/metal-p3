@@ -14,7 +14,9 @@ module.exports = {
   },
   darkMode: 'media', // or 'media' or 'class'
   theme: {
-      extend: {},
+    colors: {
+      background: '#212121'
+    }
   },
   variants: {
       extend: {},

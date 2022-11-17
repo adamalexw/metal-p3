@@ -1,9 +1,15 @@
+import { NgIf } from '@angular/common';
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatToolbarModule } from '@angular/material/toolbar';
+import { TimePipe } from '@metal-p3/track/util';
 
 @Component({
+  standalone: true,
+  imports: [NgIf, MatToolbarModule, MatButtonModule, MatIconModule, TimePipe],
   selector: 'app-tracks-toolbar',
   templateUrl: './tracks-toolbar.component.html',
-  styleUrls: ['./tracks-toolbar.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TracksToolbarComponent {

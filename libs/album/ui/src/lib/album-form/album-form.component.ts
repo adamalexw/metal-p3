@@ -1,11 +1,42 @@
+import { NgIf } from '@angular/common';
 import { ChangeDetectionStrategy, Component, EventEmitter, Inject, Input, Output } from '@angular/core';
-import { FormGroup } from '@angular/forms';
+import { FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { MatButtonModule } from '@angular/material/button';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatIconModule } from '@angular/material/icon';
+import { MatInputModule } from '@angular/material/input';
+import { MatListModule } from '@angular/material/list';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { RouterModule } from '@angular/router';
+import { AlbumDataAccessModule } from '@metal-p3/album/data-access';
+import { CoverComponent } from '@metal-p3/cover/ui';
+import { TracksComponent, TracksToolbarComponent } from '@metal-p3/track/ui';
 import { WINDOW } from '@ng-web-apis/common';
+import { AlbumToolbarComponent } from '../album-toolbar/album-toolbar.component';
 
 @Component({
+  standalone: true,
+  imports: [
+    NgIf,
+    RouterModule,
+    FormsModule,
+    ReactiveFormsModule,
+    AlbumDataAccessModule,
+    AlbumToolbarComponent,
+    CoverComponent,
+    TracksToolbarComponent,
+    TracksComponent,
+    MatProgressBarModule,
+    MatListModule,
+    MatFormFieldModule,
+    MatCheckboxModule,
+    MatIconModule,
+    MatInputModule,
+    MatButtonModule,
+  ],
   selector: 'app-album-form',
   templateUrl: './album-form.component.html',
-  styleUrls: ['./album-form.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AlbumFormComponent {

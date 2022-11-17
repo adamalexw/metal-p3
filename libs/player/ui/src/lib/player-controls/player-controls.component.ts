@@ -1,11 +1,20 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
+import { NgClass, NgIf, NgTemplateOutlet } from '@angular/common';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output, ViewEncapsulation } from '@angular/core';
+import { MatIconModule } from '@angular/material/icon';
+import { MatSliderModule } from '@angular/material/slider';
+import { MatToolbarModule } from '@angular/material/toolbar';
 import { PlaylistItem } from '@metal-p3/player/domain';
+import { TimePipe } from '@metal-p3/track/util';
+import { VolumeComponent } from '../volume/volume.component';
 
 @Component({
-  selector: '`app-player-controls`',
+  standalone: true,
+  imports: [NgIf, NgClass, NgTemplateOutlet, VolumeComponent, TimePipe, MatToolbarModule, MatSliderModule, MatIconModule],
+  selector: 'app-player-controls',
   templateUrl: './player-controls.component.html',
   styleUrls: ['./player-controls.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  encapsulation: ViewEncapsulation.None,
 })
 export class PlayerControlsComponent {
   @Input()

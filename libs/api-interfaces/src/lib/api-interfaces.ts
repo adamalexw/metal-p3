@@ -71,7 +71,7 @@ export interface MetalArchivesUrl {
 }
 
 export interface MetalArchivesAlbumTrack {
-  id: number;
+  id: string;
   trackNumber?: string;
   title?: string;
   duration?: string;

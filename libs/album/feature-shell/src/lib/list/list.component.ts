@@ -1,10 +1,12 @@
-import { ViewportRuler } from '@angular/cdk/scrolling';
-import { DOCUMENT } from '@angular/common';
+import { ScrollingModule, ViewportRuler } from '@angular/cdk/scrolling';
+import { AsyncPipe, DOCUMENT, NgFor, NgIf } from '@angular/common';
 import { ChangeDetectionStrategy, Component, EventEmitter, Inject, OnInit, Output } from '@angular/core';
 import { Router } from '@angular/router';
 import { AlbumService } from '@metal-p3/album/data-access';
 import { TAKE } from '@metal-p3/album/domain';
+import { ListItemComponent, ListToolbarComponent } from '@metal-p3/album/ui';
 import { SearchRequest } from '@metal-p3/api-interfaces';
+import { PlayerShellComponent } from '@metal-p3/player';
 import { PlayerActions, PlayerService, selectShowPlayer } from '@metal-p3/player/data-access';
 import {
   Album,
@@ -27,8 +29,11 @@ import { Track } from '@metal-p3/track/domain';
 import { Store } from '@ngrx/store';
 import { combineLatest, Observable } from 'rxjs';
 import { delay, filter, map, startWith, take, tap } from 'rxjs/operators';
+import { AddAlbumDirective } from './add-album.directive';
 
 @Component({
+  standalone: true,
+  imports: [AsyncPipe, NgIf, NgFor, ScrollingModule, ListToolbarComponent, ListItemComponent, PlayerShellComponent, AddAlbumDirective],
   selector: 'app-list',
   templateUrl: './list.component.html',
   styleUrls: ['./list.component.scss'],

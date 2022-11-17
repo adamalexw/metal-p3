@@ -1,6 +1,11 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Output } from '@angular/core';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatSliderModule } from '@angular/material/slider';
 
 @Component({
+  standalone: true,
+  imports: [MatButtonModule, MatSliderModule, MatIconModule],
   selector: 'app-volume',
   templateUrl: './volume.component.html',
   styleUrls: ['./volume.component.scss'],

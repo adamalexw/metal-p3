@@ -1,10 +1,12 @@
+import { AsyncPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, EventEmitter, OnInit, Output } from '@angular/core';
-import { Router } from '@angular/router';
-import { AlbumService } from '@metal-p3/album/data-access';
+import { Router, RouterModule } from '@angular/router';
+import { AlbumDataAccessModule, AlbumService } from '@metal-p3/album/data-access';
+import { AlbumComponent } from '@metal-p3/album/ui';
 import { MetalArchivesAlbumTrack, TrackBase } from '@metal-p3/api-interfaces';
 import { CoverService } from '@metal-p3/cover/data-access';
-import { MaintenanceActions } from '@metal-p3/maintenance/data-access';
-import { PlayerService } from '@metal-p3/player/data-access';
+import { MaintenanceActions, MaintenanceDataAccessModule } from '@metal-p3/maintenance/data-access';
+import { PlayerDataAccessModule, PlayerService } from '@metal-p3/player/data-access';
 import {
   AlbumActions,
   AlbumWithoutTracks,
@@ -37,6 +39,7 @@ import {
   selectTracksRequired,
   selectTrackTransferring,
   selectTrackTransferringProgress,
+  SharedDataAccessModule,
   TrackActions,
 } from '@metal-p3/shared/data-access';
 import { NotificationService } from '@metal-p3/shared/feedback';
@@ -50,9 +53,10 @@ import { distinctUntilChanged, exhaustMap, filter, map, take, tap, withLatestFro
 
 @UntilDestroy()
 @Component({
+  standalone: true,
+  imports: [AsyncPipe, RouterModule, AlbumDataAccessModule, AlbumComponent, SharedDataAccessModule, PlayerDataAccessModule, MaintenanceDataAccessModule],
   selector: 'app-album-shell',
   templateUrl: './album.component.html',
-  styleUrls: ['./album.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AlbumShellComponent implements OnInit {

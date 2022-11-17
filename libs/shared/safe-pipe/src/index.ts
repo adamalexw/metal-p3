@@ -1,1 +1,1 @@
-export * from './lib/shared-safe-pipe.module';
+export * from './lib/safe-pipe.pipe';

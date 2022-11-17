@@ -1,12 +1,46 @@
+import { NgIf } from '@angular/common';
 import { ChangeDetectionStrategy, Component, EventEmitter, HostBinding, Inject, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
-import { NonNullableFormBuilder, Validators } from '@angular/forms';
+import { FormsModule, NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { MatButtonModule } from '@angular/material/button';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatIconModule } from '@angular/material/icon';
+import { MatInputModule } from '@angular/material/input';
+import { MatListModule } from '@angular/material/list';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { RouterModule } from '@angular/router';
+import { AlbumDataAccessModule } from '@metal-p3/album/data-access';
 import { AlbumDto, BandProps, MetalArchivesAlbumTrack, MetalArchivesUrl, TrackBase } from '@metal-p3/api-interfaces';
+import { CoverComponent } from '@metal-p3/cover/ui';
 import { Album, AlbumWithoutTracks } from '@metal-p3/shared/data-access';
 import { NotificationService } from '@metal-p3/shared/feedback';
 import { Track, tracksFormArray } from '@metal-p3/track/domain';
+import { TracksComponent, TracksToolbarComponent } from '@metal-p3/track/ui';
 import { WINDOW } from '@ng-web-apis/common';
+import { AlbumFormComponent } from '../album-form/album-form.component';
+import { AlbumToolbarComponent } from '../album-toolbar/album-toolbar.component';
 
 @Component({
+  standalone: true,
+  imports: [
+    NgIf,
+    RouterModule,
+    FormsModule,
+    ReactiveFormsModule,
+    AlbumFormComponent,
+    AlbumDataAccessModule,
+    AlbumToolbarComponent,
+    CoverComponent,
+    TracksToolbarComponent,
+    TracksComponent,
+    MatProgressBarModule,
+    MatListModule,
+    MatFormFieldModule,
+    MatCheckboxModule,
+    MatIconModule,
+    MatInputModule,
+    MatButtonModule,
+  ],
   selector: 'app-album',
   templateUrl: './album.component.html',
   styleUrls: ['./album.component.scss'],

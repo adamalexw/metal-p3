@@ -1,12 +1,41 @@
+import { NgIf } from '@angular/common';
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
-import { AbstractControl, FormArray, FormControl, FormGroup, NonNullableFormBuilder } from '@angular/forms';
-import { MatBottomSheet } from '@angular/material/bottom-sheet';
-import { MatTableDataSource } from '@angular/material/table';
+import { AbstractControl, FormArray, FormControl, FormGroup, FormsModule, NonNullableFormBuilder, ReactiveFormsModule } from '@angular/forms';
+import { MatBottomSheet, MatBottomSheetModule } from '@angular/material/bottom-sheet';
+import { MatButtonModule } from '@angular/material/button';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatIconModule } from '@angular/material/icon';
+import { MatInputModule } from '@angular/material/input';
+import { MatMenuModule } from '@angular/material/menu';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatTableDataSource, MatTableModule } from '@angular/material/table';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { ConfirmDeleteDirective } from '@metal-p3/shared/feedback';
 import { Track, tracksFormArray } from '@metal-p3/track/domain';
+import { BitRatePipe, TimePipe } from '@metal-p3/track/util';
 import { filter, take, tap } from 'rxjs/operators';
 import { LyricsComponent } from '../lyrics/lyrics.component';
 
 @Component({
+  standalone: true,
+  imports: [
+    NgIf,
+    FormsModule,
+    ReactiveFormsModule,
+    BitRatePipe,
+    TimePipe,
+    LyricsComponent,
+    ConfirmDeleteDirective,
+    MatProgressSpinnerModule,
+    MatTableModule,
+    MatInputModule,
+    MatFormFieldModule,
+    MatButtonModule,
+    MatIconModule,
+    MatMenuModule,
+    MatTooltipModule,
+    MatBottomSheetModule,
+  ],
   selector: 'app-tracks',
   templateUrl: './tracks.component.html',
   styleUrls: ['./tracks.component.scss'],

@@ -1,7 +1,10 @@
-import { ViewportRuler } from '@angular/cdk/scrolling';
+import { ScrollingModule, ViewportRuler } from '@angular/cdk/scrolling';
+import { AsyncPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
-import { MatDialog } from '@angular/material/dialog';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatSelectModule } from '@angular/material/select';
 import { LyricsMaintenanceService, MaintenanceActions, selectCheckingLyrics, selectGettingLyrics, selectLyrics } from '@metal-p3/maintenance/data-access';
+import { LyricsHistoryComponent, LyricsHistoryToolbarComponent } from '@metal-p3/maintenance/ui';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { Store } from '@ngrx/store';
 import { tap } from 'rxjs/operators';
@@ -9,9 +12,10 @@ import { ApplyLyricsShellComponent } from '../apply-lyrics/apply-lyrics.componen
 
 @UntilDestroy()
 @Component({
+  standalone: true,
+  imports: [AsyncPipe, LyricsHistoryToolbarComponent, LyricsHistoryComponent, MatDialogModule, ScrollingModule, MatSelectModule],
   selector: 'app-lyrics-history-shell',
   templateUrl: './lyrics-history.component.html',
-  styleUrls: ['./lyrics-history.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LyricsHistoryShellComponent implements OnInit {

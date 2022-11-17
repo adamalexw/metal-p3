@@ -1,11 +1,16 @@
+import { NgIf, NgSwitch, NgSwitchCase } from '@angular/common';
 import { ChangeDetectionStrategy, Component, Input, OnChanges, SimpleChanges } from '@angular/core';
-import { MatTableDataSource } from '@angular/material/table';
+import { MatIconModule } from '@angular/material/icon';
+import { MatTableDataSource, MatTableModule } from '@angular/material/table';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { RouterModule } from '@angular/router';
 import { UrlMatcher } from '@metal-p3/maintenance/domain';
 
 @Component({
+  standalone: true,
+  imports: [NgIf, NgSwitch, NgSwitchCase, RouterModule, MatTableModule, MatIconModule, MatTooltipModule],
   selector: 'app-url-matcher',
   templateUrl: './url-matcher.component.html',
-  styleUrls: ['./url-matcher.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class UrlMatcherComponent implements OnChanges {

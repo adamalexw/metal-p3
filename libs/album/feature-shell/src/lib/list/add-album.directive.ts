@@ -1,6 +1,7 @@
 import { Directive, EventEmitter, HostBinding, HostListener, Output } from '@angular/core';
 
 @Directive({
+  standalone: true,
   selector: '[appAddAlbum]',
 })
 export class AddAlbumDirective {

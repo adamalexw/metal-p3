@@ -22,9 +22,9 @@ export class AlbumService {
     @Inject('BASE_PATH') private readonly basePath: string,
     @Inject('TAKE') private readonly take: number
   ) {
-    if (basePath) {
-      this.addFileWatcher(basePath);
-    }
+    // if (basePath) {
+    //   this.addFileWatcher(basePath);
+    // }
   }
 
   getAlbums(request: SearchRequest): Observable<AlbumDto[]> {
@@ -194,7 +194,7 @@ export class AlbumService {
     const input: Prisma.AlbumCreateInput = {
       Folder: folder,
       Name: tags.album,
-      Year: Number.isInteger(tags.year) ? +tags.year : new Date().getFullYear(),
+      Year: Number.isInteger(Number(tags.year)) && Number(tags.year) > 0 ? +tags.year : new Date().getFullYear(),
       Transferred: false,
       Lyrics: lyrics,
       LyricsDate: lyrics ? new Date() : null,

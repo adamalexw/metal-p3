@@ -1,10 +1,20 @@
+import { NgFor, NgIf } from '@angular/common';
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatInputModule } from '@angular/material/input';
+import { MatMenuModule } from '@angular/material/menu';
+import { MatToolbarModule } from '@angular/material/toolbar';
 import { PlaylistDto } from '@metal-p3/playlist/domain';
+import { ConfirmDeleteDirective } from '@metal-p3/shared/feedback';
+import { TimePipe } from '@metal-p3/track/util';
 
 @Component({
+  standalone: true,
+  imports: [NgIf, NgFor, FormsModule, TimePipe, ConfirmDeleteDirective, MatToolbarModule, MatMenuModule, MatButtonModule, MatIconModule, MatInputModule],
   selector: 'app-playlist-toolbar',
   templateUrl: './playlist-toolbar.component.html',
-  styleUrls: ['./playlist-toolbar.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PlaylistToolbarComponent {

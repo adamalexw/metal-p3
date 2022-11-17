@@ -1,6 +1,8 @@
+import { AsyncPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, Inject, OnInit, Optional } from '@angular/core';
-import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { ApplyLyrics } from '@metal-p3/album/domain';
+import { ApplyLyricsComponent } from '@metal-p3/maintenance/ui';
 import {
   AlbumActions,
   CoverActions,
@@ -29,9 +31,10 @@ import { filter, map, take, tap, withLatestFrom } from 'rxjs/operators';
 
 @UntilDestroy()
 @Component({
+  standalone: true,
+  imports: [AsyncPipe, ApplyLyricsComponent, MatDialogModule],
   selector: 'app-apply-lyrics-shell',
   templateUrl: './apply-lyrics.component.html',
-  styleUrls: ['./apply-lyrics.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ApplyLyricsShellComponent implements OnInit {

@@ -1,6 +1,9 @@
+import { AsyncPipe, NgIf } from '@angular/common';
 import { ChangeDetectionStrategy, Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import { CoverComponent } from '@metal-p3/cover/ui';
 import {
   PlayerActions,
+  PlayerDataAccessModule,
   selectActiveItemCover,
   selectActivePlaylistItem,
   selectFirstItemPlaying,
@@ -11,6 +14,9 @@ import {
   selectPlaylistDuration,
 } from '@metal-p3/player/data-access';
 import { PlaylistItem } from '@metal-p3/player/domain';
+import { PlayerControlsComponent } from '@metal-p3/player/ui';
+import { PlaylistShellComponent } from '@metal-p3/playlist';
+import { PlaylistComponent } from '@metal-p3/playlist/ui';
 import { nonNullable } from '@metal-p3/shared/utils';
 import { TrackService } from '@metal-p3/track/data-access';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
@@ -20,6 +26,8 @@ import { concatMap, distinctUntilKeyChanged, filter, map, shareReplay, take, tap
 
 @UntilDestroy()
 @Component({
+  standalone: true,
+  imports: [NgIf, AsyncPipe, PlayerDataAccessModule, CoverComponent, PlayerControlsComponent, PlaylistShellComponent, PlaylistComponent],
   selector: 'app-player',
   templateUrl: './player-shell.component.html',
   styleUrls: ['./player-shell.component.scss'],

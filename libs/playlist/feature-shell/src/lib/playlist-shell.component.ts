@@ -1,12 +1,15 @@
+import { AsyncPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
 import { PlayerActions, selectPlaylistItemSize } from '@metal-p3/player/data-access';
-import { PlaylistActions, selectActivePlaylistId, selectActivePlaylistName, selectPlaylists, selectPlaylistTransferring } from '@metal-p3/playlist/data-access';
+import { PlaylistActions, PlaylistDataAccessModule, selectActivePlaylistId, selectActivePlaylistName, selectPlaylists, selectPlaylistTransferring } from '@metal-p3/playlist/data-access';
+import { PlaylistToolbarComponent } from '@metal-p3/playlist/ui';
 import { Store } from '@ngrx/store';
 
 @Component({
+  standalone: true,
+  imports: [AsyncPipe, PlaylistDataAccessModule, PlaylistToolbarComponent],
   selector: 'app-playlist-shell',
   templateUrl: './playlist-shell.component.html',
-  styleUrls: ['./playlist-shell.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PlaylistShellComponent {

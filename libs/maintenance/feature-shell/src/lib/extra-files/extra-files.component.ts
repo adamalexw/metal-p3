@@ -1,16 +1,19 @@
+import { AsyncPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, Inject, OnInit } from '@angular/core';
 import { AlbumService } from '@metal-p3/album/data-access';
 import { BASE_PATH } from '@metal-p3/album/domain';
 import { FileSystemMaintenanceService } from '@metal-p3/maintenance/data-access';
+import { ExtraFilesComponent, ExtraFilesToolbarComponent } from '@metal-p3/maintenance/ui';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { BehaviorSubject } from 'rxjs';
 import { concatMapTo, tap } from 'rxjs/operators';
 
 @UntilDestroy()
 @Component({
+  standalone: true,
+  imports: [AsyncPipe, ExtraFilesToolbarComponent, ExtraFilesComponent],
   selector: 'app-extra-files-shell',
   templateUrl: './extra-files.component.html',
-  styleUrls: ['./extra-files.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ExtraFilesShellComponent implements OnInit {

@@ -1,1 +1,1 @@
-export * from './lib/nav-toolbar.module';
+export * from './lib/nav-toolbar.component';

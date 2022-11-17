@@ -33,7 +33,7 @@
       (coverUrl)="coverUrl.emit({ id: album.id, url: $event })"
     ></app-cover>
 
-    <app-album-form [form]="form" (findBandProps)="findBandProps.emit({ id: albumId, url: $event })" (lyricsPriority)="lyricsPriority.emit(albumId)"></app-album-form>
+    <app-album-form class="block w-full" [form]="form" (findBandProps)="findBandProps.emit({ id: albumId, url: $event })" (lyricsPriority)="lyricsPriority.emit(albumId)"></app-album-form>
   </section>
 
   <section>

@@ -29,7 +29,7 @@ export class TrackService {
     return this.http.get<MetalArchivesAlbumTrack[]>(`${this.albumUrl}/maTracks?url=${encodeURI(url)}`);
   }
 
-  getLyrics(trackId: number): Observable<string> {
+  getLyrics(trackId: string): Observable<string> {
     return this.http.get(`${this.albumUrl}/getLyrics?trackId=${trackId}`, { responseType: 'text' });
   }
 

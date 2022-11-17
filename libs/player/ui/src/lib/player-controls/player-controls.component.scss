@@ -1,3 +1,6 @@
-:host {
-  width: 100%;
+app-player-controls {
+  .mat-slider-horizontal .mat-slider-wrapper {
+    left: 0;
+    right: 0;
+  }
 }

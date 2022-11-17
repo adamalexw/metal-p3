@@ -1,9 +1,9 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
 
 @Component({
+  standalone: true,
   selector: 'app-album-header',
   templateUrl: './album-header.component.html',
-  styleUrls: ['./album-header.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AlbumHeaderComponent {

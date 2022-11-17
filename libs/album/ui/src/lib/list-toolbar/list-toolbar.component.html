@@ -2,7 +2,7 @@
   <form [formGroup]="form">
     <mat-form-field class="w-80" floatLabel="never">
       <input matInput placeholder="Search" formControlName="folder" type="search" />
-      <mat-icon *ngIf="folderControl?.value" matSuffix class="cursor-pointer relative top-2 text-2xl" (click)="onClear()">clear</mat-icon>
+      <mat-icon *ngIf="folderControl?.value" matSuffix class="cursor-pointer relative top-1 text-2xl" (click)="onClear()">clear</mat-icon>
     </mat-form-field>
   </form>
 

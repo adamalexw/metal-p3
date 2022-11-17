@@ -1,14 +1,23 @@
+import { NgIf } from '@angular/common';
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
-import { FormControl, FormGroup } from '@angular/forms';
+import { FormControl, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatInputModule } from '@angular/material/input';
+import { MatMenuModule } from '@angular/material/menu';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatToolbarModule } from '@angular/material/toolbar';
+import { RouterModule } from '@angular/router';
 import { SearchRequest } from '@metal-p3/api-interfaces';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { debounceTime, distinctUntilChanged, tap } from 'rxjs/operators';
 
 @UntilDestroy()
 @Component({
+  standalone: true,
+  imports: [NgIf, FormsModule, ReactiveFormsModule, MatToolbarModule, RouterModule, MatInputModule, MatButtonModule, MatIconModule, MatMenuModule, MatProgressBarModule],
   selector: 'app-list-toolbar',
   templateUrl: './list-toolbar.component.html',
-  styleUrls: ['./list-toolbar.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ListToolbarComponent implements OnInit, OnChanges {

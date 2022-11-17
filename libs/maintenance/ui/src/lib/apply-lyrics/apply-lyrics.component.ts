@@ -1,9 +1,18 @@
+import { DatePipe, NgFor, NgIf } from '@angular/common';
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatSelectModule } from '@angular/material/select';
+import { MatTableModule } from '@angular/material/table';
 import { ApplyLyrics } from '@metal-p3/album/domain';
 import { MetalArchivesAlbumTrack } from '@metal-p3/api-interfaces';
 import { Track } from '@metal-p3/track/domain';
+import { ApplyLyricsToolbarComponent } from '../apply-lyrics-toolbar/apply-lyrics-toolbar.component';
 
 @Component({
+  standalone: true,
+  imports: [NgIf, NgFor, DatePipe, ApplyLyricsToolbarComponent, MatProgressBarModule, MatTableModule, MatFormFieldModule, MatSelectModule, MatCheckboxModule],
   selector: 'app-apply-lyrics',
   templateUrl: './apply-lyrics.component.html',
   styleUrls: ['./apply-lyrics.component.scss'],
@@ -17,13 +26,13 @@ export class ApplyLyricsComponent implements OnChanges {
   tracks: Track[] | null | undefined = [];
 
   @Input()
-  tracksLoading: boolean | null = false;
+  tracksLoading: boolean | null = true;
 
   @Input()
   maTracks: MetalArchivesAlbumTrack[] | null | undefined = [];
 
   @Input()
-  maTracksLoading = false;
+  maTracksLoading: boolean | null = true;
 
   @Input()
   lyricsLoadingProgress: number | null = 0;

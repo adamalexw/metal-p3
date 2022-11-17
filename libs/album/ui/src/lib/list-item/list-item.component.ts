@@ -1,11 +1,20 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
+import { NgIf } from '@angular/common';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output, ViewEncapsulation } from '@angular/core';
+import { MatButtonModule } from '@angular/material/button';
+import { MatCardModule } from '@angular/material/card';
+import { MatIconModule } from '@angular/material/icon';
+import { MatMenuModule } from '@angular/material/menu';
+import { CoverComponent } from '@metal-p3/cover/ui';
 import { Album } from '@metal-p3/shared/data-access';
 
 @Component({
+  standalone: true,
+  imports: [NgIf, CoverComponent, MatCardModule, MatButtonModule, MatIconModule, MatMenuModule],
   selector: 'app-list-item',
   templateUrl: './list-item.component.html',
   styleUrls: ['./list-item.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  encapsulation: ViewEncapsulation.None,
 })
 export class ListItemComponent {
   @Input()

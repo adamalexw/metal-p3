@@ -3,7 +3,9 @@ import { OverlayService } from '../overlay/overlay.service';
 import { ConfirmDeleteComponent } from './confirm-delete.component';
 
 @Directive({
+  standalone: true,
   selector: '[appConfirmDelete]',
+  providers: [OverlayService],
 })
 export class ConfirmDeleteDirective {
   private confirmDeleteComponent = ConfirmDeleteComponent;

@@ -4,6 +4,7 @@
       <app-cover [cover]="cover$ | async" [width]="coverSize$ | async" [height]="coverSize$ | async"></app-cover>
 
       <app-player-controls
+        class="block w-full"
         [footerMode]="footerMode$ | async"
         [isFirstItemPlaying]="isFirstItemPlaying$ | async"
         [isLastItemPlaying]="isLastItemPlaying$ | async"

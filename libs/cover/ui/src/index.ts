@@ -1,1 +1,1 @@
-export * from './lib/cover.component.module';
+export * from './lib/cover.component';
