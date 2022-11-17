@@ -5,7 +5,7 @@
   "targets": {
     "test": {
       "executor": "@nrwl/jest:jest",
-      "outputs": ["coverage/libs/shared/safe-pipe"],
+      "outputs": ["{workspaceRoot}/coverage/libs/shared/safe-pipe"],
       "options": {
         "jestConfig": "libs/shared/safe-pipe/jest.config.ts",
         "passWithNoTests": true
@@ -18,5 +18,6 @@
       }
     }
   },
-  "tags": []
+  "tags": [],
+  "name": "shared-safe-pipe"
 }

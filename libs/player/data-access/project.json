@@ -6,9 +6,7 @@
   "targets": {
     "test": {
       "executor": "@nrwl/jest:jest",
-      "outputs": [
-        "coverage/libs/player/data-access"
-      ],
+      "outputs": ["{workspaceRoot}/coverage/libs/player/data-access"],
       "options": {
         "jestConfig": "libs/player/data-access/jest.config.ts",
         "passWithNoTests": true
@@ -17,15 +15,10 @@
     "lint": {
       "executor": "@nrwl/linter:eslint",
       "options": {
-        "lintFilePatterns": [
-          "libs/player/data-access/src/**/*.ts",
-          "libs/player/data-access/src/**/*.html"
-        ]
+        "lintFilePatterns": ["libs/player/data-access/src/**/*.ts", "libs/player/data-access/src/**/*.html"]
       }
     }
   },
-  "tags": [
-    "scope:player",
-    "type:data-access"
-  ]
+  "tags": ["scope:player", "type:data-access"],
+  "name": "player-data-access"
 }

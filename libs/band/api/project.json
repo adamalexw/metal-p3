@@ -6,21 +6,18 @@
     "lint": {
       "executor": "@nrwl/linter:eslint",
       "options": {
-        "lintFilePatterns": [
-          "libs/band/api/**/*.ts"
-        ]
+        "lintFilePatterns": ["libs/band/api/**/*.ts"]
       }
     },
     "test": {
       "executor": "@nrwl/jest:jest",
-      "outputs": [
-        "coverage/libs/band/api"
-      ],
+      "outputs": ["{workspaceRoot}/coverage/libs/band/api"],
       "options": {
         "jestConfig": "libs/band/api/jest.config.ts",
         "passWithNoTests": true
       }
     }
   },
-  "tags": []
+  "tags": [],
+  "name": "band-api"
 }

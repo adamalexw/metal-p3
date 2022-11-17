@@ -6,9 +6,7 @@
   "targets": {
     "test": {
       "executor": "@nrwl/jest:jest",
-      "outputs": [
-        "coverage/libs/shared/feedback"
-      ],
+      "outputs": ["{workspaceRoot}/coverage/libs/shared/feedback"],
       "options": {
         "jestConfig": "libs/shared/feedback/jest.config.ts",
         "passWithNoTests": true
@@ -17,15 +15,10 @@
     "lint": {
       "executor": "@nrwl/linter:eslint",
       "options": {
-        "lintFilePatterns": [
-          "libs/shared/feedback/src/**/*.ts",
-          "libs/shared/feedback/src/**/*.html"
-        ]
+        "lintFilePatterns": ["libs/shared/feedback/src/**/*.ts", "libs/shared/feedback/src/**/*.html"]
       }
     }
   },
-  "tags": [
-    "scope:shared",
-    "type:util"
-  ]
+  "tags": ["scope:shared", "type:util"],
+  "name": "shared-feedback"
 }

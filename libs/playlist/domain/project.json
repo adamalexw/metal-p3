@@ -6,9 +6,7 @@
   "targets": {
     "test": {
       "executor": "@nrwl/jest:jest",
-      "outputs": [
-        "coverage/libs/playlist/domain"
-      ],
+      "outputs": ["{workspaceRoot}/coverage/libs/playlist/domain"],
       "options": {
         "jestConfig": "libs/playlist/domain/jest.config.ts",
         "passWithNoTests": true
@@ -17,12 +15,10 @@
     "lint": {
       "executor": "@nrwl/linter:eslint",
       "options": {
-        "lintFilePatterns": [
-          "libs/playlist/domain/src/**/*.ts",
-          "libs/playlist/domain/src/**/*.html"
-        ]
+        "lintFilePatterns": ["libs/playlist/domain/src/**/*.ts", "libs/playlist/domain/src/**/*.html"]
       }
     }
   },
-  "tags": []
+  "tags": [],
+  "name": "playlist-domain"
 }

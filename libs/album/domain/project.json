@@ -7,25 +7,18 @@
     "lint": {
       "executor": "@nrwl/linter:eslint",
       "options": {
-        "lintFilePatterns": [
-          "libs/album/domain/src/**/*.ts",
-          "libs/album/domain/src/**/*.html"
-        ]
+        "lintFilePatterns": ["libs/album/domain/src/**/*.ts", "libs/album/domain/src/**/*.html"]
       }
     },
     "test": {
       "executor": "@nrwl/jest:jest",
-      "outputs": [
-        "coverage/libs/album/domain"
-      ],
+      "outputs": ["{workspaceRoot}/coverage/libs/album/domain"],
       "options": {
         "jestConfig": "libs/album/domain/jest.config.ts",
         "passWithNoTests": true
       }
     }
   },
-  "tags": [
-    "scope:album",
-    "tags:domain"
-  ]
+  "tags": ["scope:album", "tags:domain"],
+  "name": "album-domain"
 }

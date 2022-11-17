@@ -6,9 +6,7 @@
   "targets": {
     "test": {
       "executor": "@nrwl/jest:jest",
-      "outputs": [
-        "coverage/libs/track/util"
-      ],
+      "outputs": ["{workspaceRoot}/coverage/libs/track/util"],
       "options": {
         "jestConfig": "libs/track/util/jest.config.ts",
         "passWithNoTests": true
@@ -17,15 +15,10 @@
     "lint": {
       "executor": "@nrwl/linter:eslint",
       "options": {
-        "lintFilePatterns": [
-          "libs/track/util/src/**/*.ts",
-          "libs/track/util/src/**/*.html"
-        ]
+        "lintFilePatterns": ["libs/track/util/src/**/*.ts", "libs/track/util/src/**/*.html"]
       }
     }
   },
-  "tags": [
-    "scope:track",
-    "type:util"
-  ]
+  "tags": ["scope:track", "type:util"],
+  "name": "track-util"
 }

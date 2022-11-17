@@ -7,25 +7,18 @@
     "lint": {
       "executor": "@nrwl/linter:eslint",
       "options": {
-        "lintFilePatterns": [
-          "libs/shared/utils/src/**/*.ts",
-          "libs/shared/utils/src/**/*.html"
-        ]
+        "lintFilePatterns": ["libs/shared/utils/src/**/*.ts", "libs/shared/utils/src/**/*.html"]
       }
     },
     "test": {
       "executor": "@nrwl/jest:jest",
-      "outputs": [
-        "coverage/libs/shared/utils"
-      ],
+      "outputs": ["{workspaceRoot}/coverage/libs/shared/utils"],
       "options": {
         "jestConfig": "libs/shared/utils/jest.config.ts",
         "passWithNoTests": true
       }
     }
   },
-  "tags": [
-    "scope:shared",
-    "type:util"
-  ]
+  "tags": ["scope:shared", "type:util"],
+  "name": "shared-utils"
 }

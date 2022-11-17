@@ -6,24 +6,18 @@
     "lint": {
       "executor": "@nrwl/linter:eslint",
       "options": {
-        "lintFilePatterns": [
-          "libs/shared/file-system/**/*.ts"
-        ]
+        "lintFilePatterns": ["libs/shared/file-system/**/*.ts"]
       }
     },
     "test": {
       "executor": "@nrwl/jest:jest",
-      "outputs": [
-        "coverage/libs/shared/file-system"
-      ],
+      "outputs": ["{workspaceRoot}/coverage/libs/shared/file-system"],
       "options": {
         "jestConfig": "libs/shared/file-system/jest.config.ts",
         "passWithNoTests": true
       }
     }
   },
-  "tags": [
-    "scope:shared",
-    "type:api"
-  ]
+  "tags": ["scope:shared", "type:api"],
+  "name": "shared-file-system"
 }

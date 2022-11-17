@@ -7,25 +7,18 @@
     "lint": {
       "executor": "@nrwl/linter:eslint",
       "options": {
-        "lintFilePatterns": [
-          "libs/album/data-access/src/**/*.ts",
-          "libs/album/data-access/src/**/*.html"
-        ]
+        "lintFilePatterns": ["libs/album/data-access/src/**/*.ts", "libs/album/data-access/src/**/*.html"]
       }
     },
     "test": {
       "executor": "@nrwl/jest:jest",
-      "outputs": [
-        "coverage/libs/album/data-access"
-      ],
+      "outputs": ["{workspaceRoot}/coverage/libs/album/data-access"],
       "options": {
         "jestConfig": "libs/album/data-access/jest.config.ts",
         "passWithNoTests": true
       }
     }
   },
-  "tags": [
-    "scope:album",
-    "type:data-access"
-  ]
+  "tags": ["scope:album", "type:data-access"],
+  "name": "album-data-access"
 }

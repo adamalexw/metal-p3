@@ -6,9 +6,7 @@
   "targets": {
     "test": {
       "executor": "@nrwl/jest:jest",
-      "outputs": [
-        "coverage/libs/player/domain"
-      ],
+      "outputs": ["{workspaceRoot}/coverage/libs/player/domain"],
       "options": {
         "jestConfig": "libs/player/domain/jest.config.ts",
         "passWithNoTests": true
@@ -17,15 +15,10 @@
     "lint": {
       "executor": "@nrwl/linter:eslint",
       "options": {
-        "lintFilePatterns": [
-          "libs/player/domain/src/**/*.ts",
-          "libs/player/domain/src/**/*.html"
-        ]
+        "lintFilePatterns": ["libs/player/domain/src/**/*.ts", "libs/player/domain/src/**/*.html"]
       }
     }
   },
-  "tags": [
-    "scope:player",
-    "type:domain"
-  ]
+  "tags": ["scope:player", "type:domain"],
+  "name": "player-domain"
 }

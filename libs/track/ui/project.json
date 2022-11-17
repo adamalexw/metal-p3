@@ -6,9 +6,7 @@
   "targets": {
     "test": {
       "executor": "@nrwl/jest:jest",
-      "outputs": [
-        "coverage/libs/track/ui"
-      ],
+      "outputs": ["{workspaceRoot}/coverage/libs/track/ui"],
       "options": {
         "jestConfig": "libs/track/ui/jest.config.ts",
         "passWithNoTests": true
@@ -17,15 +15,10 @@
     "lint": {
       "executor": "@nrwl/linter:eslint",
       "options": {
-        "lintFilePatterns": [
-          "libs/track/ui/src/**/*.ts",
-          "libs/track/ui/src/**/*.html"
-        ]
+        "lintFilePatterns": ["libs/track/ui/src/**/*.ts", "libs/track/ui/src/**/*.html"]
       }
     }
   },
-  "tags": [
-    "scope:track",
-    "type:ui"
-  ]
+  "tags": ["scope:track", "type:ui"],
+  "name": "track-ui"
 }

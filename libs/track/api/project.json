@@ -6,24 +6,18 @@
     "lint": {
       "executor": "@nrwl/linter:eslint",
       "options": {
-        "lintFilePatterns": [
-          "libs/track/api/**/*.ts"
-        ]
+        "lintFilePatterns": ["libs/track/api/**/*.ts"]
       }
     },
     "test": {
       "executor": "@nrwl/jest:jest",
-      "outputs": [
-        "coverage/libs/track/api"
-      ],
+      "outputs": ["{workspaceRoot}/coverage/libs/track/api"],
       "options": {
         "jestConfig": "libs/track/api/jest.config.ts",
         "passWithNoTests": true
       }
     }
   },
-  "tags": [
-    "scope:track",
-    "type:api"
-  ]
+  "tags": ["scope:track", "type:api"],
+  "name": "track-api"
 }

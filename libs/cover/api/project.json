@@ -6,24 +6,18 @@
     "lint": {
       "executor": "@nrwl/linter:eslint",
       "options": {
-        "lintFilePatterns": [
-          "libs/cover/api/**/*.ts"
-        ]
+        "lintFilePatterns": ["libs/cover/api/**/*.ts"]
       }
     },
     "test": {
       "executor": "@nrwl/jest:jest",
-      "outputs": [
-        "coverage/libs/cover/api"
-      ],
+      "outputs": ["{workspaceRoot}/coverage/libs/cover/api"],
       "options": {
         "jestConfig": "libs/cover/api/jest.config.ts",
         "passWithNoTests": true
       }
     }
   },
-  "tags": [
-    "scope:cover",
-    "type:api"
-  ]
+  "tags": ["scope:cover", "type:api"],
+  "name": "cover-api"
 }

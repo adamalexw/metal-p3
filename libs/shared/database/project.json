@@ -6,24 +6,18 @@
     "lint": {
       "executor": "@nrwl/linter:eslint",
       "options": {
-        "lintFilePatterns": [
-          "libs/shared/database/**/*.ts"
-        ]
+        "lintFilePatterns": ["libs/shared/database/**/*.ts"]
       }
     },
     "test": {
       "executor": "@nrwl/jest:jest",
-      "outputs": [
-        "coverage/libs/shared/database"
-      ],
+      "outputs": ["{workspaceRoot}/coverage/libs/shared/database"],
       "options": {
         "jestConfig": "libs/shared/database/jest.config.ts",
         "passWithNoTests": true
       }
     }
   },
-  "tags": [
-    "scope:shared",
-    "type:api"
-  ]
+  "tags": ["scope:shared", "type:api"],
+  "name": "shared-database"
 }

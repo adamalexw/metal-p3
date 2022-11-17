@@ -12,17 +12,10 @@
         "main": "apps/ui/src/main.ts",
         "polyfills": "apps/ui/src/polyfills.ts",
         "tsConfig": "apps/ui/tsconfig.app.json",
-        "assets": [
-          "apps/ui/src/favicon.ico",
-          "apps/ui/src/assets"
-        ],
-        "styles": [
-          "apps/ui/src/styles.scss"
-        ],
+        "assets": ["apps/ui/src/favicon.ico", "apps/ui/src/assets"],
+        "styles": ["apps/ui/src/styles.scss"],
         "stylePreprocessorOptions": {
-          "includePaths": [
-            "apps/ui/src"
-          ]
+          "includePaths": ["apps/ui/src"]
         },
         "scripts": [],
         "vendorChunk": true,
@@ -83,25 +76,18 @@
     "lint": {
       "executor": "@nrwl/linter:eslint",
       "options": {
-        "lintFilePatterns": [
-          "apps/ui/src/**/*.ts",
-          "apps/ui/src/**/*.html"
-        ]
+        "lintFilePatterns": ["apps/ui/src/**/*.ts", "apps/ui/src/**/*.html"]
       }
     },
     "test": {
       "executor": "@nrwl/jest:jest",
-      "outputs": [
-        "coverage/apps/ui"
-      ],
+      "outputs": ["{workspaceRoot}/coverage/apps/ui"],
       "options": {
         "jestConfig": "apps/ui/jest.config.ts",
         "passWithNoTests": true
       }
     }
   },
-  "tags": [
-    "scope:track",
-    "type:ui"
-  ]
+  "tags": ["scope:track", "type:ui"],
+  "name": "ui"
 }

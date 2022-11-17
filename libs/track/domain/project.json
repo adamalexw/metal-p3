@@ -6,9 +6,7 @@
   "targets": {
     "test": {
       "executor": "@nrwl/jest:jest",
-      "outputs": [
-        "coverage/libs/track/domain"
-      ],
+      "outputs": ["{workspaceRoot}/coverage/libs/track/domain"],
       "options": {
         "jestConfig": "libs/track/domain/jest.config.ts",
         "passWithNoTests": true
@@ -17,12 +15,10 @@
     "lint": {
       "executor": "@nrwl/linter:eslint",
       "options": {
-        "lintFilePatterns": [
-          "libs/track/domain/src/**/*.ts",
-          "libs/track/domain/src/**/*.html"
-        ]
+        "lintFilePatterns": ["libs/track/domain/src/**/*.ts", "libs/track/domain/src/**/*.html"]
       }
     }
   },
-  "tags": []
+  "tags": [],
+  "name": "track-domain"
 }

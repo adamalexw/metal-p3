@@ -6,24 +6,18 @@
     "lint": {
       "executor": "@nrwl/linter:eslint",
       "options": {
-        "lintFilePatterns": [
-          "libs/album/api/**/*.ts"
-        ]
+        "lintFilePatterns": ["libs/album/api/**/*.ts"]
       }
     },
     "test": {
       "executor": "@nrwl/jest:jest",
-      "outputs": [
-        "coverage/libs/album/api"
-      ],
+      "outputs": ["{workspaceRoot}/coverage/libs/album/api"],
       "options": {
         "jestConfig": "libs/album/api/jest.config.ts",
         "passWithNoTests": true
       }
     }
   },
-  "tags": [
-    "scope:album",
-    "type:api"
-  ]
+  "tags": ["scope:album", "type:api"],
+  "name": "album-api"
 }

@@ -6,24 +6,18 @@
     "lint": {
       "executor": "@nrwl/linter:eslint",
       "options": {
-        "lintFilePatterns": [
-          "libs/playlist/api/**/*.ts"
-        ]
+        "lintFilePatterns": ["libs/playlist/api/**/*.ts"]
       }
     },
     "test": {
       "executor": "@nrwl/jest:jest",
-      "outputs": [
-        "coverage/libs/playlist/api"
-      ],
+      "outputs": ["{workspaceRoot}/coverage/libs/playlist/api"],
       "options": {
         "jestConfig": "libs/playlist/api/jest.config.ts",
         "passWithNoTests": true
       }
     }
   },
-  "tags": [
-    "scope:playlist",
-    "type:api"
-  ]
+  "tags": ["scope:playlist", "type:api"],
+  "name": "playlist-api"
 }

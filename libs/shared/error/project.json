@@ -6,9 +6,7 @@
   "targets": {
     "test": {
       "executor": "@nrwl/jest:jest",
-      "outputs": [
-        "coverage/libs/shared/error"
-      ],
+      "outputs": ["{workspaceRoot}/coverage/libs/shared/error"],
       "options": {
         "jestConfig": "libs/shared/error/jest.config.ts",
         "passWithNoTests": true
@@ -17,15 +15,10 @@
     "lint": {
       "executor": "@nrwl/linter:eslint",
       "options": {
-        "lintFilePatterns": [
-          "libs/shared/error/src/**/*.ts",
-          "libs/shared/error/src/**/*.html"
-        ]
+        "lintFilePatterns": ["libs/shared/error/src/**/*.ts", "libs/shared/error/src/**/*.html"]
       }
     }
   },
-  "tags": [
-    "scope:shared",
-    "type:util"
-  ]
+  "tags": ["scope:shared", "type:util"],
+  "name": "shared-error"
 }

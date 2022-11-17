@@ -6,9 +6,7 @@
   "targets": {
     "test": {
       "executor": "@nrwl/jest:jest",
-      "outputs": [
-        "coverage/libs/shared/navigation"
-      ],
+      "outputs": ["{workspaceRoot}/coverage/libs/shared/navigation"],
       "options": {
         "jestConfig": "libs/shared/navigation/jest.config.ts",
         "passWithNoTests": true
@@ -17,15 +15,10 @@
     "lint": {
       "executor": "@nrwl/linter:eslint",
       "options": {
-        "lintFilePatterns": [
-          "libs/shared/navigation/src/**/*.ts",
-          "libs/shared/navigation/src/**/*.html"
-        ]
+        "lintFilePatterns": ["libs/shared/navigation/src/**/*.ts", "libs/shared/navigation/src/**/*.html"]
       }
     }
   },
-  "tags": [
-    "scope:shared",
-    "type:ui"
-  ]
+  "tags": ["scope:shared", "type:ui"],
+  "name": "shared-navigation"
 }

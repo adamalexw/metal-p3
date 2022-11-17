@@ -133,8 +133,8 @@ export class AlbumService {
 
   private addFileWatcher(basePath: string) {
     const watcher = chokidar.watch(basePath, {
-      persistent: true,
-      ignoreInitial: true,
+      depth: 1,
+      ignored: /(^|[/\\])\../,
       alwaysStat: true,
     });
 
