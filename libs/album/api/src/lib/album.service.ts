@@ -22,9 +22,9 @@ export class AlbumService {
     @Inject('BASE_PATH') private readonly basePath: string,
     @Inject('TAKE') private readonly take: number
   ) {
-    // if (basePath) {
-    //   this.addFileWatcher(basePath);
-    // }
+    if (basePath) {
+      this.addFileWatcher(basePath);
+    }
   }
 
   getAlbums(request: SearchRequest): Observable<AlbumDto[]> {
