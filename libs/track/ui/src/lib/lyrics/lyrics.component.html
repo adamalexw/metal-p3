@@ -1,4 +1,6 @@
 <button mat-icon-button (click)="onSave()">
   <mat-icon>save</mat-icon>
 </button>
-<textarea matInput class="w-full" [(ngModel)]="lyrics"></textarea>
+<mat-form-field>
+  <textarea matInput [(ngModel)]="lyrics"></textarea>
+</mat-form-field>

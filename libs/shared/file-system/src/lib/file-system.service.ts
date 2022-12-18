@@ -1,16 +1,24 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { exec } from 'child_process';
-import { chmodSync, lstatSync, readdirSync, renameSync, rmdirSync, statSync, unlinkSync } from 'fs';
+import { chmodSync, existsSync, lstatSync, readdirSync, renameSync, rmSync, statSync, unlinkSync } from 'fs';
 import { basename, dirname, extname, join } from 'path';
 
 @Injectable()
 export class FileSystemService {
   getFolders(folder: string): string[] {
-    return readdirSync(folder, {}) as string[];
+    if (existsSync(folder)) {
+      return readdirSync(folder, {}) as string[];
+    }
+
+    throw new BadRequestException("Folder doesn't exist", `${folder} doesn't exist`);
   }
 
   getFiles(folder: string): string[] {
-    return readdirSync(folder, {}) as string[];
+    if (existsSync(folder)) {
+      return readdirSync(folder, {}) as string[];
+    }
+
+    throw new BadRequestException("Folder doesn't exist", `${folder} doesn't exist`);
   }
 
   openFolder(folder: string): void {
@@ -43,7 +51,7 @@ export class FileSystemService {
   }
 
   deleteFolder(path: string) {
-    rmdirSync(path, { recursive: true });
+    rmSync(path, { recursive: true });
   }
 
   filenameValidator(filename: string): string {
@@ -101,7 +109,7 @@ export class FileSystemService {
     }
 
     if (files.length == 0) {
-      rmdirSync(folder);
+      rmSync(folder);
       return;
     }
   }

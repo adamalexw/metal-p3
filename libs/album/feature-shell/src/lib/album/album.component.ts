@@ -35,6 +35,7 @@ import {
   selectTracks,
   selectTrackSavingProgress,
   selectTracksDuration,
+  selectTracksError,
   selectTracksLoading,
   selectTracksRequired,
   selectTrackTransferring,
@@ -69,6 +70,7 @@ export class AlbumShellComponent implements OnInit {
 
   tracksLoading$ = this.store.select(selectTracksLoading);
   tracks$ = this.store.select(selectTracks);
+  tracksError$ = this.store.select(selectTracksError);
   albumDuration$ = this.store.select(selectTracksDuration);
 
   trackSavingProgress$ = this.store.select(selectTrackSavingProgress);

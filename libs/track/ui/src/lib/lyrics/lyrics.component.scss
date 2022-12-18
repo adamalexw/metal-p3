@@ -1,7 +1,3 @@
 textarea {
-  height: calc(100% - 40px);
-}
-
-.mat-icon-button {
-  width: unset;
+  min-height: calc(80vh - 96px) !important;
 }

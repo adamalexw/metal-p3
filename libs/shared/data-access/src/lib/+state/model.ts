@@ -8,6 +8,7 @@ export interface Album extends AlbumDto {
   gettingBandProps?: boolean;
   tracks: EntityState<Track>;
   tracksLoading?: boolean;
+  tracksError?: string;
   coverLoading?: boolean;
   coverError?: string;
   findingUrl?: boolean;

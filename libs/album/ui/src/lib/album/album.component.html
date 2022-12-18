@@ -19,11 +19,12 @@
   </nav>
 
   <ng-container *ngIf="trackSavingProgress || trackTransferringProgress || trackRenamingProgress as progress">
-    <mat-progress-bar class="w-full h-3" mode="determinate" [value]="progress"> </mat-progress-bar>
+    <mat-progress-bar class="w-full" mode="determinate" [value]="progress"> </mat-progress-bar>
   </ng-container>
 
   <section class="flex flex-row">
     <app-cover
+      class="min-w-[500px]"
       [loading]="coverLoading"
       [cover]="album.cover"
       [coverError]="album.coverError"
@@ -33,7 +34,12 @@
       (coverUrl)="coverUrl.emit({ id: album.id, url: $event })"
     ></app-cover>
 
-    <app-album-form class="block w-full" [form]="form" (findBandProps)="findBandProps.emit({ id: albumId, url: $event })" (lyricsPriority)="lyricsPriority.emit(albumId)"></app-album-form>
+    <app-album-form
+      class="block w-full mx-2 mt-1 mb-0"
+      [form]="form"
+      (findBandProps)="findBandProps.emit({ id: albumId, url: $event })"
+      (lyricsPriority)="lyricsPriority.emit(albumId)"
+    ></app-album-form>
   </section>
 
   <section>
@@ -55,6 +61,7 @@
       [form]="form"
       [tracksLoading]="tracksLoading || false"
       [tracks]="tracks || []"
+      [tracksError]="tracksError"
       (transferTrack)="onTransferTrack($event)"
       (playTrack)="playTrack.emit({ track: $event, albumId: albumId })"
       (addTrackToPlaylist)="addTrackToPlaylist.emit({ track: $event, albumId: albumId })"

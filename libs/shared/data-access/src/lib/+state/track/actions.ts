@@ -10,6 +10,7 @@ export const TrackActions = createActionGroup({
   events: {
     'Get Tracks': props<{ id: number; folder: string }>(),
     'Get Tracks Success': props<{ id: number; tracks: Track[] }>(),
+    'Get Tracks Error': props<{ id: number; error: string }>(),
     'Save Track': props<{ id: number; track: Track }>(),
     'Save Track Success': props<{ id: number; track: Track }>(),
     'Rename Track': props<{ id: number; track: Track }>(),

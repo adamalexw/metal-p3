@@ -1,72 +1,67 @@
-<section class="flex flex-row">
-  <form [formGroup]="form" autocomplete="off" class="w-full">
-    <mat-list class="flex flex-col gap-2 mt-4">
-      <mat-list-item class="mb-2">
-        <mat-form-field class="w-full">
-          <mat-label>Band</mat-label>
-          <input matInput formControlName="artist" />
-        </mat-form-field>
-      </mat-list-item>
-      <mat-list-item>
-        <mat-form-field class="w-full">
-          <mat-label>Album</mat-label>
-          <input matInput formControlName="album" />
-        </mat-form-field>
-      </mat-list-item>
-      <mat-list-item>
-        <mat-form-field class="w-full">
-          <mat-label>Genre</mat-label>
-          <input matInput formControlName="genre" />
-          <mat-icon *ngIf="artistUrl" matSuffix (click)="getBandProps(artistUrl)" class="cursor-pointer">music_note</mat-icon>
-        </mat-form-field>
-      </mat-list-item>
-      <mat-list-item>
-        <mat-form-field class="w-full">
-          <mat-label>Country</mat-label>
-          <input matInput formControlName="country" />
-          <mat-icon *ngIf="artistUrl" matSuffix (click)="getBandProps(artistUrl)" class="cursor-pointer">flag</mat-icon>
-        </mat-form-field>
-      </mat-list-item>
-      <ng-container *ngIf="!form.get('ignore')?.value ?? false">
-        <mat-list-item>
-          <mat-form-field class="w-full">
-            <mat-label>Album Url</mat-label>
-            <input matInput formControlName="albumUrl" />
-            <mat-icon *ngIf="albumUrl" matSuffix (click)="openLink(albumUrl)" class="cursor-pointer">link</mat-icon>
-          </mat-form-field>
-        </mat-list-item>
-        <mat-list-item>
-          <mat-form-field class="w-full">
-            <mat-label>Artist Url</mat-label>
-            <input matInput formControlName="artistUrl" />
-            <mat-icon *ngIf="artistUrl" matSuffix (click)="openLink(artistUrl)" class="cursor-pointer">link</mat-icon>
-          </mat-form-field>
-        </mat-list-item>
-      </ng-container>
-      <mat-list-item>
-        <div class="flex flex-row w-full items-center">
-          <mat-form-field class="w-10">
-            <mat-label>Year</mat-label>
-            <input matInput formControlName="year" />
-          </mat-form-field>
-          <div *ngIf="!albumUrl" class="w-full text-right">
-            <mat-checkbox formControlName="ignore"> Ignore Metal Archives </mat-checkbox>
-          </div>
-        </div>
-      </mat-list-item>
-      <mat-list-item>
-        <div class="flex flex-row gap-6 items-center">
-          <mat-checkbox formControlName="transferred"> Transferred </mat-checkbox>
-          <mat-checkbox formControlName="hasLyrics"> Lyrics </mat-checkbox>
+<form [formGroup]="form" autocomplete="off" class="w-full flex flex-col gap-2">
+  <mat-form-field class="w-full">
+    <mat-label>Band</mat-label>
+    <input matInput formControlName="artist" />
+  </mat-form-field>
 
-          <div *ngIf="!hasLyrics" class="ml-2">
-            <button mat-button class="p-0" type="button" (click)="lyricsPriority.emit()">
-              <mat-icon>new_releases</mat-icon>
-              <span class="ml-2">Priority</span>
-            </button>
-          </div>
-        </div>
-      </mat-list-item>
-    </mat-list>
-  </form>
-</section>
+  <mat-form-field class="w-full">
+    <mat-label>Album</mat-label>
+    <input matInput formControlName="album" />
+  </mat-form-field>
+
+  <mat-form-field class="w-full">
+    <mat-label>Genre</mat-label>
+    <input matInput formControlName="genre" />
+    <button *ngIf="artistUrl" mat-icon-button matSuffix (click)="getBandProps(artistUrl)" [attr.aria-label]="'Get country'">
+      <mat-icon>music_note</mat-icon>
+    </button>
+  </mat-form-field>
+
+  <mat-form-field class="w-full">
+    <mat-label>Country</mat-label>
+    <input matInput formControlName="country" />
+    <button *ngIf="artistUrl" mat-icon-button matSuffix (click)="getBandProps(artistUrl)" [attr.aria-label]="'Get country'">
+      <mat-icon>flag</mat-icon>
+    </button>
+  </mat-form-field>
+
+  <ng-container *ngIf="!form.get('ignore')?.value ?? false">
+    <mat-form-field class="w-full">
+      <mat-label>Album Url</mat-label>
+      <input matInput formControlName="albumUrl" type="url" />
+      <button mat-icon-button matSuffix (click)="openLink(albumUrl)" [attr.aria-label]="'View album url'">
+        <mat-icon>link</mat-icon>
+      </button>
+    </mat-form-field>
+
+    <mat-form-field class="w-full">
+      <mat-label>Artist Url</mat-label>
+      <input matInput formControlName="artistUrl" type="url" />
+      <button mat-icon-button matSuffix (click)="openLink(artistUrl)" [attr.aria-label]="'View artist url'">
+        <mat-icon>link</mat-icon>
+      </button>
+    </mat-form-field>
+  </ng-container>
+
+  <div class="flex flex-row w-full items-center justify-between">
+    <mat-form-field class="w-[71px]">
+      <mat-label>Year</mat-label>
+      <input matInput formControlName="year" />
+    </mat-form-field>
+    <div *ngIf="!albumUrl">
+      <mat-checkbox formControlName="ignore"> Ignore Metal Archives </mat-checkbox>
+    </div>
+  </div>
+
+  <div class="flex flex-row gap-6 items-center">
+    <mat-checkbox formControlName="transferred"> Transferred </mat-checkbox>
+    <mat-checkbox formControlName="hasLyrics"> Lyrics </mat-checkbox>
+
+    <div *ngIf="!hasLyrics" class="flex items-center">
+      <button mat-icon-button class="p-2" type="button" (click)="lyricsPriority.emit()">
+        <mat-icon>new_releases</mat-icon>
+      </button>
+      <span class="cursor-pointer" (click)="lyricsPriority.emit()">Priority</span>
+    </div>
+  </div>
+</form>

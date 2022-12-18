@@ -1,24 +1,24 @@
-<mat-card *ngIf="album" class="hover:bg-background hover:shadow-2xl">
-  <mat-card-header>
+<mat-card appearance="raised" *ngIf="album" class="hover:bg-background hover:shadow-2xl">
+  <mat-card-header class="py-2">
     <mat-card-title
-      ><p class="truncate">{{ album.artist }}</p></mat-card-title
+      ><p class="line-clamp-1">{{ album.artist }}</p></mat-card-title
     >
     <mat-card-subtitle (click)="openAlbum.emit(album.id)"
-      ><p class="cursor-pointer truncate">{{ album.album }}</p></mat-card-subtitle
+      ><p class="cursor-pointer line-clamp-1">{{ album.album }}</p></mat-card-subtitle
     >
   </mat-card-header>
 
-  <div (click)="openAlbum.emit(album.id)" class="cursor-pointer overflow-hidden">
-    <app-cover class="block" [cover]="album.cover" [coverError]="album.coverError" [loading]="album.coverLoading || false"></app-cover>
-  </div>
-
   <mat-card-content>
-    <div class="flex items-center">
-      <div class="flex-grow truncate">{{ album.year }} - {{ album.genre }}</div>
-      <button mat-icon-button [matMenuTriggerFor]="menu" class="place-self-end">
-        <mat-icon>more_vert</mat-icon>
-      </button>
+    <div (click)="openAlbum.emit(album.id)" class="flex justify-center cursor-pointer overflow-hidden">
+      <app-cover class="block z-10" [cover]="album.cover" [coverError]="album.coverError" [loading]="album.coverLoading || false"></app-cover>
     </div>
+  </mat-card-content>
+
+  <mat-card-footer class="flex h-12 w-full pl-4">
+    <div class="grow truncate self-center">{{ album.year }} - {{ album.genre }}</div>
+    <button mat-icon-button [matMenuTriggerFor]="menu" [disableRipple]="true">
+      <mat-icon class="absolute bottom-3 right-3">more_vert</mat-icon>
+    </button>
 
     <mat-menu #menu="matMenu">
       <button mat-menu-item (click)="renameFolder.emit()">
@@ -38,5 +38,5 @@
         <span>Add To Playlist</span>
       </button>
     </mat-menu>
-  </mat-card-content>
+  </mat-card-footer>
 </mat-card>

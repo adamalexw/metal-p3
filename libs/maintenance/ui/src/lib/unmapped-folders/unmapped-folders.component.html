@@ -3,13 +3,18 @@
 </app-nav-toolbar>
 <mat-list>
   <div mat-subheader>Folders</div>
-  <mat-list-item *ngFor="let folder of folders">
-    <mat-icon mat-list-icon class="cursor-pointer" (click)="openFolder.emit(folder)">folder</mat-icon>
-    <div class="w-full ml-2">{{ folder }}</div>
-    <div class="flex">
-      <mat-icon mat-list-icon class="cursor-pointer" (click)="search.emit(folder)">search</mat-icon>
-      <mat-icon mat-list-icon class="cursor-pointer" (click)="add.emit(folder)">add</mat-icon>
-      <mat-icon mat-list-icon class="cursor-pointer" appConfirmDelete [itemName]="folder" (confirmResult)="onDelete($event, folder)">delete</mat-icon>
-    </div>
-  </mat-list-item>
+  <ng-container *ngIf="folders?.length; else noResultsTemplate">
+    <mat-list-item *ngFor="let folder of folders">
+      <mat-icon mat-list-icon class="cursor-pointer" (click)="openFolder.emit(folder)">folder</mat-icon>
+      <div class="w-full ml-2">{{ folder }}</div>
+      <div class="flex">
+        <mat-icon mat-list-icon class="cursor-pointer" (click)="search.emit(folder)">search</mat-icon>
+        <mat-icon mat-list-icon class="cursor-pointer" (click)="add.emit(folder)">add</mat-icon>
+        <mat-icon mat-list-icon class="cursor-pointer" appConfirmDelete [itemName]="folder" (confirmResult)="onDelete($event, folder)">delete</mat-icon>
+      </div>
+    </mat-list-item>
+  </ng-container>
+  <ng-template #noResultsTemplate
+    ><div class="flex items-center gap-1 ml-4"><mat-icon>info</mat-icon> <span>No unmapped folders</span></div>
+  </ng-template>
 </mat-list>

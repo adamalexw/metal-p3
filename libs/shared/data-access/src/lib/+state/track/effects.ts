@@ -18,10 +18,7 @@ export class TrackEffects {
       mergeMap(({ id, folder }) =>
         this.service.getTracks(`${this.basePath}/${folder}`).pipe(
           map((tracks) => TrackActions.getTracksSuccess({ id, tracks })),
-          catchError((error) => {
-            console.error(error);
-            return EMPTY;
-          })
+          catchError((error) => of(TrackActions.getTracksError({ id, error: this.errorService.getError(error) })))
         )
       )
     );

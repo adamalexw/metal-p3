@@ -60,6 +60,9 @@ export class AlbumComponent implements OnChanges {
   tracksLoading: boolean | null = false;
 
   @Input()
+  tracksError: string | null | undefined;
+
+  @Input()
   albumDuration: number | null = 0;
 
   @Input()

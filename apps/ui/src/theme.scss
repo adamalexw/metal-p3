@@ -4,12 +4,13 @@
 // Include the common styles for Angular Material. We include this here so that you only
 // have to load a single css file for Angular Material in your app.
 // Be sure that you only ever include this mixin once!
+@include mat.all-component-typographies();
 @include mat.core();
 
 // Define the palettes for your theme using the Material Design palettes available in palette.scss
 // (imported above). For each palette, you can optionally specify a default, lighter, and darker
 // hue. Available color palettes: https://material.io/design/color/
-$app-primary: mat.define-palette(mat.$red-palette);
+$app-primary: mat.define-palette(mat.$orange-palette);
 $app-accent: mat.define-palette(mat.$gray-palette, A200, A100, A400);
 
 // The warn palette is optional (defaults to red).
@@ -24,6 +25,7 @@ $app-theme: mat.define-dark-theme(
       accent: $app-accent,
       warn: $app-warn,
     ),
+    density: 0,
   )
 );
 

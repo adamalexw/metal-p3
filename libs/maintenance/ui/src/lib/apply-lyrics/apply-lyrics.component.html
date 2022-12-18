@@ -1,5 +1,5 @@
 <ng-container *ngIf="tracksLoading || maTracksLoading || lyricsLoadingProgress; else lyricsTemplate">
-  <mat-progress-bar class="w-full h-3" [mode]="lyricsLoadingProgress ? 'determinate' : 'indeterminate'" [value]="lyricsLoadingProgress"> </mat-progress-bar>
+  <mat-progress-bar class="w-full" [mode]="lyricsLoadingProgress ? 'determinate' : 'indeterminate'" [value]="lyricsLoadingProgress"> </mat-progress-bar>
   <h3>Loading Lyrics</h3>
 </ng-container>
 
@@ -19,7 +19,7 @@
   ></app-lyrics-toolbar>
 
   <ng-container *ngIf="applyingProgress || trackTransferringProgress as progress">
-    <mat-progress-bar class="w-full h-3" mode="determinate" [value]="progress"> </mat-progress-bar>
+    <mat-progress-bar class="w-full" mode="determinate" [value]="progress"> </mat-progress-bar>
   </ng-container>
 
   <mat-table [dataSource]="dataSource" [trackBy]="trackByFn">
@@ -47,7 +47,7 @@
     <ng-container matColumnDef="maTrack">
       <mat-header-cell *matHeaderCellDef>Lyrics</mat-header-cell>
       <mat-cell *matCellDef="let element" class="w-full">
-        <mat-form-field floatLabel="never" class="w-full">
+        <mat-form-field floatLabel="auto" class="w-full">
           <mat-label>Select lyrics track</mat-label>
           <mat-select [(value)]="element.maTrack">
             <mat-option>None</mat-option>

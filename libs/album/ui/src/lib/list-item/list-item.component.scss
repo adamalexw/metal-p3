@@ -1,19 +1,4 @@
 app-list-item {
-  mat-card {
-    max-width: 270px;
-    max-height: 360px;
-    padding: 10px 16px !important;
-  }
-
-  .mat-card-header-text {
-    margin: 0;
-    width: 100%;
-  }
-
-  .mat-icon-button {
-    width: 16px;
-  }
-
   app-cover {
     transition: transform .5s ease;
   }

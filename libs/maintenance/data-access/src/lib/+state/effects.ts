@@ -91,14 +91,20 @@ export class MaintenanceEffects {
 
   startUrlMatcher$ = createEffect(
     () => {
-      return this.actions$.pipe(ofType(MaintenanceActions.startUrlMatcher), concatMapTo(this.urlService.match()));
+      return this.actions$.pipe(
+        ofType(MaintenanceActions.startUrlMatcher),
+        concatMap(() => this.urlService.match())
+      );
     },
     { dispatch: false }
   );
 
   stopUrlMatcher$ = createEffect(
     () => {
-      return this.actions$.pipe(ofType(MaintenanceActions.stopUrlMatcher), concatMapTo(this.urlService.cancel()));
+      return this.actions$.pipe(
+        ofType(MaintenanceActions.stopUrlMatcher),
+        concatMap(() => this.urlService.cancel())
+      );
     },
     { dispatch: false }
   );

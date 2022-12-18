@@ -1,9 +1,9 @@
 const colors = require('tailwindcss/colors');
 
 module.exports = {
+  mode: 'jit',
   important: true,
-  purge: {
-      enabled: true,
+  content: {
       content: [
           './apps/ui/**/*.{html,ts}',
           './libs/**/*.{html,ts}',
@@ -14,7 +14,6 @@ module.exports = {
         'text-white'
       ]
   },
-  darkMode: 'media', // or 'media' or 'class'
   theme: {
     colors: {
       background: '#212121',
@@ -26,9 +25,6 @@ module.exports = {
       blue: colors.blue,
       red: colors.red
     }
-  },
-  variants: {
-      extend: {},
   },
   plugins: [
     require('@tailwindcss/line-clamp'),

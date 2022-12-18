@@ -12,7 +12,6 @@ import { VolumeComponent } from '../volume/volume.component';
   imports: [NgIf, NgClass, NgTemplateOutlet, VolumeComponent, TimePipe, MatToolbarModule, MatSliderModule, MatIconModule],
   selector: 'app-player-controls',
   templateUrl: './player-controls.component.html',
-  styleUrls: ['./player-controls.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.None,
 })

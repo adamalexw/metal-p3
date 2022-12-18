@@ -95,6 +95,20 @@ export const reducer = createReducer(
         changes: {
           tracks: trackAdapter.setAll(tracks, state.tracks),
           tracksLoading: false,
+          tracksError: undefined,
+        },
+      },
+      state
+    )
+  ),
+  on(TrackActions.getTracksError, (state, { id, error }) =>
+    albumAdapter.updateOne(
+      {
+        id,
+        changes: {
+          tracksLoading: false,
+          tracksError: error,
+          tracks: trackAdapter.setAll([], state.tracks),
         },
       },
       state

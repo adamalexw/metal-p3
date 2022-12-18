@@ -1,7 +1,6 @@
 @use '@angular/material' as mat;
-@import 'tailwindcss/base';
-@import 'tailwindcss/components';
-@import 'tailwindcss/utilities';
+@tailwind base;
+@tailwind utilities;
 @import 'theme';
 @import 'variables';
 
@@ -36,6 +35,15 @@ body {
 }
 
 .mat-column-duration {
-  max-width: $duration-width;
   width: $duration-width;
+}
+
+.snackbar-error {
+  --mdc-snackbar-container-color: red;
+  --mdc-snackbar-supporting-text-color: white;
+}
+
+.snackbar-info {
+  --mdc-snackbar-container-color: orange;
+  --mdc-snackbar-supporting-text-color: black;
 }

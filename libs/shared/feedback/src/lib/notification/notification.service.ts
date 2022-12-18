@@ -6,11 +6,11 @@ export class NotificationService {
   constructor(private snackBar: MatSnackBar) {}
 
   showError(message: string, action?: string | undefined) {
-    this.snackBar.open(message, action, { panelClass: ['bg-red-700', 'text-white'] });
+    this.snackBar.open(message, action, { panelClass: 'snackbar-error' });
   }
 
   showComplete(message: string, action?: string | undefined) {
-    this.snackBar.open(message, action, { duration: 2000, panelClass: 'bg-blue-300' });
+    this.snackBar.open(message, action, { duration: 2000, panelClass: 'snackbar-info' });
   }
 
   showProgress(message: string, action?: string | undefined): MatSnackBarRef<TextOnlySnackBar> {
@@ -18,6 +18,6 @@ export class NotificationService {
   }
 
   showInfo(message: string, action?: string | undefined) {
-    this.snackBar.open(message, action, { duration: 2000, panelClass: 'bg-blue-300' });
+    this.snackBar.open(message, action, { duration: 2000, panelClass: 'snackbar-info' });
   }
 }

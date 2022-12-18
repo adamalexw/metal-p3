@@ -3,8 +3,9 @@
 </ng-container>
 
 <ng-template #coverTemplate>
-  <div *ngIf="coverError">
-    <pre>{{ coverError }}</pre>
+  <div *ngIf="coverError" class="relative w-full" appCoverDnd [enableDnd]="enableDnd" (coverUrl)="coverUrl.emit($event)">
+    <img src="/assets/blank.png" [style.width.px]="width" [style.height.px]="height" alt="blank cover" />
+    <div class="absolute w-full top-12 text-center bg-red-700 text-white rounded-md">COVER ERROR</div>
   </div>
 
   <div *ngIf="cover && !coverError" appCoverDnd [enableDnd]="enableDnd" (coverUrl)="coverUrl.emit($event)" [style.width.px]="width" [style.height.px]="height">

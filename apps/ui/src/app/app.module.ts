@@ -1,4 +1,5 @@
 import { ErrorHandler, NgModule } from '@angular/core';
+import { MAT_FORM_FIELD_DEFAULT_OPTIONS } from '@angular/material/form-field';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
@@ -38,6 +39,7 @@ const config: SocketIoConfig = { url: environment.wsUrl, options: { transports: 
     { provide: BASE_PATH, useValue: environment.baseFolderLocation },
     { provide: TAKE, useValue: environment.take },
     { provide: ErrorHandler, useClass: ErrorsHandler },
+    { provide: MAT_FORM_FIELD_DEFAULT_OPTIONS, useValue: { appearance: 'fill', subscriptSizing: 'dynamic' } },
   ],
   bootstrap: [AppComponent],
 })

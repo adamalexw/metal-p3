@@ -51,6 +51,9 @@ export class TracksComponent implements OnChanges {
   @Input()
   tracks: Track[] = [];
 
+  @Input()
+  tracksError: string | null | undefined;
+
   @Output()
   transferTrack = new EventEmitter<number>();
 
@@ -105,7 +108,6 @@ export class TracksComponent implements OnChanges {
   viewLyrics(index: number, lyrics: string) {
     const ref = this.bottomSheet.open(LyricsComponent, {
       data: { lyrics },
-      panelClass: ['h-screen', 'pr-0'],
     });
 
     ref

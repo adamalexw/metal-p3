@@ -1,17 +1,16 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
-import { FormsModule, NonNullableFormBuilder, ReactiveFormsModule } from '@angular/forms';
+import { NonNullableFormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
-import { MatListModule } from '@angular/material/list';
 import { RouterModule } from '@angular/router';
 import { SearchRequest } from '@metal-p3/api-interfaces';
 
 @Component({
   standalone: true,
-  imports: [RouterModule, FormsModule, ReactiveFormsModule, MatListModule, MatFormFieldModule, MatCheckboxModule, MatIconModule, MatInputModule, MatButtonModule],
+  imports: [RouterModule, ReactiveFormsModule, MatFormFieldModule, MatCheckboxModule, MatIconModule, MatInputModule, MatButtonModule],
   selector: 'app-advanced-search-form',
   templateUrl: './advanced-search-form.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -23,16 +22,19 @@ export class AdvancedSearchFormComponent implements OnChanges {
   @Output()
   searchRequest = new EventEmitter<SearchRequest>();
 
-  form = this.fb.group({
-    folder: [undefined as string | undefined],
-    artist: [undefined as string | undefined],
-    album: [undefined as string | undefined],
-    year: [undefined as number | undefined],
-    genre: [undefined as string | undefined],
-    country: [undefined as string | undefined],
-    transferred: [undefined as boolean | undefined],
-    hasLyrics: [undefined as boolean | undefined],
-  });
+  form = this.fb.group(
+    {
+      folder: [undefined as string | undefined],
+      artist: [undefined as string | undefined],
+      album: [undefined as string | undefined],
+      year: [undefined as number | undefined],
+      genre: [undefined as string | undefined],
+      country: [undefined as string | undefined],
+      transferred: [undefined as boolean | undefined],
+      hasLyrics: [undefined as boolean | undefined],
+    },
+    { updateOn: 'submit' }
+  );
 
   constructor(private readonly fb: NonNullableFormBuilder) {}
 

@@ -6,7 +6,6 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
-import { MatListModule } from '@angular/material/list';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { RouterModule } from '@angular/router';
 import { AlbumDataAccessModule } from '@metal-p3/album/data-access';
@@ -28,7 +27,6 @@ import { AlbumToolbarComponent } from '../album-toolbar/album-toolbar.component'
     TracksToolbarComponent,
     TracksComponent,
     MatProgressBarModule,
-    MatListModule,
     MatFormFieldModule,
     MatCheckboxModule,
     MatIconModule,

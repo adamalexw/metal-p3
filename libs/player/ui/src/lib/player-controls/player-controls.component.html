@@ -1,4 +1,4 @@
-<div *ngIf="footerMode" class="absolute bottom-12 left-0 w-full">
+<div *ngIf="footerMode" class="absolute bottom-[42px] left-0 w-full">
   <ng-container *ngTemplateOutlet="durationTemplate"></ng-container>
 </div>
 
@@ -66,5 +66,7 @@
 </ng-template>
 
 <ng-template #durationTemplate>
-  <mat-slider class="w-full p-0 h-10" min="0" [max]="currentItem?.duration" step="1" [value]="elapsedTime" (input)="onSeek($event.value)" [disabled]="!currentItem"></mat-slider>
+  <mat-slider class="w-full m-0 z-10" min="0" [max]="currentItem?.duration" step="1" [disabled]="!currentItem">
+    <input matSliderThumb [value]="elapsedTime" (valueChange)="onSeek($event)" />
+  </mat-slider>
 </ng-template>

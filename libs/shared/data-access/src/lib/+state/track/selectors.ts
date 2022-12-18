@@ -5,6 +5,7 @@ import { maTrackAdapter, trackAdapter } from '../reducer';
 export const selectTrackCount = createSelector(selectAlbum, (album) => album && album.tracks && trackAdapter.getSelectors().selectTotal(album.tracks));
 export const selectTracksLoading = createSelector(selectAlbum, (album) => album?.tracksLoading || false);
 export const selectTracks = createSelector(selectAlbum, (album) => album && album.tracks && trackAdapter.getSelectors().selectAll(album.tracks));
+export const selectTracksError = createSelector(selectAlbum, (album) => album?.tracksError);
 export const selectTracksRequired = createSelector(selectTracks, selectTracksLoading, (tracks, loading) => (loading ? false : !tracks));
 export const selectTracksDuration = createSelector(selectTracks, (tracks) => tracks?.map((track) => track.duration || 0)?.reduce((accumulator, current) => (accumulator += current), 0) || 0);
 export const selectGettingMaTracks = createSelector(selectAlbum, (album) => album?.gettingMaTracks || false);

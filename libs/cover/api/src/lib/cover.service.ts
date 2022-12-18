@@ -22,11 +22,16 @@ export class CoverService {
       return this.getCoverFromImageFile(coverPath);
     }
 
-    const files = this.fileSystemService.getFiles(location);
+    try {
+      const files = this.fileSystemService.getFiles(location);
 
-    if (files.length) {
-      location = path.join(location, files[0]);
-      return this.getCoverFromAudioFile(location);
+      if (files.length) {
+        location = path.join(location, files[0]);
+
+        return this.getCoverFromAudioFile(location);
+      }
+    } catch (error) {
+      console.error(error);
     }
 
     return EMPTY;

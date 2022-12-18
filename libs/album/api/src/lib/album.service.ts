@@ -276,7 +276,13 @@ export class AlbumService {
 
   deleteAlbum(id: number): Observable<boolean> {
     return this.getAlbum(id).pipe(
-      tap((album) => this.fileSystemService.deleteFolder(album.fullPath)),
+      tap((album) => {
+        try {
+          this.fileSystemService.deleteFolder(album.fullPath);
+        } catch (error) {
+          Logger.error(error);
+        }
+      }),
       mergeMap(() => from(this.dbService.deleteAlbum(id))),
       map(() => true),
       catchError((error) => {

@@ -18,6 +18,7 @@ import { debounceTime, distinctUntilChanged, tap } from 'rxjs/operators';
   imports: [NgIf, FormsModule, ReactiveFormsModule, MatToolbarModule, RouterModule, MatInputModule, MatButtonModule, MatIconModule, MatMenuModule, MatProgressBarModule],
   selector: 'app-list-toolbar',
   templateUrl: './list-toolbar.component.html',
+  styleUrls: ['./list-toolbar.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ListToolbarComponent implements OnInit, OnChanges {

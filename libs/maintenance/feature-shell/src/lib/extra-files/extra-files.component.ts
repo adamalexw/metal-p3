@@ -6,7 +6,7 @@ import { FileSystemMaintenanceService } from '@metal-p3/maintenance/data-access'
 import { ExtraFilesComponent, ExtraFilesToolbarComponent } from '@metal-p3/maintenance/ui';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { BehaviorSubject } from 'rxjs';
-import { concatMapTo, tap } from 'rxjs/operators';
+import { concatMap, finalize, tap } from 'rxjs/operators';
 
 @UntilDestroy()
 @Component({
@@ -54,8 +54,12 @@ export class ExtraFilesShellComponent implements OnInit {
   onComplete() {
     this.service
       .extraFilesComplete()
-      .pipe(untilDestroyed(this), concatMapTo(this.service.cancelExtraFiles()))
-      .subscribe(() => this.running$$.next(false));
+      .pipe(
+        untilDestroyed(this),
+        concatMap(() => this.service.cancelExtraFiles()),
+        finalize(() => this.running$$.next(false))
+      )
+      .subscribe();
   }
 
   onStop() {
