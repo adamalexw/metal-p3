@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
 
 @Component({
   standalone: true,
@@ -9,7 +9,4 @@ import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from 
 export class AlbumHeaderComponent {
   @Input()
   folder: string | undefined;
-
-  @Output()
-  readonly closeAlbum = new EventEmitter<void>();
 }

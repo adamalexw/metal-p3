@@ -1,5 +1,5 @@
 import { AsyncPipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, EventEmitter, Output } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { AdvancedSearchFormComponent } from '@metal-p3/album/ui';
 import { SearchRequest } from '@metal-p3/api-interfaces';
 import { AlbumActions, selectAlbumsSearchRequest } from '@metal-p3/shared/data-access';
@@ -15,9 +15,6 @@ import { Store } from '@ngrx/store';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AdvancedSearchShellComponent {
-  @Output()
-  readonly closeAlbum = new EventEmitter<void>();
-
   request$ = this.store.select(selectAlbumsSearchRequest);
 
   constructor(private readonly store: Store) {}

@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { exec } from 'child_process';
 import { chmodSync, existsSync, lstatSync, readdirSync, renameSync, rmSync, statSync, unlinkSync } from 'fs';
 import { basename, dirname, extname, join } from 'path';
@@ -93,24 +93,28 @@ export class FileSystemService {
   }
 
   cleanEmptyFolders(folder: string) {
-    const isDir = this.isFolder(folder);
-    if (!isDir) {
-      return;
-    }
+    try {
+      const isDir = this.isFolder(folder);
+      if (!isDir) {
+        return;
+      }
 
-    let files = this.getFiles(folder);
-    if (files.length > 0) {
-      files.forEach((file) => {
-        const fullPath = join(folder, file);
-        this.cleanEmptyFolders(fullPath);
-      });
+      let files = this.getFiles(folder);
+      if (files.length > 0) {
+        files.forEach((file) => {
+          const fullPath = join(folder, file);
+          this.cleanEmptyFolders(fullPath);
+        });
 
-      files = this.getFiles(folder);
-    }
+        files = this.getFiles(folder);
+      }
 
-    if (files.length == 0) {
-      rmSync(folder);
-      return;
+      if (files.length == 0) {
+        rmSync(folder, { force: true });
+        return;
+      }
+    } catch (error) {
+      Logger.error(error);
     }
   }
 

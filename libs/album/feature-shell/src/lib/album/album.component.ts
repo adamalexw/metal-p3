@@ -1,5 +1,5 @@
 import { AsyncPipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, EventEmitter, OnInit, Output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { AlbumDataAccessModule, AlbumService } from '@metal-p3/album/data-access';
 import { AlbumComponent } from '@metal-p3/album/ui';
@@ -14,7 +14,6 @@ import {
   CoverActions,
   selectAlbum,
   selectAlbumSaving,
-  selectAlbumsLoaded,
   selectBandProps,
   selectCover,
   selectCoverLoading,
@@ -61,9 +60,6 @@ import { distinctUntilChanged, exhaustMap, filter, map, take, tap, withLatestFro
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AlbumShellComponent implements OnInit {
-  @Output()
-  readonly closeAlbum = new EventEmitter<void>();
-
   album$ = this.store.select(selectAlbum);
   albumSaving$ = this.store.select(selectAlbumSaving);
   saveError$ = this.store.select(selectSaveAlbumError);
@@ -122,20 +118,6 @@ export class AlbumShellComponent implements OnInit {
         filter(([routeId, selectedId]) => +routeId !== selectedId),
         tap(([routeId, _albumId]) => this.store.dispatch(AlbumActions.viewAlbum({ id: +routeId }))),
         take(1)
-      )
-      .subscribe();
-
-    // wait for albums list to load
-    // select the id from the url
-    // if the album doesn't exist in the list get it from the api
-    combineLatest([this.store.select(selectAlbumsLoaded), this.album$])
-      .pipe(
-        untilDestroyed(this),
-        filter(([loaded, album]) => loaded && !album),
-        withLatestFrom(this.store.select(selectSelectedAlbumId)),
-        map(([[_loaded, _album], id]) => id),
-        nonNullable(),
-        tap((id) => this.store.dispatch(AlbumActions.getAlbum({ id })))
       )
       .subscribe();
 

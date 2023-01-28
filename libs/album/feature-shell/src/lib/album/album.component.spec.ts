@@ -81,17 +81,6 @@ describe('AlbumShellComponent', () => {
     expect(dispatcher).toHaveBeenCalledWith(AlbumActions.viewAlbum({ id: routeId }));
   });
 
-  it('should dispatch AlbumActions.getAlbum action when selected album is not in the list', () => {
-    const id = 123;
-    selectAlbumsLoaded.setResult(true);
-    selectAlbum.setResult();
-    selectSelectedAlbumId.setResult(id);
-
-    store.refreshState();
-
-    expect(dispatcher).toBeCalledWith(AlbumActions.getAlbum({ id }));
-  });
-
   it('should dispatch TrackActions.getTracks action when tracks have not yet been loaded', () => {
     selectAlbum.setResult(album);
     selectTracksLoading.setResult(false);

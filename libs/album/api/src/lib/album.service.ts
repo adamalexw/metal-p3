@@ -23,7 +23,7 @@ export class AlbumService {
     @Inject('TAKE') private readonly take: number
   ) {
     if (basePath) {
-      this.addFileWatcher(basePath);
+      // this.addFileWatcher(basePath);
     }
   }
 

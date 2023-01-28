@@ -1,5 +1,5 @@
 import { ScrollingModule, ViewportRuler } from '@angular/cdk/scrolling';
-import { AsyncPipe, DOCUMENT, NgFor, NgIf } from '@angular/common';
+import { AsyncPipe, DOCUMENT, Location, NgFor, NgIf } from '@angular/common';
 import { ChangeDetectionStrategy, Component, EventEmitter, Inject, OnInit, Output } from '@angular/core';
 import { Router } from '@angular/router';
 import { AlbumService } from '@metal-p3/album/data-access';
@@ -78,6 +78,7 @@ export class ListComponent implements OnInit {
     private readonly notificationService: NotificationService,
     private readonly service: AlbumService,
     private readonly viewportRuler: ViewportRuler,
+    private readonly location: Location,
     @Inject(DOCUMENT) private readonly document: Document,
     @Inject(TAKE) private readonly take: number
   ) {}
@@ -168,6 +169,8 @@ export class ListComponent implements OnInit {
     this.fetchedPages.clear();
     this.store.dispatch(AlbumActions.cancelPreviousSearch({ request: { cancel: true } }));
     this.scrollIndexChange(0, request);
+
+    this.sideNavOpen$.pipe(take(1), filter(Boolean), delay(100)).subscribe(() => this.location.back());
   }
 
   onAlbumAdded(folders: string[]) {

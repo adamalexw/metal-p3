@@ -176,9 +176,6 @@ export class AlbumComponent implements OnChanges {
   @Output()
   readonly deleteAlbum = new EventEmitter<number>();
 
-  @Output()
-  readonly closeAlbum = new EventEmitter<void>();
-
   @HostBinding('class') class = 'block h-screen overflow-hidden';
 
   get albumUrl(): string | undefined {
