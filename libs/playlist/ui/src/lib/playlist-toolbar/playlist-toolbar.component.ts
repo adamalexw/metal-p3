@@ -2,6 +2,7 @@ import { NgFor, NgIf } from '@angular/common';
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
+import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatMenuModule } from '@angular/material/menu';
@@ -12,7 +13,7 @@ import { TimePipe } from '@metal-p3/track/util';
 
 @Component({
   standalone: true,
-  imports: [NgIf, NgFor, FormsModule, TimePipe, ConfirmDeleteDirective, MatToolbarModule, MatMenuModule, MatButtonModule, MatIconModule, MatInputModule],
+  imports: [NgIf, NgFor, FormsModule, TimePipe, ConfirmDeleteDirective, MatToolbarModule, MatMenuModule, MatButtonModule, MatIconModule, MatInputModule, MatFormFieldModule],
   selector: 'app-playlist-toolbar',
   templateUrl: './playlist-toolbar.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -1,7 +1,7 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
 import { API, ApplyLyrics, BASE_PATH, TAKE } from '@metal-p3/album/domain';
-import { AlbumDto, ALBUM_ADDED, MetalArchivesSearchResponse, RenameFolder, SearchRequest, TrackDto } from '@metal-p3/api-interfaces';
+import { ALBUM_ADDED, AlbumDto, MetalArchivesSearchResponse, RenameFolder, SearchRequest, TrackDto } from '@metal-p3/api-interfaces';
 import { removeNullValuesFromQueryParams } from '@metal-p3/shared/utils';
 import { Socket } from 'ngx-socket-io';
 import { Observable } from 'rxjs';

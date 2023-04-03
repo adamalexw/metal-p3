@@ -14,7 +14,10 @@
   </ng-container>
 
   <ng-template #createTemplate>
-    <input *ngIf="saving" matInput placeholder="playlist name" class="w-auto" required [(ngModel)]="playlistName" />
+    <mat-form-field *ngIf="saving">
+      <input matInput placeholder="playlist name" class="w-auto" required [(ngModel)]="playlistName" />
+    </mat-form-field>
+
     <button *ngIf="duration ?? 0 > 0" mat-icon-button [disabled]="saving && !playlistName" (click)="onCreate()"><mat-icon title="create">playlist_add</mat-icon></button>
   </ng-template>
 

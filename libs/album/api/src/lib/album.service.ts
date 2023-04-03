@@ -8,7 +8,7 @@ import * as chokidar from 'chokidar';
 import * as fs from 'fs';
 import * as NodeID3 from 'node-id3';
 import * as path from 'path';
-import { EMPTY, forkJoin, from, iif, Observable, of } from 'rxjs';
+import { EMPTY, Observable, forkJoin, from, iif, of } from 'rxjs';
 import { catchError, concatMap, filter, map, mergeMap, tap } from 'rxjs/operators';
 import { AlbumGateway } from './album-gateway.service';
 
@@ -23,7 +23,7 @@ export class AlbumService {
     @Inject('TAKE') private readonly take: number
   ) {
     if (basePath) {
-      // this.addFileWatcher(basePath);
+      this.addFileWatcher(basePath);
     }
   }
 

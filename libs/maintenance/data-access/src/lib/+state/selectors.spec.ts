@@ -1,4 +1,5 @@
 import { LyricsHistoryDto, UrlMatcher } from '@metal-p3/maintenance/domain';
+import { initialState } from './reducer';
 import { selectCheckingLyrics, selectGettingLyrics, selectGettingMetalArchivesMatcher, selectLyrics, selectMetalArchivesMatcher, selectMetalArchivesMatcherLoaded } from './selectors';
 
 it('selects all lyrics history entities', () => {
@@ -18,6 +19,7 @@ it('selects all lyrics history entities', () => {
   ];
 
   const result = selectLyrics.projector({
+    ...initialState,
     lyrics: {
       ids: [1, 2],
       entities: {
@@ -32,6 +34,7 @@ it('selects all lyrics history entities', () => {
 
 it('selects gettingLyrics', () => {
   const result = selectGettingLyrics.projector({
+    ...initialState,
     gettingLyrics: true,
   });
 
@@ -40,6 +43,7 @@ it('selects gettingLyrics', () => {
 
 it('selects checkingLyrics', () => {
   const result = selectCheckingLyrics.projector({
+    ...initialState,
     checkingLyrics: true,
   });
 
@@ -63,6 +67,7 @@ it('selects all metal archives matcher entities', () => {
   ];
 
   const result = selectMetalArchivesMatcher.projector({
+    ...initialState,
     metalArchivesMatcher: {
       ids: [1, 2],
       entities: {
@@ -77,6 +82,7 @@ it('selects all metal archives matcher entities', () => {
 
 it('selects gettingMetalArchivesMatcher', () => {
   const result = selectGettingMetalArchivesMatcher.projector({
+    ...initialState,
     gettingMetalArchivesMatcher: true,
   });
 
@@ -85,6 +91,7 @@ it('selects gettingMetalArchivesMatcher', () => {
 
 it('selects metalArchivesMatcherLoaded', () => {
   const result = selectMetalArchivesMatcherLoaded.projector({
+    ...initialState,
     metalArchivesMatcherLoaded: true,
   });
 

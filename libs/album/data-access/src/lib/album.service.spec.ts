@@ -1,6 +1,6 @@
-import { API, BASE_PATH } from '@metal-p3/album/domain';
+import { API, BASE_PATH, TAKE } from '@metal-p3/album/domain';
 import { SearchRequest } from '@metal-p3/api-interfaces';
-import { createHttpFactory, HttpMethod, mockProvider, SpectatorHttp } from '@ngneat/spectator/jest';
+import { HttpMethod, SpectatorHttp, createHttpFactory, mockProvider } from '@ngneat/spectator/jest';
 import { Socket } from 'ngx-socket-io';
 import { AlbumService } from './album.service';
 
@@ -8,7 +8,7 @@ describe('AlbumService', () => {
   let spectator: SpectatorHttp<AlbumService>;
   const createService = createHttpFactory({
     service: AlbumService,
-    providers: [{ provide: API, useValue: 'api/' }, { provide: BASE_PATH, useValue: 'd:/mp3' }, mockProvider(Socket)],
+    providers: [{ provide: API, useValue: 'api/' }, { provide: BASE_PATH, useValue: 'd:/mp3' }, { provide: TAKE, useValue: 10 }, mockProvider(Socket)],
   });
 
   beforeEach(() => (spectator = createService()));

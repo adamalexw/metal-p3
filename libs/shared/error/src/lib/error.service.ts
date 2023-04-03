@@ -15,6 +15,10 @@ export class ErrorService {
     if (!navigator.onLine) {
       return 'No Internet Connection';
     } else if (error.error) {
+      if (error.error.errorMessage) {
+        return error.error.errorMessage;
+      }
+
       return JSON.stringify(error.error);
     } else {
       return error.message;
