@@ -1,11 +1,12 @@
 {
+  "name": "shared-feedback",
   "$schema": "..\\..\\..\\node_modules\\nx\\schemas\\project-schema.json",
   "projectType": "library",
   "sourceRoot": "libs/shared/feedback/src",
   "prefix": "app",
   "targets": {
     "test": {
-      "executor": "@nrwl/jest:jest",
+      "executor": "@nx/jest:jest",
       "outputs": ["{workspaceRoot}/coverage/libs/shared/feedback"],
       "options": {
         "jestConfig": "libs/shared/feedback/jest.config.ts",
@@ -13,12 +14,11 @@
       }
     },
     "lint": {
-      "executor": "@nrwl/linter:eslint",
+      "executor": "@nx/linter:eslint",
       "options": {
         "lintFilePatterns": ["libs/shared/feedback/src/**/*.ts", "libs/shared/feedback/src/**/*.html"]
       }
     }
   },
-  "tags": ["scope:shared", "type:util"],
-  "name": "shared-feedback"
+  "tags": ["scope:shared", "type:util"]
 }

@@ -1,11 +1,12 @@
 {
+  "name": "cover-ui",
   "$schema": "..\\..\\..\\node_modules\\nx\\schemas\\project-schema.json",
   "projectType": "library",
   "sourceRoot": "libs/cover/ui/src",
   "prefix": "app",
   "targets": {
     "test": {
-      "executor": "@nrwl/jest:jest",
+      "executor": "@nx/jest:jest",
       "outputs": ["{workspaceRoot}/coverage/libs/cover/ui"],
       "options": {
         "jestConfig": "libs/cover/ui/jest.config.ts",
@@ -13,12 +14,11 @@
       }
     },
     "lint": {
-      "executor": "@nrwl/linter:eslint",
+      "executor": "@nx/linter:eslint",
       "options": {
         "lintFilePatterns": ["libs/cover/ui/src/**/*.ts", "libs/cover/ui/src/**/*.html"]
       }
     }
   },
-  "tags": ["scope:cover", "type:ui"],
-  "name": "cover-ui"
+  "tags": ["scope:cover", "type:ui"]
 }

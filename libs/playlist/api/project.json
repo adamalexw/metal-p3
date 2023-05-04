@@ -1,16 +1,17 @@
 {
+  "name": "playlist-api",
   "$schema": "..\\..\\..\\node_modules\\nx\\schemas\\project-schema.json",
   "sourceRoot": "libs/playlist/api/src",
   "projectType": "library",
   "targets": {
     "lint": {
-      "executor": "@nrwl/linter:eslint",
+      "executor": "@nx/linter:eslint",
       "options": {
         "lintFilePatterns": ["libs/playlist/api/**/*.ts"]
       }
     },
     "test": {
-      "executor": "@nrwl/jest:jest",
+      "executor": "@nx/jest:jest",
       "outputs": ["{workspaceRoot}/coverage/libs/playlist/api"],
       "options": {
         "jestConfig": "libs/playlist/api/jest.config.ts",
@@ -18,6 +19,5 @@
       }
     }
   },
-  "tags": ["scope:playlist", "type:api"],
-  "name": "playlist-api"
+  "tags": ["scope:playlist", "type:api"]
 }

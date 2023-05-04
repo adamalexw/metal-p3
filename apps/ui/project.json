@@ -1,4 +1,5 @@
 {
+  "name": "ui",
   "$schema": "..\\..\\node_modules\\nx\\schemas\\project-schema.json",
   "projectType": "application",
   "sourceRoot": "apps/ui/src",
@@ -74,13 +75,13 @@
       }
     },
     "lint": {
-      "executor": "@nrwl/linter:eslint",
+      "executor": "@nx/linter:eslint",
       "options": {
         "lintFilePatterns": ["apps/ui/src/**/*.ts", "apps/ui/src/**/*.html"]
       }
     },
     "test": {
-      "executor": "@nrwl/jest:jest",
+      "executor": "@nx/jest:jest",
       "outputs": ["{workspaceRoot}/coverage/apps/ui"],
       "options": {
         "jestConfig": "apps/ui/jest.config.ts",
@@ -88,6 +89,5 @@
       }
     }
   },
-  "tags": ["scope:track", "type:ui"],
-  "name": "ui"
+  "tags": ["scope:track", "type:ui"]
 }

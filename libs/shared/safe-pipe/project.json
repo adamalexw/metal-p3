@@ -1,10 +1,12 @@
 {
+  "name": "shared-safe-pipe",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
   "projectType": "library",
   "sourceRoot": "libs/shared/safe-pipe/src",
   "prefix": "metal-p3",
   "targets": {
     "test": {
-      "executor": "@nrwl/jest:jest",
+      "executor": "@nx/jest:jest",
       "outputs": ["{workspaceRoot}/coverage/libs/shared/safe-pipe"],
       "options": {
         "jestConfig": "libs/shared/safe-pipe/jest.config.ts",
@@ -12,12 +14,11 @@
       }
     },
     "lint": {
-      "executor": "@nrwl/linter:eslint",
+      "executor": "@nx/linter:eslint",
       "options": {
         "lintFilePatterns": ["libs/shared/safe-pipe/**/*.ts", "libs/shared/safe-pipe/**/*.html"]
       }
     }
   },
-  "tags": [],
-  "name": "shared-safe-pipe"
+  "tags": []
 }

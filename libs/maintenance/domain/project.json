@@ -1,11 +1,12 @@
 {
+  "name": "maintenance-domain",
   "$schema": "..\\..\\..\\node_modules\\nx\\schemas\\project-schema.json",
   "projectType": "library",
   "sourceRoot": "libs/maintenance/domain/src",
   "prefix": "app",
   "targets": {
     "test": {
-      "executor": "@nrwl/jest:jest",
+      "executor": "@nx/jest:jest",
       "outputs": ["{workspaceRoot}/coverage/libs/maintenance/domain"],
       "options": {
         "jestConfig": "libs/maintenance/domain/jest.config.ts",
@@ -13,12 +14,11 @@
       }
     },
     "lint": {
-      "executor": "@nrwl/linter:eslint",
+      "executor": "@nx/linter:eslint",
       "options": {
         "lintFilePatterns": ["libs/maintenance/domain/src/**/*.ts", "libs/maintenance/domain/src/**/*.html"]
       }
     }
   },
-  "tags": ["scope:maintenance", "type:domain"],
-  "name": "maintenance-domain"
+  "tags": ["scope:maintenance", "type:domain"]
 }

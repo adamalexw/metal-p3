@@ -1,17 +1,18 @@
 {
+  "name": "album-feature-shell",
   "$schema": "..\\..\\..\\node_modules\\nx\\schemas\\project-schema.json",
   "projectType": "library",
   "sourceRoot": "libs/album/feature-shell/src",
   "prefix": "app",
   "targets": {
     "lint": {
-      "executor": "@nrwl/linter:eslint",
+      "executor": "@nx/linter:eslint",
       "options": {
         "lintFilePatterns": ["libs/album/feature-shell/src/**/*.ts", "libs/album/feature-shell/src/**/*.html"]
       }
     },
     "test": {
-      "executor": "@nrwl/jest:jest",
+      "executor": "@nx/jest:jest",
       "outputs": ["{workspaceRoot}/coverage/libs/album/feature-shell"],
       "options": {
         "jestConfig": "libs/album/feature-shell/jest.config.ts",
@@ -19,6 +20,5 @@
       }
     }
   },
-  "tags": ["scope:album", "type:feature"],
-  "name": "album-feature-shell"
+  "tags": ["scope:album", "type:feature"]
 }

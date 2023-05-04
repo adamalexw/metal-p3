@@ -1,11 +1,12 @@
 {
+  "name": "shared-navigation",
   "$schema": "..\\..\\..\\node_modules\\nx\\schemas\\project-schema.json",
   "projectType": "library",
   "sourceRoot": "libs/shared/navigation/src",
   "prefix": "app",
   "targets": {
     "test": {
-      "executor": "@nrwl/jest:jest",
+      "executor": "@nx/jest:jest",
       "outputs": ["{workspaceRoot}/coverage/libs/shared/navigation"],
       "options": {
         "jestConfig": "libs/shared/navigation/jest.config.ts",
@@ -13,12 +14,11 @@
       }
     },
     "lint": {
-      "executor": "@nrwl/linter:eslint",
+      "executor": "@nx/linter:eslint",
       "options": {
         "lintFilePatterns": ["libs/shared/navigation/src/**/*.ts", "libs/shared/navigation/src/**/*.html"]
       }
     }
   },
-  "tags": ["scope:shared", "type:ui"],
-  "name": "shared-navigation"
+  "tags": ["scope:shared", "type:ui"]
 }

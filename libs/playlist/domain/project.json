@@ -1,11 +1,12 @@
 {
+  "name": "playlist-domain",
   "$schema": "..\\..\\..\\node_modules\\nx\\schemas\\project-schema.json",
   "projectType": "library",
   "sourceRoot": "libs/playlist/domain/src",
   "prefix": "app",
   "targets": {
     "test": {
-      "executor": "@nrwl/jest:jest",
+      "executor": "@nx/jest:jest",
       "outputs": ["{workspaceRoot}/coverage/libs/playlist/domain"],
       "options": {
         "jestConfig": "libs/playlist/domain/jest.config.ts",
@@ -13,12 +14,11 @@
       }
     },
     "lint": {
-      "executor": "@nrwl/linter:eslint",
+      "executor": "@nx/linter:eslint",
       "options": {
         "lintFilePatterns": ["libs/playlist/domain/src/**/*.ts", "libs/playlist/domain/src/**/*.html"]
       }
     }
   },
-  "tags": [],
-  "name": "playlist-domain"
+  "tags": []
 }

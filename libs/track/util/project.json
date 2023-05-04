@@ -1,11 +1,12 @@
 {
+  "name": "track-util",
   "$schema": "..\\..\\..\\node_modules\\nx\\schemas\\project-schema.json",
   "projectType": "library",
   "sourceRoot": "libs/track/util/src",
   "prefix": "app",
   "targets": {
     "test": {
-      "executor": "@nrwl/jest:jest",
+      "executor": "@nx/jest:jest",
       "outputs": ["{workspaceRoot}/coverage/libs/track/util"],
       "options": {
         "jestConfig": "libs/track/util/jest.config.ts",
@@ -13,12 +14,11 @@
       }
     },
     "lint": {
-      "executor": "@nrwl/linter:eslint",
+      "executor": "@nx/linter:eslint",
       "options": {
         "lintFilePatterns": ["libs/track/util/src/**/*.ts", "libs/track/util/src/**/*.html"]
       }
     }
   },
-  "tags": ["scope:track", "type:util"],
-  "name": "track-util"
+  "tags": ["scope:track", "type:util"]
 }

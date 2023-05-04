@@ -1,17 +1,18 @@
 {
+  "name": "album-domain",
   "$schema": "..\\..\\..\\node_modules\\nx\\schemas\\project-schema.json",
   "projectType": "library",
   "sourceRoot": "libs/album/domain/src",
   "prefix": "app",
   "targets": {
     "lint": {
-      "executor": "@nrwl/linter:eslint",
+      "executor": "@nx/linter:eslint",
       "options": {
         "lintFilePatterns": ["libs/album/domain/src/**/*.ts", "libs/album/domain/src/**/*.html"]
       }
     },
     "test": {
-      "executor": "@nrwl/jest:jest",
+      "executor": "@nx/jest:jest",
       "outputs": ["{workspaceRoot}/coverage/libs/album/domain"],
       "options": {
         "jestConfig": "libs/album/domain/jest.config.ts",
@@ -19,6 +20,5 @@
       }
     }
   },
-  "tags": ["scope:album", "tags:domain"],
-  "name": "album-domain"
+  "tags": ["scope:album", "tags:domain"]
 }

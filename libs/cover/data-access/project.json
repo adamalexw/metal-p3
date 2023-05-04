@@ -1,11 +1,12 @@
 {
+  "name": "cover-data-access",
   "$schema": "..\\..\\..\\node_modules\\nx\\schemas\\project-schema.json",
   "projectType": "library",
   "sourceRoot": "libs/cover/data-access/src",
   "prefix": "app",
   "targets": {
     "test": {
-      "executor": "@nrwl/jest:jest",
+      "executor": "@nx/jest:jest",
       "outputs": ["{workspaceRoot}/coverage/libs/cover/data-access"],
       "options": {
         "jestConfig": "libs/cover/data-access/jest.config.ts",
@@ -13,12 +14,11 @@
       }
     },
     "lint": {
-      "executor": "@nrwl/linter:eslint",
+      "executor": "@nx/linter:eslint",
       "options": {
         "lintFilePatterns": ["libs/cover/data-access/src/**/*.ts", "libs/cover/data-access/src/**/*.html"]
       }
     }
   },
-  "tags": ["scope:cover", "type:data-access"],
-  "name": "cover-data-access"
+  "tags": ["scope:cover", "type:data-access"]
 }

@@ -1,11 +1,12 @@
 {
+  "name": "playlist-data-access",
   "$schema": "..\\..\\..\\node_modules\\nx\\schemas\\project-schema.json",
   "projectType": "library",
   "sourceRoot": "libs/playlist/data-access/src",
   "prefix": "app",
   "targets": {
     "test": {
-      "executor": "@nrwl/jest:jest",
+      "executor": "@nx/jest:jest",
       "outputs": ["{workspaceRoot}/coverage/libs/playlist/data-access"],
       "options": {
         "jestConfig": "libs/playlist/data-access/jest.config.ts",
@@ -13,12 +14,11 @@
       }
     },
     "lint": {
-      "executor": "@nrwl/linter:eslint",
+      "executor": "@nx/linter:eslint",
       "options": {
         "lintFilePatterns": ["libs/playlist/data-access/src/**/*.ts", "libs/playlist/data-access/src/**/*.html"]
       }
     }
   },
-  "tags": ["scope:playlist", "type:data-access"],
-  "name": "playlist-data-access"
+  "tags": ["scope:playlist", "type:data-access"]
 }

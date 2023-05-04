@@ -1,11 +1,12 @@
 {
+  "name": "shared-data-access",
   "$schema": "..\\..\\..\\node_modules\\nx\\schemas\\project-schema.json",
   "projectType": "library",
   "sourceRoot": "libs/shared/data-access/src",
   "prefix": "app",
   "targets": {
     "test": {
-      "executor": "@nrwl/jest:jest",
+      "executor": "@nx/jest:jest",
       "outputs": ["{workspaceRoot}/coverage/libs/shared/data-access"],
       "options": {
         "jestConfig": "libs/shared/data-access/jest.config.ts",
@@ -13,12 +14,11 @@
       }
     },
     "lint": {
-      "executor": "@nrwl/linter:eslint",
+      "executor": "@nx/linter:eslint",
       "options": {
         "lintFilePatterns": ["libs/shared/data-access/src/**/*.ts", "libs/shared/data-access/src/**/*.html"]
       }
     }
   },
-  "tags": ["scope:shared", "type:data-access"],
-  "name": "shared-data-access"
+  "tags": ["scope:shared", "type:data-access"]
 }

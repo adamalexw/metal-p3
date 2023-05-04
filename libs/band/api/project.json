@@ -1,16 +1,17 @@
 {
+  "name": "band-api",
   "$schema": "..\\..\\..\\node_modules\\nx\\schemas\\project-schema.json",
   "sourceRoot": "libs/band/api/src",
   "projectType": "library",
   "targets": {
     "lint": {
-      "executor": "@nrwl/linter:eslint",
+      "executor": "@nx/linter:eslint",
       "options": {
         "lintFilePatterns": ["libs/band/api/**/*.ts"]
       }
     },
     "test": {
-      "executor": "@nrwl/jest:jest",
+      "executor": "@nx/jest:jest",
       "outputs": ["{workspaceRoot}/coverage/libs/band/api"],
       "options": {
         "jestConfig": "libs/band/api/jest.config.ts",
@@ -18,6 +19,5 @@
       }
     }
   },
-  "tags": [],
-  "name": "band-api"
+  "tags": []
 }

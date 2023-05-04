@@ -1,17 +1,18 @@
 {
+  "name": "album-data-access",
   "$schema": "..\\..\\..\\node_modules\\nx\\schemas\\project-schema.json",
   "projectType": "library",
   "sourceRoot": "libs/album/data-access/src",
   "prefix": "app",
   "targets": {
     "lint": {
-      "executor": "@nrwl/linter:eslint",
+      "executor": "@nx/linter:eslint",
       "options": {
         "lintFilePatterns": ["libs/album/data-access/src/**/*.ts", "libs/album/data-access/src/**/*.html"]
       }
     },
     "test": {
-      "executor": "@nrwl/jest:jest",
+      "executor": "@nx/jest:jest",
       "outputs": ["{workspaceRoot}/coverage/libs/album/data-access"],
       "options": {
         "jestConfig": "libs/album/data-access/jest.config.ts",
@@ -19,6 +20,5 @@
       }
     }
   },
-  "tags": ["scope:album", "type:data-access"],
-  "name": "album-data-access"
+  "tags": ["scope:album", "type:data-access"]
 }

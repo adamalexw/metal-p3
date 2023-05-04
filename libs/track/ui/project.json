@@ -1,11 +1,12 @@
 {
+  "name": "track-ui",
   "$schema": "..\\..\\..\\node_modules\\nx\\schemas\\project-schema.json",
   "projectType": "library",
   "sourceRoot": "libs/track/ui/src",
   "prefix": "app",
   "targets": {
     "test": {
-      "executor": "@nrwl/jest:jest",
+      "executor": "@nx/jest:jest",
       "outputs": ["{workspaceRoot}/coverage/libs/track/ui"],
       "options": {
         "jestConfig": "libs/track/ui/jest.config.ts",
@@ -13,12 +14,11 @@
       }
     },
     "lint": {
-      "executor": "@nrwl/linter:eslint",
+      "executor": "@nx/linter:eslint",
       "options": {
         "lintFilePatterns": ["libs/track/ui/src/**/*.ts", "libs/track/ui/src/**/*.html"]
       }
     }
   },
-  "tags": ["scope:track", "type:ui"],
-  "name": "track-ui"
+  "tags": ["scope:track", "type:ui"]
 }

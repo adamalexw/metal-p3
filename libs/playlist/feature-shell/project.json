@@ -1,11 +1,12 @@
 {
+  "name": "playlist-feature-shell",
   "$schema": "..\\..\\..\\node_modules\\nx\\schemas\\project-schema.json",
   "projectType": "library",
   "sourceRoot": "libs/playlist/feature-shell/src",
   "prefix": "app",
   "targets": {
     "test": {
-      "executor": "@nrwl/jest:jest",
+      "executor": "@nx/jest:jest",
       "outputs": ["{workspaceRoot}/coverage/libs/playlist/feature-shell"],
       "options": {
         "jestConfig": "libs/playlist/feature-shell/jest.config.ts",
@@ -13,12 +14,11 @@
       }
     },
     "lint": {
-      "executor": "@nrwl/linter:eslint",
+      "executor": "@nx/linter:eslint",
       "options": {
         "lintFilePatterns": ["libs/playlist/feature-shell/src/**/*.ts", "libs/playlist/feature-shell/src/**/*.html"]
       }
     }
   },
-  "tags": ["scope:playlist", "type:feature"],
-  "name": "playlist-feature-shell"
+  "tags": ["scope:playlist", "type:feature"]
 }

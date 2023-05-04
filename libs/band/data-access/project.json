@@ -1,11 +1,12 @@
 {
+  "name": "band-data-access",
   "$schema": "..\\..\\..\\node_modules\\nx\\schemas\\project-schema.json",
   "projectType": "library",
   "sourceRoot": "libs/band/data-access/src",
   "prefix": "app",
   "targets": {
     "test": {
-      "executor": "@nrwl/jest:jest",
+      "executor": "@nx/jest:jest",
       "outputs": ["{workspaceRoot}/coverage/libs/band/data-access"],
       "options": {
         "jestConfig": "libs/band/data-access/jest.config.ts",
@@ -13,12 +14,11 @@
       }
     },
     "lint": {
-      "executor": "@nrwl/linter:eslint",
+      "executor": "@nx/linter:eslint",
       "options": {
         "lintFilePatterns": ["libs/band/data-access/src/**/*.ts", "libs/band/data-access/src/**/*.html"]
       }
     }
   },
-  "tags": ["scope:band", "type:data-access"],
-  "name": "band-data-access"
+  "tags": ["scope:band", "type:data-access"]
 }

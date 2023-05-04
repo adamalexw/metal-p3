@@ -1,16 +1,17 @@
 {
+  "name": "shared-database",
   "$schema": "..\\..\\..\\node_modules\\nx\\schemas\\project-schema.json",
   "sourceRoot": "libs/shared/database/src",
   "projectType": "library",
   "targets": {
     "lint": {
-      "executor": "@nrwl/linter:eslint",
+      "executor": "@nx/linter:eslint",
       "options": {
         "lintFilePatterns": ["libs/shared/database/**/*.ts"]
       }
     },
     "test": {
-      "executor": "@nrwl/jest:jest",
+      "executor": "@nx/jest:jest",
       "outputs": ["{workspaceRoot}/coverage/libs/shared/database"],
       "options": {
         "jestConfig": "libs/shared/database/jest.config.ts",
@@ -18,6 +19,5 @@
       }
     }
   },
-  "tags": ["scope:shared", "type:api"],
-  "name": "shared-database"
+  "tags": ["scope:shared", "type:api"]
 }

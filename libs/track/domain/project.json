@@ -1,11 +1,12 @@
 {
+  "name": "track-domain",
   "$schema": "..\\..\\..\\node_modules\\nx\\schemas\\project-schema.json",
   "projectType": "library",
   "sourceRoot": "libs/track/domain/src",
   "prefix": "app",
   "targets": {
     "test": {
-      "executor": "@nrwl/jest:jest",
+      "executor": "@nx/jest:jest",
       "outputs": ["{workspaceRoot}/coverage/libs/track/domain"],
       "options": {
         "jestConfig": "libs/track/domain/jest.config.ts",
@@ -13,12 +14,11 @@
       }
     },
     "lint": {
-      "executor": "@nrwl/linter:eslint",
+      "executor": "@nx/linter:eslint",
       "options": {
         "lintFilePatterns": ["libs/track/domain/src/**/*.ts", "libs/track/domain/src/**/*.html"]
       }
     }
   },
-  "tags": [],
-  "name": "track-domain"
+  "tags": []
 }
