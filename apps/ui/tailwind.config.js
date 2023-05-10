@@ -4,15 +4,8 @@ module.exports = {
   mode: 'jit',
   important: true,
   content: {
-      content: [
-          './apps/ui/**/*.{html,ts}',
-          './libs/**/*.{html,ts}',
-      ],
-      safelist: [
-        'bg-red-700',
-        'bg-blue-300',
-        'text-white'
-      ]
+    content: ['./apps/ui/**/*.{html,ts}', './libs/**/*.{html,ts}'],
+    safelist: ['bg-red-700', 'bg-blue-300', 'text-white'],
   },
   theme: {
     colors: {
@@ -23,10 +16,7 @@ module.exports = {
       white: colors.white,
       gray: colors.slate,
       blue: colors.blue,
-      red: colors.red
-    }
+      red: colors.red,
+    },
   },
-  plugins: [
-    require('@tailwindcss/line-clamp'),
-  ],
-}
+};
