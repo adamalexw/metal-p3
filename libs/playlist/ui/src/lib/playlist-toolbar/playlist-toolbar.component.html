@@ -1,13 +1,15 @@
 <mat-toolbar-row class="mat-app-background">
-  <ng-container>
-    <button mat-icon-button [matMenuTriggerFor]="menu" (click)="onLoadPlaylists()"><mat-icon title="load">queue_music</mat-icon></button>
-    <mat-menu #menu="matMenu" yPosition="above">
-      <button *ngFor="let playlist of playlists" mat-menu-item (click)="loadPlaylist.emit(playlist.id)">{{ playlist.name }}</button>
-    </mat-menu>
-  </ng-container>
+  <button mat-icon-button [matMenuTriggerFor]="menu" (click)="onLoadPlaylists()">
+    <mat-icon title="load">queue_music</mat-icon>
+  </button>
+  <mat-menu #menu="matMenu" yPosition="above">
+    <button *ngFor="let playlist of playlists" mat-menu-item (click)="loadPlaylist.emit(playlist.id)">{{ playlist.name }}</button>
+  </mat-menu>
 
   <ng-container *ngIf="activePlaylist; else createTemplate">
-    <input matInput placeholder="playlist name" class="w-auto" required [(ngModel)]="playlistName" />
+    <mat-form-field>
+      <input matInput placeholder="playlist name" class="w-auto" required [(ngModel)]="playlistName" />
+    </mat-form-field>
     <button mat-icon-button (click)="updatePlaylist.emit(playlistName || '')">
       <mat-icon title="save">save</mat-icon>
     </button>
@@ -18,7 +20,9 @@
       <input matInput placeholder="playlist name" class="w-auto" required [(ngModel)]="playlistName" />
     </mat-form-field>
 
-    <button *ngIf="duration ?? 0 > 0" mat-icon-button [disabled]="saving && !playlistName" (click)="onCreate()"><mat-icon title="create">playlist_add</mat-icon></button>
+    <button *ngIf="duration ?? 0 > 0" mat-icon-button [disabled]="saving && !playlistName" (click)="onCreate()">
+      <mat-icon title="create">playlist_add</mat-icon>
+    </button>
   </ng-template>
 
   <button *ngIf="playlistSize ?? 0 > 1" mat-icon-button (click)="shuffle.emit()">

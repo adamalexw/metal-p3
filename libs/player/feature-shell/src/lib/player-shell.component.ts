@@ -3,7 +3,6 @@ import { ChangeDetectionStrategy, Component, ElementRef, OnInit, ViewChild } fro
 import { CoverComponent } from '@metal-p3/cover/ui';
 import {
   PlayerActions,
-  PlayerDataAccessModule,
   selectActiveItemCover,
   selectActivePlaylistItem,
   selectFirstItemPlaying,
@@ -21,13 +20,13 @@ import { nonNullable } from '@metal-p3/shared/utils';
 import { TrackService } from '@metal-p3/track/data-access';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { Store } from '@ngrx/store';
-import { fromEvent, iif, Observable, of } from 'rxjs';
+import { Observable, fromEvent, iif, of } from 'rxjs';
 import { concatMap, distinctUntilKeyChanged, filter, map, shareReplay, take, tap, withLatestFrom } from 'rxjs/operators';
 
 @UntilDestroy()
 @Component({
   standalone: true,
-  imports: [NgIf, AsyncPipe, PlayerDataAccessModule, CoverComponent, PlayerControlsComponent, PlaylistShellComponent, PlaylistComponent],
+  imports: [NgIf, AsyncPipe, CoverComponent, PlayerControlsComponent, PlaylistShellComponent, PlaylistComponent],
   selector: 'app-player',
   templateUrl: './player-shell.component.html',
   styleUrls: ['./player-shell.component.scss'],

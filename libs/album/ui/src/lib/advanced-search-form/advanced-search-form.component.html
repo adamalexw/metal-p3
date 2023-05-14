@@ -1,4 +1,4 @@
-<form [formGroup]="form" autocomplete="off" class="w-full p-4 flex flex-col gap-3" (ngSubmit)="searchRequest.emit(form.getRawValue())">
+<form [formGroup]="form" autocomplete="off" class="w-full p-4 flex flex-col gap-3" (ngSubmit)="onSearch()">
   <mat-form-field class="w-full">
     <mat-label>Folder</mat-label>
     <input matInput formControlName="folder" />

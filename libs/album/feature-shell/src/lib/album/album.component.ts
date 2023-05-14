@@ -5,13 +5,14 @@ import { AlbumDataAccessModule, AlbumService } from '@metal-p3/album/data-access
 import { AlbumComponent } from '@metal-p3/album/ui';
 import { MetalArchivesAlbumTrack, TrackBase } from '@metal-p3/api-interfaces';
 import { CoverService } from '@metal-p3/cover/data-access';
-import { MaintenanceActions, MaintenanceDataAccessModule } from '@metal-p3/maintenance/data-access';
-import { PlayerDataAccessModule, PlayerService } from '@metal-p3/player/data-access';
+import { MaintenanceActions } from '@metal-p3/maintenance/data-access';
+import { PlayerService } from '@metal-p3/player/data-access';
 import {
   AlbumActions,
   AlbumWithoutTracks,
   BandActions,
   CoverActions,
+  TrackActions,
   selectAlbum,
   selectAlbumSaving,
   selectBandProps,
@@ -31,16 +32,14 @@ import {
   selectSelectedAlbumId,
   selectTrackRenaming,
   selectTrackRenamingProgress,
-  selectTracks,
   selectTrackSavingProgress,
+  selectTrackTransferring,
+  selectTrackTransferringProgress,
+  selectTracks,
   selectTracksDuration,
   selectTracksError,
   selectTracksLoading,
   selectTracksRequired,
-  selectTrackTransferring,
-  selectTrackTransferringProgress,
-  SharedDataAccessModule,
-  TrackActions,
 } from '@metal-p3/shared/data-access';
 import { NotificationService } from '@metal-p3/shared/feedback';
 import { nonNullable } from '@metal-p3/shared/utils';
@@ -48,13 +47,13 @@ import { Track } from '@metal-p3/track/domain';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { Update } from '@ngrx/entity';
 import { Store } from '@ngrx/store';
-import { combineLatest, Observable, of } from 'rxjs';
+import { Observable, combineLatest, of } from 'rxjs';
 import { distinctUntilChanged, exhaustMap, filter, map, take, tap, withLatestFrom } from 'rxjs/operators';
 
 @UntilDestroy()
 @Component({
   standalone: true,
-  imports: [AsyncPipe, RouterModule, AlbumDataAccessModule, AlbumComponent, SharedDataAccessModule, PlayerDataAccessModule, MaintenanceDataAccessModule],
+  imports: [AsyncPipe, RouterModule, AlbumDataAccessModule, AlbumComponent],
   selector: 'app-album-shell',
   templateUrl: './album.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,

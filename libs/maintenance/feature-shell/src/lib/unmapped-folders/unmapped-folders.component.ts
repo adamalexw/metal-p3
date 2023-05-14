@@ -2,7 +2,7 @@ import { AsyncPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, Inject } from '@angular/core';
 import { AlbumService } from '@metal-p3/album/data-access';
 import { BASE_PATH } from '@metal-p3/album/domain';
-import { FileSystemMaintenanceService, MaintenanceDataAccessModule } from '@metal-p3/maintenance/data-access';
+import { FileSystemMaintenanceService } from '@metal-p3/maintenance/data-access';
 import { UnmappedFoldersComponent } from '@metal-p3/maintenance/ui';
 import { AlbumActions } from '@metal-p3/shared/data-access';
 import { Store } from '@ngrx/store';
@@ -10,7 +10,7 @@ import { shareReplay } from 'rxjs/operators';
 
 @Component({
   standalone: true,
-  imports: [AsyncPipe, UnmappedFoldersComponent, MaintenanceDataAccessModule],
+  imports: [AsyncPipe, UnmappedFoldersComponent],
   selector: 'app-unmapped-folders-shell',
   templateUrl: './unmapped-folders.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,

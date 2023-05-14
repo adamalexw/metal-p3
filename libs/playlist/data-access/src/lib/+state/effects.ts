@@ -10,18 +10,18 @@ import { Track } from '@metal-p3/track/domain';
 import { Actions, concatLatestFrom, createEffect, ofType } from '@ngrx/effects';
 import { Update } from '@ngrx/entity';
 import { Store } from '@ngrx/store';
-import { forkJoin, Observable, of } from 'rxjs';
-import { catchError, concatMap, concatMapTo, filter, map, tap } from 'rxjs/operators';
+import { Observable, forkJoin, of } from 'rxjs';
+import { catchError, concatMap, filter, map, tap } from 'rxjs/operators';
 import { PlaylistService } from '../playlist.service';
 import { PlaylistActions } from './actions';
 import { selectActivePlaylistId, selectPlaylistById } from './selectors';
 
 @Injectable()
-export class PlayerEffects {
+export class PlaylistEffects {
   loadPlaylists$ = createEffect(() => {
     return this.actions$.pipe(
       ofType(PlaylistActions.loadPlaylists),
-      concatMapTo(this.playlistService.getPlaylists()),
+      concatMap(() => this.playlistService.getPlaylists()),
       map((playlists) => PlaylistActions.loadPlaylistsSuccess({ playlists })),
       catchError((error) => of(PlaylistActions.loadPlaylistsError({ error: this.errorService.getError(error) })))
     );
