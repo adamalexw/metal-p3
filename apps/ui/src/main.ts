@@ -1,5 +1,5 @@
 import { provideHttpClient } from '@angular/common/http';
-import { ErrorHandler, enableProdMode, importProvidersFrom } from '@angular/core';
+import { ErrorHandler, enableProdMode, importProvidersFrom, isDevMode } from '@angular/core';
 import { MAT_FORM_FIELD_DEFAULT_OPTIONS } from '@angular/material/form-field';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { bootstrapApplication } from '@angular/platform-browser';
@@ -14,17 +14,10 @@ import { ErrorsHandler } from '@metal-p3/shared/error';
 import { provideEffects } from '@ngrx/effects';
 import { provideRouterStore, routerReducer } from '@ngrx/router-store';
 import { provideState, provideStore } from '@ngrx/store';
-import { StoreDevtoolsOptions, provideStoreDevtools } from '@ngrx/store-devtools';
+import { provideStoreDevtools } from '@ngrx/store-devtools';
 import { SocketIoConfig, SocketIoModule } from 'ngx-socket-io';
 import { AppComponent } from './app/app.component';
 import { environment } from './environments/environment';
-
-const options: StoreDevtoolsOptions | undefined = !environment.production
-  ? {
-      maxAge: 100,
-      logOnly: environment.production,
-    }
-  : undefined;
 
 const config: SocketIoConfig = { url: environment.wsUrl, options: { transports: ['websocket'] } };
 
@@ -43,7 +36,11 @@ bootstrapApplication(AppComponent, {
     provideState(albumsFeature),
     provideState(playerFeature),
     provideState(playlistFeature),
-    provideStoreDevtools(options),
+    provideStoreDevtools({
+      maxAge: 100,
+      logOnly: !isDevMode(),
+      autoPause: true,
+    }),
     provideEffects([AlbumEffects, BandEffects, CoverEffects, TrackEffects, PlayerEffects, PlaylistEffects]),
     { provide: API, useValue: environment.api },
     { provide: BASE_PATH, useValue: environment.baseFolderLocation },
