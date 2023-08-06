@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Inject, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
@@ -6,6 +6,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { RouterModule } from '@angular/router';
+import { TAKE } from '@metal-p3/album/domain';
 import { SearchRequest } from '@metal-p3/api-interfaces';
 import { objectKeys } from '@metal-p3/shared/utils';
 
@@ -24,6 +25,8 @@ export class AdvancedSearchFormComponent implements OnChanges {
   searchRequest = new EventEmitter<SearchRequest>();
 
   form = this.createForm();
+
+  constructor(@Inject(TAKE) protected readonly take: number) {}
 
   private createForm() {
     return new FormGroup({

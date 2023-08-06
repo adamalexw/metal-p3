@@ -31,7 +31,7 @@ export const albumAdapter: EntityAdapter<Album> = createEntityAdapter<Album>({
 export const trackAdapter: EntityAdapter<Track> = createEntityAdapter<Track>();
 export const maTrackAdapter: EntityAdapter<MetalArchivesAlbumTrack> = createEntityAdapter<MetalArchivesAlbumTrack>();
 
-const initalSearchRequest: SearchRequest = { skip: 60, take: 0 };
+const initalSearchRequest: SearchRequest = { skip: 48, take: 0 };
 
 const initialState = albumAdapter.getInitialState({
   loading: false,

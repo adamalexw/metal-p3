@@ -1,6 +1,6 @@
-import { ScrollingModule, ViewportRuler } from '@angular/cdk/scrolling';
+import { CdkVirtualScrollViewport, ScrollingModule, ViewportRuler } from '@angular/cdk/scrolling';
 import { AsyncPipe, DOCUMENT, Location, NgFor, NgIf } from '@angular/common';
-import { ChangeDetectionStrategy, Component, EventEmitter, Inject, OnInit, Output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Inject, OnInit, Output, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { AlbumService } from '@metal-p3/album/data-access';
 import { TAKE } from '@metal-p3/album/domain';
@@ -11,9 +11,10 @@ import { PlayerActions, PlayerService, selectShowPlayer } from '@metal-p3/player
 import {
   Album,
   AlbumActions,
+  TrackActions,
   selectAlbums,
-  selectAlbumsLoaded,
   selectAlbumsLoadError,
+  selectAlbumsLoaded,
   selectAlbumsLoading,
   selectAlbumsSearchRequest,
   selectAlbumsSearchRequestFolder,
@@ -21,13 +22,12 @@ import {
   selectSideNavOpen,
   selectTracksById,
   selectTracksRequiredById,
-  TrackActions,
 } from '@metal-p3/shared/data-access';
 import { NotificationService } from '@metal-p3/shared/feedback';
 import { nonNullable, toChunks } from '@metal-p3/shared/utils';
 import { Track } from '@metal-p3/track/domain';
 import { Store } from '@ngrx/store';
-import { combineLatest, Observable } from 'rxjs';
+import { Observable, combineLatest } from 'rxjs';
 import { delay, filter, map, startWith, take, tap } from 'rxjs/operators';
 import { AddAlbumDirective } from './add-album.directive';
 
@@ -56,7 +56,7 @@ export class ListComponent implements OnInit {
   );
 
   albumsView$ = combineLatest([this.albums$, this.viewportWidth$, this.store.select(selectSideNavOpen)]).pipe(
-    filter(([albums, width]) => !!albums && !!width),
+    filter(([albums, width]) => !!albums?.length && !!width),
     map(([albums, width, open]) => {
       // if the side nav is open we remove it's width
       const listWidth = open ? width - 1130 : width;
@@ -66,10 +66,12 @@ export class ListComponent implements OnInit {
     })
   );
 
-  private fetchedPages = new Set<number>();
+  private fetchedPage = 0;
 
   @Output()
   readonly openAlbum = new EventEmitter<number>();
+
+  @ViewChild(CdkVirtualScrollViewport) scrollViewport!: CdkVirtualScrollViewport;
 
   constructor(
     private readonly store: Store,
@@ -166,7 +168,7 @@ export class ListComponent implements OnInit {
   }
 
   onSearch(request: SearchRequest) {
-    this.fetchedPages.clear();
+    this.fetchedPage = 0;
     this.store.dispatch(AlbumActions.cancelPreviousSearch({ request: { cancel: true } }));
     this.scrollIndexChange(0, request);
 
@@ -191,13 +193,13 @@ export class ListComponent implements OnInit {
   }
 
   scrollIndexChange(page: number, request: SearchRequest) {
-    if (this.fetchedPages.has(page)) {
+    if (this.scrollViewport.getRenderedRange().end !== this.scrollViewport.getDataLength()) {
       return;
     }
 
     const initialSize = this.take;
     let skip = 0;
-    let take = 36;
+    let take = 48;
 
     switch (page) {
       case 0:
@@ -207,10 +209,10 @@ export class ListComponent implements OnInit {
         skip = initialSize;
         break;
       default:
-        skip = initialSize + take * (page - 1);
+        skip = initialSize + take * (this.fetchedPage - 1);
     }
 
-    this.fetchedPages.add(page);
+    this.fetchedPage += 1;
     this.store.dispatch(AlbumActions.loadAlbums({ request: { ...request, take, skip } }));
   }
 }
