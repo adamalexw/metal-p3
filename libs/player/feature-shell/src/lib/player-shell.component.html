@@ -1,7 +1,7 @@
 <ng-container *ngIf="playerOpen$ | async">
   <div [class]="divClass$ | async">
-    <div class="flex w-full static">
-      <app-cover [cover]="cover$ | async" [width]="coverSize$ | async" [height]="coverSize$ | async"></app-cover>
+    <div class="flex w-full static" [class]="subDivClass$ | async">
+      <app-cover [class]="this.coverSize$ | async" [cover]="cover$ | async" class="aspect-square" />
 
       <app-player-controls
         class="block w-full"
@@ -23,8 +23,10 @@
     </div>
 
     <ng-container *ngIf="(footerMode$ | async) === false">
-      <app-playlist-shell [duration]="playlistDuration$ | async" (clearPlaylist)="onClearPlaylist()" (closePlaylist)="onClosePlaylist()"></app-playlist-shell>
+      <app-playlist-shell [duration]="playlistDuration$ | async" (clearPlaylist)="onClearPlaylist()" (closePlaylist)="onClosePlaylist()" (togglePlaylist)="onTogglePlaylist()" ></app-playlist-shell>
       <app-playlist
+        class="fixed top-0 left-0 h-screen overflow-auto z-50 bg-background lg:static lg:block lg:h-auto lg:max-h-[calc(100vh-384px)] lg:translate-y-0"
+        [class.hidden]="(showPlaylist$ | async) === false"
         [playlist]="playlist$ | async"
         [currentItem]="activeItem$ | async"
         (playItem)="onPlayItem($event)"
@@ -32,6 +34,7 @@
         (resumeItem)="onPlay()"
         (removeItem)="onRemove($event)"
         (reorder)="onReorder($event)"
+        (hide)="onTogglePlaylist()"
       ></app-playlist>
     </ng-container>
   </div>

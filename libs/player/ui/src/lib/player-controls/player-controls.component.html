@@ -13,20 +13,20 @@
       <ng-container *ngTemplateOutlet="durationTemplate"></ng-container>
     </div>
   </mat-toolbar-row>
-  <mat-toolbar-row>
-    <div class="flex" [ngClass]="{ 'w-full': !footerMode, 'justify-center': !footerMode, 'mr-2 mt-2': footerMode }">
+  <mat-toolbar-row class="h-16 gap-2 -mr-16 lg:mr-0">
+    <div class="flex h-full items-center" [ngClass]="{ 'w-full justify-center': !footerMode }">
       <ng-container *ngTemplateOutlet="controlsTemplate"></ng-container>
     </div>
     <ng-container *ngIf="footerMode">
-      <div *ngIf="footerMode" class="text-xs mr-3">{{ elapsedTime | time }} / {{ currentItem?.duration | time }}</div>
-      <div *ngIf="currentItem" class="text-xs">{{ currentItem.trackNumber }} - {{ currentItem.title }}</div>
-      <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+      <div class="hidden lg:block text-xs">{{ elapsedTime | time }} / {{ currentItem?.duration | time }}</div>
+      <div *ngIf="currentItem" class="text-xs line-clamp-1 mr-4 lg:mr-0">{{ currentItem.trackNumber }} - {{ currentItem.title }}</div>
+      <div class="hidden lg:block absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
         <ng-container *ngTemplateOutlet="detailsTemplate"></ng-container>
       </div>
     </ng-container>
     <div class="flex absolute right-2">
-      <app-volume (volume)="volume.emit($event)" (mute)="mute.emit()"></app-volume>
-      <button class="self-center mt-2 ml-4" mat-icon-button (click)="toggleView.emit()">
+      <app-volume class="hidden lg:block" (volume)="volume.emit($event)" (mute)="mute.emit()"></app-volume>
+      <button class="self-center ml-4 leading-none" mat-icon-button (click)="toggleView.emit()">
         <mat-icon mat-list-icon>{{ toggleIcon }}</mat-icon>
       </button>
     </div>
@@ -42,16 +42,16 @@
 </mat-toolbar>
 
 <ng-template #controlsTemplate>
-  <button mat-icon-button (click)="onPrevious()">
+  <button mat-icon-button (click)="onPrevious()" class="leading-none">
     <mat-icon mat-list-icon>skip_previous</mat-icon>
   </button>
-  <button mat-icon-button (click)="playItem.emit()" *ngIf="!currentItem?.playing">
+  <button mat-icon-button (click)="playItem.emit()" *ngIf="!currentItem?.playing" class="leading-none">
     <mat-icon mat-list-icon>play_arrow</mat-icon>
   </button>
-  <button mat-icon-button (click)="pauseItem.emit()" *ngIf="currentItem?.playing">
+  <button mat-icon-button (click)="pauseItem.emit()" *ngIf="currentItem?.playing" class="leading-none">
     <mat-icon mat-list-icon>pause</mat-icon>
   </button>
-  <button mat-icon-button [disabled]="isLastItemPlaying" (click)="next.emit()">
+  <button mat-icon-button [disabled]="isLastItemPlaying" (click)="next.emit()" class="leading-none">
     <mat-icon mat-list-icon>skip_next</mat-icon>
   </button>
 </ng-template>

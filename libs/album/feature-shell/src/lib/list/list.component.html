@@ -10,12 +10,12 @@
 </app-list-toolbar>
 
 <ng-container *ngIf="searchRequest$ | async as searchRequest">
-  <cdk-virtual-scroll-viewport [itemSize]="379" (scrolledIndexChange)="scrollIndexChange($event, searchRequest)">
+  <cdk-virtual-scroll-viewport [itemSize]="379" (scrolledIndexChange)="scrollIndexChange($event, searchRequest, false)">
     <div class="mx-2" appAddAlbum (albumAdded)="onAlbumAdded($event)">
-      <div class="grid grid-flow-col auto-cols-min gap-2 py-2" *cdkVirtualFor="let albums of albumsView$; trackBy: trackByVirtualFn">
+      <div class="grid grid-flow-col auto-cols-fr lg:auto-cols-min gap-2 py-2" *cdkVirtualFor="let albums of albumsView$; trackBy: trackByVirtualFn">
         <app-list-item
           *ngFor="let album of albums; trackBy: trackByAlbumFn"
-          class="w-[275px]"
+          class="w-full lg:w-[275px]"
           [album]="album"
           (openAlbum)="onOpenAlbum($event)"
           (renameFolder)="onRenameFolder(album.id, album.fullPath, album.artist, album.album)"
@@ -28,5 +28,5 @@
   </cdk-virtual-scroll-viewport>
 </ng-container>
 <footer class="fixed bottom-0 w-full" [class.footer-with-side-panel]="sideNavOpen$ | async">
-  <app-player></app-player>
+  <app-player />
 </footer>

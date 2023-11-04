@@ -1,5 +1,5 @@
 import { createFeatureSelector, createSelector } from '@ngrx/store';
-import { adapter, PlayerState, PLAYER_FEATURE_KEY } from './reducer';
+import { PLAYER_FEATURE_KEY, PlayerState, adapter } from './reducer';
 
 export const selectPlaylistState = createFeatureSelector<PlayerState>(PLAYER_FEATURE_KEY);
 
@@ -28,5 +28,7 @@ export const selectPlaylistDuration = createSelector(selectPlaylist, (playlist) 
 export const selectPlaylistCovers = createSelector(selectPlaylist, (playlist) => playlist?.map((track) => track.cover));
 export const selectPlaylistUrls = createSelector(selectPlaylist, (playlist) => playlist?.map((track) => track.url));
 export const selectPlaylistBlobs = createSelector(selectPlaylistCovers, selectPlaylistUrls, (covers, urls) => covers.concat(urls));
+
+export const selectShowPlaylist = createSelector(selectPlaylistState, (state) => state.showPlaylist);
 
 export const selectItemById = (id: string) => createSelector(selectPlaylist, (playlist) => playlist.find((item) => item.id === id));

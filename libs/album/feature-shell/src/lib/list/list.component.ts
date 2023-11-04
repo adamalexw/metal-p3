@@ -170,7 +170,7 @@ export class ListComponent implements OnInit {
   onSearch(request: SearchRequest) {
     this.fetchedPage = 0;
     this.store.dispatch(AlbumActions.cancelPreviousSearch({ request: { cancel: true } }));
-    this.scrollIndexChange(0, request);
+    this.scrollIndexChange(0, request, true);
 
     this.sideNavOpen$.pipe(take(1), filter(Boolean), delay(100)).subscribe(() => this.location.back());
   }
@@ -192,14 +192,14 @@ export class ListComponent implements OnInit {
     this.router.navigate(['album', id]);
   }
 
-  scrollIndexChange(page: number, request: SearchRequest) {
-    if (this.scrollViewport.getRenderedRange().end !== this.scrollViewport.getDataLength()) {
+  scrollIndexChange(page: number, request: SearchRequest, force: boolean) {
+    if (!force && this.scrollViewport.getRenderedRange().end !== this.scrollViewport.getDataLength()) {
       return;
     }
 
     const initialSize = this.take;
     let skip = 0;
-    let take = 48;
+    let take = 60;
 
     switch (page) {
       case 0:

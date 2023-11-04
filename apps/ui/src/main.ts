@@ -42,7 +42,7 @@ bootstrapApplication(AppComponent, {
       autoPause: true,
     }),
     provideEffects([AlbumEffects, BandEffects, CoverEffects, TrackEffects, PlayerEffects, PlaylistEffects]),
-    { provide: API, useValue: environment.api },
+    { provide: API, useValue: 'http://' + window.location.hostname + ':3333/api/' },
     { provide: BASE_PATH, useValue: environment.baseFolderLocation },
     { provide: TAKE, useValue: environment.take },
     { provide: ErrorHandler, useClass: ErrorsHandler },

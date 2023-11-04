@@ -39,6 +39,9 @@ export class PlaylistComponent {
   @Output()
   readonly removeItem = new EventEmitter<string>();
 
+  @Output()
+  readonly hide = new EventEmitter<void>();
+
   displayedColumns = ['action', 'trackNumber', 'title', 'artist', 'duration'];
 
   drop(event: CdkDragDrop<string[]>) {

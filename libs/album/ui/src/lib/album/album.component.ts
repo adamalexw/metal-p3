@@ -43,7 +43,6 @@ import { AlbumToolbarComponent } from '../album-toolbar/album-toolbar.component'
   ],
   selector: 'app-album',
   templateUrl: './album.component.html',
-  styleUrls: ['./album.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AlbumComponent implements OnChanges {
@@ -176,7 +175,7 @@ export class AlbumComponent implements OnChanges {
   @Output()
   readonly deleteAlbum = new EventEmitter<number>();
 
-  @HostBinding('class') class = 'block h-screen overflow-hidden';
+  @HostBinding('class') class = 'block h-screen lg:overflow-hidden';
 
   get albumUrl(): string | undefined {
     return this.form.get('albumUrl')?.value;

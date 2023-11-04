@@ -64,6 +64,9 @@ export class PlaylistToolbarComponent {
   @Output()
   readonly transfer = new EventEmitter<void>();
 
+  @Output()
+  readonly togglePlaylist = new EventEmitter<void>();
+
   saving = false;
 
   onLoadPlaylists() {

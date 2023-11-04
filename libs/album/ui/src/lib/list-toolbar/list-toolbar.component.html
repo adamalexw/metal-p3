@@ -1,6 +1,6 @@
 <mat-toolbar>
   <form [formGroup]="form">
-    <mat-form-field class="w-80" floatLabel="auto">
+    <mat-form-field class="grow lg:w-80" floatLabel="auto">
       <input matInput placeholder="Search" formControlName="folder" type="search" />
       <button *ngIf="folderControl?.value" mat-icon-button matSuffix (click)="onClear()" [attr.aria-label]="'Clear search'">
         <mat-icon>clear</mat-icon>
@@ -17,13 +17,13 @@
   <button mat-icon-button (click)="showPlayer.emit()">
     <mat-icon title="playlists">queue_music</mat-icon>
   </button>
-  <button mat-icon-button [disabled]="creatingNew" (click)="createNew.emit()">
+  <button mat-icon-button [disabled]="creatingNew" (click)="createNew.emit()" class="hidden md:block">
     <mat-icon title="files to folders">create_new_folder</mat-icon>
   </button>
-  <button mat-icon-button [matMenuTriggerFor]="menu">
+  <button mat-icon-button [matMenuTriggerFor]="menu" class="hidden md:block">
     <mat-icon title="maintenance">engineering</mat-icon>
   </button>
-  <mat-menu #menu="matMenu">
+  <mat-menu #menu="matMenu" class="hidden md:block">
     <button mat-menu-item [routerLink]="['maintenance', 'lyrics']">
       <mat-icon>article</mat-icon>
       <span>Lyrics</span>

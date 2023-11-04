@@ -11,6 +11,7 @@ import {
   selectPlayerOpen,
   selectPlaylist,
   selectPlaylistDuration,
+  selectShowPlaylist,
 } from '@metal-p3/player/data-access';
 import { PlaylistItem } from '@metal-p3/player/domain';
 import { PlayerControlsComponent } from '@metal-p3/player/ui';
@@ -29,7 +30,6 @@ import { concatMap, distinctUntilKeyChanged, filter, map, shareReplay, take, tap
   imports: [NgIf, AsyncPipe, CoverComponent, PlayerControlsComponent, PlaylistShellComponent, PlaylistComponent],
   selector: 'app-player',
   templateUrl: './player-shell.component.html',
-  styleUrls: ['./player-shell.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PlayerShellComponent implements OnInit {
@@ -38,7 +38,8 @@ export class PlayerShellComponent implements OnInit {
   playerOpen$ = this.store.select(selectPlayerOpen);
 
   footerMode$ = this.store.select(selectFooterMode).pipe(shareReplay());
-  divClass$ = this.footerMode$.pipe(map((footerMode) => (footerMode ? 'footer-mode' : 'full-mode overflow-hidden')));
+  divClass$ = this.footerMode$.pipe(map((footerMode) => (footerMode ? 'max-h-[64px]' : 'lg:translate-y-0 lg:max-h-[calc(100vh-64px)]')));
+  subDivClass$ = this.footerMode$.pipe(map((footerMode) => (footerMode ? '' : 'flex-col lg:flex-row')));
   toggleIcon$ = this.footerMode$.pipe(map((footerMode) => (footerMode ? 'expand_less' : 'expand_more')));
 
   playlist$ = this.store.select(selectPlaylist);
@@ -61,7 +62,7 @@ export class PlayerShellComponent implements OnInit {
 
   cover$ = this.store.select(selectActiveItemCover);
   coverSize$ = this.footerMode$.pipe(
-    map((footerMode) => (footerMode ? 64 : 256)),
+    map((footerMode) => (footerMode ? { 'h-16': true, 'w-16': true } : { 'w-screen': true, 'lg:w-64': true, 'lg:h-64': true })),
     shareReplay()
   );
 
@@ -72,10 +73,16 @@ export class PlayerShellComponent implements OnInit {
 
   playlistDuration$ = this.store.select(selectPlaylistDuration);
 
+  showPlaylist$ = this.store.select(selectShowPlaylist);
+
   constructor(private store: Store, private trackService: TrackService) {}
 
   ngOnInit(): void {
     this.listenToAudioEvents();
+  }
+
+  onPlayItem(id: string) {
+    this.store.dispatch(PlayerActions.play({ id }));
   }
 
   private getBlobUrl(id: string, file: string): Observable<string> {
@@ -83,10 +90,6 @@ export class PlayerShellComponent implements OnInit {
       map((response) => URL.createObjectURL(response)),
       tap((url) => this.store.dispatch(PlayerActions.updateItem({ update: { id, changes: { url } } })))
     );
-  }
-
-  onPlayItem(id: string) {
-    this.store.dispatch(PlayerActions.play({ id }));
   }
 
   private listenToAudioEvents() {
@@ -178,5 +181,9 @@ export class PlayerShellComponent implements OnInit {
   onClosePlaylist() {
     this.onClearPlaylist();
     this.store.dispatch(PlayerActions.close());
+  }
+
+  onTogglePlaylist() {
+    this.store.dispatch(PlayerActions.tooglePlaylist());
   }
 }

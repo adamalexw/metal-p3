@@ -1,5 +1,5 @@
-<ng-container *ngIf="album">
-  <nav>
+<ng-container *ngIf="album; else closeTemplate">
+  <nav class="sticky top-0 lg:block z-10">
     <app-album-toolbar
       [saving]="albumSaving"
       [findingUrl]="findingUrl"
@@ -18,27 +18,25 @@
   </nav>
 
   <ng-container *ngIf="trackSavingProgress || trackTransferringProgress || trackRenamingProgress as progress">
-    <mat-progress-bar class="w-full" mode="determinate" [value]="progress"> </mat-progress-bar>
+    <mat-progress-bar class="fixed top-0 w-full z-50 lg:block" mode="determinate" [value]="progress"> </mat-progress-bar>
   </ng-container>
 
-  <section class="flex flex-row">
+  <section class="flex flex-col lg:flex-row">
     <app-cover
-      class="min-w-[500px]"
+      class="w-full lg:min-w-[500px] lg:max-w-[500px]"
       [loading]="coverLoading"
       [cover]="album.cover"
       [coverError]="album.coverError"
       [enableDnd]="true"
-      [width]="500"
-      [height]="500"
       (coverUrl)="coverUrl.emit({ id: album.id, url: $event })"
-    ></app-cover>
+    />
 
     <app-album-form
-      class="block w-full mx-2 mt-1 mb-0"
+      class="block w-full mt-1 mb-0 lg:mx-2"
       [form]="form"
       (findBandProps)="findBandProps.emit({ id: albumId, url: $event })"
       (lyricsPriority)="lyricsPriority.emit(albumId)"
-    ></app-album-form>
+    />
   </section>
 
   <section>
@@ -54,9 +52,10 @@
       (refreshTracks)="refreshTracks.emit({ id: album.id, folder: album.folder })"
       (playAlbum)="playAlbum.emit(this.albumId)"
       (addAlbumToPlaylist)="addAlbumToPlaylist.emit(this.albumId)"
-    >
-    </app-tracks-toolbar>
+    />
+ 
     <app-tracks
+      class="block overflow-auto lg:h-[calc(100vh-128px-500px)]"
       [form]="form"
       [tracksLoading]="tracksLoading || false"
       [tracks]="tracks || []"
@@ -65,6 +64,10 @@
       (playTrack)="playTrack.emit({ track: $event, albumId: albumId })"
       (addTrackToPlaylist)="addTrackToPlaylist.emit({ track: $event, albumId: albumId })"
       (delete)="deleteTrack.emit({ track: $event, albumId: albumId })"
-    ></app-tracks>
+    />
   </section>
 </ng-container>
+
+<ng-template #closeTemplate>
+  <mat-icon routerLink="/">clear</mat-icon>
+</ng-template>

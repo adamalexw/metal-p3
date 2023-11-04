@@ -1,5 +1,5 @@
 import { ArgumentsHost, Catch, ExceptionFilter, HttpStatus, Logger } from '@nestjs/common';
-import { PrismaClientValidationError } from '@prisma/client/runtime';
+import { PrismaClientValidationError } from '@prisma/client/runtime/library';
 
 @Catch(PrismaClientValidationError)
 export class DbExceptionsFilter implements ExceptionFilter {

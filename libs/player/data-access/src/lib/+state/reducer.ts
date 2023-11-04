@@ -8,6 +8,7 @@ export const PLAYER_FEATURE_KEY = 'player';
 export interface PlayerState extends EntityState<PlaylistItem> {
   visible: boolean;
   footerMode: boolean;
+  showPlaylist: boolean;
   activeTrack?: string;
   activePlaylist?: number;
 }
@@ -23,6 +24,7 @@ export const adapter: EntityAdapter<PlaylistItem> = createEntityAdapter<Playlist
 const initialState = adapter.getInitialState({
   visible: false,
   footerMode: true,
+  showPlaylist: true,
 });
 
 export const playerFeature = createFeature({
@@ -38,6 +40,7 @@ export const playerFeature = createFeature({
     on(PlayerActions.updateItem, PlayerActions.getCoverSuccess, PlayerActions.getCoverError, (state, { update }) => adapter.updateOne(update, state)),
     on(PlayerActions.play, (state, { id }): PlayerState => ({ ...state, activeTrack: id })),
     on(PlayerActions.removeSuccess, (state, { id }) => adapter.removeOne(id, state)),
-    on(PlayerActions.clearSuccess, (state) => adapter.removeAll({ ...state, activeTrack: undefined }))
+    on(PlayerActions.clearSuccess, (state) => adapter.removeAll({ ...state, activeTrack: undefined })),
+    on(PlayerActions.tooglePlaylist, (state): PlayerState => ({ ...state, showPlaylist: !state.showPlaylist }))
   ),
 });

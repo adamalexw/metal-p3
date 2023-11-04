@@ -2,13 +2,14 @@ import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from 
 import { MatBadgeModule } from '@angular/material/badge';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { MatToolbarModule } from '@angular/material/toolbar';
 import { ConfirmDeleteDirective } from '@metal-p3/shared/feedback';
 import { NavToolbarComponent } from '@metal-p3/shared/navigation';
 import { AlbumHeaderComponent } from '../album-header/album-header.component';
 
 @Component({
   standalone: true,
-  imports: [NavToolbarComponent, AlbumHeaderComponent, ConfirmDeleteDirective, MatIconModule, MatButtonModule, MatBadgeModule],
+  imports: [NavToolbarComponent, AlbumHeaderComponent, ConfirmDeleteDirective, MatIconModule, MatButtonModule, MatToolbarModule, MatBadgeModule],
   selector: 'app-album-toolbar',
   templateUrl: './album-toolbar.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,

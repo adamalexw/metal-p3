@@ -1,4 +1,8 @@
 <ng-container *ngIf="playlist">
+  <div class="flex justify-center lg:hidden">
+    <mat-icon (click)="hide.emit()">expand_more</mat-icon>
+  </div>
+
   <table mat-table [dataSource]="playlist" class="mat-elevation-z8" cdkDropList (cdkDropListDropped)="drop($event)">
     <ng-container matColumnDef="trackNumber">
       <th mat-header-cell *matHeaderCellDef>#</th>

@@ -1,6 +1,7 @@
-import { NgIf } from '@angular/common';
+import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
+import { AsyncPipe, NgIf } from '@angular/common';
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
-import { AbstractControl, FormArray, FormControl, FormGroup, FormsModule, NonNullableFormBuilder, ReactiveFormsModule } from '@angular/forms';
+import { AbstractControl, FormArray, FormControl, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatBottomSheet, MatBottomSheetModule } from '@angular/material/bottom-sheet';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -13,28 +14,30 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { ConfirmDeleteDirective } from '@metal-p3/shared/feedback';
 import { Track, tracksFormArray } from '@metal-p3/track/domain';
 import { BitRatePipe, TimePipe } from '@metal-p3/track/util';
-import { filter, take, tap } from 'rxjs/operators';
+import { Observable } from 'rxjs';
+import { filter, map, take, tap } from 'rxjs/operators';
 import { LyricsComponent } from '../lyrics/lyrics.component';
 
 @Component({
   standalone: true,
   imports: [
-    NgIf,
-    FormsModule,
-    ReactiveFormsModule,
+    AsyncPipe,
     BitRatePipe,
-    TimePipe,
-    LyricsComponent,
     ConfirmDeleteDirective,
+    FormsModule,
+    LyricsComponent,
+    MatBottomSheetModule,
+    MatButtonModule,
+    MatFormFieldModule,
+    MatIconModule,
+    MatInputModule,
+    MatMenuModule,
     MatProgressSpinnerModule,
     MatTableModule,
-    MatInputModule,
-    MatFormFieldModule,
-    MatButtonModule,
-    MatIconModule,
-    MatMenuModule,
     MatTooltipModule,
-    MatBottomSheetModule,
+    NgIf,
+    ReactiveFormsModule,
+    TimePipe,
   ],
   selector: 'app-tracks',
   templateUrl: './tracks.component.html',
@@ -66,14 +69,18 @@ export class TracksComponent implements OnChanges {
   @Output()
   delete = new EventEmitter<Track>();
 
-  displayedColumns = ['trackNumber', 'title', 'duration', 'bitrate', 'lyrics'];
+  displayedColumns$: Observable<string[]>;
   dataSource: MatTableDataSource<typeof tracksFormArray> = new MatTableDataSource();
 
   private get tracksArray(): FormArray<typeof tracksFormArray> {
     return this.form.get('tracks') as FormArray<typeof tracksFormArray>;
   }
 
-  constructor(private fb: NonNullableFormBuilder, private bottomSheet: MatBottomSheet) {}
+  constructor(private bottomSheet: MatBottomSheet, readonly breakpointObserver: BreakpointObserver) {
+    this.displayedColumns$ = breakpointObserver
+      .observe([Breakpoints.Large, Breakpoints.XLarge])
+      .pipe(map(({ matches }) => (matches ? ['trackNumber', 'title', 'duration', 'bitrate', 'actions'] : ['title', 'duration', 'actions'])));
+  }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (this.form && changes.tracks && this.tracks?.length) {

@@ -37,8 +37,12 @@
     <mat-icon title="delete">delete</mat-icon>
   </button>
 
-  <button *ngIf="playlistSize ?? 0 > 1" mat-icon-button (click)="transfer.emit()" [disabled]="transferring">
+  <button class="hidden lg:block" *ngIf="playlistSize ?? 0 > 1" mat-icon-button (click)="transfer.emit()" [disabled]="transferring">
     <mat-icon title="transfer">adb</mat-icon>
+  </button>
+
+  <button class="lg:hidden" mat-icon-button (click)="togglePlaylist.emit()">
+    <mat-icon title="playlist toggle">featured_play_list</mat-icon>
   </button>
 
   <div class="w-full flex flex-row-reverse items-center">

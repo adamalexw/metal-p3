@@ -27,5 +27,6 @@ export const PlayerActions = createActionGroup({
     'Get Cover': props<{ id: string; folder: string }>(),
     'Get Cover Success': props<{ update: Update<PlaylistItem> }>(),
     'Get Cover Error': props<{ update: Update<PlaylistItem> }>(),
+    'Toogle Playlist': emptyProps(),
   },
 });

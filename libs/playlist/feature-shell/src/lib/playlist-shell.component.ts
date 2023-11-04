@@ -22,6 +22,9 @@ export class PlaylistShellComponent {
   @Output()
   readonly closePlaylist = new EventEmitter<void>();
 
+  @Output()
+  readonly togglePlaylist = new EventEmitter<void>();
+
   playlists$ = this.store.select(selectPlaylists);
   activePlaylistId$ = this.store.select(selectActivePlaylistId);
   playlistName$ = this.store.select(selectActivePlaylistName);
