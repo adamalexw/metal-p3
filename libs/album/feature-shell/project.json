@@ -6,7 +6,7 @@
   "prefix": "app",
   "targets": {
     "lint": {
-      "executor": "@nx/linter:eslint",
+      "executor": "@nx/eslint:lint",
       "options": {
         "lintFilePatterns": ["libs/album/feature-shell/src/**/*.ts", "libs/album/feature-shell/src/**/*.html"]
       }

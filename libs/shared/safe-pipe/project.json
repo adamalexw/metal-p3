@@ -14,7 +14,7 @@
       }
     },
     "lint": {
-      "executor": "@nx/linter:eslint",
+      "executor": "@nx/eslint:lint",
       "options": {
         "lintFilePatterns": ["libs/shared/safe-pipe/**/*.ts", "libs/shared/safe-pipe/**/*.html"]
       }
