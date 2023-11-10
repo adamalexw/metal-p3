@@ -10,7 +10,7 @@ import { Observable } from 'rxjs';
 export class BandService {
   readonly baseUrl = `${this.api}band`;
 
-  constructor(private http: HttpClient, @Inject(API) private api: string) {}
+  constructor(private readonly http: HttpClient, @Inject(API) private readonly api: string) {}
 
   saveBand(band: BandDto): Observable<never> {
     return this.http.patch<never>(this.baseUrl, band);

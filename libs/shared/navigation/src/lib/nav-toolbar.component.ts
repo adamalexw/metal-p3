@@ -17,7 +17,7 @@ export class NavToolbarComponent {
   @Input()
   closeFullWidth = true;
 
-  constructor(private location: Location) {}
+  constructor(private readonly location: Location) {}
 
   onClose() {
     this.location.back();

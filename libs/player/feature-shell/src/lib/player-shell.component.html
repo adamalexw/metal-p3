@@ -25,7 +25,7 @@
     <ng-container *ngIf="(footerMode$ | async) === false">
       <app-playlist-shell [duration]="playlistDuration$ | async" (clearPlaylist)="onClearPlaylist()" (closePlaylist)="onClosePlaylist()" (togglePlaylist)="onTogglePlaylist()" ></app-playlist-shell>
       <app-playlist
-        class="fixed top-0 left-0 h-screen overflow-auto z-50 bg-background lg:static lg:block lg:h-auto lg:max-h-[calc(100vh-384px)] lg:translate-y-0"
+        class="fixed top-0 left-0 h-screen z-50 bg-background lg:static lg:block lg:h-auto lg:max-h-[calc(100vh-384px)] lg:translate-y-0"
         [class.hidden]="(showPlaylist$ | async) === false"
         [playlist]="playlist$ | async"
         [currentItem]="activeItem$ | async"

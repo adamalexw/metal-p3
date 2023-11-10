@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, HostBinding, Inject, OnInit } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { MatBottomSheetModule, MatBottomSheetRef, MAT_BOTTOM_SHEET_DATA } from '@angular/material/bottom-sheet';
+import { MAT_BOTTOM_SHEET_DATA, MatBottomSheetModule, MatBottomSheetRef } from '@angular/material/bottom-sheet';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
@@ -20,7 +20,7 @@ export class LyricsComponent implements OnInit {
 
   lyrics = '';
 
-  constructor(private bottomSheetRef: MatBottomSheetRef<LyricsComponent>, @Inject(MAT_BOTTOM_SHEET_DATA) private data: { lyrics: string }) {}
+  constructor(private readonly bottomSheetRef: MatBottomSheetRef<LyricsComponent>, @Inject(MAT_BOTTOM_SHEET_DATA) private readonly data: { lyrics: string }) {}
 
   ngOnInit(): void {
     this.lyrics = this.data.lyrics;

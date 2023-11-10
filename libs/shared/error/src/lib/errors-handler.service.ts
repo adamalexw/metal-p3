@@ -7,7 +7,7 @@ import { ErrorService } from './error.service';
 @Injectable({ providedIn: 'root' })
 export class ErrorsHandler implements ErrorHandler {
   // Can not use dependency injection because error handling is loaded first, have to use injector to get access to those dependencies
-  constructor(private injector: Injector) {}
+  constructor(private readonly injector: Injector) {}
 
   handleError(error: Error | HttpErrorResponse) {
     console.error(error);

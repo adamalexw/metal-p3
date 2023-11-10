@@ -13,7 +13,7 @@ import { PlayerActions } from './+state/actions';
   providedIn: 'root',
 })
 export class PlayerService {
-  constructor(private store: Store) {}
+  constructor(private readonly store: Store) {}
 
   playAlbum(albumId: number, tracks$: Observable<TrackDto[] | undefined>): void {
     this.clear();

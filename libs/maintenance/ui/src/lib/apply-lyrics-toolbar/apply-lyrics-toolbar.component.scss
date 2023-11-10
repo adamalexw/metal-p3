@@ -1,6 +1,8 @@
-app-nav-toolbar {
-  .mat-toolbar-row,
-  .mat-toolbar-single-row {
-    padding-left: 0;
+app-lyrics-toolbar {
+  app-nav-toolbar {
+    .mat-toolbar-row,
+    .mat-toolbar-single-row {
+      padding-left: 0 !important;
+    }
   }
 }

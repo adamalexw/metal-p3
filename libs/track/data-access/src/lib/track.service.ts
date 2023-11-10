@@ -11,7 +11,7 @@ export class TrackService {
   readonly baseUrl = `${this.api}track`;
   readonly albumUrl = `${this.api}album`;
 
-  constructor(private http: HttpClient, @Inject(API) private api: string) {}
+  constructor(private readonly http: HttpClient, @Inject(API) private readonly api: string) {}
 
   getTrack(file: string): Observable<TrackDto> {
     return this.http.get<TrackDto>(`${this.baseUrl}/trackDetails?file=${encodeURIComponent(file)}`);

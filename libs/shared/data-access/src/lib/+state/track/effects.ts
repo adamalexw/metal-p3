@@ -109,5 +109,11 @@ export class TrackEffects {
     );
   });
 
-  constructor(private actions$: Actions, private service: TrackService, private store: Store, @Inject(BASE_PATH) private readonly basePath: string, private errorService: ErrorService) {}
+  constructor(
+    private readonly actions$: Actions,
+    private readonly service: TrackService,
+    private readonly store: Store,
+    @Inject(BASE_PATH) private readonly basePath: string,
+    private errorService: ErrorService
+  ) {}
 }

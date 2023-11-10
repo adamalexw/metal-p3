@@ -11,7 +11,7 @@ import { Observable } from 'rxjs';
 export class FileSystemMaintenanceService {
   readonly baseUrl = `${this.api}maintenance/file-system`;
 
-  constructor(private http: HttpClient, private socket: Socket, @Inject(API) private api: string) {}
+  constructor(private readonly http: HttpClient, private readonly socket: Socket, @Inject(API) private readonly api: string) {}
 
   getUnmappedFolders(): Observable<string[]> {
     return this.http.get<string[]>(`${this.baseUrl}/unmappedFolders`);

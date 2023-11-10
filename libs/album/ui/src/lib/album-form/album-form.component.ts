@@ -9,6 +9,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { RouterModule } from '@angular/router';
 import { AlbumDataAccessModule } from '@metal-p3/album/data-access';
+import { AlbumForm } from '@metal-p3/album/domain';
 import { CoverComponent } from '@metal-p3/cover/ui';
 import { TracksComponent, TracksToolbarComponent } from '@metal-p3/track/ui';
 import { WINDOW } from '@ng-web-apis/common';
@@ -38,8 +39,8 @@ import { AlbumToolbarComponent } from '../album-toolbar/album-toolbar.component'
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AlbumFormComponent {
-  @Input()
-  form!: FormGroup;
+  @Input({ required: true })
+  form: FormGroup<AlbumForm>;
 
   @Output()
   readonly lyricsPriority = new EventEmitter<void>();
@@ -47,16 +48,16 @@ export class AlbumFormComponent {
   @Output()
   readonly findBandProps = new EventEmitter<string>();
 
-  get albumUrl(): string {
-    return this.form.get('albumUrl')?.value;
+  get albumUrl(): string | undefined {
+    return this.form.controls.albumUrl.value;
   }
 
-  get artistUrl(): string {
-    return this.form.get('artistUrl')?.value;
+  get artistUrl(): string | undefined {
+    return this.form.controls.artistUrl.value;
   }
 
   get hasLyrics(): boolean {
-    return this.form.get('hasLyrics')?.value;
+    return this.form.controls.hasLyrics.value ?? false;
   }
 
   constructor(@Inject(WINDOW) readonly windowRef: Window) {}

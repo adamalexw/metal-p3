@@ -10,7 +10,7 @@ import { Observable } from 'rxjs';
 export class PlaylistService {
   readonly baseUrl = `${this.api}playlist`;
 
-  constructor(private http: HttpClient, @Inject(API) private api: string) {}
+  constructor(private readonly http: HttpClient, @Inject(API) private readonly api: string) {}
 
   getPlaylists(): Observable<PlaylistDto[]> {
     return this.http.get<PlaylistDto[]>(`${this.baseUrl}/list`);

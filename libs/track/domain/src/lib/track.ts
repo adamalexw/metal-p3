@@ -1,4 +1,4 @@
-import { FormControl, FormGroup } from '@angular/forms';
+import { FormControl } from '@angular/forms';
 import { TrackDto } from '@metal-p3/api-interfaces';
 
 export interface Track extends TrackDto {
@@ -10,14 +10,14 @@ export interface Track extends TrackDto {
   playlistItemId?: number;
 }
 
-export const tracksFormArray = new FormGroup({
-  id: new FormControl<number>(0, { nonNullable: true }),
-  trackNumber: new FormControl<string>('0', { nonNullable: true }),
-  title: new FormControl<string>('0', { nonNullable: true }),
-  duration: new FormControl<number | undefined>(undefined, { nonNullable: true }),
-  bitrate: new FormControl<number | undefined>(undefined, { nonNullable: true }),
-  lyrics: new FormControl<string | undefined>(undefined, { nonNullable: true }),
-  file: new FormControl<string>('', { nonNullable: true }),
-  folder: new FormControl<string>('', { nonNullable: true }),
-  fullPath: new FormControl<string>('', { nonNullable: true }),
-});
+export type TracksForm = {
+  id: FormControl<number>;
+  trackNumber: FormControl<string>;
+  title: FormControl<string>;
+  duration: FormControl<number | undefined>;
+  bitrate: FormControl<number | undefined>;
+  lyrics: FormControl<string | undefined>;
+  file: FormControl<string>;
+  folder: FormControl<string>;
+  fullPath: FormControl<string>;
+};

@@ -31,7 +31,7 @@ export class PlaylistShellComponent {
   playlistSize$ = this.store.select(selectPlaylistItemSize);
   transferring$ = this.store.select(selectPlaylistTransferring);
 
-  constructor(private store: Store) {}
+  constructor(private readonly store: Store) {}
 
   onLoadPlaylists() {
     this.store.dispatch(PlaylistActions.loadPlaylists());

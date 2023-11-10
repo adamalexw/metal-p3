@@ -13,7 +13,7 @@ import { ConfirmDeleteDirective } from './confirm-delete.directive';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ConfirmDeleteComponent {
-  constructor(public ref: AppOverlayRef) {}
+  constructor(public readonly ref: AppOverlayRef) {}
 
   close(value: boolean) {
     this.ref.close(value);

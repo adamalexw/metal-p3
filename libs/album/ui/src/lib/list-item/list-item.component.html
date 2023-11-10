@@ -1,4 +1,4 @@
-<mat-card appearance="raised" *ngIf="album" class="hover:bg-background hover:shadow-2xl">
+<mat-card appearance="raised" *ngIf="album" class="hover:bg-background hover:shadow-2xl h-full">
   <mat-card-header class="py-2">
     <mat-card-title
       ><p class="line-clamp-1">{{ album.artist }}</p></mat-card-title
@@ -8,7 +8,7 @@
     >
   </mat-card-header>
 
-  <mat-card-content>
+  <mat-card-content class="h-full">
     <div (click)="openAlbum.emit(album.id)" class="flex justify-center cursor-pointer overflow-hidden">
       <app-cover class="block z-10" [cover]="album.cover" [coverError]="album.coverError" [loading]="album.coverLoading || false"></app-cover>
     </div>

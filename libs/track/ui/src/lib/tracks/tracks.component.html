@@ -10,7 +10,7 @@
   <table mat-table [dataSource]="dataSource" [trackBy]="trackByFn">
     <ng-container matColumnDef="trackNumber">
       <th mat-header-cell *matHeaderCellDef>#</th>
-      <td mat-cell *matCellDef="let element" [formGroup]="element" class="p-0 pl-1 py-1">
+      <td mat-cell *matCellDef="let element" [formGroup]="element" class="!p-0 !pl-1 !py-1">
         <mat-form-field floatLabel="auto" class="w-full">
           <input matInput placeholder="No." formControlName="trackNumber" required />
         </mat-form-field>
@@ -19,7 +19,7 @@
 
     <ng-container matColumnDef="title">
       <th mat-header-cell *matHeaderCellDef>Track</th>
-      <td mat-cell *matCellDef="let element" [formGroup]="element" class="p-0 pl-2">
+      <td mat-cell *matCellDef="let element" [formGroup]="element" class="!p-0 !pl-2">
         <mat-form-field floatLabel="auto" class="w-full" [matTooltip]="element.get('fullPath')?.value" matTooltipPosition="above">
           <input matInput placeholder="Title" formControlName="title" required />
         </mat-form-field>
@@ -47,7 +47,7 @@
           <mat-icon>more_vert</mat-icon>
         </button>
         <mat-menu #menu="matMenu">
-          <button mat-menu-item (click)="transferTrack.emit(element.get('id')?.value)" class="hidden lg:flex">
+          <button mat-menu-item (click)="transferTrack.emit(element.get('id')?.value)" class="!hidden lg:!flex">
             <mat-icon>adb</mat-icon>
             <span>Transfer</span>
           </button>

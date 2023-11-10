@@ -1,7 +1,7 @@
 import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 import { AsyncPipe, NgIf } from '@angular/common';
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
-import { AbstractControl, FormArray, FormControl, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { FormArray, FormGroup, FormsModule, NonNullableFormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { MatBottomSheet, MatBottomSheetModule } from '@angular/material/bottom-sheet';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -11,8 +11,9 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { AlbumForm } from '@metal-p3/album/domain';
 import { ConfirmDeleteDirective } from '@metal-p3/shared/feedback';
-import { Track, tracksFormArray } from '@metal-p3/track/domain';
+import { Track, TracksForm } from '@metal-p3/track/domain';
 import { BitRatePipe, TimePipe } from '@metal-p3/track/util';
 import { Observable } from 'rxjs';
 import { filter, map, take, tap } from 'rxjs/operators';
@@ -45,8 +46,8 @@ import { LyricsComponent } from '../lyrics/lyrics.component';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TracksComponent implements OnChanges {
-  @Input()
-  form!: FormGroup;
+  @Input({ required: true })
+  form!: FormGroup<AlbumForm>;
 
   @Input()
   tracksLoading = false;
@@ -70,13 +71,13 @@ export class TracksComponent implements OnChanges {
   delete = new EventEmitter<Track>();
 
   displayedColumns$: Observable<string[]>;
-  dataSource: MatTableDataSource<typeof tracksFormArray> = new MatTableDataSource();
+  dataSource: MatTableDataSource<FormGroup<TracksForm>> = new MatTableDataSource();
 
-  private get tracksArray(): FormArray<typeof tracksFormArray> {
-    return this.form.get('tracks') as FormArray<typeof tracksFormArray>;
+  private get tracksArray(): FormArray<FormGroup<TracksForm>> {
+    return this.form.controls.tracks;
   }
 
-  constructor(private bottomSheet: MatBottomSheet, readonly breakpointObserver: BreakpointObserver) {
+  constructor(private readonly fb: NonNullableFormBuilder, private readonly bottomSheet: MatBottomSheet, readonly breakpointObserver: BreakpointObserver) {
     this.displayedColumns$ = breakpointObserver
       .observe([Breakpoints.Large, Breakpoints.XLarge])
       .pipe(map(({ matches }) => (matches ? ['trackNumber', 'title', 'duration', 'bitrate', 'actions'] : ['title', 'duration', 'actions'])));
@@ -98,17 +99,17 @@ export class TracksComponent implements OnChanges {
     this.dataSource = new MatTableDataSource(this.tracksArray.controls);
   }
 
-  private addTrack(track: Track): typeof tracksFormArray {
-    return new FormGroup({
-      id: new FormControl<number>(track.id, { nonNullable: true }),
-      trackNumber: new FormControl<string>(track.trackNumber, { nonNullable: true }),
-      title: new FormControl<string>(track.title, { nonNullable: true }),
-      duration: new FormControl<number | undefined>(track.duration, { nonNullable: true }),
-      bitrate: new FormControl<number | undefined>(track.bitrate, { nonNullable: true }),
-      lyrics: new FormControl<string | undefined>(track.lyrics, { nonNullable: true }),
-      file: new FormControl<string>(track.file, { nonNullable: true }),
-      folder: new FormControl<string>(track.folder, { nonNullable: true }),
-      fullPath: new FormControl<string>(track.fullPath, { nonNullable: true }),
+  private addTrack(track: Track): FormGroup<TracksForm> {
+    return this.fb.group({
+      id: this.fb.control(track.id),
+      trackNumber: this.fb.control(track.trackNumber),
+      title: this.fb.control(track.title),
+      duration: this.fb.control(track.duration),
+      bitrate: this.fb.control(track.bitrate),
+      lyrics: this.fb.control(track.lyrics),
+      file: this.fb.control(track.file),
+      folder: this.fb.control(track.folder),
+      fullPath: this.fb.control(track.fullPath),
     });
   }
 
@@ -122,7 +123,7 @@ export class TracksComponent implements OnChanges {
       .pipe(
         take(1),
         filter((newLyrics) => newLyrics !== undefined),
-        tap((newLyrics) => this.tracksArray.at(index)?.get('lyrics')?.setValue(newLyrics))
+        tap((newLyrics) => this.tracksArray.at(index).controls.lyrics.setValue(newLyrics))
       )
       .subscribe();
   }
@@ -141,7 +142,7 @@ export class TracksComponent implements OnChanges {
     }
   }
 
-  trackByFn(index: number, item: AbstractControl) {
-    return item.get('id')?.value || index;
+  trackByFn(index: number, item: FormGroup<TracksForm>) {
+    return item.controls.id.value || index;
   }
 }

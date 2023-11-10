@@ -6,7 +6,7 @@ import { OverlayComponent } from './overlay.component';
 
 @Injectable()
 export class OverlayService {
-  constructor(private overlay: Overlay) {}
+  constructor(private readonly overlay: Overlay) {}
 
   open<R = unknown, T = unknown>(origin: HTMLElement, content: string | TemplateRef<unknown> | Type<unknown>, data: T): AppOverlayRef<R> {
     const config = new OverlayConfig({

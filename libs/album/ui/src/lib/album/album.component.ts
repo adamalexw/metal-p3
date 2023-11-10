@@ -1,6 +1,6 @@
 import { NgIf } from '@angular/common';
-import { ChangeDetectionStrategy, Component, EventEmitter, HostBinding, Inject, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
-import { FormsModule, NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { AfterViewInit, ChangeDetectionStrategy, Component, EventEmitter, HostBinding, Inject, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
+import { FormGroup, FormsModule, NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -8,13 +8,14 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatListModule } from '@angular/material/list';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { AlbumDataAccessModule } from '@metal-p3/album/data-access';
+import { AlbumForm } from '@metal-p3/album/domain';
 import { AlbumDto, BandProps, MetalArchivesAlbumTrack, MetalArchivesUrl, TrackBase } from '@metal-p3/api-interfaces';
 import { CoverComponent } from '@metal-p3/cover/ui';
 import { Album, AlbumWithoutTracks } from '@metal-p3/shared/data-access';
 import { NotificationService } from '@metal-p3/shared/feedback';
-import { Track, tracksFormArray } from '@metal-p3/track/domain';
+import { Track, TracksForm } from '@metal-p3/track/domain';
 import { TracksComponent, TracksToolbarComponent } from '@metal-p3/track/ui';
 import { WINDOW } from '@ng-web-apis/common';
 import { AlbumFormComponent } from '../album-form/album-form.component';
@@ -23,29 +24,29 @@ import { AlbumToolbarComponent } from '../album-toolbar/album-toolbar.component'
 @Component({
   standalone: true,
   imports: [
-    NgIf,
-    RouterModule,
-    FormsModule,
-    ReactiveFormsModule,
-    AlbumFormComponent,
     AlbumDataAccessModule,
+    AlbumFormComponent,
     AlbumToolbarComponent,
     CoverComponent,
-    TracksToolbarComponent,
-    TracksComponent,
-    MatProgressBarModule,
-    MatListModule,
-    MatFormFieldModule,
+    FormsModule,
+    MatButtonModule,
     MatCheckboxModule,
+    MatFormFieldModule,
     MatIconModule,
     MatInputModule,
-    MatButtonModule,
+    MatListModule,
+    MatProgressBarModule,
+    NgIf,
+    ReactiveFormsModule,
+    RouterModule,
+    TracksComponent,
+    TracksToolbarComponent,
   ],
   selector: 'app-album',
   templateUrl: './album.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class AlbumComponent implements OnChanges {
+export class AlbumComponent implements OnChanges, AfterViewInit {
   @Input()
   album: Album | null | undefined;
 
@@ -178,35 +179,35 @@ export class AlbumComponent implements OnChanges {
   @HostBinding('class') class = 'block h-screen lg:overflow-hidden';
 
   get albumUrl(): string | undefined {
-    return this.form.get('albumUrl')?.value;
+    return this.form.controls.albumUrl.value;
   }
 
   get artistUrl(): string | undefined {
-    return this.form.get('artistUrl')?.value;
+    return this.form.controls.albumUrl.value;
   }
 
   get hasLyrics(): boolean {
-    return this.form.get('hasLyrics')?.value ?? false;
+    return this.form.controls.hasLyrics.value ?? false;
   }
 
-  form = this.fb.group({
-    artist: ['', Validators.required],
-    album: ['', Validators.required],
-    year: [0, Validators.required],
-    genre: [undefined as string | undefined, Validators.required],
-    country: [undefined as string | undefined, Validators.required],
-    artistUrl: [undefined as string | undefined],
-    albumUrl: [undefined as string | undefined],
-    ignore: [false],
-    transferred: [undefined as boolean | undefined],
-    hasLyrics: [undefined as boolean | undefined],
-    dateCreated: [''],
-    tracks: this.fb.array<typeof tracksFormArray>([]),
+  form = this.fb.group<AlbumForm>({
+    artist: this.fb.control('', Validators.required),
+    album: this.fb.control('', Validators.required),
+    year: this.fb.control(0, Validators.required),
+    genre: this.fb.control(undefined, Validators.required),
+    country: this.fb.control(undefined, Validators.required),
+    artistUrl: this.fb.control(undefined),
+    albumUrl: this.fb.control(undefined),
+    ignore: this.fb.control(false),
+    transferred: this.fb.control(undefined),
+    hasLyrics: this.fb.control(undefined),
+    dateCreated: this.fb.control(''),
+    tracks: this.fb.array<FormGroup<TracksForm>>([]),
   });
 
   shouldCheckBandProps = false;
 
-  constructor(private readonly fb: NonNullableFormBuilder, @Inject(WINDOW) readonly windowRef: Window, private notificationService: NotificationService) {}
+  constructor(private readonly fb: NonNullableFormBuilder, @Inject(WINDOW) readonly windowRef: Window, private notificationService: NotificationService, private readonly router: Router) {}
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes.album && changes.album.currentValue && (changes.album.previousValue ? changes.album.currentValue.id !== changes.album.previousValue.id : !changes.album.previousValue)) {
@@ -232,24 +233,30 @@ export class AlbumComponent implements OnChanges {
     }
   }
 
+  ngAfterViewInit(): void {
+    if (!this.album) {
+      this.router.navigate(['/']);
+    }
+  }
+
   private patchForm(album: AlbumWithoutTracks) {
     this.form.patchValue(album);
   }
 
   private setMaUrls(urls: MetalArchivesUrl) {
-    this.form.get('artistUrl')?.setValue(urls.artistUrl);
-    this.form.get('albumUrl')?.setValue(urls.albumUrl);
+    this.form.controls.artistUrl.setValue(urls.artistUrl);
+    this.form.controls.albumUrl.setValue(urls.albumUrl);
   }
 
   private checkBandProps(artistUrl: string | undefined) {
-    if (artistUrl && (!this.form.get('genre')?.value || !this.form.get('country')?.value)) {
+    if (artistUrl && (!this.form.controls.genre.value || !this.form.controls.country.value)) {
       this.findBandProps.emit({ id: this.albumId, url: artistUrl });
     }
   }
 
   private setBandProps(props: BandProps) {
-    this.form.get('genre')?.setValue(props.genre);
-    this.form.get('country')?.setValue(props.country);
+    this.form.controls.genre.setValue(props.genre);
+    this.form.controls.country.setValue(props.country);
   }
 
   private getTracks(): TrackBase[] {
@@ -284,7 +291,7 @@ export class AlbumComponent implements OnChanges {
   }
 
   onImageSearch() {
-    this.openLink(encodeURI(`https://google.com/images?q=${this.form.get('artist')?.value} ${this.form.get('album')?.value}`));
+    this.openLink(encodeURI(`https://google.com/images?q=${this.form.controls.artist.value} ${this.form.controls.album.value}`));
   }
 
   onFindUrl() {

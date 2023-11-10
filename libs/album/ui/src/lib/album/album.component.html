@@ -32,8 +32,8 @@
     />
 
     <app-album-form
-      class="block w-full mt-1 mb-0 lg:mx-2"
       [form]="form"
+      class="block w-full mt-1 mb-0 lg:mx-2"
       (findBandProps)="findBandProps.emit({ id: albumId, url: $event })"
       (lyricsPriority)="lyricsPriority.emit(albumId)"
     />

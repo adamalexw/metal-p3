@@ -148,11 +148,11 @@ export class PlaylistEffects {
   });
 
   constructor(
-    private actions$: Actions,
-    private store: Store,
-    private playlistService: PlaylistService,
-    private trackService: TrackService,
-    private playerService: PlayerService,
-    private errorService: ErrorService
+    private readonly actions$: Actions,
+    private readonly store: Store,
+    private readonly playlistService: PlaylistService,
+    private readonly trackService: TrackService,
+    private readonly playerService: PlayerService,
+    private readonly errorService: ErrorService
   ) {}
 }

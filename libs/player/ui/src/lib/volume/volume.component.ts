@@ -26,8 +26,9 @@ export class VolumeComponent {
   onVolumeChange(value: number | null) {
     if (value) {
       this.restoreGain = value;
-      this.volume.emit(value);
     }
+
+    this.volume.emit(value ?? 0);
   }
 
   onMute() {

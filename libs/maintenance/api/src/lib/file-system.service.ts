@@ -3,7 +3,7 @@ import { FileSystemService } from '@metal-p3/shared/file-system';
 import { Inject, Injectable } from '@nestjs/common';
 import { difference } from 'lodash';
 import { join } from 'path';
-import { from, Observable, of, Subject } from 'rxjs';
+import { Observable, Subject, from, of } from 'rxjs';
 import { finalize, map, takeUntil, tap } from 'rxjs/operators';
 import { MaintenanceGateway } from './maintenance-gateway.service';
 
@@ -15,7 +15,7 @@ export class FileSystemMaintenanceService {
     private readonly dbService: DbService,
     private readonly fileSystemService: FileSystemService,
     private readonly maintenanceGateway: MaintenanceGateway,
-    @Inject('BASE_PATH') private basePath: string
+    @Inject('BASE_PATH') private readonly basePath: string
   ) {}
 
   getUnmappedFolders(): Observable<string[]> {

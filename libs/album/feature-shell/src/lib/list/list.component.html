@@ -27,6 +27,6 @@
     </div>
   </cdk-virtual-scroll-viewport>
 </ng-container>
-<footer class="fixed bottom-0 w-full" [class.footer-with-side-panel]="sideNavOpen$ | async">
+<footer class="fixed bottom-0 w-full" [class.w-[calc(100vw-1130px)]="sideNavOpen$ | async">
   <app-player />
 </footer>

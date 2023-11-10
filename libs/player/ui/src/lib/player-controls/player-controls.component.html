@@ -13,8 +13,8 @@
       <ng-container *ngTemplateOutlet="durationTemplate"></ng-container>
     </div>
   </mat-toolbar-row>
-  <mat-toolbar-row class="h-16 gap-2 -mr-16 lg:mr-0">
-    <div class="flex h-full items-center" [ngClass]="{ 'w-full justify-center': !footerMode }">
+  <mat-toolbar-row class="!h-16 gap-2 -mr-16 lg:mr-0">
+    <div class="flex h-full items-center" [ngClass]="{ 'w-full justify-center gap-2': !footerMode }">
       <ng-container *ngTemplateOutlet="controlsTemplate"></ng-container>
     </div>
     <ng-container *ngIf="footerMode">
@@ -42,16 +42,16 @@
 </mat-toolbar>
 
 <ng-template #controlsTemplate>
-  <button mat-icon-button (click)="onPrevious()" class="leading-none">
+  <button mat-icon-button (click)="onPrevious()" class="leading-none" [ngClass]="{ 'scale-150': !footerMode, 'lg:scale-100': !footerMode }">
     <mat-icon mat-list-icon>skip_previous</mat-icon>
   </button>
-  <button mat-icon-button (click)="playItem.emit()" *ngIf="!currentItem?.playing" class="leading-none">
+  <button mat-icon-button (click)="playItem.emit()" *ngIf="!currentItem?.playing" class="leading-none" [ngClass]="{ 'scale-150': !footerMode, 'lg:scale-100': !footerMode }">
     <mat-icon mat-list-icon>play_arrow</mat-icon>
   </button>
-  <button mat-icon-button (click)="pauseItem.emit()" *ngIf="currentItem?.playing" class="leading-none">
+  <button mat-icon-button (click)="pauseItem.emit()" *ngIf="currentItem?.playing" class="leading-none" [ngClass]="{ 'scale-150': !footerMode, 'lg:scale-100': !footerMode }">
     <mat-icon mat-list-icon>pause</mat-icon>
   </button>
-  <button mat-icon-button [disabled]="isLastItemPlaying" (click)="next.emit()" class="leading-none">
+  <button mat-icon-button [disabled]="isLastItemPlaying" (click)="next.emit()" class="leading-none" [ngClass]="{ 'scale-150': !footerMode, 'lg:scale-100': !footerMode }">
     <mat-icon mat-list-icon>skip_next</mat-icon>
   </button>
 </ng-template>
@@ -66,7 +66,7 @@
 </ng-template>
 
 <ng-template #durationTemplate>
-  <mat-slider class="w-full m-0 z-10" min="0" [max]="currentItem?.duration" step="1" [disabled]="!currentItem">
+  <mat-slider class="!w-full !m-0 z-10" min="0" [max]="currentItem?.duration" step="1" [disabled]="!currentItem">
     <input matSliderThumb [value]="elapsedTime" (valueChange)="onSeek($event)" />
   </mat-slider>
 </ng-template>

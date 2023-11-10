@@ -24,5 +24,5 @@ export class ConfirmDeleteDirective {
     });
   }
 
-  constructor(private element: ElementRef, private overlayService: OverlayService) {}
+  constructor(private readonly element: ElementRef, private readonly overlayService: OverlayService) {}
 }

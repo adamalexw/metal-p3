@@ -12,7 +12,7 @@ import { Observable } from 'rxjs';
 export class UrlMaintenanceService {
   readonly baseUrl = `${this.api}maintenance/url`;
 
-  constructor(private http: HttpClient, private socket: Socket, @Inject(API) private api: string) {}
+  constructor(private readonly http: HttpClient, private readonly socket: Socket, @Inject(API) private readonly api: string) {}
 
   list(): Observable<UrlMatcher[]> {
     return this.http.get<UrlMatcher[]>(`${this.baseUrl}/list`);

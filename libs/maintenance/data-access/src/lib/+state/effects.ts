@@ -110,10 +110,10 @@ export class MaintenanceEffects {
   );
 
   constructor(
-    private actions$: Actions,
-    private lyricsService: LyricsMaintenanceService,
-    private urlService: UrlMaintenanceService,
-    private errorService: ErrorService,
-    private notificationService: NotificationService
+    private readonly actions$: Actions,
+    private readonly lyricsService: LyricsMaintenanceService,
+    private readonly urlService: UrlMaintenanceService,
+    private readonly errorService: ErrorService,
+    private readonly notificationService: NotificationService
   ) {}
 }

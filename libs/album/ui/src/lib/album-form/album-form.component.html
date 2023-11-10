@@ -25,11 +25,11 @@
     </button>
   </mat-form-field>
 
-  <ng-container *ngIf="!form.get('ignore')?.value ?? false">
+  <ng-container *ngIf="!form.controls.ignore.value ?? false">
     <mat-form-field class="w-full">
       <mat-label>Album Url</mat-label>
       <input matInput formControlName="albumUrl" type="url" />
-      <button mat-icon-button matSuffix (click)="openLink(albumUrl)" [attr.aria-label]="'View album url'">
+      <button *ngIf="albumUrl" mat-icon-button matSuffix (click)="openLink(albumUrl)" [attr.aria-label]="'View album url'">
         <mat-icon>link</mat-icon>
       </button>
     </mat-form-field>
@@ -37,7 +37,7 @@
     <mat-form-field class="w-full">
       <mat-label>Artist Url</mat-label>
       <input matInput formControlName="artistUrl" type="url" />
-      <button mat-icon-button matSuffix (click)="openLink(artistUrl)" [attr.aria-label]="'View artist url'">
+      <button *ngIf="artistUrl" mat-icon-button matSuffix (click)="openLink(artistUrl)" [attr.aria-label]="'View artist url'">
         <mat-icon>link</mat-icon>
       </button>
     </mat-form-field>

@@ -3,7 +3,7 @@ import { MatSnackBar, MatSnackBarRef, TextOnlySnackBar } from '@angular/material
 
 @Injectable({ providedIn: 'root' })
 export class NotificationService {
-  constructor(private snackBar: MatSnackBar) {}
+  constructor(private readonly snackBar: MatSnackBar) {}
 
   showError(message: string, action?: string | undefined) {
     this.snackBar.open(message, action, { panelClass: 'snackbar-error' });

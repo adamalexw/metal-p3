@@ -19,7 +19,7 @@ export class OverlayComponent implements OnInit {
   content: string | TemplateRef<unknown> | Type<unknown> = '';
   context: Object | null = null;
 
-  constructor(private ref: AppOverlayRef) {}
+  constructor(private readonly ref: AppOverlayRef) {}
 
   close() {
     this.ref.close(null);

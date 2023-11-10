@@ -248,12 +248,12 @@ export class AlbumEffects {
   });
 
   constructor(
-    private actions$: Actions,
-    private service: AlbumService,
-    private coverService: CoverService,
-    private store: Store,
-    private notificationService: NotificationService,
-    private errorService: ErrorService,
+    private readonly actions$: Actions,
+    private readonly service: AlbumService,
+    private readonly coverService: CoverService,
+    private readonly store: Store,
+    private readonly notificationService: NotificationService,
+    private readonly errorService: ErrorService,
     @Inject(WINDOW) readonly windowRef: Window,
     @Inject(BASE_PATH) private readonly basePath: string
   ) {}

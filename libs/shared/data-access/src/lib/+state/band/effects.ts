@@ -37,5 +37,5 @@ export class BandEffects {
     );
   });
 
-  constructor(private actions$: Actions, private service: BandService) {}
+  constructor(private readonly actions$: Actions, private readonly service: BandService) {}
 }

@@ -12,7 +12,7 @@ import { Observable } from 'rxjs';
 export class LyricsMaintenanceService {
   readonly baseUrl = `${this.api}maintenance/lyrics`;
 
-  constructor(private http: HttpClient, private socket: Socket, @Inject(API) private api: string) {}
+  constructor(private readonly http: HttpClient, private readonly socket: Socket, @Inject(API) private readonly api: string) {}
 
   getHistory(): Observable<LyricsHistoryDto[]> {
     return this.http.get<LyricsHistoryDto[]>(`${this.baseUrl}/history`);

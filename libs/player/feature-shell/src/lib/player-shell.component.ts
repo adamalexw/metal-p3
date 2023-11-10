@@ -1,5 +1,6 @@
 import { AsyncPipe, NgIf } from '@angular/common';
 import { ChangeDetectionStrategy, Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import { Title } from '@angular/platform-browser';
 import { CoverComponent } from '@metal-p3/cover/ui';
 import {
   PlayerActions,
@@ -45,21 +46,6 @@ export class PlayerShellComponent implements OnInit {
   playlist$ = this.store.select(selectPlaylist);
   activeItem$ = this.store.select(selectActivePlaylistItem);
 
-  playingItem$ = this.activeItem$
-    .pipe(
-      untilDestroyed(this),
-      filter((item) => !!item?.playing),
-      nonNullable(),
-      distinctUntilKeyChanged('id'), // if we are reordering tracks we want to keep the current item playing
-      concatMap((item) => iif(() => !!item?.url, of(item?.url), this.getBlobUrl(item?.id || '', item?.fullPath || ''))),
-      tap((url) => {
-        if (url) {
-          this.audioElement.src = url;
-        }
-      })
-    )
-    .subscribe();
-
   cover$ = this.store.select(selectActiveItemCover);
   coverSize$ = this.footerMode$.pipe(
     map((footerMode) => (footerMode ? { 'h-16': true, 'w-16': true } : { 'w-screen': true, 'lg:w-64': true, 'lg:h-64': true })),
@@ -75,7 +61,23 @@ export class PlayerShellComponent implements OnInit {
 
   showPlaylist$ = this.store.select(selectShowPlaylist);
 
-  constructor(private store: Store, private trackService: TrackService) {}
+  constructor(private readonly store: Store, private readonly trackService: TrackService, private readonly title: Title) {
+    this.activeItem$
+      .pipe(
+        untilDestroyed(this),
+        filter((item) => !!item?.playing),
+        nonNullable(),
+        tap(({ artist, title }) => this.title.setTitle(`${artist} - ${title}`)),
+        distinctUntilKeyChanged('id'), // if we are reordering tracks we want to keep the current item playing
+        concatMap((item) => iif(() => !!item?.url, of(item?.url), this.getBlobUrl(item?.id || '', item?.fullPath || ''))),
+        tap((url) => {
+          if (url) {
+            this.audioElement.src = url;
+          }
+        })
+      )
+      .subscribe();
+  }
 
   ngOnInit(): void {
     this.listenToAudioEvents();
@@ -181,6 +183,7 @@ export class PlayerShellComponent implements OnInit {
   onClosePlaylist() {
     this.onClearPlaylist();
     this.store.dispatch(PlayerActions.close());
+    this.title.setTitle('M(etal)p3');
   }
 
   onTogglePlaylist() {

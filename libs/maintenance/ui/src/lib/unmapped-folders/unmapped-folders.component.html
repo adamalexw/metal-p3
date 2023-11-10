@@ -6,7 +6,7 @@
     <mat-list-item *ngFor="let folder of folders">
       <mat-icon matListItemIcon class="cursor-pointer" (click)="openFolder.emit(folder)">folder</mat-icon>
       <div matListItemTitle>{{ folder }}</div>
-      <div matListItemLine class="flex mt-2">
+      <div matListItemLine class="!flex !mt-2">
         <mat-icon mat-list-icon class="cursor-pointer" (click)="search.emit(folder)">search</mat-icon>
         <mat-icon mat-list-icon class="cursor-pointer" (click)="add.emit(folder)">add</mat-icon>
         <mat-icon mat-list-icon class="cursor-pointer" appConfirmDelete [itemName]="folder" (confirmResult)="onDelete($event, folder)">delete</mat-icon>

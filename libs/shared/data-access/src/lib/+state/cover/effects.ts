@@ -6,7 +6,7 @@ import { WINDOW } from '@ng-web-apis/common';
 import { Actions, concatLatestFrom, createEffect, ofType } from '@ngrx/effects';
 import { Update } from '@ngrx/entity';
 import { Store } from '@ngrx/store';
-import { EMPTY, forkJoin, iif, Observable, of } from 'rxjs';
+import { EMPTY, Observable, forkJoin, iif, of } from 'rxjs';
 import { catchError, filter, map, mergeMap, switchMap, tap } from 'rxjs/operators';
 import { AlbumActions } from '../actions';
 import { Album } from '../model';
@@ -105,10 +105,10 @@ export class CoverEffects {
   }
 
   constructor(
-    private actions$: Actions,
-    private service: CoverService,
-    private store: Store,
-    private errorService: ErrorService,
+    private readonly actions$: Actions,
+    private readonly service: CoverService,
+    private readonly store: Store,
+    private readonly errorService: ErrorService,
     @Inject(WINDOW) readonly windowRef: Window,
     @Inject(BASE_PATH) private readonly basePath: string
   ) {}

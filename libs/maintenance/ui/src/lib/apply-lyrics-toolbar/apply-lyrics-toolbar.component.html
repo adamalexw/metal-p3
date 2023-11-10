@@ -1,5 +1,5 @@
 <app-nav-toolbar [showClose]="showClose">
-  <div class="flex items-center gap-3 leading-5">
+  <div class="flex items-center gap-3 leading-5 -pl-4">
     <app-cover [loading]="coverLoading" [cover]="cover" [width]="64" [height]="64"></app-cover>
     <button mat-icon-button type="button" [disabled]="applying" (click)="apply.emit()">
       <mat-icon title="apply">spellcheck</mat-icon>

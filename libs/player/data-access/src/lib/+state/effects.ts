@@ -117,5 +117,5 @@ export class PlayerEffects {
     );
   });
 
-  constructor(private actions$: Actions, private store: Store, private coverService: CoverService, private errorService: ErrorService) {}
+  constructor(private readonly actions$: Actions, private readonly store: Store, private readonly coverService: CoverService, private readonly errorService: ErrorService) {}
 }

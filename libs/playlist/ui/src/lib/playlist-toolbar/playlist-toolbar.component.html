@@ -1,53 +1,55 @@
-<mat-toolbar-row class="mat-app-background">
-  <button mat-icon-button [matMenuTriggerFor]="menu" (click)="onLoadPlaylists()">
-    <mat-icon title="load">queue_music</mat-icon>
-  </button>
-  <mat-menu #menu="matMenu" yPosition="above">
-    <button *ngFor="let playlist of playlists" mat-menu-item (click)="loadPlaylist.emit(playlist.id)">{{ playlist.name }}</button>
-  </mat-menu>
-
-  <ng-container *ngIf="activePlaylist; else createTemplate">
-    <mat-form-field>
-      <input matInput placeholder="playlist name" class="w-auto" required [(ngModel)]="playlistName" />
-    </mat-form-field>
-    <button mat-icon-button (click)="updatePlaylist.emit(playlistName || '')">
-      <mat-icon title="save">save</mat-icon>
+<mat-toolbar>
+  <mat-toolbar-row class="mat-app-background">
+    <button mat-icon-button [matMenuTriggerFor]="menu" (click)="onLoadPlaylists()">
+      <mat-icon title="load">queue_music</mat-icon>
     </button>
-  </ng-container>
+    <mat-menu #menu="matMenu" yPosition="above">
+      <button *ngFor="let playlist of playlists" mat-menu-item (click)="loadPlaylist.emit(playlist.id)">{{ playlist.name }}</button>
+    </mat-menu>
 
-  <ng-template #createTemplate>
-    <mat-form-field *ngIf="saving">
-      <input matInput placeholder="playlist name" class="w-auto" required [(ngModel)]="playlistName" />
-    </mat-form-field>
+    <ng-container *ngIf="activePlaylist; else createTemplate">
+      <mat-form-field>
+        <input matInput placeholder="playlist name" class="w-auto" required [(ngModel)]="playlistName" />
+      </mat-form-field>
+      <button mat-icon-button (click)="updatePlaylist.emit(playlistName || '')">
+        <mat-icon title="save">save</mat-icon>
+      </button>
+    </ng-container>
 
-    <button *ngIf="duration ?? 0 > 0" mat-icon-button [disabled]="saving && !playlistName" (click)="onCreate()">
-      <mat-icon title="create">playlist_add</mat-icon>
+    <ng-template #createTemplate>
+      <mat-form-field *ngIf="saving">
+        <input matInput placeholder="playlist name" class="w-auto" required [(ngModel)]="playlistName" />
+      </mat-form-field>
+
+      <button *ngIf="duration ?? 0 > 0" mat-icon-button [disabled]="saving && !playlistName" (click)="onCreate()">
+        <mat-icon title="create">playlist_add</mat-icon>
+      </button>
+    </ng-template>
+
+    <button *ngIf="playlistSize ?? 0 > 1" mat-icon-button (click)="shuffle.emit()" title="shuffle">
+      <mat-icon>shuffle</mat-icon>
     </button>
-  </ng-template>
 
-  <button *ngIf="playlistSize ?? 0 > 1" mat-icon-button (click)="shuffle.emit()">
-    <mat-icon>shuffle</mat-icon>
-  </button>
+    <button *ngIf="playlistSize ?? 0 > 0" mat-icon-button (click)="clearPlaylist.emit()" title="clear">
+      <mat-icon title="clear">clear_all</mat-icon>
+    </button>
 
-  <button *ngIf="playlistSize ?? 0 > 0" mat-icon-button (click)="clearPlaylist.emit()">
-    <mat-icon title="clear">clear_all</mat-icon>
-  </button>
+    <button *ngIf="activePlaylist" mat-icon-button appConfirmDelete [itemName]="'playlist'" (confirmResult)="onDelete($event)">
+      <mat-icon title="delete">delete</mat-icon>
+    </button>
 
-  <button *ngIf="activePlaylist" mat-icon-button appConfirmDelete [itemName]="'playlist'" (confirmResult)="onDelete($event)">
-    <mat-icon title="delete">delete</mat-icon>
-  </button>
+    <button class="!hidden lg:!inline-block" *ngIf="playlistSize ?? 0 > 1" mat-icon-button (click)="transfer.emit()" [disabled]="transferring">
+      <mat-icon title="transfer">adb</mat-icon>
+    </button>
 
-  <button class="hidden lg:block" *ngIf="playlistSize ?? 0 > 1" mat-icon-button (click)="transfer.emit()" [disabled]="transferring">
-    <mat-icon title="transfer">adb</mat-icon>
-  </button>
+    <button class="lg:!hidden" mat-icon-button (click)="togglePlaylist.emit()">
+      <mat-icon title="playlist toggle">playlist_play</mat-icon>
+    </button>
 
-  <button class="lg:hidden" mat-icon-button (click)="togglePlaylist.emit()">
-    <mat-icon title="playlist toggle">featured_play_list</mat-icon>
-  </button>
-
-  <div class="w-full flex flex-row-reverse items-center">
-    <mat-icon class="cursor-pointer" (click)="closePlaylist.emit()">close</mat-icon>
-    <div class="ml-1 mr-1">{{ duration | time }}</div>
-    <mat-icon>timer</mat-icon>
-  </div>
-</mat-toolbar-row>
+    <div class="w-full flex flex-row-reverse items-center">
+      <mat-icon class="cursor-pointer" (click)="closePlaylist.emit()">close</mat-icon>
+      <div class="ml-1 mr-1">{{ duration | time }}</div>
+      <mat-icon>timer</mat-icon>
+    </div>
+  </mat-toolbar-row>
+</mat-toolbar>

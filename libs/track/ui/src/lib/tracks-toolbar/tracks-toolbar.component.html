@@ -1,11 +1,10 @@
-<mat-toolbar class="lg:hidden">
+<mat-toolbar class="lg:!hidden">
   <div *ngIf="albumDuration" class="w-full flex justify-center items-center">
-    <mat-icon>timer</mat-icon>
-    <span class="ml-1">{{ albumDuration | time }}</span>
+    <ng-container *ngTemplateOutlet="duration"></ng-container>
   </div>
 </mat-toolbar>
 
-<mat-toolbar>
+<mat-toolbar class="pl-0!">
   <button mat-icon-button (click)="trackNumbers.emit()">
     <mat-icon title="track numbers">tag</mat-icon>
   </button>
@@ -31,7 +30,11 @@
   </button>
 
   <div *ngIf="albumDuration" class="hidden lg:flex w-full flex-row-reverse items-center">
-    <span class="ml-1">{{ albumDuration | time }}</span>
-    <mat-icon>timer</mat-icon>
+    <ng-container *ngTemplateOutlet="duration"></ng-container>
   </div>
 </mat-toolbar>
+
+<ng-template #duration>
+  <span class="ml-1">{{ albumDuration | time }}</span>
+  <mat-icon>timer</mat-icon>
+</ng-template>
