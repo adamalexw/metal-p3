@@ -6,20 +6,23 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { EMPTY, Observable, of } from 'rxjs';
 import { filter, map } from 'rxjs/operators';
+import * as sharp from 'sharp';
 
 @Injectable()
 export class CoverService {
+  readonly cover = 'Cover.jpg';
+
   constructor(private readonly trackService: TrackService, private readonly fileSystemService: FileSystemService, private readonly httpService: HttpService) {}
 
   getCover(location: string): Observable<string> {
-    if (path.extname(location) == '.mp3') {
-      return this.getCoverFromAudioFile(location).pipe(filter(Boolean));
-    }
-
-    const coverPath = path.join(location, 'Cover.jpg');
+    const coverPath = path.join(location, this.cover);
 
     if (fs.existsSync(coverPath)) {
       return this.getCoverFromImageFile(coverPath);
+    }
+
+    if (path.extname(location) == '.mp3') {
+      return this.getCoverFromAudioFile(location).pipe(filter(Boolean));
     }
 
     try {
@@ -59,20 +62,27 @@ export class CoverService {
   }
 
   saveCover(folder: string, cover: string): void {
-    const location = path.join(folder, 'Cover.jpg');
-
+    const location = path.join(folder, this.cover);
     const buffer = Buffer.from(cover.replace('data:image/png;base64,', ''), 'base64');
 
-    fs.writeFile(location, buffer, (err) => {
-      if (err) {
-        if (fs.existsSync(location)) {
-          this.fileSystemService.deleteFile(location);
-        }
+    sharp(buffer).resize({ height: 500, width: 500 }).toFile(location);
+  }
 
-        fs.writeFile(location, buffer, (err) => {
-          console.log(err);
-        });
+  resize() {
+    const folders = this.fileSystemService.getFolders('d:/mp3');
+
+    for (let index = 0; index < folders.length; index++) {
+      const f = `d:/mp3/${folders[index]}/${this.cover}`;
+
+      if (fs.existsSync(f)) {
+        console.log(((index / folders.length) * 100).toFixed(1), folders[index]);
+
+        sharp(f).resize({ height: 500 }).toFile(`d:/mp3/${folders[index]}/${this.cover}`);
       }
-    });
+
+      if (index > 10) {
+        return;
+      }
+    }
   }
 }

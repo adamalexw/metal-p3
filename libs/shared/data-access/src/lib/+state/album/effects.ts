@@ -5,14 +5,14 @@ import { BandDto, MetalArchivesSearchResponse } from '@metal-p3/api-interfaces';
 import { CoverService } from '@metal-p3/cover/data-access';
 import { ErrorService } from '@metal-p3/shared/error';
 import { NotificationService } from '@metal-p3/shared/feedback';
-import { extractUrl, nonNullable } from '@metal-p3/shared/utils';
+import { nonNullable } from '@metal-p3/shared/utils';
 import { Track } from '@metal-p3/track/domain';
 import { WINDOW } from '@ng-web-apis/common';
 import { Actions, concatLatestFrom, createEffect, ofType } from '@ngrx/effects';
 import { Update } from '@ngrx/entity';
 import { Store } from '@ngrx/store';
 import { EMPTY, iif, of, throwError } from 'rxjs';
-import { catchError, concatMap, filter, map, mergeMap, switchMap, tap } from 'rxjs/operators';
+import { catchError, concatMap, delay, filter, map, mergeMap, switchMap, tap } from 'rxjs/operators';
 import { CoverActions } from '../actions';
 import { BandActions } from '../band/actions';
 import { Album, AlbumDtoToAlbum } from '../model';
@@ -62,6 +62,7 @@ export class AlbumEffects {
   addNewAlbum$ = createEffect(() => {
     return this.actions$.pipe(
       ofType(AlbumActions.addNewAlbum),
+      delay(5000), // wait for unzip
       mergeMap(({ folder }) =>
         this.service.addNewAlbum(`${this.basePath}/${folder}`).pipe(
           nonNullable(),
@@ -165,6 +166,12 @@ export class AlbumEffects {
         this.service.findMaUrl(artist, album).pipe(
           mergeMap((response) => {
             if (response.iTotalRecords > 1) {
+              const fullLengths = response.results.filter((r) => r.releaseType === 'Full-length');
+
+              if (fullLengths.length === 1) {
+                return of({ ...response, iTotalRecords: 1, results: fullLengths });
+              }
+
               this.windowRef.open(`https://www.metal-archives.com/search/advanced/searching/albums?bandName=${encodeURI(artist)}&releaseTitle=${encodeURI(album)}`);
               return throwError(() => new Error('too many results'));
             }
@@ -175,9 +182,8 @@ export class AlbumEffects {
 
             return of(response);
           }),
-          filter((response) => response.iTotalRecords === 1),
           map((response: MetalArchivesSearchResponse) => {
-            return { artistUrl: extractUrl(response.aaData[0][0]), albumUrl: extractUrl(response.aaData[0][1]) };
+            return { artistUrl: response.results[0].artistUrl, albumUrl: response.results[0].albumUrl };
           }),
           map(({ artistUrl, albumUrl }) => AlbumActions.findMetalArchivesUrlSuccess({ update: { id, changes: { artistUrl, albumUrl, findingUrl: false } } })),
           catchError((error) => {

@@ -9,8 +9,7 @@
       "executor": "@nx/jest:jest",
       "outputs": ["{workspaceRoot}/coverage/libs/shared/navigation"],
       "options": {
-        "jestConfig": "libs/shared/navigation/jest.config.ts",
-        "passWithNoTests": true
+        "jestConfig": "libs/shared/navigation/jest.config.ts"
       }
     },
     "lint": {

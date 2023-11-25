@@ -137,8 +137,6 @@ export class PlaylistEffects {
       ofType(PlaylistActions.transfer),
       concatLatestFrom(() => this.store.select(selectPlaylist).pipe(nonNullable())),
       concatMap(([_, tracks]) => {
-        console.log(tracks);
-
         const tracks$ = tracks.map((track) => this.trackService.transferTrack(track.fullPath));
 
         return forkJoin(tracks$);

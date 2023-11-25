@@ -14,5 +14,11 @@ module.exports = {
       blue: colors.blue,
       red: colors.red,
     },
+    extend: {
+      width: {
+        album: '1130px',
+        minusAlbum: 'calc(100vw - 1130px)',
+      },
+    },
   },
 };

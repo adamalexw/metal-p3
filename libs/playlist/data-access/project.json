@@ -9,8 +9,7 @@
       "executor": "@nx/jest:jest",
       "outputs": ["{workspaceRoot}/coverage/libs/playlist/data-access"],
       "options": {
-        "jestConfig": "libs/playlist/data-access/jest.config.ts",
-        "passWithNoTests": true
+        "jestConfig": "libs/playlist/data-access/jest.config.ts"
       }
     },
     "lint": {

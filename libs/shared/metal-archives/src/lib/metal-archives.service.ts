@@ -1,4 +1,5 @@
-import { BandProps, MetalArchivesAlbumTrack, MetalArchivesSearchResponse } from '@metal-p3/api-interfaces';
+import type { BandProps, MetalArchivesAlbumTrack, MetalArchivesSearchResponse, MetalArchivesSearchResponseItem } from '@metal-p3/api-interfaces';
+import { extractUrl } from '@metal-p3/shared/utils';
 import { HttpService } from '@nestjs/axios';
 import { Injectable } from '@nestjs/common';
 import { parse } from 'node-html-parser';
@@ -14,7 +15,24 @@ export class MetalArchivesService {
   findUrl(artist: string, album: string): Observable<MetalArchivesSearchResponse> {
     return this.httpService
       .get<MetalArchivesSearchResponse>(`${this.baseUrl}search/ajax-advanced/searching/albums/?bandName=${encodeURIComponent(artist)}&releaseTitle=${encodeURIComponent(album)}`)
-      .pipe(map((response) => response.data));
+      .pipe(
+        map((response) => response.data),
+        map((response) => ({ ...response, results: this.mapSearchResults(response.aaData) }))
+      );
+  }
+
+  private mapSearchResults(
+    aaData: {
+      0: string;
+      1: string;
+      2: string;
+    }[]
+  ): MetalArchivesSearchResponseItem[] {
+    return aaData.map((i) => ({
+      artistUrl: extractUrl(i[0]) ?? '',
+      albumUrl: extractUrl(i[1]) ?? '',
+      releaseType: i[2],
+    }));
   }
 
   getTracks(url: string): Observable<MetalArchivesAlbumTrack[]> {

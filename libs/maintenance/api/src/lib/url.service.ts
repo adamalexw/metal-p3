@@ -5,7 +5,7 @@ import { MetalArchivesService } from '@metal-p3/shared/metal-archives';
 import { extractUrl } from '@metal-p3/shared/utils';
 import { Injectable, Logger } from '@nestjs/common';
 import { Album } from '@prisma/client';
-import { from, Observable, of, Subject } from 'rxjs';
+import { Observable, Subject, from, of } from 'rxjs';
 import { catchError, concatMap, finalize, map, takeUntil, tap, toArray } from 'rxjs/operators';
 import { MaintenanceGateway } from './maintenance-gateway.service';
 
@@ -76,6 +76,17 @@ export class UrlService {
 
   extractOutcome(matcher: UrlMatcher, response: MetalArchivesSearchResponse): UrlMatcher {
     if (response.iTotalRecords > 1) {
+      const fullLengths = response.results.filter((r) => r.releaseType === 'Full-length');
+
+      if (fullLengths.length === 1) {
+        return {
+          ...matcher,
+          result: 'success',
+          artistUrl: fullLengths[0].artistUrl,
+          albumUrl: fullLengths[1].albumUrl,
+        };
+      }
+
       return {
         ...matcher,
         result: 'multiple',

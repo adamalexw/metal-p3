@@ -9,8 +9,7 @@
       "executor": "@nx/jest:jest",
       "outputs": ["{workspaceRoot}/coverage/libs/band/data-access"],
       "options": {
-        "jestConfig": "libs/band/data-access/jest.config.ts",
-        "passWithNoTests": true
+        "jestConfig": "libs/band/data-access/jest.config.ts"
       }
     },
     "lint": {

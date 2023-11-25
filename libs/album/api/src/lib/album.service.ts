@@ -32,9 +32,16 @@ export class AlbumService {
     let bandWhere: Prisma.BandWhereInput;
 
     if (request.folder) {
-      where = {
-        Folder: { contains: request.folder },
-      };
+      // when adding a new folder
+      if (request.exactMatch) {
+        where = {
+          Folder: { equals: request.folder },
+        };
+      } else {
+        where = {
+          Folder: { contains: request.folder },
+        };
+      }
     }
 
     if (request.artist) {
@@ -46,7 +53,7 @@ export class AlbumService {
     if (request.album) {
       where = {
         ...where,
-        Name: { contains: request.artist },
+        Name: { contains: request.album },
       };
     }
 
@@ -156,7 +163,7 @@ export class AlbumService {
   addAlbum(folder: string): Observable<AlbumDto> {
     const dirName = this.fileSystemService.getFilename(folder);
 
-    return this.getAlbums({ take: 1, folder: dirName }).pipe(
+    return this.getAlbums({ take: 1, folder: dirName, exactMatch: true }).pipe(
       filter((album) => !album.length),
       map(() => {
         this.fileSystemService.moveFilesToTheRoot(folder, folder);

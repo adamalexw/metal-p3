@@ -9,8 +9,7 @@
       "executor": "@nx/jest:jest",
       "outputs": ["{workspaceRoot}/coverage/libs/playlist/ui"],
       "options": {
-        "jestConfig": "libs/playlist/ui/jest.config.ts",
-        "passWithNoTests": true
+        "jestConfig": "libs/playlist/ui/jest.config.ts"
       }
     },
     "lint": {

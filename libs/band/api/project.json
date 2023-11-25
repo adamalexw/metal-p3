@@ -14,8 +14,7 @@
       "executor": "@nx/jest:jest",
       "outputs": ["{workspaceRoot}/coverage/libs/band/api"],
       "options": {
-        "jestConfig": "libs/band/api/jest.config.ts",
-        "passWithNoTests": true
+        "jestConfig": "libs/band/api/jest.config.ts"
       }
     }
   },

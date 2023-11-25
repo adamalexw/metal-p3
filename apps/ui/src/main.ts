@@ -40,6 +40,7 @@ bootstrapApplication(AppComponent, {
       maxAge: 100,
       logOnly: !isDevMode(),
       autoPause: true,
+      connectInZone: true,
     }),
     provideEffects([AlbumEffects, BandEffects, CoverEffects, TrackEffects, PlayerEffects, PlaylistEffects]),
     { provide: API, useValue: 'http://' + window.location.hostname + ':3333/api/' },

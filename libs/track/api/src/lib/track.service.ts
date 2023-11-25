@@ -7,7 +7,7 @@ import * as mm from 'music-metadata';
 import * as NodeID3 from 'node-id3';
 import { ReadStream } from 'node:fs';
 import { basename, dirname, extname } from 'path';
-import { EMPTY, from, Observable } from 'rxjs';
+import { EMPTY, Observable, from } from 'rxjs';
 import { catchError, concatAll, map, toArray } from 'rxjs/operators';
 
 @Injectable()
@@ -29,7 +29,7 @@ export class TrackService {
   }
 
   getTags(file: string): NodeID3.Tags {
-    return NodeID3.read(file);
+    return NodeID3.read(file, { exclude: ['APIC'] });
   }
 
   trackDetails(file: string, index: number): Observable<TrackDto> {
@@ -37,7 +37,7 @@ export class TrackService {
       return this.getMetadata(file, { skipCovers: true }).pipe(
         map((metadata) => this.mapTrack(file, this.getTags(file), metadata, index)),
         catchError((error) => {
-          console.log(error);
+          console.error(error);
           return EMPTY;
         })
       );

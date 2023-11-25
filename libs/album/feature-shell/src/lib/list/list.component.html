@@ -11,7 +11,7 @@
 
 <ng-container *ngIf="searchRequest$ | async as searchRequest">
   <cdk-virtual-scroll-viewport [itemSize]="379" (scrolledIndexChange)="scrollIndexChange($event, searchRequest, false)">
-    <div class="mx-2" appAddAlbum (albumAdded)="onAlbumAdded($event)">
+    <div class="mx-4 overflow-hidden" appAddAlbum (albumAdded)="onAlbumAdded($event)">
       <div class="grid grid-flow-col auto-cols-fr lg:auto-cols-min gap-2 py-2" *cdkVirtualFor="let albums of albumsView$; trackBy: trackByVirtualFn">
         <app-list-item
           *ngFor="let album of albums; trackBy: trackByAlbumFn"
@@ -27,6 +27,6 @@
     </div>
   </cdk-virtual-scroll-viewport>
 </ng-container>
-<footer class="fixed bottom-0 w-full" [class.w-[calc(100vw-1130px)]="sideNavOpen$ | async">
+<footer class="fixed bottom-0 w-full" [class.w-minusAlbum]="sideNavOpen$ | async">
   <app-player />
 </footer>

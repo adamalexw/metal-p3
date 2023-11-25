@@ -12,7 +12,6 @@ import { Album } from '@metal-p3/shared/data-access';
   imports: [NgIf, CoverComponent, MatCardModule, MatButtonModule, MatIconModule, MatMenuModule],
   selector: 'app-list-item',
   templateUrl: './list-item.component.html',
-  styleUrls: ['./list-item.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.None,
 })

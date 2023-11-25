@@ -20,4 +20,9 @@ export class CoverController {
   post(@Body() body: { folder: string; cover: string }): void {
     this.coverService.saveCover(body.folder, body.cover);
   }
+
+  @Get('resize')
+  resize(): void {
+    return this.coverService.resize();
+  }
 }

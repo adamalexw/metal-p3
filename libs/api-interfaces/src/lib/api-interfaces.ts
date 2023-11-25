@@ -10,6 +10,7 @@ export interface SearchRequest {
   hasLyrics?: boolean;
   folder?: string;
   cancel?: boolean;
+  exactMatch?: boolean;
 }
 
 export interface AlbumBase extends MetalArchivesUrl {
@@ -61,7 +62,20 @@ export interface MetalArchivesSearchResponse {
   error?: unknown;
   iTotalRecords: number;
   iTotalDisplayRecords?: number;
-  aaData: string[][];
+  aaData: {
+    0: string;
+    1: string;
+    2: string;
+  }[];
+  results: MetalArchivesSearchResponseItem[];
+}
+
+export type MetalArchivesReleaseType = 'Full-length' | 'Live album' | 'Demo' | 'Single' | 'EP' | 'Video' | 'Boxed set' | 'Split' | 'Compilation' | 'Split video' | 'Collaboration';
+
+export interface MetalArchivesSearchResponseItem {
+  artistUrl: string;
+  albumUrl: string;
+  releaseType: MetalArchivesReleaseType | string;
 }
 
 export interface MetalArchivesUrl {

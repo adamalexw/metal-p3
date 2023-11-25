@@ -60,7 +60,7 @@ export class ListComponent implements OnInit {
     map(([albums, width, open]) => {
       // if the side nav is open we remove it's width
       const listWidth = open ? width - 1130 : width;
-      const chunks = Math.floor(listWidth / 272);
+      const chunks = Math.floor(listWidth / 286);
 
       return toChunks(albums, chunks);
     })

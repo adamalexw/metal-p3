@@ -10,7 +10,7 @@
 
   <mat-card-content class="h-full">
     <div (click)="openAlbum.emit(album.id)" class="flex justify-center cursor-pointer overflow-hidden">
-      <app-cover class="block z-10" [cover]="album.cover" [coverError]="album.coverError" [loading]="album.coverLoading || false"></app-cover>
+      <app-cover class="block z-10 hover:transition hover:scale-110" [class.animate-spin]="album.coverLoading" [cover]="album.cover" [coverError]="album.coverError" [loading]="album.coverLoading || false" />
     </div>
   </mat-card-content>
 

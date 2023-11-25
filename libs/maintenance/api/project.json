@@ -14,8 +14,7 @@
       "executor": "@nx/jest:jest",
       "outputs": ["{workspaceRoot}/coverage/libs/maintenance/api"],
       "options": {
-        "jestConfig": "libs/maintenance/api/jest.config.ts",
-        "passWithNoTests": true
+        "jestConfig": "libs/maintenance/api/jest.config.ts"
       }
     }
   },
