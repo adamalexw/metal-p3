@@ -7,7 +7,7 @@
     <app-list></app-list>
   </mat-sidenav-content>
 
-  <mat-sidenav [opened]="sideNavOpen$ | async" #sidenav mode="side" position="end" class="w-screen lg:w-album">
+  <mat-sidenav [opened]="sideNavOpen$ | async" #sidenav [mode]="(sideNavMode$ | async) ?? 'side'" position="end" class="w-screen lg:w-album">
     <router-outlet></router-outlet>
   </mat-sidenav>
 </mat-sidenav-container>

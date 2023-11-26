@@ -154,16 +154,6 @@ export class AlbumShellComponent implements OnInit {
       .subscribe();
   }
 
-  private errorNotifications() {
-    this.saveError$
-      .pipe(
-        untilDestroyed(this),
-        nonNullable(),
-        tap((error) => this.notificationService.showError(error, 'Save'))
-      )
-      .subscribe();
-  }
-
   onDownloadCover(id: number, url: string) {
     this.store.dispatch(CoverActions.download({ id, url }));
   }
@@ -185,34 +175,8 @@ export class AlbumShellComponent implements OnInit {
     }
   }
 
-  private dispatchTracks(album: AlbumWithoutTracks, tracks: TrackBase[]) {
-    tracks.forEach((albumTrack) => {
-      const track = this.getTrack(album, albumTrack);
-      this.store.dispatch(TrackActions.saveTrack({ id: album.id, track }));
-    });
-  }
-
-  private getTrack(album: AlbumWithoutTracks, albumTrack: Track): Track {
-    const { artist, genre, year, artistUrl, albumUrl, cover } = album;
-    const track = { ...albumTrack, artist, genre, year, artistUrl, albumUrl, cover, album: album.album };
-    return track;
-  }
-
   onFindUrl(id: number, artist: string, album: string) {
     this.store.dispatch(AlbumActions.findMetalArchivesUrl({ id, artist, album }));
-  }
-
-  private getMaTracks(id: number, url: string): Observable<MetalArchivesAlbumTrack[] | undefined> {
-    return this.maTracks$.pipe(
-      untilDestroyed(this),
-      tap((maTracks) => {
-        if (!maTracks) {
-          this.store.dispatch(TrackActions.getMetalArchivesTracks({ id, url }));
-        }
-      }),
-      filter((maTracks) => !!maTracks),
-      take(1)
-    );
   }
 
   onMaTracks(id: number, url: string) {
@@ -330,5 +294,41 @@ export class AlbumShellComponent implements OnInit {
   onDeleteAlbum(id: number) {
     this.store.dispatch(AlbumActions.deleteAlbum({ id }));
     this.router.navigate(['/']);
+  }
+
+  private getMaTracks(id: number, url: string): Observable<MetalArchivesAlbumTrack[] | undefined> {
+    return this.maTracks$.pipe(
+      untilDestroyed(this),
+      tap((maTracks) => {
+        if (!maTracks) {
+          this.store.dispatch(TrackActions.getMetalArchivesTracks({ id, url }));
+        }
+      }),
+      filter((maTracks) => !!maTracks),
+      take(1)
+    );
+  }
+
+  private dispatchTracks(album: AlbumWithoutTracks, tracks: TrackBase[]) {
+    tracks.forEach((albumTrack) => {
+      const track = this.getTrack(album, albumTrack);
+      this.store.dispatch(TrackActions.saveTrack({ id: album.id, track }));
+    });
+  }
+
+  private getTrack(album: AlbumWithoutTracks, albumTrack: Track): Track {
+    const { artist, genre, year, artistUrl, albumUrl, cover } = album;
+    const track = { ...albumTrack, artist, genre, year, artistUrl, albumUrl, cover, album: album.album };
+    return track;
+  }
+
+  private errorNotifications() {
+    this.saveError$
+      .pipe(
+        untilDestroyed(this),
+        nonNullable(),
+        tap((error) => this.notificationService.showError(error, 'Save'))
+      )
+      .subscribe();
   }
 }

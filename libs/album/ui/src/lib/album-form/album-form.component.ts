@@ -40,7 +40,7 @@ import { AlbumToolbarComponent } from '../album-toolbar/album-toolbar.component'
 })
 export class AlbumFormComponent {
   @Input({ required: true })
-  form: FormGroup<AlbumForm>;
+  form!: FormGroup<AlbumForm>;
 
   @Output()
   readonly lyricsPriority = new EventEmitter<void>();

@@ -12,7 +12,7 @@ import { Actions, concatLatestFrom, createEffect, ofType } from '@ngrx/effects';
 import { Update } from '@ngrx/entity';
 import { Store } from '@ngrx/store';
 import { EMPTY, iif, of, throwError } from 'rxjs';
-import { catchError, concatMap, delay, filter, map, mergeMap, switchMap, tap } from 'rxjs/operators';
+import { catchError, concatMap, filter, map, mergeMap, switchMap, tap } from 'rxjs/operators';
 import { CoverActions } from '../actions';
 import { BandActions } from '../band/actions';
 import { Album, AlbumDtoToAlbum } from '../model';
@@ -62,7 +62,6 @@ export class AlbumEffects {
   addNewAlbum$ = createEffect(() => {
     return this.actions$.pipe(
       ofType(AlbumActions.addNewAlbum),
-      delay(5000), // wait for unzip
       mergeMap(({ folder }) =>
         this.service.addNewAlbum(`${this.basePath}/${folder}`).pipe(
           nonNullable(),

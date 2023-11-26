@@ -72,7 +72,11 @@ export class FileSystemService {
     chmodSync(file, this.getFileStats(file).mode | 0o666);
   }
 
-  moveFilesToTheRoot(folder: string, rootFolder: string) {
+  moveFilesToTheRoot(folder: string, rootFolder: string, retry = 0) {
+    if (retry >= 3) {
+      return;
+    }
+
     const folders = this.getFiles(folder);
 
     for (let index = 0; index < folders.length; index++) {
@@ -87,7 +91,13 @@ export class FileSystemService {
           this.rename(join(itemPath, file), join(rootFolder, file));
         }
 
-        this.cleanEmptyFolders(folder);
+        if (this.getFiles(itemPath).length > 0) {
+          setTimeout(() => {
+            this.moveFilesToTheRoot(folder, rootFolder, retry + 1);
+          }, 1000);
+        } else {
+          this.cleanEmptyFolders(folder);
+        }
       }
     }
   }

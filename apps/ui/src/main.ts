@@ -4,7 +4,7 @@ import { MAT_FORM_FIELD_DEFAULT_OPTIONS } from '@angular/material/form-field';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { bootstrapApplication } from '@angular/platform-browser';
 import { provideAnimations } from '@angular/platform-browser/animations';
-import { provideRouter } from '@angular/router';
+import { provideRouter, withInMemoryScrolling } from '@angular/router';
 import { routes } from '@metal-p3/album';
 import { API, BASE_PATH, TAKE } from '@metal-p3/album/domain';
 import { PlayerEffects, playerFeature } from '@metal-p3/player/data-access';
@@ -27,7 +27,7 @@ if (environment.production) {
 
 bootstrapApplication(AppComponent, {
   providers: [
-    provideRouter(routes),
+    provideRouter(routes, withInMemoryScrolling({ scrollPositionRestoration: 'enabled' })),
     provideHttpClient(),
     provideAnimations(),
     importProvidersFrom(MatSnackBarModule, SocketIoModule.forRoot(config)),

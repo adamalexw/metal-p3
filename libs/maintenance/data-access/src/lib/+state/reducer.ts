@@ -18,7 +18,7 @@ export interface MaintenanceState {
   metalArchivesMatcher: EntityState<UrlMatcher>;
 }
 
-const initialState: MaintenanceState = {
+export const initialState: MaintenanceState = {
   gettingLyrics: false,
   checkingLyrics: false,
   lyrics: lyricsAdapter.getInitialState(),

@@ -15,5 +15,5 @@ fs.copySync('package-lock.json', path.join(dest, 'package.lock.json'));
 fs.copySync('decorate-angular-cli.js', path.join(dest, 'decorate-angular-cli.js'));
 
 process.chdir(dest);
-execSync('npm install --force');
+execSync('npm install --force', { stdio: 'inherit' });
 execSync('npx prisma generate');

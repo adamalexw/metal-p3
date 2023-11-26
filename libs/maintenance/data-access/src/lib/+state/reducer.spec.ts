@@ -1,11 +1,11 @@
 import { LyricsHistoryDto, UrlMatcher } from '@metal-p3/maintenance/domain';
 import { Update } from '@ngrx/entity';
 import { MaintenanceActions } from './actions';
-import { initialState, reducer } from './reducer';
+import { initialState, maintenanceFeature } from './reducer';
 
 it('MaintenanceActions.getLyricsHistory sets gettingLyrics to true', () => {
   const priority = false;
-  const state = reducer(initialState, MaintenanceActions.getLyricsHistory({ priority }));
+  const state = maintenanceFeature.reducer(initialState, MaintenanceActions.getLyricsHistory({ priority }));
 
   expect(state).toEqual({
     gettingLyrics: true,
@@ -33,7 +33,7 @@ it('MaintenanceActions.getLyricsHistorySuccess add the lyrics history and reset 
     },
   ];
 
-  const state = reducer(initialState, MaintenanceActions.getLyricsHistorySuccess({ history }));
+  const state = maintenanceFeature.reducer(initialState, MaintenanceActions.getLyricsHistorySuccess({ history }));
 
   expect(state).toEqual({
     gettingLyrics: false,
@@ -55,7 +55,7 @@ it('MaintenanceActions.getLyricsHistorySuccess add the lyrics history and reset 
 
 it('MaintenanceActions.checkLyricsHistory sets checkingLyrics to true', () => {
   const priority = false;
-  const state = reducer(initialState, MaintenanceActions.checkLyricsHistory({ priority }));
+  const state = maintenanceFeature.reducer(initialState, MaintenanceActions.checkLyricsHistory({ priority }));
 
   expect(state).toEqual({
     gettingLyrics: false,
@@ -74,7 +74,7 @@ it('MaintenanceActions.checkLyricsHistory sets checkingLyrics to true', () => {
 });
 
 it('MaintenanceActions.stopLyricsHistoryCheck sets checkingLyrics to false', () => {
-  const state = reducer(initialState, MaintenanceActions.stopLyricsHistoryCheck());
+  const state = maintenanceFeature.reducer(initialState, MaintenanceActions.stopLyricsHistoryCheck());
 
   expect(state).toEqual({
     gettingLyrics: false,
@@ -109,7 +109,7 @@ it('MaintenanceActions.updateLyricsHistory update lyrics history entity complete
     },
   };
 
-  const state = reducer(
+  const state = maintenanceFeature.reducer(
     {
       ...initialState,
       lyrics: {
@@ -142,7 +142,7 @@ it('MaintenanceActions.updateLyricsHistory update lyrics history entity complete
 
 it('MaintenanceActions.deleteLyricsHistorySuccess delete lyrics entity', () => {
   const id = 1;
-  const state = reducer(
+  const state = maintenanceFeature.reducer(
     {
       ...initialState,
       lyrics: {
@@ -177,7 +177,7 @@ it('MaintenanceActions.deleteLyricsHistorySuccess delete lyrics entity', () => {
 });
 
 it('MaintenanceActions.getUrlMatcher sets gettingMetalArchivesMatcher to true', () => {
-  const state = reducer(initialState, MaintenanceActions.getUrlMatcher());
+  const state = maintenanceFeature.reducer(initialState, MaintenanceActions.getUrlMatcher());
 
   expect(state).toEqual({
     gettingLyrics: false,
@@ -205,7 +205,7 @@ it('MaintenanceActions.getUrlMatcherSuccess add the metalArchivesMatcher, reset 
     },
   ];
 
-  const state = reducer(initialState, MaintenanceActions.getUrlMatcherSuccess({ albums }));
+  const state = maintenanceFeature.reducer(initialState, MaintenanceActions.getUrlMatcherSuccess({ albums }));
 
   expect(state).toEqual({
     gettingLyrics: false,
@@ -242,7 +242,7 @@ it('MaintenanceActions.updateUrlMatcher update metalArchivesMatcher entity', () 
     },
   };
 
-  const state = reducer(
+  const state = maintenanceFeature.reducer(
     {
       ...initialState,
       metalArchivesMatcher: {

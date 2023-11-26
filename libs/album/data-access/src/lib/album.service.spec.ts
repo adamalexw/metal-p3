@@ -18,7 +18,7 @@ describe('AlbumService', () => {
       const request: SearchRequest = {};
 
       spectator.service.getAlbums(request).subscribe();
-      spectator.expectOne('api/album/search?take=25&skip=0', HttpMethod.GET);
+      spectator.expectOne('api/album/search?take=10&skip=0', HttpMethod.GET);
     });
 
     it('should use provided with params', () => {
@@ -38,7 +38,7 @@ describe('AlbumService', () => {
       };
 
       spectator.service.getAlbums(request).subscribe();
-      spectator.expectOne('api/album/search?folder=in%20flames&take=25&skip=0', HttpMethod.GET);
+      spectator.expectOne('api/album/search?folder=in%20flames&take=10&skip=0', HttpMethod.GET);
     });
   });
 });
