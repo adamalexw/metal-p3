@@ -1,6 +1,5 @@
 import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-drop';
 import { CdkTableModule } from '@angular/cdk/table';
-import { NgIf } from '@angular/common';
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTableModule } from '@angular/material/table';
@@ -11,7 +10,7 @@ import { cloneDeep } from 'lodash-es';
 
 @Component({
   standalone: true,
-  imports: [NgIf, CoverComponent, TimePipe, CdkTableModule, DragDropModule, MatTableModule, MatIconModule],
+  imports: [CoverComponent, TimePipe, CdkTableModule, DragDropModule, MatTableModule, MatIconModule],
   selector: 'app-playlist',
   templateUrl: './playlist.component.html',
   styleUrls: ['./playlist.component.scss'],

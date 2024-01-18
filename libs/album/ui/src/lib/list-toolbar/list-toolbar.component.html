@@ -2,9 +2,11 @@
   <form [formGroup]="form">
     <mat-form-field class="grow lg:w-80" floatLabel="auto">
       <input matInput placeholder="Search" formControlName="folder" type="search" />
-      <button *ngIf="folderControl?.value" mat-icon-button matSuffix (click)="onClear()" [attr.aria-label]="'Clear search'">
-        <mat-icon>clear</mat-icon>
-      </button>
+      @if (folderControl.value) {
+        <button mat-icon-button matSuffix (click)="onClear()" [attr.aria-label]="'Clear search'">
+          <mat-icon>clear</mat-icon>
+        </button>
+      }
     </mat-form-field>
   </form>
 
@@ -43,4 +45,6 @@
   </mat-menu>
 </mat-toolbar>
 
-<mat-progress-bar *ngIf="searching" mode="indeterminate"></mat-progress-bar>
+@if (searching) {
+  <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+}

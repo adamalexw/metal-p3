@@ -1,4 +1,3 @@
-import { NgIf } from '@angular/common';
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -8,7 +7,7 @@ import { NavToolbarComponent } from '@metal-p3/shared/navigation';
 
 @Component({
   standalone: true,
-  imports: [NgIf, NavToolbarComponent, MatIconModule, MatButtonModule, MatMenuModule, MatProgressBarModule],
+  imports: [NavToolbarComponent, MatIconModule, MatButtonModule, MatMenuModule, MatProgressBarModule],
   selector: 'app-lyrics-history-toolbar',
   templateUrl: './lyrics-history-toolbar.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,

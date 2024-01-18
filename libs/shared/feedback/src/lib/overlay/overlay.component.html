@@ -1,17 +1,17 @@
 <div>
-  <ng-container [ngSwitch]="contentType">
-    <ng-container *ngSwitchCase="'string'">
+  @switch (contentType) {
+    @case ('string') {
       <div class="box">
         <div [innerHTML]="content"></div>
       </div>
-    </ng-container>
+    }
 
-    <ng-container *ngSwitchCase="'template'">
+    @case ('template') {
       <ng-container *ngTemplateOutlet="contentAsTemplate; context: context"></ng-container>
-    </ng-container>
+    }
 
-    <ng-container *ngSwitchCase="'component'">
+    @case ('component') {
       <ng-container *ngComponentOutlet="contentAsComponent"></ng-container>
-    </ng-container>
-  </ng-container>
+    }
+  }
 </div>

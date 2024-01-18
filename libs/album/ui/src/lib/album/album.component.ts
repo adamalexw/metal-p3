@@ -1,4 +1,3 @@
-import { NgIf } from '@angular/common';
 import { AfterViewInit, ChangeDetectionStrategy, Component, EventEmitter, HostBinding, Inject, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { FormGroup, FormsModule, NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -36,7 +35,6 @@ import { AlbumToolbarComponent } from '../album-toolbar/album-toolbar.component'
     MatInputModule,
     MatListModule,
     MatProgressBarModule,
-    NgIf,
     ReactiveFormsModule,
     RouterModule,
     TracksComponent,
@@ -207,7 +205,12 @@ export class AlbumComponent implements OnChanges, AfterViewInit {
 
   shouldCheckBandProps = false;
 
-  constructor(private readonly fb: NonNullableFormBuilder, @Inject(WINDOW) readonly windowRef: Window, private notificationService: NotificationService, private readonly router: Router) {}
+  constructor(
+    private readonly fb: NonNullableFormBuilder,
+    @Inject(WINDOW) readonly windowRef: Window,
+    private notificationService: NotificationService,
+    private readonly router: Router,
+  ) {}
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes.album && changes.album.currentValue && (changes.album.previousValue ? changes.album.currentValue.id !== changes.album.previousValue.id : !changes.album.previousValue)) {

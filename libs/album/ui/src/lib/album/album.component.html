@@ -1,4 +1,4 @@
-<ng-container *ngIf="album; else closeTemplate">
+@if (album) {
   <nav class="sticky top-0 lg:block z-10">
     <app-album-toolbar
       [saving]="albumSaving"
@@ -14,12 +14,12 @@
       (openFolder)="openFolder.emit({ id: albumId, folder: album.fullPath })"
       (transfer)="onTransferAlbum()"
       (delete)="deleteAlbum.emit(albumId)"
-    ></app-album-toolbar>
+    />
   </nav>
 
-  <ng-container *ngIf="trackSavingProgress || trackTransferringProgress || trackRenamingProgress as progress">
+  @if (trackSavingProgress || trackTransferringProgress || trackRenamingProgress; as progress) {
     <mat-progress-bar class="fixed top-0 w-full z-50 lg:block" mode="determinate" [value]="progress"> </mat-progress-bar>
-  </ng-container>
+  }
 
   <section class="flex flex-col lg:flex-row">
     <app-cover
@@ -31,12 +31,7 @@
       (coverUrl)="coverUrl.emit({ id: album.id, url: $event })"
     />
 
-    <app-album-form
-      [form]="form"
-      class="block w-full mt-1 mb-0 lg:mx-2"
-      (findBandProps)="findBandProps.emit({ id: albumId, url: $event })"
-      (lyricsPriority)="lyricsPriority.emit(albumId)"
-    />
+    <app-album-form [form]="form" class="block w-full mt-1 mb-0 lg:mx-2" (findBandProps)="findBandProps.emit({ id: albumId, url: $event })" (lyricsPriority)="lyricsPriority.emit(albumId)" />
   </section>
 
   <section>
@@ -53,7 +48,7 @@
       (playAlbum)="playAlbum.emit(this.albumId)"
       (addAlbumToPlaylist)="addAlbumToPlaylist.emit(this.albumId)"
     />
- 
+
     <app-tracks
       class="block overflow-auto lg:h-[calc(100vh-128px-500px)]"
       [form]="form"
@@ -66,8 +61,6 @@
       (delete)="deleteTrack.emit({ track: $event, albumId: albumId })"
     />
   </section>
-</ng-container>
-
-<ng-template #closeTemplate>
+} @else {
   <mat-icon routerLink="/">clear</mat-icon>
-</ng-template>
+}

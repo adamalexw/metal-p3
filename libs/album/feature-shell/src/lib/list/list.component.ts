@@ -1,5 +1,5 @@
 import { CdkVirtualScrollViewport, ScrollingModule, ViewportRuler } from '@angular/cdk/scrolling';
-import { AsyncPipe, DOCUMENT, Location, NgFor, NgIf } from '@angular/common';
+import { AsyncPipe, DOCUMENT, Location } from '@angular/common';
 import { ChangeDetectionStrategy, Component, EventEmitter, Inject, OnInit, Output, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { AlbumService } from '@metal-p3/album/data-access';
@@ -33,7 +33,7 @@ import { AddAlbumDirective } from './add-album.directive';
 
 @Component({
   standalone: true,
-  imports: [AsyncPipe, NgIf, NgFor, ScrollingModule, ListToolbarComponent, ListItemComponent, PlayerShellComponent, AddAlbumDirective],
+  imports: [AsyncPipe, ScrollingModule, ListToolbarComponent, ListItemComponent, PlayerShellComponent, AddAlbumDirective],
   selector: 'app-list',
   templateUrl: './list.component.html',
   styleUrls: ['./list.component.scss'],
@@ -52,7 +52,7 @@ export class ListComponent implements OnInit {
 
   viewportWidth$ = this.viewportRuler.change().pipe(
     startWith(this.viewportRuler.getViewportSize().width),
-    map(() => this.viewportRuler.getViewportSize().width)
+    map(() => this.viewportRuler.getViewportSize().width),
   );
 
   albumsView$ = combineLatest([this.albums$, this.viewportWidth$, this.store.select(selectSideNavOpen)]).pipe(
@@ -63,7 +63,7 @@ export class ListComponent implements OnInit {
       const chunks = Math.floor(listWidth / 286);
 
       return toChunks(albums, chunks);
-    })
+    }),
   );
 
   private fetchedPage = 0;
@@ -82,14 +82,14 @@ export class ListComponent implements OnInit {
     private readonly viewportRuler: ViewportRuler,
     private readonly location: Location,
     @Inject(DOCUMENT) private readonly document: Document,
-    @Inject(TAKE) private readonly take: number
+    @Inject(TAKE) private readonly take: number,
   ) {}
 
   ngOnInit(): void {
     this.albumsLoadError$
       .pipe(
         nonNullable(),
-        tap((error) => this.notificationService.showError(error, 'Load Albums'))
+        tap((error) => this.notificationService.showError(error, 'Load Albums')),
       )
       .subscribe();
 
@@ -97,7 +97,7 @@ export class ListComponent implements OnInit {
       .albumAdded()
       .pipe(
         delay(2000),
-        tap((folder) => this.onAlbumAdded([folder]))
+        tap((folder) => this.onAlbumAdded([folder])),
       )
       .subscribe();
 
@@ -105,7 +105,7 @@ export class ListComponent implements OnInit {
       this.showPlayer$,
       this.viewportRuler.change(300).pipe(
         map(() => this.viewportRuler.getViewportSize().height),
-        startWith(this.viewportRuler.getViewportSize().height)
+        startWith(this.viewportRuler.getViewportSize().height),
       ),
       this.albumsLoading$,
     ])
@@ -114,7 +114,7 @@ export class ListComponent implements OnInit {
           const listHeight = playerOpen ? height - 128 : height - 64;
 
           return loading ? listHeight - 12 : listHeight;
-        })
+        }),
       )
       .subscribe((height) => this.document.documentElement.style.setProperty('--list-height', height.toString() + 'px'));
   }
@@ -129,7 +129,7 @@ export class ListComponent implements OnInit {
     tracks$
       .pipe(
         tap((tracks) => tracks?.forEach((track) => this.store.dispatch(TrackActions.transferTrack({ id, trackId: track.id })))),
-        take(1)
+        take(1),
       )
       .subscribe();
   }
@@ -148,7 +148,7 @@ export class ListComponent implements OnInit {
       .pipe(
         take(1),
         filter((required) => !!required),
-        tap(() => this.store.dispatch(TrackActions.getTracks({ id, folder })))
+        tap(() => this.store.dispatch(TrackActions.getTracks({ id, folder }))),
       )
       .subscribe();
 

@@ -1,9 +1,9 @@
-<div class="flex flex-col gap-4" *ngIf="tracksLoading || maTracksLoading || lyricsLoadingProgress; else lyricsTemplate">
-  <mat-progress-bar class="w-full" [mode]="lyricsLoadingProgress ? 'determinate' : 'indeterminate'" [value]="lyricsLoadingProgress"> </mat-progress-bar>
-  <h3 class="text-xl ml-3 mb-3 text-white">Loading Lyrics</h3>
-</div>
-
-<ng-template #lyricsTemplate>
+@if (tracksLoading || maTracksLoading || lyricsLoadingProgress) {
+  <div class="flex flex-col gap-4">
+    <mat-progress-bar class="w-full" [mode]="lyricsLoadingProgress ? 'determinate' : 'indeterminate'" [value]="lyricsLoadingProgress"> </mat-progress-bar>
+    <h3 class="text-xl ml-3 mb-3 text-white">Loading Lyrics</h3>
+  </div>
+} @else {
   <app-lyrics-toolbar
     [applying]="applying || false"
     [trackTransferring]="trackTransferring || false"
@@ -16,11 +16,11 @@
     (apply)="onApply()"
     (transfer)="onTransfer()"
     (done)="done.emit()"
-  ></app-lyrics-toolbar>
+  />
 
-  <ng-container *ngIf="applyingProgress || trackTransferringProgress as progress">
+  @if (applyingProgress || trackTransferringProgress; as progress) {
     <mat-progress-bar class="w-full" mode="determinate" [value]="progress"> </mat-progress-bar>
-  </ng-container>
+  }
 
   <mat-table [dataSource]="dataSource" [trackBy]="trackByFn">
     <ng-container matColumnDef="trackNumber">
@@ -40,7 +40,7 @@
     <ng-container matColumnDef="duration">
       <mat-header-cell *matHeaderCellDef>Duration</mat-header-cell>
       <mat-cell *matCellDef="let element">
-        {{ element.duration * 1000 | date: 'mm:ss':'UTC' }}
+        {{ element.duration * 1000 | date: 'mm:ss' : 'UTC' }}
       </mat-cell>
     </ng-container>
 
@@ -51,7 +51,9 @@
           <mat-label>Select lyrics track</mat-label>
           <mat-select [(value)]="element.maTrack">
             <mat-option>None</mat-option>
-            <mat-option *ngFor="let track of maTracks" [value]="track">{{ track.trackNumber }} {{ track.title }} / {{ track.duration }} / {{ track.lyrics?.length || 0 }} </mat-option>
+            @for (track of maTracks; track track) {
+              <mat-option [value]="track">{{ track.trackNumber }} {{ track.title }} / {{ track.duration }} / {{ track.lyrics?.length || 0 }} </mat-option>
+            }
           </mat-select>
         </mat-form-field>
       </mat-cell>
@@ -67,4 +69,4 @@
     <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
     <mat-row *matRowDef="let row; columns: displayedColumns"></mat-row>
   </mat-table>
-</ng-template>
+}

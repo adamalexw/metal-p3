@@ -2,18 +2,19 @@
   <h2>Unmapped Folders</h2>
 </app-nav-toolbar>
 <mat-list>
-  <ng-container *ngIf="folders?.length; else noResultsTemplate">
-    <mat-list-item *ngFor="let folder of folders">
-      <mat-icon matListItemIcon class="cursor-pointer" (click)="openFolder.emit(folder)">folder</mat-icon>
-      <div matListItemTitle>{{ folder }}</div>
-      <div matListItemLine class="!flex !mt-2">
-        <mat-icon mat-list-icon class="cursor-pointer" (click)="search.emit(folder)">search</mat-icon>
-        <mat-icon mat-list-icon class="cursor-pointer" (click)="add.emit(folder)">add</mat-icon>
-        <mat-icon mat-list-icon class="cursor-pointer" appConfirmDelete [itemName]="folder" (confirmResult)="onDelete($event, folder)">delete</mat-icon>
-      </div>
-    </mat-list-item>
-  </ng-container>
-  <ng-template #noResultsTemplate
-    ><div class="flex items-center gap-1 ml-4"><mat-icon>info</mat-icon> <span>No unmapped folders</span></div>
-  </ng-template>
+  @if (folders?.length) {
+    @for (folder of folders; track folder) {
+      <mat-list-item>
+        <mat-icon matListItemIcon class="cursor-pointer" (click)="openFolder.emit(folder)">folder</mat-icon>
+        <div matListItemTitle>{{ folder }}</div>
+        <div matListItemLine class="!flex !mt-2">
+          <mat-icon mat-list-icon class="cursor-pointer" (click)="search.emit(folder)">search</mat-icon>
+          <mat-icon mat-list-icon class="cursor-pointer" (click)="add.emit(folder)">add</mat-icon>
+          <mat-icon mat-list-icon class="cursor-pointer" appConfirmDelete [itemName]="folder" (confirmResult)="onDelete($event, folder)">delete</mat-icon>
+        </div>
+      </mat-list-item>
+    }
+  } @else {
+    <div class="flex items-center gap-1 ml-4"><mat-icon>info</mat-icon> <span>No unmapped folders</span></div>
+  }
 </mat-list>

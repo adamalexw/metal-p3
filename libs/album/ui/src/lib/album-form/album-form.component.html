@@ -12,56 +12,70 @@
   <mat-form-field class="w-full">
     <mat-label>Genre</mat-label>
     <input matInput formControlName="genre" />
-    <button *ngIf="artistUrl" mat-icon-button matSuffix (click)="getBandProps(artistUrl)" [attr.aria-label]="'Get country'">
-      <mat-icon>music_note</mat-icon>
-    </button>
+    @if (artistUrl) {
+      <button mat-icon-button matSuffix (click)="getBandProps(artistUrl)" [attr.aria-label]="'Get country'">
+        <mat-icon>music_note</mat-icon>
+      </button>
+    }
   </mat-form-field>
 
   <mat-form-field class="w-full">
     <mat-label>Country</mat-label>
     <input matInput formControlName="country" />
-    <button *ngIf="artistUrl" mat-icon-button matSuffix (click)="getBandProps(artistUrl)" [attr.aria-label]="'Get country'">
-      <mat-icon>flag</mat-icon>
-    </button>
+    @if (artistUrl) {
+      <button mat-icon-button matSuffix (click)="getBandProps(artistUrl)" [attr.aria-label]="'Get country'">
+        <mat-icon>flag</mat-icon>
+      </button>
+    }
   </mat-form-field>
 
-  <ng-container *ngIf="!form.controls.ignore.value ?? false">
+  @if (!form.controls.ignore.value) {
     <mat-form-field class="w-full">
       <mat-label>Album Url</mat-label>
       <input matInput formControlName="albumUrl" type="url" />
-      <button *ngIf="albumUrl" mat-icon-button matSuffix (click)="openLink(albumUrl)" [attr.aria-label]="'View album url'">
-        <mat-icon>link</mat-icon>
-      </button>
+      @if (albumUrl) {
+        <button mat-icon-button matSuffix (click)="openLink(albumUrl)" [attr.aria-label]="'View album url'">
+          <mat-icon>link</mat-icon>
+        </button>
+      }
     </mat-form-field>
 
     <mat-form-field class="w-full">
       <mat-label>Artist Url</mat-label>
       <input matInput formControlName="artistUrl" type="url" />
-      <button *ngIf="artistUrl" mat-icon-button matSuffix (click)="openLink(artistUrl)" [attr.aria-label]="'View artist url'">
-        <mat-icon>link</mat-icon>
-      </button>
+      @if (artistUrl) {
+        <button mat-icon-button matSuffix (click)="openLink(artistUrl)" [attr.aria-label]="'View artist url'">
+          <mat-icon>link</mat-icon>
+        </button>
+      }
     </mat-form-field>
-  </ng-container>
+  }
 
   <div class="flex flex-row w-full items-center justify-between">
     <mat-form-field class="w-[71px]">
       <mat-label>Year</mat-label>
       <input matInput formControlName="year" />
     </mat-form-field>
-    <div *ngIf="!albumUrl">
-      <mat-checkbox formControlName="ignore"> Ignore Metal Archives </mat-checkbox>
-    </div>
+    @if (!albumUrl) {
+      <div>
+        <mat-checkbox formControlName="ignore"> Ignore Metal Archives </mat-checkbox>
+      </div>
+    }
   </div>
 
   <div class="flex flex-row gap-6 items-center">
     <mat-checkbox formControlName="transferred"> Transferred </mat-checkbox>
     <mat-checkbox formControlName="hasLyrics"> Lyrics </mat-checkbox>
 
-    <div *ngIf="!hasLyrics" class="flex items-center">
-      <button mat-icon-button class="p-2" type="button" (click)="lyricsPriority.emit()">
-        <mat-icon>new_releases</mat-icon>
-      </button>
-      <span class="cursor-pointer" (click)="lyricsPriority.emit()">Priority</span>
-    </div>
+    @if (!hasLyrics) {
+      <div class="flex items-center">
+        <button type="button" (click)="lyricsPriority.emit()">
+          <span class="flex items-center gap-2">
+            <mat-icon>new_releases</mat-icon>
+            <span>Priority</span>
+          </span>
+        </button>
+      </div>
+    }
   </div>
 </form>

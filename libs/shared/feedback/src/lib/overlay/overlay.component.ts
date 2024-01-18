@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { OverlayModule } from '@angular/cdk/overlay';
 import { PortalModule } from '@angular/cdk/portal';
-import { NgComponentOutlet, NgSwitch, NgSwitchCase } from '@angular/common';
+import { NgComponentOutlet } from '@angular/common';
 import { Component, OnInit, TemplateRef, Type } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -10,7 +10,7 @@ import { AppOverlayRef } from './overlay-ref';
 
 @Component({
   standalone: true,
-  imports: [NgSwitch, NgSwitchCase, NgComponentOutlet, OverlayModule, PortalModule, MatCardModule, MatButtonModule],
+  imports: [NgComponentOutlet, OverlayModule, PortalModule, MatCardModule, MatButtonModule],
   selector: 'app-overlay',
   templateUrl: './overlay.component.html',
 })

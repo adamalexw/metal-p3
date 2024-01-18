@@ -1,4 +1,3 @@
-import { NgIf } from '@angular/common';
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output, ViewEncapsulation } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -9,7 +8,7 @@ import { Album } from '@metal-p3/shared/data-access';
 
 @Component({
   standalone: true,
-  imports: [NgIf, CoverComponent, MatCardModule, MatButtonModule, MatIconModule, MatMenuModule],
+  imports: [CoverComponent, MatCardModule, MatButtonModule, MatIconModule, MatMenuModule],
   selector: 'app-list-item',
   templateUrl: './list-item.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,

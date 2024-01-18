@@ -1,4 +1,3 @@
-import { NgIf } from '@angular/common';
 import { AfterViewInit, ChangeDetectionStrategy, Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, ViewChild } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
@@ -12,7 +11,7 @@ import { ConfirmDeleteDirective } from '@metal-p3/shared/feedback';
 
 @Component({
   standalone: true,
-  imports: [NgIf, ConfirmDeleteDirective, MatTableModule, MatIconModule, MatCheckboxModule, MatButtonModule, MatMenuModule, MatTooltipModule],
+  imports: [ConfirmDeleteDirective, MatTableModule, MatIconModule, MatCheckboxModule, MatButtonModule, MatMenuModule, MatTooltipModule],
   selector: 'app-lyrics-history',
   templateUrl: './lyrics-history.component.html',
   styleUrls: ['./lyrics-history.component.scss'],

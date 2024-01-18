@@ -9,7 +9,9 @@
   <ng-container matColumnDef="artistUrl">
     <mat-header-cell *matHeaderCellDef>Url</mat-header-cell>
     <mat-cell *matCellDef="let element">
-      <a *ngIf="element.artistUrl" [href]="element.artistUrl" target="_blank">View</a>
+      @if (element.artistUrl) {
+        <a [href]="element.artistUrl" target="_blank">View</a>
+      }
     </mat-cell>
   </ng-container>
 
@@ -23,40 +25,41 @@
   <ng-container matColumnDef="albumUrl">
     <mat-header-cell *matHeaderCellDef>Url</mat-header-cell>
     <mat-cell *matCellDef="let element">
-      <a *ngIf="element.albumUrl" [href]="element.albumUrl" target="_blank">View</a>
+      @if (element.albumUrl) {
+        <a [href]="element.albumUrl" target="_blank">View</a>
+      }
     </mat-cell>
   </ng-container>
 
   <ng-container matColumnDef="complete">
     <mat-header-cell *matHeaderCellDef>Complete</mat-header-cell>
     <mat-cell *matCellDef="let element">
-      <ng-container *ngIf="element.complete">
-        <ng-container *ngIf="element.error; else successTemplate">
+      @if (element.complete) {
+        @if (element.error) {
           <mat-icon [matTooltip]="element.error" matTooltipPosition="left">error_outline</mat-icon>
-        </ng-container>
-        <ng-template #successTemplate>
+        } @else {
           <mat-icon>done</mat-icon>
-        </ng-template>
-      </ng-container>
+        }
+      }
     </mat-cell>
   </ng-container>
 
   <ng-container matColumnDef="result">
     <mat-header-cell *matHeaderCellDef></mat-header-cell>
     <mat-cell *matCellDef="let element">
-      <ng-container [ngSwitch]="element.result">
-        <ng-container *ngSwitchCase="'none'">
+      @switch (element.result) {
+        @case ('none') {
           <mat-icon title="none">link_off</mat-icon>
-        </ng-container>
+        }
 
-        <ng-container *ngSwitchCase="'multiple'">
+        @case ('multiple') {
           <mat-icon title="multiple">add_link</mat-icon>
-        </ng-container>
+        }
 
-        <ng-container *ngSwitchCase="'success'">
+        @case ('success') {
           <mat-icon title="success">link</mat-icon>
-        </ng-container>
-      </ng-container>
+        }
+      }
     </mat-cell>
   </ng-container>
 

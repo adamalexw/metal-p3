@@ -1,11 +1,11 @@
-<ng-container *ngIf="tracksLoading; else tracksTemplate">
+@if (tracksLoading) {
   <mat-spinner class="m-3"></mat-spinner>
-</ng-container>
-
-<ng-template #tracksTemplate>
-  <div class="bg-red-700 text-white rounded-md" *ngIf="tracksError">
-    {{ tracksError }}
-  </div>
+} @else {
+  @if (tracksError) {
+    <div class="bg-red-700 text-white rounded-md">
+      {{ tracksError }}
+    </div>
+  }
 
   <table mat-table [dataSource]="dataSource" [trackBy]="trackByFn">
     <ng-container matColumnDef="trackNumber">
@@ -71,9 +71,9 @@
       </td>
     </ng-container>
 
-    <ng-container *ngIf="displayedColumns$ | async as displayedColumns">
+    @if (displayedColumns$ | async; as displayedColumns) {
       <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
       <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
-    </ng-container>
+    }
   </table>
-</ng-template>
+}

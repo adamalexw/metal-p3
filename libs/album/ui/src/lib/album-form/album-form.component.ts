@@ -1,4 +1,3 @@
-import { NgIf } from '@angular/common';
 import { ChangeDetectionStrategy, Component, EventEmitter, Inject, Input, Output } from '@angular/core';
 import { FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -18,21 +17,20 @@ import { AlbumToolbarComponent } from '../album-toolbar/album-toolbar.component'
 @Component({
   standalone: true,
   imports: [
-    NgIf,
-    RouterModule,
-    FormsModule,
-    ReactiveFormsModule,
     AlbumDataAccessModule,
     AlbumToolbarComponent,
     CoverComponent,
-    TracksToolbarComponent,
-    TracksComponent,
-    MatProgressBarModule,
-    MatFormFieldModule,
+    FormsModule,
+    MatButtonModule,
     MatCheckboxModule,
+    MatFormFieldModule,
     MatIconModule,
     MatInputModule,
-    MatButtonModule,
+    MatProgressBarModule,
+    ReactiveFormsModule,
+    RouterModule,
+    TracksComponent,
+    TracksToolbarComponent,
   ],
   selector: 'app-album-form',
   templateUrl: './album-form.component.html',

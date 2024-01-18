@@ -1,4 +1,3 @@
-import { NgIf } from '@angular/common';
 import { ChangeDetectionStrategy, Component, EventEmitter, Inject, Input, Output, ViewEncapsulation } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { RouterModule } from '@angular/router';
@@ -8,7 +7,7 @@ import { WINDOW } from '@ng-web-apis/common';
 
 @Component({
   standalone: true,
-  imports: [NgIf, RouterModule, NavToolbarComponent, CoverComponent, MatIconModule],
+  imports: [RouterModule, NavToolbarComponent, CoverComponent, MatIconModule],
   selector: 'app-lyrics-toolbar',
   templateUrl: './apply-lyrics-toolbar.component.html',
   styleUrls: ['./apply-lyrics-toolbar.component.scss'],

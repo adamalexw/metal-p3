@@ -51,14 +51,13 @@
   <ng-container matColumnDef="complete">
     <mat-header-cell *matHeaderCellDef mat-sort-header>Complete</mat-header-cell>
     <mat-cell *matCellDef="let element">
-      <ng-container *ngIf="element.complete">
-        <ng-container *ngIf="element.error; else successTemplate">
+      @if (element.complete) {
+        @if (element.error) {
           <mat-icon [matTooltip]="element.error" matTooltipPosition="left">error_outline</mat-icon>
-        </ng-container>
-        <ng-template #successTemplate>
+        } @else {
           <mat-icon>done</mat-icon>
-        </ng-template>
-      </ng-container>
+        }
+      }
     </mat-cell>
   </ng-container>
 

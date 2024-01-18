@@ -1,4 +1,4 @@
-import { AsyncPipe, NgIf } from '@angular/common';
+import { AsyncPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { Title } from '@angular/platform-browser';
 import { CoverComponent } from '@metal-p3/cover/ui';
@@ -28,7 +28,7 @@ import { concatMap, distinctUntilKeyChanged, filter, map, shareReplay, take, tap
 @UntilDestroy()
 @Component({
   standalone: true,
-  imports: [NgIf, AsyncPipe, CoverComponent, PlayerControlsComponent, PlaylistShellComponent, PlaylistComponent],
+  imports: [AsyncPipe, CoverComponent, PlayerControlsComponent, PlaylistShellComponent, PlaylistComponent],
   selector: 'app-player',
   templateUrl: './player-shell.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -49,7 +49,7 @@ export class PlayerShellComponent implements OnInit {
   cover$ = this.store.select(selectActiveItemCover);
   coverSize$ = this.footerMode$.pipe(
     map((footerMode) => (footerMode ? { 'h-16': true, 'w-16': true } : { 'w-screen': true, 'lg:w-64': true, 'lg:h-64': true })),
-    shareReplay()
+    shareReplay(),
   );
 
   elapsedTime$: Observable<number> = of(0);
@@ -61,7 +61,11 @@ export class PlayerShellComponent implements OnInit {
 
   showPlaylist$ = this.store.select(selectShowPlaylist);
 
-  constructor(private readonly store: Store, private readonly trackService: TrackService, private readonly title: Title) {
+  constructor(
+    private readonly store: Store,
+    private readonly trackService: TrackService,
+    private readonly title: Title,
+  ) {
     this.activeItem$
       .pipe(
         untilDestroyed(this),
@@ -74,7 +78,7 @@ export class PlayerShellComponent implements OnInit {
           if (url) {
             this.audioElement.src = url;
           }
-        })
+        }),
       )
       .subscribe();
   }
@@ -90,7 +94,7 @@ export class PlayerShellComponent implements OnInit {
   private getBlobUrl(id: string, file: string): Observable<string> {
     return this.trackService.playTrack(file).pipe(
       map((response) => URL.createObjectURL(response)),
-      tap((url) => this.store.dispatch(PlayerActions.updateItem({ update: { id, changes: { url } } })))
+      tap((url) => this.store.dispatch(PlayerActions.updateItem({ update: { id, changes: { url } } }))),
     );
   }
 
@@ -120,7 +124,7 @@ export class PlayerShellComponent implements OnInit {
             this.onPlayItem(nextTrack.id);
             return;
           }
-        })
+        }),
       )
       .subscribe();
 
@@ -135,7 +139,7 @@ export class PlayerShellComponent implements OnInit {
     this.activeItem$
       .pipe(
         take(1),
-        tap((item) => this.onPlayItem(item?.id || ''))
+        tap((item) => this.onPlayItem(item?.id || '')),
       )
       .subscribe();
 

@@ -1,4 +1,3 @@
-import { NgIf } from '@angular/common';
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -15,7 +14,7 @@ import { debounceTime, distinctUntilChanged, tap } from 'rxjs/operators';
 @UntilDestroy()
 @Component({
   standalone: true,
-  imports: [NgIf, FormsModule, ReactiveFormsModule, MatToolbarModule, RouterModule, MatInputModule, MatButtonModule, MatIconModule, MatMenuModule, MatProgressBarModule],
+  imports: [FormsModule, ReactiveFormsModule, MatToolbarModule, RouterModule, MatInputModule, MatButtonModule, MatIconModule, MatMenuModule, MatProgressBarModule],
   selector: 'app-list-toolbar',
   templateUrl: './list-toolbar.component.html',
   styleUrls: ['./list-toolbar.component.scss'],
@@ -64,7 +63,7 @@ export class ListToolbarComponent implements OnInit, OnChanges {
         untilDestroyed(this),
         debounceTime(500),
         distinctUntilChanged(),
-        tap((request: SearchRequest) => this.searchRequest.emit(request))
+        tap((request: SearchRequest) => this.searchRequest.emit(request)),
       )
       .subscribe();
   }

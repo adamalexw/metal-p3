@@ -1,4 +1,3 @@
-import { NgFor, NgIf } from '@angular/common';
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { MatListModule } from '@angular/material/list';
@@ -7,7 +6,7 @@ import { NavToolbarComponent } from '@metal-p3/shared/navigation';
 
 @Component({
   standalone: true,
-  imports: [NgIf, NgFor, NavToolbarComponent, ConfirmDeleteDirective, MatIconModule, MatListModule],
+  imports: [NavToolbarComponent, ConfirmDeleteDirective, MatIconModule, MatListModule],
   selector: 'app-unmapped-folders',
   templateUrl: './unmapped-folders.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -1,56 +1,68 @@
-<div *ngIf="footerMode" class="absolute bottom-[42px] left-0 w-full">
-  <ng-container *ngTemplateOutlet="durationTemplate"></ng-container>
-</div>
+@if (footerMode) {
+  <div class="absolute bottom-[42px] left-0 w-full">
+    <ng-container *ngTemplateOutlet="durationTemplate"></ng-container>
+  </div>
+}
 
 <mat-toolbar class="h-full w-full relative">
-  <mat-toolbar-row *ngIf="!footerMode">
-    <div class="w-full">
-      <div class="flex flex-row items-end pt-5">
-        <span class="text-xs">{{ elapsedTime | time }}</span>
-        <span class="flex-grow"></span>
-        <span class="text-xs">{{ currentItem?.duration | time }}</span>
+  @if (!footerMode) {
+    <mat-toolbar-row>
+      <div class="w-full">
+        <div class="flex flex-row items-end pt-5">
+          <span class="text-xs">{{ elapsedTime | time }}</span>
+          <span class="flex-grow"></span>
+          <span class="text-xs">{{ currentItem?.duration | time }}</span>
+        </div>
+        <ng-container *ngTemplateOutlet="durationTemplate"></ng-container>
       </div>
-      <ng-container *ngTemplateOutlet="durationTemplate"></ng-container>
-    </div>
-  </mat-toolbar-row>
+    </mat-toolbar-row>
+  }
   <mat-toolbar-row class="!h-16 gap-2 -mr-16 lg:mr-0">
     <div class="flex h-full items-center" [ngClass]="{ 'w-full justify-center gap-2': !footerMode }">
       <ng-container *ngTemplateOutlet="controlsTemplate"></ng-container>
     </div>
-    <ng-container *ngIf="footerMode">
+    @if (footerMode) {
       <div class="hidden lg:block text-xs">{{ elapsedTime | time }} / {{ currentItem?.duration | time }}</div>
-      <div *ngIf="currentItem" class="text-xs line-clamp-1 mr-4 lg:mr-0">{{ currentItem.trackNumber }} - {{ currentItem.title }}</div>
+      @if (currentItem) {
+        <div class="text-xs line-clamp-1 mr-4 lg:mr-0">{{ currentItem.trackNumber }} - {{ currentItem.title }}</div>
+      }
       <div class="hidden lg:block absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
         <ng-container *ngTemplateOutlet="detailsTemplate"></ng-container>
       </div>
-    </ng-container>
+    }
     <div class="flex absolute right-2">
-      <app-volume class="hidden lg:block" (volume)="volume.emit($event)" (mute)="mute.emit()"></app-volume>
+      <app-volume class="hidden lg:block" (volume)="volume.emit($event)" (mute)="mute.emit()" />
       <button class="self-center ml-4 leading-none" mat-icon-button (click)="toggleView.emit()">
         <mat-icon mat-list-icon>{{ toggleIcon }}</mat-icon>
       </button>
     </div>
   </mat-toolbar-row>
-  <ng-container *ngIf="!footerMode">
+  @if (!footerMode) {
     <mat-toolbar-row>
-      <div class="w-full text-center" *ngIf="currentItem">{{ currentItem.trackNumber }} - {{ currentItem.title }}</div>
+      @if (currentItem) {
+        <div class="w-full text-center">{{ currentItem.trackNumber }} - {{ currentItem.title }}</div>
+      }
     </mat-toolbar-row>
     <mat-toolbar-row class="justify-center text-center">
       <ng-container *ngTemplateOutlet="detailsTemplate"></ng-container>
     </mat-toolbar-row>
-  </ng-container>
+  }
 </mat-toolbar>
 
 <ng-template #controlsTemplate>
   <button mat-icon-button (click)="onPrevious()" class="leading-none" [ngClass]="{ 'scale-150': !footerMode, 'lg:scale-100': !footerMode }">
     <mat-icon mat-list-icon>skip_previous</mat-icon>
   </button>
-  <button mat-icon-button (click)="playItem.emit()" *ngIf="!currentItem?.playing" class="leading-none" [ngClass]="{ 'scale-150': !footerMode, 'lg:scale-100': !footerMode }">
-    <mat-icon mat-list-icon>play_arrow</mat-icon>
-  </button>
-  <button mat-icon-button (click)="pauseItem.emit()" *ngIf="currentItem?.playing" class="leading-none" [ngClass]="{ 'scale-150': !footerMode, 'lg:scale-100': !footerMode }">
-    <mat-icon mat-list-icon>pause</mat-icon>
-  </button>
+  @if (!currentItem?.playing) {
+    <button mat-icon-button (click)="playItem.emit()" class="leading-none" [ngClass]="{ 'scale-150': !footerMode, 'lg:scale-100': !footerMode }">
+      <mat-icon mat-list-icon>play_arrow</mat-icon>
+    </button>
+  }
+  @if (currentItem?.playing) {
+    <button mat-icon-button (click)="pauseItem.emit()" class="leading-none" [ngClass]="{ 'scale-150': !footerMode, 'lg:scale-100': !footerMode }">
+      <mat-icon mat-list-icon>pause</mat-icon>
+    </button>
+  }
   <button mat-icon-button [disabled]="isLastItemPlaying" (click)="next.emit()" class="leading-none" [ngClass]="{ 'scale-150': !footerMode, 'lg:scale-100': !footerMode }">
     <mat-icon mat-list-icon>skip_next</mat-icon>
   </button>
@@ -58,10 +70,10 @@
 
 <ng-template #detailsTemplate>
   <div class="flex-col text-center">
-    <ng-container *ngIf="currentItem">
+    @if (currentItem) {
       <div class="text-sm">{{ currentItem.artist }} - {{ currentItem.album }}</div>
       <div class="text-sm">{{ currentItem.year }} - {{ currentItem.genre }}</div>
-    </ng-container>
+    }
   </div>
 </ng-template>
 

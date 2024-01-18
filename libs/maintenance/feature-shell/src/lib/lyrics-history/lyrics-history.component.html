@@ -6,10 +6,10 @@
   (viewCheck)="onViewCheck()"
   (startCheck)="onStartCheck()"
   (stopCheck)="onStopCheck()"
-></app-lyrics-history-toolbar>
+/>
 <app-lyrics-history
   [lyrics]="lyrics$ | async"
   (checked)="onChecked($event.id, $event.checked)"
   (applyLyrics)="onApplyLyrics($event.albumId, $event.historyId)"
   (deleteHistory)="onDeleteHistory($event)"
-></app-lyrics-history>
+/>

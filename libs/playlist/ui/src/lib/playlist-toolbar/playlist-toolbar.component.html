@@ -4,43 +4,55 @@
       <mat-icon title="load">queue_music</mat-icon>
     </button>
     <mat-menu #menu="matMenu" yPosition="above">
-      <button *ngFor="let playlist of playlists" mat-menu-item (click)="loadPlaylist.emit(playlist.id)">{{ playlist.name }}</button>
+      @for (playlist of playlists; track playlist) {
+        <button mat-menu-item (click)="loadPlaylist.emit(playlist.id)">{{ playlist.name }}</button>
+      }
     </mat-menu>
 
-    <ng-container *ngIf="activePlaylist; else createTemplate">
+    @if (activePlaylist) {
       <mat-form-field>
         <input matInput placeholder="playlist name" class="w-auto" required [(ngModel)]="playlistName" />
       </mat-form-field>
       <button mat-icon-button (click)="updatePlaylist.emit(playlistName || '')">
         <mat-icon title="save">save</mat-icon>
       </button>
-    </ng-container>
+    } @else {
+      @if (saving) {
+        <mat-form-field>
+          <input matInput placeholder="playlist name" class="w-auto" required [(ngModel)]="playlistName" />
+        </mat-form-field>
+      }
 
-    <ng-template #createTemplate>
-      <mat-form-field *ngIf="saving">
-        <input matInput placeholder="playlist name" class="w-auto" required [(ngModel)]="playlistName" />
-      </mat-form-field>
+      @if (duration ?? 0 > 0) {
+        <button mat-icon-button [disabled]="saving && !playlistName" (click)="onCreate()">
+          <mat-icon title="create">playlist_add</mat-icon>
+        </button>
+      }
+    }
 
-      <button *ngIf="duration ?? 0 > 0" mat-icon-button [disabled]="saving && !playlistName" (click)="onCreate()">
-        <mat-icon title="create">playlist_add</mat-icon>
+    @if (playlistSize ?? 0 > 1) {
+      <button mat-icon-button (click)="shuffle.emit()" title="shuffle">
+        <mat-icon>shuffle</mat-icon>
       </button>
-    </ng-template>
+    }
 
-    <button *ngIf="playlistSize ?? 0 > 1" mat-icon-button (click)="shuffle.emit()" title="shuffle">
-      <mat-icon>shuffle</mat-icon>
-    </button>
+    @if (playlistSize ?? 0 > 0) {
+      <button mat-icon-button (click)="clearPlaylist.emit()" title="clear">
+        <mat-icon title="clear">clear_all</mat-icon>
+      </button>
+    }
 
-    <button *ngIf="playlistSize ?? 0 > 0" mat-icon-button (click)="clearPlaylist.emit()" title="clear">
-      <mat-icon title="clear">clear_all</mat-icon>
-    </button>
+    @if (activePlaylist) {
+      <button mat-icon-button appConfirmDelete [itemName]="'playlist'" (confirmResult)="onDelete($event)">
+        <mat-icon title="delete">delete</mat-icon>
+      </button>
+    }
 
-    <button *ngIf="activePlaylist" mat-icon-button appConfirmDelete [itemName]="'playlist'" (confirmResult)="onDelete($event)">
-      <mat-icon title="delete">delete</mat-icon>
-    </button>
-
-    <button class="!hidden lg:!inline-block" *ngIf="playlistSize ?? 0 > 1" mat-icon-button (click)="transfer.emit()" [disabled]="transferring">
-      <mat-icon title="transfer">adb</mat-icon>
-    </button>
+    @if (playlistSize ?? 0 > 1) {
+      <button class="!hidden lg:!inline-block" mat-icon-button (click)="transfer.emit()" [disabled]="transferring">
+        <mat-icon title="transfer">adb</mat-icon>
+      </button>
+    }
 
     <button class="lg:!hidden" mat-icon-button (click)="togglePlaylist.emit()">
       <mat-icon title="playlist toggle">playlist_play</mat-icon>

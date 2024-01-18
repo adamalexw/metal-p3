@@ -1,5 +1,5 @@
 import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
-import { AsyncPipe, NgIf } from '@angular/common';
+import { AsyncPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { FormArray, FormGroup, FormsModule, NonNullableFormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { MatBottomSheet, MatBottomSheetModule } from '@angular/material/bottom-sheet';
@@ -36,7 +36,6 @@ import { LyricsComponent } from '../lyrics/lyrics.component';
     MatProgressSpinnerModule,
     MatTableModule,
     MatTooltipModule,
-    NgIf,
     ReactiveFormsModule,
     TimePipe,
   ],
@@ -77,7 +76,11 @@ export class TracksComponent implements OnChanges {
     return this.form.controls.tracks;
   }
 
-  constructor(private readonly fb: NonNullableFormBuilder, private readonly bottomSheet: MatBottomSheet, readonly breakpointObserver: BreakpointObserver) {
+  constructor(
+    private readonly fb: NonNullableFormBuilder,
+    private readonly bottomSheet: MatBottomSheet,
+    readonly breakpointObserver: BreakpointObserver,
+  ) {
     this.displayedColumns$ = breakpointObserver
       .observe([Breakpoints.Large, Breakpoints.XLarge])
       .pipe(map(({ matches }) => (matches ? ['trackNumber', 'title', 'duration', 'bitrate', 'actions'] : ['title', 'duration', 'actions'])));
@@ -123,7 +126,7 @@ export class TracksComponent implements OnChanges {
       .pipe(
         take(1),
         filter((newLyrics) => newLyrics !== undefined),
-        tap((newLyrics) => this.tracksArray.at(index).controls.lyrics.setValue(newLyrics))
+        tap((newLyrics) => this.tracksArray.at(index).controls.lyrics.setValue(newLyrics)),
       )
       .subscribe();
   }
