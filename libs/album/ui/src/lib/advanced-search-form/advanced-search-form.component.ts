@@ -1,5 +1,5 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Inject, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
-import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { ChangeDetectionStrategy, Component, EventEmitter, Output, effect, inject, input } from '@angular/core';
+import { NonNullableFormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -17,35 +17,38 @@ import { objectKeys } from '@metal-p3/shared/utils';
   templateUrl: './advanced-search-form.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class AdvancedSearchFormComponent implements OnChanges {
-  @Input()
-  request: SearchRequest | null | undefined;
+export class AdvancedSearchFormComponent {
+  protected readonly take = inject(TAKE);
+  private readonly fb = inject(NonNullableFormBuilder);
+
+  request = input.required<SearchRequest | null | undefined>();
 
   @Output()
   searchRequest = new EventEmitter<SearchRequest>();
 
   form = this.createForm();
 
-  constructor(@Inject(TAKE) protected readonly take: number) {}
+  constructor() {
+    effect(() => {
+      const request = this.request();
 
-  private createForm() {
-    return new FormGroup({
-      folder: new FormControl<string | undefined>(undefined, { nonNullable: true }),
-      artist: new FormControl<string | undefined>(undefined, { nonNullable: true }),
-      album: new FormControl<string | undefined>(undefined, { nonNullable: true }),
-      year: new FormControl<number | undefined>(undefined, { nonNullable: true }),
-      genre: new FormControl<string | undefined>(undefined, { nonNullable: true }),
-      country: new FormControl<string | undefined>(undefined, { nonNullable: true }),
-      transferred: new FormControl<boolean | undefined>(undefined, { nonNullable: true }),
-      hasLyrics: new FormControl<boolean | undefined>(undefined, { nonNullable: true }),
+      if (request) {
+        this.form.patchValue(request);
+      }
     });
   }
 
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes.request && this.request) {
-      const { skip: _skip, take: _take, cancel: _cancel, ...value } = this.request;
-      this.form.patchValue(value);
-    }
+  private createForm() {
+    return this.fb.group({
+      folder: this.fb.control<string | undefined>(undefined),
+      artist: this.fb.control<string | undefined>(undefined),
+      album: this.fb.control<string | undefined>(undefined),
+      year: this.fb.control<number | undefined>(undefined),
+      genre: this.fb.control<string | undefined>(undefined),
+      country: this.fb.control<string | undefined>(undefined),
+      transferred: this.fb.control<boolean | undefined>(undefined),
+      hasLyrics: this.fb.control<boolean | undefined>(undefined),
+    });
   }
 
   onSearch() {

@@ -1,7 +1,7 @@
 import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 import { AsyncPipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
-import { FormArray, FormGroup, FormsModule, NonNullableFormBuilder, ReactiveFormsModule } from '@angular/forms';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, OnInit, Output, effect, inject, input } from '@angular/core';
+import { ControlContainer, FormArray, FormGroup, FormsModule, NonNullableFormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { MatBottomSheet, MatBottomSheetModule } from '@angular/material/bottom-sheet';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -11,7 +11,6 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { AlbumForm } from '@metal-p3/album/domain';
 import { ConfirmDeleteDirective } from '@metal-p3/shared/feedback';
 import { Track, TracksForm } from '@metal-p3/track/domain';
 import { BitRatePipe, TimePipe } from '@metal-p3/track/util';
@@ -44,18 +43,17 @@ import { LyricsComponent } from '../lyrics/lyrics.component';
   styleUrls: ['./tracks.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class TracksComponent implements OnChanges {
-  @Input({ required: true })
-  form!: FormGroup<AlbumForm>;
+export class TracksComponent implements OnInit {
+  private readonly controlContainer = inject(ControlContainer);
+  private readonly fb = inject(NonNullableFormBuilder);
+  private readonly bottomSheet = inject(MatBottomSheet);
+  private readonly breakpointObserver = inject(BreakpointObserver);
 
-  @Input()
-  tracksLoading = false;
+  protected form!: FormArray<FormGroup<TracksForm>>;
 
-  @Input()
-  tracks: Track[] = [];
-
-  @Input()
-  tracksError: string | null | undefined;
+  tracksLoading = input(false);
+  tracks = input<Track[]>([]);
+  tracksError = input<string | null | undefined>();
 
   @Output()
   transferTrack = new EventEmitter<number>();
@@ -70,36 +68,34 @@ export class TracksComponent implements OnChanges {
   delete = new EventEmitter<Track>();
 
   displayedColumns$: Observable<string[]>;
-  dataSource: MatTableDataSource<FormGroup<TracksForm>> = new MatTableDataSource();
+  dataSource = new MatTableDataSource<FormGroup<TracksForm>>();
 
-  private get tracksArray(): FormArray<FormGroup<TracksForm>> {
-    return this.form.controls.tracks;
-  }
+  constructor() {
+    effect(() => {
+      const tracks = this.tracks();
 
-  constructor(
-    private readonly fb: NonNullableFormBuilder,
-    private readonly bottomSheet: MatBottomSheet,
-    readonly breakpointObserver: BreakpointObserver,
-  ) {
-    this.displayedColumns$ = breakpointObserver
+      if (tracks?.length) {
+        this.addTracks(tracks);
+      }
+    });
+
+    this.displayedColumns$ = this.breakpointObserver
       .observe([Breakpoints.Large, Breakpoints.XLarge])
       .pipe(map(({ matches }) => (matches ? ['trackNumber', 'title', 'duration', 'bitrate', 'actions'] : ['title', 'duration', 'actions'])));
   }
 
-  ngOnChanges(changes: SimpleChanges): void {
-    if (this.form && changes.tracks && this.tracks?.length) {
-      this.addTracks(this.tracks);
-    }
+  ngOnInit(): void {
+    this.form = this.controlContainer.control?.get('tracks') as FormArray<FormGroup<TracksForm>>;
   }
 
   private addTracks(tracks: Track[]) {
-    this.tracksArray.clear();
+    this.form.clear();
 
     for (let index = 0; index < tracks.length; index++) {
-      this.tracksArray.push(this.addTrack(tracks[index]));
+      this.form.push(this.addTrack(tracks[index]));
     }
 
-    this.dataSource = new MatTableDataSource(this.tracksArray.controls);
+    this.dataSource.data = this.form.controls;
   }
 
   private addTrack(track: Track): FormGroup<TracksForm> {
@@ -126,22 +122,22 @@ export class TracksComponent implements OnChanges {
       .pipe(
         take(1),
         filter((newLyrics) => newLyrics !== undefined),
-        tap((newLyrics) => this.tracksArray.at(index).controls.lyrics.setValue(newLyrics)),
+        tap((newLyrics) => this.form.at(index).controls.lyrics.setValue(newLyrics)),
       )
       .subscribe();
   }
 
   onPlayTrack(id: number) {
-    this.playTrack.emit(this.tracks.find((t) => t.id === id));
+    this.playTrack.emit(this.tracks().find((t) => t.id === id));
   }
 
   onAddTrackToPlaylist(id: number) {
-    this.addTrackToPlaylist.emit(this.tracks.find((t) => t.id === id));
+    this.addTrackToPlaylist.emit(this.tracks().find((t) => t.id === id));
   }
 
   onDelete(result: boolean, id: number) {
     if (result) {
-      this.delete.emit(this.tracks.find((t) => t.id === id));
+      this.delete.emit(this.tracks().find((t) => t.id === id));
     }
   }
 

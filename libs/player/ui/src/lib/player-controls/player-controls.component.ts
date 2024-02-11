@@ -1,5 +1,5 @@
 import { NgClass, NgTemplateOutlet } from '@angular/common';
-import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output, ViewEncapsulation } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Output, ViewEncapsulation, input } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSliderModule } from '@angular/material/slider';
 import { MatToolbarModule } from '@angular/material/toolbar';
@@ -16,26 +16,13 @@ import { VolumeComponent } from '../volume/volume.component';
   encapsulation: ViewEncapsulation.None,
 })
 export class PlayerControlsComponent {
-  @Input()
-  footerMode: boolean | null | undefined = false;
-
-  @Input()
-  isFirstItemPlaying: boolean | null | undefined = false;
-
-  @Input()
-  isLastItemPlaying: boolean | null | undefined = false;
-
-  @Input()
-  currentItem: PlaylistItem | null | undefined;
-
-  @Input()
-  elapsedTime: number | null | undefined = 0;
-
-  @Input()
-  toggleIcon: 'expand_more' | 'expand_less' | null = 'expand_more';
-
-  @Input()
-  gain = 1;
+  footerMode = input<boolean | null>(false);
+  isFirstItemPlaying = input<boolean | null | undefined>(false);
+  isLastItemPlaying = input<boolean | null | undefined>(false);
+  currentItem = input<PlaylistItem | null | undefined>();
+  elapsedTime = input<number | null | undefined>(0);
+  toggleIcon = input<'expand_more' | 'expand_less' | null>('expand_more');
+  gain = input(1);
 
   @Output()
   readonly previous = new EventEmitter<void>();
@@ -62,7 +49,7 @@ export class PlayerControlsComponent {
   readonly toggleView = new EventEmitter<number>();
 
   onPrevious() {
-    if ((this.elapsedTime ?? 0) > 10 || this.isFirstItemPlaying) {
+    if ((this.elapsedTime() ?? 0) > 10 || this.isFirstItemPlaying()) {
       this.seekTo.emit(0);
       return;
     }

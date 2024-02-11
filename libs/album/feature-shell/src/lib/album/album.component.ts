@@ -1,5 +1,5 @@
 import { AsyncPipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, inject } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { AlbumDataAccessModule, AlbumService } from '@metal-p3/album/data-access';
 import { AlbumComponent } from '@metal-p3/album/ui';
@@ -59,7 +59,14 @@ import { distinctUntilChanged, exhaustMap, filter, map, take, tap, withLatestFro
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AlbumShellComponent implements OnInit {
-  album$ = this.store.select(selectAlbum);
+  private readonly store = inject(Store);
+  private readonly albumService = inject(AlbumService);
+  private readonly coverService = inject(CoverService);
+  private readonly router = inject(Router);
+  private readonly notificationService = inject(NotificationService);
+  private readonly playerService = inject(PlayerService);
+
+  album$ = this.store.select(selectAlbum).pipe(nonNullable());
   albumSaving$ = this.store.select(selectAlbumSaving);
   saveError$ = this.store.select(selectSaveAlbumError);
 
@@ -95,15 +102,6 @@ export class AlbumShellComponent implements OnInit {
 
   routeId$ = this.store.select(selectRouteId).pipe(untilDestroyed(this), nonNullable());
 
-  constructor(
-    private readonly store: Store,
-    private readonly albumService: AlbumService,
-    private readonly coverService: CoverService,
-    private readonly router: Router,
-    private readonly notificationService: NotificationService,
-    private readonly playerService: PlayerService
-  ) {}
-
   ngOnInit(): void {
     this.setState();
     this.errorNotifications();
@@ -116,14 +114,14 @@ export class AlbumShellComponent implements OnInit {
         withLatestFrom(this.store.select(selectSelectedAlbumId)),
         filter(([routeId, selectedId]) => +routeId !== selectedId),
         tap(([routeId, _albumId]) => this.store.dispatch(AlbumActions.viewAlbum({ id: +routeId }))),
-        take(1)
+        take(1),
       )
       .subscribe();
 
     const dispatchProps$ = this.album$.pipe(
       nonNullable(),
       map((album) => ({ id: album.id, folder: album.folder })),
-      distinctUntilChanged((prev, curr) => prev.id === curr.id)
+      distinctUntilChanged((prev, curr) => prev.id === curr.id),
     );
 
     // if tracks haven't been loaded dispatch an action to the load them
@@ -131,7 +129,7 @@ export class AlbumShellComponent implements OnInit {
       .pipe(
         untilDestroyed(this),
         filter(([_props, loading, required]) => required && !loading),
-        tap(([props, _loading, _required]) => this.store.dispatch(TrackActions.getTracks(props)))
+        tap(([props, _loading, _required]) => this.store.dispatch(TrackActions.getTracks(props))),
       )
       .subscribe();
 
@@ -140,7 +138,7 @@ export class AlbumShellComponent implements OnInit {
       .pipe(
         untilDestroyed(this),
         filter(([_props, loading, required]) => required && !loading),
-        tap(([props, _loading, _required]) => this.store.dispatch(CoverActions.get(props)))
+        tap(([props, _loading, _required]) => this.store.dispatch(CoverActions.get(props))),
       )
       .subscribe();
 
@@ -149,7 +147,7 @@ export class AlbumShellComponent implements OnInit {
       .pipe(
         nonNullable(),
         tap((album) => this.store.dispatch(AlbumActions.getExtraFiles({ id: album.id, folder: album.folder }))),
-        take(1)
+        take(1),
       )
       .subscribe();
   }
@@ -167,7 +165,7 @@ export class AlbumShellComponent implements OnInit {
         .pipe(
           map((cover) => cover as string),
           tap((cover) => this.dispatchTracks({ ...album, cover }, tracks)),
-          tap((cover) => this.store.dispatch(CoverActions.save({ id: album.id, folder: album.fullPath, cover })))
+          tap((cover) => this.store.dispatch(CoverActions.save({ id: album.id, folder: album.fullPath, cover }))),
         )
         .subscribe();
     } else {
@@ -194,7 +192,7 @@ export class AlbumShellComponent implements OnInit {
 
           this.store.dispatch(TrackActions.updateTracksSuccess({ id, updates }));
         }),
-        take(1)
+        take(1),
       )
       .subscribe();
   }
@@ -207,7 +205,7 @@ export class AlbumShellComponent implements OnInit {
           const updates: Update<Track>[] = tracks.map((track, index) => ({ id: track.id, changes: { trackNumber: (index + 1).toString().padStart(2, '0') } }));
           this.store.dispatch(TrackActions.updateTracksSuccess({ id: albumId, updates }));
         }),
-        take(1)
+        take(1),
       )
       .subscribe();
   }
@@ -222,7 +220,7 @@ export class AlbumShellComponent implements OnInit {
           return of(maTracks);
         }),
         take(1),
-        tap(() => this.router.navigate(['maintenance', 'lyrics', id]))
+        tap(() => this.router.navigate(['maintenance', 'lyrics', id])),
       )
       .subscribe();
   }
@@ -256,7 +254,7 @@ export class AlbumShellComponent implements OnInit {
         untilDestroyed(this),
         filter((props) => !props),
         tap(() => this.store.dispatch(BandActions.getProps({ id, url }))),
-        take(1)
+        take(1),
       )
       .subscribe();
   }
@@ -305,7 +303,7 @@ export class AlbumShellComponent implements OnInit {
         }
       }),
       filter((maTracks) => !!maTracks),
-      take(1)
+      take(1),
     );
   }
 
@@ -327,7 +325,7 @@ export class AlbumShellComponent implements OnInit {
       .pipe(
         untilDestroyed(this),
         nonNullable(),
-        tap((error) => this.notificationService.showError(error, 'Save'))
+        tap((error) => this.notificationService.showError(error, 'Save')),
       )
       .subscribe();
   }

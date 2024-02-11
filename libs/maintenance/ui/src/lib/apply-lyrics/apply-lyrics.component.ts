@@ -1,5 +1,6 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { DatePipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Output, effect, input } from '@angular/core';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
@@ -18,51 +19,22 @@ import { ApplyLyricsToolbarComponent } from '../apply-lyrics-toolbar/apply-lyric
   styleUrls: ['./apply-lyrics.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ApplyLyricsComponent implements OnChanges {
-  @Input()
-  albumId!: number;
-
-  @Input()
-  tracks: Track[] | null | undefined = [];
-
-  @Input()
-  tracksLoading: boolean | null = true;
-
-  @Input()
-  maTracks: MetalArchivesAlbumTrack[] | null | undefined = [];
-
-  @Input()
-  maTracksLoading: boolean | null = true;
-
-  @Input()
-  lyricsLoadingProgress: number | null = 0;
-
-  @Input()
-  applyingProgress: number | null = 0;
-
-  @Input()
-  applying: boolean | null = false;
-
-  @Input()
-  trackTransferring: boolean | null = false;
-
-  @Input()
-  trackTransferringProgress: number | null = 0;
-
-  @Input()
-  albumUrl: string | null | undefined;
-
-  @Input()
-  coverLoading: boolean | null = false;
-
-  @Input()
-  cover: string | null | undefined;
-
-  @Input()
-  folder: string | null | undefined;
-
-  @Input()
-  showClose = true;
+export class ApplyLyricsComponent {
+  albumId = input.required<number | null>();
+  tracks = input<Track[] | null | undefined>([]);
+  tracksLoading = input<boolean | null>(true);
+  maTracks = input<MetalArchivesAlbumTrack[] | null | undefined>([]);
+  maTracksLoading = input<boolean | null>(true);
+  lyricsLoadingProgress = input<number | null>(0);
+  applyingProgress = input<number | null>(0);
+  applying = input<boolean | null>(false);
+  trackTransferring = input<boolean | null>(false);
+  trackTransferringProgress = input<number | null>(0);
+  albumUrl = input<string | null | undefined>();
+  coverLoading = input<boolean | null>(false);
+  cover = input<string | null | undefined>();
+  folder = input<string | null | undefined>();
+  showClose = input(true);
 
   @Output()
   readonly applyLyrics = new EventEmitter<{ id: number; lyrics: ApplyLyrics[] }>();
@@ -76,10 +48,15 @@ export class ApplyLyricsComponent implements OnChanges {
   displayedColumns = ['trackNumber', 'title', 'duration', 'maTrack', 'selected'];
   dataSource: ApplyLyrics[] = [];
 
-  ngOnChanges(changes: SimpleChanges): void {
-    if ((changes.tracks || changes.maTracks) && !this.applyingProgress && !this.trackTransferring) {
-      this.mapDataSource(this.tracks || [], this.maTracks || []);
-    }
+  constructor() {
+    effect(() => {
+      const tracks = this.tracks();
+      const maTracks = this.maTracks();
+
+      if (tracks || maTracks) {
+        this.mapDataSource(tracks || [], maTracks || []);
+      }
+    });
   }
 
   trackByFn(_index: number, item: ApplyLyrics) {
@@ -109,7 +86,7 @@ export class ApplyLyricsComponent implements OnChanges {
   }
 
   onApply() {
-    this.applyLyrics.emit({ id: this.albumId, lyrics: this.dataSource.filter((l) => l.selected) });
+    this.applyLyrics.emit({ id: this.albumId()!, lyrics: this.dataSource.filter((l) => l.selected) });
   }
 
   onSelectAll(checked: boolean) {
@@ -117,11 +94,10 @@ export class ApplyLyricsComponent implements OnChanges {
   }
 
   onSelectItem(id: number, checked: boolean) {
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     this.dataSource.find((i) => i.id === id)!.selected = checked;
   }
 
   onTransfer() {
-    this.transfer.emit(this.dataSource.filter((l) => l.selected).map((l) => ({ id: this.albumId, trackId: l.id })));
+    this.transfer.emit(this.dataSource.filter((l) => l.selected).map((l) => ({ id: this.albumId()!, trackId: l.id })));
   }
 }

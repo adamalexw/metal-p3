@@ -1,5 +1,5 @@
 import { AsyncPipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, OnInit, ViewChild, inject } from '@angular/core';
 import { Title } from '@angular/platform-browser';
 import { CoverComponent } from '@metal-p3/cover/ui';
 import {
@@ -34,6 +34,10 @@ import { concatMap, distinctUntilKeyChanged, filter, map, shareReplay, take, tap
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PlayerShellComponent implements OnInit {
+  private readonly store = inject(Store);
+  private readonly trackService = inject(TrackService);
+  private readonly title = inject(Title);
+
   @ViewChild('audio', { static: true }) audio!: ElementRef;
 
   playerOpen$ = this.store.select(selectPlayerOpen);
@@ -61,11 +65,7 @@ export class PlayerShellComponent implements OnInit {
 
   showPlaylist$ = this.store.select(selectShowPlaylist);
 
-  constructor(
-    private readonly store: Store,
-    private readonly trackService: TrackService,
-    private readonly title: Title,
-  ) {
+  constructor() {
     this.activeItem$
       .pipe(
         untilDestroyed(this),

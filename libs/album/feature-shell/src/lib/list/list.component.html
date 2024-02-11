@@ -6,12 +6,16 @@
   (searchRequest)="onSearch($event)"
   (showPlayer)="onShowPlayer()"
   (createNew)="onCreateNew()"
- />
+/>
 
 @if (searchRequest$ | async; as searchRequest) {
   <cdk-virtual-scroll-viewport [itemSize]="379" (scrolledIndexChange)="scrollIndexChange($event, searchRequest, false)">
     <div class="mx-4 overflow-hidden" appAddAlbum (albumAdded)="onAlbumAdded($event)">
       <div class="grid grid-flow-col auto-cols-fr lg:auto-cols-min gap-2 py-2" *cdkVirtualFor="let albums of albumsView$; trackBy: trackByVirtualFn">
+        @if (albums.length === 0 && (albumsLoading$ | async) === false) {
+          <div class="w-max text-xl">no albums found</div>
+        }
+
         @for (album of albums; track trackByAlbumFn($index, album)) {
           <app-list-item
             class="w-full lg:w-[275px]"

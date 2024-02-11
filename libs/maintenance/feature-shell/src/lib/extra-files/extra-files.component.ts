@@ -17,14 +17,16 @@ import { concatMap, finalize, tap } from 'rxjs/operators';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ExtraFilesShellComponent implements OnInit {
+  private readonly service = Inject(FileSystemMaintenanceService);
+  private readonly albumService = Inject(AlbumService);
+  private readonly basePath = Inject(BASE_PATH);
+
   private extraFiles: string[] = [];
   private extraFiles$$ = new BehaviorSubject<string[]>([]);
   private running$$ = new BehaviorSubject<boolean>(true);
 
   extraFiles$ = this.extraFiles$$.asObservable();
   running$ = this.running$$.asObservable();
-
-  constructor(private readonly service: FileSystemMaintenanceService, private readonly albumService: AlbumService, @Inject(BASE_PATH) private readonly basePath: string) {}
 
   ngOnInit(): void {
     this.service.getExtraFiles().subscribe();
@@ -40,7 +42,7 @@ export class ExtraFilesShellComponent implements OnInit {
         tap((folder: string) => {
           this.extraFiles.push(folder);
           this.extraFiles$$.next(this.extraFiles);
-        })
+        }),
       )
       .subscribe();
 
@@ -57,7 +59,7 @@ export class ExtraFilesShellComponent implements OnInit {
       .pipe(
         untilDestroyed(this),
         concatMap(() => this.service.cancelExtraFiles()),
-        finalize(() => this.running$$.next(false))
+        finalize(() => this.running$$.next(false)),
       )
       .subscribe();
   }

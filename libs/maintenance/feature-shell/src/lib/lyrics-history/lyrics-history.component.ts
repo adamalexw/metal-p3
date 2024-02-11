@@ -1,6 +1,6 @@
 import { ScrollingModule, ViewportRuler } from '@angular/cdk/scrolling';
 import { AsyncPipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, inject } from '@angular/core';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatSelectModule } from '@angular/material/select';
 import { LyricsMaintenanceService, MaintenanceActions, selectCheckingLyrics, selectGettingLyrics, selectLyrics } from '@metal-p3/maintenance/data-access';
@@ -19,11 +19,14 @@ import { ApplyLyricsShellComponent } from '../apply-lyrics/apply-lyrics.componen
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LyricsHistoryShellComponent implements OnInit {
+  private readonly store = inject(Store);
+  private readonly lyricsMaintenanceService = inject(LyricsMaintenanceService);
+  private readonly dialog = inject(MatDialog);
+  private readonly viewportRuler = inject(ViewportRuler);
+
   getting$ = this.store.select(selectGettingLyrics);
   checking$ = this.store.select(selectCheckingLyrics);
   lyrics$ = this.store.select(selectLyrics);
-
-  constructor(private readonly store: Store, private readonly lyricsMaintenanceService: LyricsMaintenanceService, private readonly dialog: MatDialog, private readonly viewportRuler: ViewportRuler) {}
 
   ngOnInit(): void {
     this.updateProgress();
@@ -34,7 +37,7 @@ export class LyricsHistoryShellComponent implements OnInit {
       .lyricsHistoryUpdate()
       .pipe(
         untilDestroyed(this),
-        tap((lyricsHistory) => this.store.dispatch(MaintenanceActions.updateLyricsHistory({ update: { id: lyricsHistory.id, changes: { ...lyricsHistory, complete: true } } })))
+        tap((lyricsHistory) => this.store.dispatch(MaintenanceActions.updateLyricsHistory({ update: { id: lyricsHistory.id, changes: { ...lyricsHistory, complete: true } } }))),
       )
       .subscribe();
 
@@ -42,7 +45,7 @@ export class LyricsHistoryShellComponent implements OnInit {
       .lyricsHistoryComplete()
       .pipe(
         untilDestroyed(this),
-        tap(() => this.store.dispatch(MaintenanceActions.stopLyricsHistoryCheck()))
+        tap(() => this.store.dispatch(MaintenanceActions.stopLyricsHistoryCheck())),
       )
       .subscribe();
   }

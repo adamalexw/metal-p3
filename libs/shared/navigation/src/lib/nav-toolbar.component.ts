@@ -1,5 +1,5 @@
 import { Location } from '@angular/common';
-import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, input } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { MatToolbarModule } from '@angular/material/toolbar';
 
@@ -11,13 +11,10 @@ import { MatToolbarModule } from '@angular/material/toolbar';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class NavToolbarComponent {
-  @Input()
-  showClose = true;
+  private readonly location = inject(Location);
 
-  @Input()
-  closeFullWidth = true;
-
-  constructor(private readonly location: Location) {}
+  showClose = input(true);
+  closeFullWidth = input(true);
 
   onClose() {
     this.location.back();

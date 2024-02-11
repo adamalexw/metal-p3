@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Output, input } from '@angular/core';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { SafePipe } from '@metal-p3/shared/safe-pipe';
 import { CoverDragDirective } from './cover-dnd.directive';
@@ -11,23 +11,12 @@ import { CoverDragDirective } from './cover-dnd.directive';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CoverComponent {
-  @Input()
-  loading: boolean | null = false;
-
-  @Input()
-  cover: string | null | undefined;
-
-  @Input()
-  coverError: string | undefined;
-
-  @Input()
-  width: number | null = null;
-
-  @Input()
-  height: number | null = null;
-
-  @Input()
-  enableDnd = false;
+  loading = input<boolean | null>(false);
+  cover = input<string | null | undefined>();
+  coverError = input<string | undefined>();
+  width = input<number | null>(null);
+  height = input<number | null>(null);
+  enableDnd = input(false);
 
   @Output()
   readonly coverUrl = new EventEmitter<string>();

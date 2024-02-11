@@ -1,12 +1,12 @@
 import { Directive, EventEmitter, HostBinding, HostListener, Input, Output } from '@angular/core';
+import { input } from '@angular/core';
 
 @Directive({
   standalone: true,
   selector: '[appCoverDnd]',
 })
 export class CoverDragDirective {
-  @Input()
-  enableDnd = true;
+  enableDnd = input(true);
 
   @Output()
   coverUrl = new EventEmitter<string>();
@@ -14,7 +14,7 @@ export class CoverDragDirective {
   @HostBinding('class') private coverClass = '';
 
   @HostListener('dragover', ['$event']) public onDragOver(evt: DragEvent) {
-    if (this.enableDnd) {
+    if (this.enableDnd()) {
       evt.preventDefault();
       evt.stopPropagation();
       this.coverClass = 'opacity-25';
@@ -22,7 +22,7 @@ export class CoverDragDirective {
   }
 
   @HostListener('drop', ['$event']) public onDrop(evt: DragEvent) {
-    if (this.enableDnd) {
+    if (this.enableDnd()) {
       evt.preventDefault();
       evt.stopPropagation();
 

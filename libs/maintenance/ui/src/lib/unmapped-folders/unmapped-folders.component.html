@@ -2,15 +2,15 @@
   <h2>Unmapped Folders</h2>
 </app-nav-toolbar>
 <mat-list>
-  @if (folders?.length) {
-    @for (folder of folders; track folder) {
+  @if (unMappedFolders().length) {
+    @for (folder of unMappedFolders(); track folder) {
       <mat-list-item>
-        <mat-icon matListItemIcon class="cursor-pointer" (click)="openFolder.emit(folder)">folder</mat-icon>
+        <mat-icon matListItemIcon class="cursor-pointer" (click)="openFolder.emit(folder)" title="open folder">folder</mat-icon>
         <div matListItemTitle>{{ folder }}</div>
         <div matListItemLine class="!flex !mt-2">
-          <mat-icon mat-list-icon class="cursor-pointer" (click)="search.emit(folder)">search</mat-icon>
-          <mat-icon mat-list-icon class="cursor-pointer" (click)="add.emit(folder)">add</mat-icon>
-          <mat-icon mat-list-icon class="cursor-pointer" appConfirmDelete [itemName]="folder" (confirmResult)="onDelete($event, folder)">delete</mat-icon>
+          <mat-icon mat-list-icon class="cursor-pointer" (click)="search.emit(folder)" title="search for existing album">search</mat-icon>
+          <mat-icon mat-list-icon class="cursor-pointer" (click)="add.emit(folder)" title="add album">add</mat-icon>
+          <mat-icon mat-list-icon class="cursor-pointer" appConfirmDelete [itemName]="folder" (confirmResult)="onDelete($event, folder)" title="delete folder">delete</mat-icon>
         </div>
       </mat-list-item>
     }

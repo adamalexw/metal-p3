@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Inject, Input, Output, ViewEncapsulation } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Output, ViewEncapsulation, inject, input } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { RouterModule } from '@angular/router';
 import { CoverComponent } from '@metal-p3/cover/ui';
@@ -15,29 +15,16 @@ import { WINDOW } from '@ng-web-apis/common';
   encapsulation: ViewEncapsulation.None,
 })
 export class ApplyLyricsToolbarComponent {
-  @Input()
-  applying = false;
+  protected readonly windowRef = inject(WINDOW);
 
-  @Input()
-  albumUrl: string | null | undefined;
-
-  @Input()
-  albumId!: number;
-
-  @Input()
-  coverLoading = false;
-
-  @Input()
-  cover: string | null | undefined;
-
-  @Input()
-  folder: string | null | undefined;
-
-  @Input()
-  trackTransferring = false;
-
-  @Input()
-  showClose = true;
+  applying = input(false);
+  albumUrl = input<string | null | undefined>();
+  albumId = input<number | null>();
+  coverLoading = input(false);
+  cover = input<string | null | undefined>();
+  folder = input<string | null | undefined>();
+  trackTransferring = input(false);
+  showClose = input(true);
 
   @Output()
   readonly apply = new EventEmitter<void>();
@@ -47,8 +34,6 @@ export class ApplyLyricsToolbarComponent {
 
   @Output()
   readonly done = new EventEmitter<void>();
-
-  constructor(@Inject(WINDOW) readonly windowRef: Window) {}
 
   openLink(url: string) {
     this.windowRef.open(url, '_blank');

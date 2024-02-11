@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output, ViewEncapsulation } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Output, ViewEncapsulation, input } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
@@ -15,11 +15,7 @@ import { Album } from '@metal-p3/shared/data-access';
   encapsulation: ViewEncapsulation.None,
 })
 export class ListItemComponent {
-  @Input()
-  album: Album | undefined;
-
-  @Input()
-  trackTransferringProgress = 0;
+  album = input.required<Album>();
 
   @Output()
   readonly openAlbum = new EventEmitter<number>();

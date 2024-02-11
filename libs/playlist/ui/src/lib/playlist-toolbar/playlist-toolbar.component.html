@@ -4,16 +4,16 @@
       <mat-icon title="load">queue_music</mat-icon>
     </button>
     <mat-menu #menu="matMenu" yPosition="above">
-      @for (playlist of playlists; track playlist) {
+      @for (playlist of playlists(); track playlist) {
         <button mat-menu-item (click)="loadPlaylist.emit(playlist.id)">{{ playlist.name }}</button>
       }
     </mat-menu>
 
-    @if (activePlaylist) {
+    @if (activePlaylist()) {
       <mat-form-field>
         <input matInput placeholder="playlist name" class="w-auto" required [(ngModel)]="playlistName" />
       </mat-form-field>
-      <button mat-icon-button (click)="updatePlaylist.emit(playlistName || '')">
+      <button mat-icon-button (click)="updatePlaylist.emit(playlistName() || '')">
         <mat-icon title="save">save</mat-icon>
       </button>
     } @else {
@@ -23,33 +23,33 @@
         </mat-form-field>
       }
 
-      @if (duration ?? 0 > 0) {
-        <button mat-icon-button [disabled]="saving && !playlistName" (click)="onCreate()">
+      @if (duration() ?? 0 > 0) {
+        <button mat-icon-button [disabled]="saving && !playlistName()" (click)="onCreate()">
           <mat-icon title="create">playlist_add</mat-icon>
         </button>
       }
     }
 
-    @if (playlistSize ?? 0 > 1) {
+    @if (playlistSize() ?? 0 > 1) {
       <button mat-icon-button (click)="shuffle.emit()" title="shuffle">
         <mat-icon>shuffle</mat-icon>
       </button>
     }
 
-    @if (playlistSize ?? 0 > 0) {
+    @if (playlistSize() ?? 0 > 0) {
       <button mat-icon-button (click)="clearPlaylist.emit()" title="clear">
         <mat-icon title="clear">clear_all</mat-icon>
       </button>
     }
 
-    @if (activePlaylist) {
+    @if (activePlaylist()) {
       <button mat-icon-button appConfirmDelete [itemName]="'playlist'" (confirmResult)="onDelete($event)">
         <mat-icon title="delete">delete</mat-icon>
       </button>
     }
 
-    @if (playlistSize ?? 0 > 1) {
-      <button class="!hidden lg:!inline-block" mat-icon-button (click)="transfer.emit()" [disabled]="transferring">
+    @if (playlistSize() ?? 0 > 1) {
+      <button class="!hidden lg:!inline-block" mat-icon-button (click)="transfer.emit()" [disabled]="transferring()">
         <mat-icon title="transfer">adb</mat-icon>
       </button>
     }
@@ -60,7 +60,7 @@
 
     <div class="w-full flex flex-row-reverse items-center">
       <mat-icon class="cursor-pointer" (click)="closePlaylist.emit()">close</mat-icon>
-      <div class="ml-1 mr-1">{{ duration | time }}</div>
+      <div class="ml-1 mr-1">{{ duration() | time }}</div>
       <mat-icon>timer</mat-icon>
     </div>
   </mat-toolbar-row>

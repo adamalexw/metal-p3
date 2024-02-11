@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Input, OnChanges, SimpleChanges } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, input } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -12,16 +12,19 @@ import { UrlMatcher } from '@metal-p3/maintenance/domain';
   templateUrl: './url-matcher.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class UrlMatcherComponent implements OnChanges {
-  @Input()
-  albums: UrlMatcher[] | null | undefined = [];
+export class UrlMatcherComponent {
+  albums = input<UrlMatcher[] | null | undefined>([]);
 
   displayedColumns = ['band', 'artistUrl', 'album', 'albumUrl', 'result', 'complete'];
-  dataSource: MatTableDataSource<UrlMatcher> = new MatTableDataSource();
+  dataSource = new MatTableDataSource<UrlMatcher>();
 
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes.albums && this.albums) {
-      this.dataSource = new MatTableDataSource(this.albums);
-    }
+  constructor() {
+    effect(() => {
+      const albums = this.albums();
+
+      if (albums) {
+        this.dataSource.data = albums;
+      }
+    });
   }
 }

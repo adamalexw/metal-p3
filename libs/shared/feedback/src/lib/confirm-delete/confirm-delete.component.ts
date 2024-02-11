@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { AppOverlayRef } from '../overlay/overlay-ref';
@@ -13,7 +13,7 @@ import { ConfirmDeleteDirective } from './confirm-delete.directive';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ConfirmDeleteComponent {
-  constructor(public readonly ref: AppOverlayRef) {}
+  public readonly ref = inject(AppOverlayRef);
 
   close(value: boolean) {
     this.ref.close(value);

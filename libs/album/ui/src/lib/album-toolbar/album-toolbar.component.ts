@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Output, input } from '@angular/core';
 import { MatBadgeModule } from '@angular/material/badge';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -15,23 +15,12 @@ import { AlbumHeaderComponent } from '../album-header/album-header.component';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AlbumToolbarComponent {
-  @Input()
-  saving: boolean | null = false;
-
-  @Input()
-  findingUrl: boolean | null = false;
-
-  @Input()
-  renamingFolder: boolean | null = false;
-
-  @Input()
-  trackTransferring: boolean | null = false;
-
-  @Input()
-  folder = '';
-
-  @Input()
-  extraFiles: boolean | undefined;
+  saving = input<boolean | null>(false);
+  findingUrl = input<boolean | null>(false);
+  renamingFolder = input<boolean | null>(false);
+  trackTransferring = input<boolean | null>(false);
+  folder = input('');
+  extraFiles = input<boolean | undefined>();
 
   @Output()
   readonly save = new EventEmitter<void>();

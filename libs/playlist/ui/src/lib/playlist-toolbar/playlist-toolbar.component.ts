@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Output, input } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -18,23 +18,12 @@ import { TimePipe } from '@metal-p3/track/util';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PlaylistToolbarComponent {
-  @Input()
-  duration: number | null | undefined = 0;
-
-  @Input()
-  playlistSize: number | null | undefined;
-
-  @Input()
-  playlists: PlaylistDto[] | null = null;
-
-  @Input()
-  activePlaylist: number | null | undefined = 0;
-
-  @Input()
-  playlistName: string | null | undefined = '';
-
-  @Input()
-  transferring: boolean | null = false;
+  duration = input<number | null | undefined>(0);
+  playlistSize = input<number | null | undefined>();
+  playlists = input<PlaylistDto[] | null>(null);
+  activePlaylist = input<number | null | undefined>(0);
+  playlistName = input<string | null | undefined>('');
+  transferring = input<boolean | null>(false);
 
   @Output()
   readonly loadPlaylists = new EventEmitter<void>();
@@ -69,7 +58,7 @@ export class PlaylistToolbarComponent {
   saving = false;
 
   onLoadPlaylists() {
-    if (!this.playlists?.length) {
+    if (!this.playlists()?.length) {
       this.loadPlaylists.emit();
     }
   }
@@ -80,8 +69,10 @@ export class PlaylistToolbarComponent {
       return;
     }
 
-    if (this.playlistName) {
-      this.createPlaylist.emit(this.playlistName);
+    const platListName = this.playlistName();
+
+    if (platListName) {
+      this.createPlaylist.emit(platListName);
       this.saving = false;
     }
   }

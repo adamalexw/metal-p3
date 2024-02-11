@@ -1,5 +1,5 @@
 import { NgTemplateOutlet } from '@angular/common';
-import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Output, input } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatToolbarModule } from '@angular/material/toolbar';
@@ -13,20 +13,11 @@ import { TimePipe } from '@metal-p3/track/util';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TracksToolbarComponent {
-  @Input()
-  gettingMaTracks = false;
-
-  @Input()
-  trackRenaming = false;
-
-  @Input()
-  enableMaActions = false;
-
-  @Input()
-  lyricsLoading = false;
-
-  @Input()
-  albumDuration = 0;
+  gettingMaTracks = input(false);
+  trackRenaming = input(false);
+  enableMaActions = input(false);
+  lyricsLoading = input(false);
+  albumDuration = input(0);
 
   @Output()
   readonly trackNumbers = new EventEmitter<void>();

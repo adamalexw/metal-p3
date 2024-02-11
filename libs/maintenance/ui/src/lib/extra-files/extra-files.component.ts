@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { MatListModule } from '@angular/material/list';
+import { input } from '@angular/core';
 
 @Component({
   standalone: true,
@@ -10,8 +11,7 @@ import { MatListModule } from '@angular/material/list';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ExtraFilesComponent {
-  @Input()
-  folders: string[] | null = [];
+  folders = input<string[] | null>([]);
 
   @Output()
   readonly openFolder = new EventEmitter<string>();

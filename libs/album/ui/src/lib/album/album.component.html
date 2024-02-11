@@ -1,10 +1,10 @@
-@if (album) {
+@if (album(); as album) {
   <nav class="sticky top-0 lg:block z-10">
     <app-album-toolbar
-      [saving]="albumSaving"
-      [findingUrl]="findingUrl"
-      [renamingFolder]="renamingFolder"
-      [trackTransferring]="trackTransferring"
+      [saving]="albumSaving()"
+      [findingUrl]="findingUrl()"
+      [renamingFolder]="renamingFolder()"
+      [trackTransferring]="trackTransferring()"
       [folder]="album.folder"
       [extraFiles]="album.extraFiles || false"
       (save)="onSave()"
@@ -17,50 +17,51 @@
     />
   </nav>
 
-  @if (trackSavingProgress || trackTransferringProgress || trackRenamingProgress; as progress) {
+  @if (trackSavingProgress() || trackTransferringProgress() || trackRenamingProgress(); as progress) {
     <mat-progress-bar class="fixed top-0 w-full z-50 lg:block" mode="determinate" [value]="progress"> </mat-progress-bar>
   }
 
-  <section class="flex flex-col lg:flex-row">
-    <app-cover
-      class="w-full lg:min-w-[500px] lg:max-w-[500px]"
-      [loading]="coverLoading"
-      [cover]="album.cover"
-      [coverError]="album.coverError"
-      [enableDnd]="true"
-      (coverUrl)="coverUrl.emit({ id: album.id, url: $event })"
-    />
+  <form [formGroup]="form">
+    <section class="flex flex-col lg:flex-row">
+      <app-cover
+        class="w-full lg:min-w-[500px] lg:max-w-[500px]"
+        [loading]="coverLoading()"
+        [cover]="album.cover"
+        [coverError]="album.coverError"
+        [enableDnd]="true"
+        (coverUrl)="coverUrl.emit({ id: album.id, url: $event })"
+      />
 
-    <app-album-form [form]="form" class="block w-full mt-1 mb-0 lg:mx-2" (findBandProps)="findBandProps.emit({ id: albumId, url: $event })" (lyricsPriority)="lyricsPriority.emit(albumId)" />
-  </section>
+      <app-album-form class="block w-full mt-1 mb-0 lg:mx-2" (findBandProps)="findBandProps.emit({ id: albumId, url: $event })" (lyricsPriority)="lyricsPriority.emit(albumId)" />
+    </section>
 
-  <section>
-    <app-tracks-toolbar
-      [trackRenaming]="trackRenaming || false"
-      [lyricsLoading]="lyricsLoading || false"
-      [enableMaActions]="!!albumUrl"
-      [albumDuration]="albumDuration || 0"
-      (renameTracks)="onRenameTracks()"
-      (trackNumbers)="onTrackNumbers()"
-      (maTracks)="onMaTracks()"
-      (lyrics)="onLyrics()"
-      (refreshTracks)="refreshTracks.emit({ id: album.id, folder: album.folder })"
-      (playAlbum)="playAlbum.emit(this.albumId)"
-      (addAlbumToPlaylist)="addAlbumToPlaylist.emit(this.albumId)"
-    />
+    <section>
+      <app-tracks-toolbar
+        [trackRenaming]="trackRenaming() || false"
+        [lyricsLoading]="lyricsLoading() || false"
+        [enableMaActions]="!!albumUrl"
+        [albumDuration]="albumDuration() || 0"
+        (renameTracks)="onRenameTracks()"
+        (trackNumbers)="onTrackNumbers()"
+        (maTracks())="onMaTracks()"
+        (lyrics)="onLyrics()"
+        (refreshTracks)="refreshTracks.emit({ id: album.id, folder: album.folder })"
+        (playAlbum)="playAlbum.emit(this.albumId)"
+        (addAlbumToPlaylist)="addAlbumToPlaylist.emit(this.albumId)"
+      />
 
-    <app-tracks
-      class="block overflow-auto lg:h-[calc(100vh-128px-500px)]"
-      [form]="form"
-      [tracksLoading]="tracksLoading || false"
-      [tracks]="tracks || []"
-      [tracksError]="tracksError"
-      (transferTrack)="onTransferTrack($event)"
-      (playTrack)="playTrack.emit({ track: $event, albumId: albumId })"
-      (addTrackToPlaylist)="addTrackToPlaylist.emit({ track: $event, albumId: albumId })"
-      (delete)="deleteTrack.emit({ track: $event, albumId: albumId })"
-    />
-  </section>
+      <app-tracks
+        class="block overflow-auto lg:h-[calc(100vh-128px-500px)]"
+        [tracksLoading]="tracksLoading() || false"
+        [tracks]="tracks() || []"
+        [tracksError]="tracksError()"
+        (transferTrack)="onTransferTrack($event)"
+        (playTrack)="playTrack.emit({ track: $event, albumId: albumId })"
+        (addTrackToPlaylist)="addTrackToPlaylist.emit({ track: $event, albumId: albumId })"
+        (delete)="deleteTrack.emit({ track: $event, albumId: albumId })"
+      />
+    </section>
+  </form>
 } @else {
   <mat-icon routerLink="/">clear</mat-icon>
 }

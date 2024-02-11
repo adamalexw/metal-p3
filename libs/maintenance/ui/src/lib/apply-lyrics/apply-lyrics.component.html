@@ -1,24 +1,24 @@
-@if (tracksLoading || maTracksLoading || lyricsLoadingProgress) {
+@if (tracksLoading() || maTracksLoading() || lyricsLoadingProgress()) {
   <div class="flex flex-col gap-4">
-    <mat-progress-bar class="w-full" [mode]="lyricsLoadingProgress ? 'determinate' : 'indeterminate'" [value]="lyricsLoadingProgress"> </mat-progress-bar>
+    <mat-progress-bar class="w-full" [mode]="lyricsLoadingProgress() ? 'determinate' : 'indeterminate'" [value]="lyricsLoadingProgress()"> </mat-progress-bar>
     <h3 class="text-xl ml-3 mb-3 text-white">Loading Lyrics</h3>
   </div>
 } @else {
   <app-lyrics-toolbar
-    [applying]="applying || false"
-    [trackTransferring]="trackTransferring || false"
-    [albumId]="albumId"
-    [albumUrl]="albumUrl"
-    [cover]="cover"
-    [coverLoading]="coverLoading || false"
-    [folder]="folder"
-    [showClose]="showClose"
+    [applying]="applying() || false"
+    [trackTransferring]="trackTransferring() || false"
+    [albumId]="albumId()"
+    [albumUrl]="albumUrl()"
+    [cover]="cover()"
+    [coverLoading]="coverLoading() || false"
+    [folder]="folder()"
+    [showClose]="showClose()"
     (apply)="onApply()"
     (transfer)="onTransfer()"
     (done)="done.emit()"
   />
 
-  @if (applyingProgress || trackTransferringProgress; as progress) {
+  @if (applyingProgress() || trackTransferringProgress(); as progress) {
     <mat-progress-bar class="w-full" mode="determinate" [value]="progress"> </mat-progress-bar>
   }
 
@@ -51,7 +51,7 @@
           <mat-label>Select lyrics track</mat-label>
           <mat-select [(value)]="element.maTrack">
             <mat-option>None</mat-option>
-            @for (track of maTracks; track track) {
+            @for (track of maTracks(); track track) {
               <mat-option [value]="track">{{ track.trackNumber }} {{ track.title }} / {{ track.duration }} / {{ track.lyrics?.length || 0 }} </mat-option>
             }
           </mat-select>

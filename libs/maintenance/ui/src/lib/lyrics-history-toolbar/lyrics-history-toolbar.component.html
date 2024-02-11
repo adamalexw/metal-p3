@@ -1,5 +1,5 @@
 <app-nav-toolbar>
-  <button mat-icon-button [disabled]="getting || checking" [matMenuTriggerFor]="priorityMenu">
+  <button mat-icon-button [disabled]="getting() || checking()" [matMenuTriggerFor]="priorityMenu">
     <mat-icon title="priority">new_releases</mat-icon>
   </button>
 
@@ -8,7 +8,7 @@
     <button mat-menu-item (click)="checkPriority.emit()">View & Update</button>
   </mat-menu>
 
-  <button mat-icon-button [disabled]="getting || checking" [matMenuTriggerFor]="allMenu">
+  <button mat-icon-button [disabled]="getting() || checking()" [matMenuTriggerFor]="allMenu">
     <mat-icon title="all">play_arrow</mat-icon>
   </button>
 
@@ -17,13 +17,13 @@
     <button mat-menu-item (click)="startCheck.emit()">View & Update</button>
   </mat-menu>
 
-  @if (checking) {
+  @if (checking()) {
     <button mat-icon-button (click)="stopCheck.emit()">
       <mat-icon title="stop">stop</mat-icon>
     </button>
   }
 </app-nav-toolbar>
 
-@if (checking) {
+@if (checking()) {
   <mat-progress-bar mode="indeterminate"></mat-progress-bar>
 }

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Output, input } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
@@ -13,11 +13,8 @@ import { NavToolbarComponent } from '@metal-p3/shared/navigation';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LyricsHistoryToolbarComponent {
-  @Input()
-  getting: boolean | null = false;
-
-  @Input()
-  checking: boolean | null = false;
+  getting = input<boolean | null>(false);
+  checking = input<boolean | null>(false);
 
   @Output()
   readonly viewPriority = new EventEmitter<void>();

@@ -1,5 +1,6 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Inject, Input, Output } from '@angular/core';
-import { FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
+import { ChangeDetectionStrategy, Component, EventEmitter, OnInit, Output, inject } from '@angular/core';
+import { ControlContainer, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -8,7 +9,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { RouterModule } from '@angular/router';
 import { AlbumDataAccessModule } from '@metal-p3/album/data-access';
-import { AlbumForm } from '@metal-p3/album/domain';
+import { AlbumDetailsForm } from '@metal-p3/album/domain';
 import { CoverComponent } from '@metal-p3/cover/ui';
 import { TracksComponent, TracksToolbarComponent } from '@metal-p3/track/ui';
 import { WINDOW } from '@ng-web-apis/common';
@@ -36,9 +37,9 @@ import { AlbumToolbarComponent } from '../album-toolbar/album-toolbar.component'
   templateUrl: './album-form.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class AlbumFormComponent {
-  @Input({ required: true })
-  form!: FormGroup<AlbumForm>;
+export class AlbumFormComponent implements OnInit {
+  private readonly controlContainer = inject(ControlContainer);
+  private readonly windowRef = inject(WINDOW);
 
   @Output()
   readonly lyricsPriority = new EventEmitter<void>();
@@ -58,7 +59,11 @@ export class AlbumFormComponent {
     return this.form.controls.hasLyrics.value ?? false;
   }
 
-  constructor(@Inject(WINDOW) readonly windowRef: Window) {}
+  protected form!: FormGroup<AlbumDetailsForm>;
+
+  ngOnInit(): void {
+    this.form = this.controlContainer.control!.get('details') as FormGroup<AlbumDetailsForm>;
+  }
 
   openLink(url: string) {
     this.windowRef.open(url, '_blank');

@@ -1,5 +1,5 @@
 import { AsyncPipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Output, inject, input } from '@angular/core';
 import { PlayerActions, selectPlaylistItemSize } from '@metal-p3/player/data-access';
 import { PlaylistActions, selectActivePlaylistId, selectActivePlaylistName, selectPlaylistTransferring, selectPlaylists } from '@metal-p3/playlist/data-access';
 import { PlaylistToolbarComponent } from '@metal-p3/playlist/ui';
@@ -13,8 +13,9 @@ import { Store } from '@ngrx/store';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PlaylistShellComponent {
-  @Input()
-  duration: number | null | undefined = 0;
+  private readonly store = inject(Store);
+
+  duration = input<number | null | undefined>(0);
 
   @Output()
   readonly clearPlaylist = new EventEmitter<void>();
@@ -30,8 +31,6 @@ export class PlaylistShellComponent {
   playlistName$ = this.store.select(selectActivePlaylistName);
   playlistSize$ = this.store.select(selectPlaylistItemSize);
   transferring$ = this.store.select(selectPlaylistTransferring);
-
-  constructor(private readonly store: Store) {}
 
   onLoadPlaylists() {
     this.store.dispatch(PlaylistActions.loadPlaylists());

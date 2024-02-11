@@ -1,20 +1,20 @@
 <app-nav-toolbar [closeFullWidth]="false">
-  <button mat-icon-button [disabled]="saving" (click)="save.emit()">
+  <button mat-icon-button [disabled]="saving()" (click)="save.emit()">
     <mat-icon title="save">save</mat-icon>
   </button>
   <button mat-icon-button (click)="imageSearch.emit()">
     <mat-icon title="cover search">image_search</mat-icon>
   </button>
-  <button mat-icon-button [disabled]="findingUrl" (click)="findUrl.emit()">
+  <button mat-icon-button [disabled]="findingUrl()" (click)="findUrl.emit()">
     <mat-icon title="ma search">pageview</mat-icon>
   </button>
-  <button mat-icon-button [disabled]="renamingFolder" (click)="renameFolder.emit()">
-    <mat-icon title="rename folder">source</mat-icon>
+  <button mat-icon-button [disabled]="renamingFolder()" (click)="renameFolder.emit()">
+    <mat-icon title="rename folder()">source</mat-icon>
   </button>
-  <button mat-icon-button (click)="openFolder.emit()" matBadge="!" matBadgeColor="warn" [matBadgeHidden]="!extraFiles" class="!hidden lg:!block">
-    <mat-icon title="open folder">folder</mat-icon>
+  <button mat-icon-button (click)="openFolder.emit()" matBadge="!" matBadgeColor="warn" [matBadgeHidden]="!extraFiles()" class="!hidden lg:!block">
+    <mat-icon title="open folder()">folder()</mat-icon>
   </button>
-  <button mat-icon-button [disabled]="trackTransferring" (click)="transfer.emit()" class="!hidden lg:!block">
+  <button mat-icon-button [disabled]="trackTransferring()" (click)="transfer.emit()" class="!hidden lg:!block">
     <mat-icon title="transfer">adb</mat-icon>
   </button>
   <button mat-icon-button appConfirmDelete [itemName]="'album'" (confirmResult)="onDelete($event)">
@@ -22,10 +22,10 @@
   </button>
 
   <div class="hidden lg:flex flex-row-reverse flex-grow">
-    <app-album-header class="max-w-[745px]" [folder]="folder" />
+    <app-album-header class="max-w-[745px]" [folder]="folder()" />
   </div>
 </app-nav-toolbar>
 
 <mat-toolbar class="lg:!hidden">
-  <app-album-header class="line-clamp-1" [folder]="folder" />
+  <app-album-header class="line-clamp-1" [folder]="folder()" />
 </mat-toolbar>

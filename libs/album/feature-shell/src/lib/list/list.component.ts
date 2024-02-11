@@ -1,6 +1,6 @@
 import { CdkVirtualScrollViewport, ScrollingModule, ViewportRuler } from '@angular/cdk/scrolling';
 import { AsyncPipe, DOCUMENT, Location } from '@angular/common';
-import { ChangeDetectionStrategy, Component, EventEmitter, Inject, OnInit, Output, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, OnInit, Output, ViewChild, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { AlbumService } from '@metal-p3/album/data-access';
 import { TAKE } from '@metal-p3/album/domain';
@@ -40,6 +40,16 @@ import { AddAlbumDirective } from './add-album.directive';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ListComponent implements OnInit {
+  private readonly store = inject(Store);
+  private readonly router = inject(Router);
+  private readonly playerService = inject(PlayerService);
+  private readonly notificationService = inject(NotificationService);
+  private readonly service = inject(AlbumService);
+  private readonly viewportRuler = inject(ViewportRuler);
+  private readonly location = inject(Location);
+  private readonly document = inject(DOCUMENT);
+  private readonly take = inject(TAKE);
+
   albumsLoading$ = this.store.select(selectAlbumsLoading);
   albumsLoaded$ = this.store.select(selectAlbumsLoaded);
   albumsLoadError$ = this.store.select(selectAlbumsLoadError);
@@ -56,7 +66,6 @@ export class ListComponent implements OnInit {
   );
 
   albumsView$ = combineLatest([this.albums$, this.viewportWidth$, this.store.select(selectSideNavOpen)]).pipe(
-    filter(([albums, width]) => !!albums?.length && !!width),
     map(([albums, width, open]) => {
       // if the side nav is open we remove it's width
       const listWidth = open ? width - 1130 : width;
@@ -73,18 +82,6 @@ export class ListComponent implements OnInit {
 
   @ViewChild(CdkVirtualScrollViewport) scrollViewport!: CdkVirtualScrollViewport;
 
-  constructor(
-    private readonly store: Store,
-    private readonly router: Router,
-    private readonly playerService: PlayerService,
-    private readonly notificationService: NotificationService,
-    private readonly service: AlbumService,
-    private readonly viewportRuler: ViewportRuler,
-    private readonly location: Location,
-    @Inject(DOCUMENT) private readonly document: Document,
-    @Inject(TAKE) private readonly take: number,
-  ) {}
-
   ngOnInit(): void {
     this.albumsLoadError$
       .pipe(
@@ -95,10 +92,7 @@ export class ListComponent implements OnInit {
 
     this.service
       .albumAdded()
-      .pipe(
-        delay(2000),
-        tap((folder) => this.onAlbumAdded([folder])),
-      )
+      .pipe(tap((folder) => this.onAlbumAdded([folder])))
       .subscribe();
 
     combineLatest([

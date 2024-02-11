@@ -15,12 +15,13 @@ import { MatInputModule } from '@angular/material/input';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LyricsComponent implements OnInit {
+  private readonly bottomSheetRef = Inject(MatBottomSheetRef<LyricsComponent>);
+  private readonly data: { lyrics: string } = Inject(MAT_BOTTOM_SHEET_DATA);
+
   @HostBinding('class')
   hostClass = 'flex flex-col';
 
   lyrics = '';
-
-  constructor(private readonly bottomSheetRef: MatBottomSheetRef<LyricsComponent>, @Inject(MAT_BOTTOM_SHEET_DATA) private readonly data: { lyrics: string }) {}
 
   ngOnInit(): void {
     this.lyrics = this.data.lyrics;

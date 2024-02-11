@@ -2,6 +2,11 @@ import { FormArray, FormControl, FormGroup } from '@angular/forms';
 import { TracksForm } from '@metal-p3/track/domain';
 
 export interface AlbumForm {
+  details: FormGroup<AlbumDetailsForm>;
+  tracks: FormArray<FormGroup<TracksForm>>;
+}
+
+export interface AlbumDetailsForm {
   artist: FormControl<string>;
   album: FormControl<string>;
   year: FormControl<number>;
@@ -13,5 +18,4 @@ export interface AlbumForm {
   transferred: FormControl<boolean | undefined>;
   hasLyrics: FormControl<boolean | undefined>;
   dateCreated: FormControl<string>;
-  tracks: FormArray<FormGroup<TracksForm>>;
 }

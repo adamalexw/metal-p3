@@ -1,5 +1,5 @@
 <mat-toolbar class="lg:!hidden">
-  @if (albumDuration) {
+  @if (albumDuration()) {
     <div class="w-full flex justify-center items-center">
       <ng-container *ngTemplateOutlet="duration"></ng-container>
     </div>
@@ -10,14 +10,14 @@
   <button mat-icon-button (click)="trackNumbers.emit()">
     <mat-icon title="track numbers">tag</mat-icon>
   </button>
-  <button mat-icon-button [disabled]="trackRenaming" (click)="renameTracks.emit()">
+  <button mat-icon-button [disabled]="trackRenaming()" (click)="renameTracks.emit()">
     <mat-icon title="rename tracks">drive_file_rename_outline</mat-icon>
   </button>
-  @if (enableMaActions) {
-    <button mat-icon-button [disabled]="gettingMaTracks" (click)="maTracks.emit()">
+  @if (enableMaActions()) {
+    <button mat-icon-button [disabled]="gettingMaTracks()" (click)="maTracks.emit()">
       <mat-icon title="ma tracks">format_list_numbered</mat-icon>
     </button>
-    <button mat-icon-button [disabled]="lyricsLoading" (click)="lyrics.emit()">
+    <button mat-icon-button [disabled]="lyricsLoading()" (click)="lyrics.emit()">
       <mat-icon title="lyrics">article</mat-icon>
     </button>
   }
@@ -31,7 +31,7 @@
     <mat-icon title="add to playlist">playlist_add</mat-icon>
   </button>
 
-  @if (albumDuration) {
+  @if (albumDuration()) {
     <div class="hidden lg:flex w-full flex-row-reverse items-center">
       <ng-container *ngTemplateOutlet="duration"></ng-container>
     </div>
@@ -39,6 +39,6 @@
 </mat-toolbar>
 
 <ng-template #duration>
-  <span class="ml-1">{{ albumDuration | time }}</span>
+  <span class="ml-1">{{ albumDuration() | time }}</span>
   <mat-icon>timer</mat-icon>
 </ng-template>

@@ -19,7 +19,7 @@
   <button mat-icon-button (click)="showPlayer.emit()">
     <mat-icon title="playlists">queue_music</mat-icon>
   </button>
-  <button mat-icon-button [disabled]="creatingNew" (click)="createNew.emit()" class="!hidden md:!block">
+  <button mat-icon-button [disabled]="creatingNew()" (click)="createNew.emit()" class="!hidden md:!block">
     <mat-icon title="files to folders">create_new_folder</mat-icon>
   </button>
   <button mat-icon-button [matMenuTriggerFor]="menu" class="!hidden md:!block">
@@ -31,7 +31,7 @@
       <span>Lyrics</span>
     </button>
     <button mat-menu-item [routerLink]="['maintenance', 'folders']">
-      <mat-icon>folder</mat-icon>
+      <mat-icon>folder()</mat-icon>
       <span>Folders</span>
     </button>
     <button mat-menu-item [routerLink]="['maintenance', 'extraFiles']">
@@ -45,6 +45,6 @@
   </mat-menu>
 </mat-toolbar>
 
-@if (searching) {
+@if (searching()) {
   <mat-progress-bar mode="indeterminate"></mat-progress-bar>
 }

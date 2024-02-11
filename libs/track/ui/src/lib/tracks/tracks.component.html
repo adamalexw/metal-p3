@@ -1,9 +1,9 @@
-@if (tracksLoading) {
+@if (tracksLoading()) {
   <mat-spinner class="m-3"></mat-spinner>
 } @else {
-  @if (tracksError) {
+  @if (tracksError()) {
     <div class="bg-red-700 text-white rounded-md">
-      {{ tracksError }}
+      {{ tracksError() }}
     </div>
   }
 

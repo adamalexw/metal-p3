@@ -1,5 +1,5 @@
 import { AsyncPipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, Inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { AlbumService } from '@metal-p3/album/data-access';
 import { BASE_PATH } from '@metal-p3/album/domain';
 import { FileSystemMaintenanceService } from '@metal-p3/maintenance/data-access';
@@ -16,14 +16,12 @@ import { shareReplay } from 'rxjs/operators';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class UnmappedFoldersShellComponent {
-  unmappedFolders$ = this.service.getUnmappedFolders().pipe(shareReplay());
+  private readonly store = inject(Store);
+  private readonly service = inject(FileSystemMaintenanceService);
+  private readonly albumService = inject(AlbumService);
+  private readonly basePath = inject(BASE_PATH);
 
-  constructor(
-    private readonly store: Store,
-    private readonly service: FileSystemMaintenanceService,
-    private readonly albumService: AlbumService,
-    @Inject(BASE_PATH) private readonly basePath: string
-  ) {}
+  unmappedFolders$ = this.service.getUnmappedFolders().pipe(shareReplay());
 
   onOpenFolder(folder: string) {
     this.albumService.openFolder(`${this.basePath}/${folder}`).subscribe();

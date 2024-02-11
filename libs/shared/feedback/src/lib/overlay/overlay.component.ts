@@ -3,7 +3,7 @@
 import { OverlayModule } from '@angular/cdk/overlay';
 import { PortalModule } from '@angular/cdk/portal';
 import { NgComponentOutlet } from '@angular/common';
-import { Component, OnInit, TemplateRef, Type } from '@angular/core';
+import { Component, OnInit, TemplateRef, Type, inject } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { AppOverlayRef } from './overlay-ref';
@@ -15,11 +15,11 @@ import { AppOverlayRef } from './overlay-ref';
   templateUrl: './overlay.component.html',
 })
 export class OverlayComponent implements OnInit {
+  private readonly ref = inject(AppOverlayRef);
+
   contentType: 'template' | 'string' | 'component' = 'string';
   content: string | TemplateRef<unknown> | Type<unknown> = '';
   context: Object | null = null;
-
-  constructor(private readonly ref: AppOverlayRef) {}
 
   close() {
     this.ref.close(null);

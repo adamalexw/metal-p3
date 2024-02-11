@@ -1,11 +1,11 @@
 <app-nav-toolbar>
-  @if (running) {
+  @if (running()) {
     <button mat-icon-button (click)="stop.emit()">
       <mat-icon title="stop">stop</mat-icon>
     </button>
   }
 </app-nav-toolbar>
 
-@if (running) {
+@if (running()) {
   <mat-progress-bar mode="indeterminate"></mat-progress-bar>
 }

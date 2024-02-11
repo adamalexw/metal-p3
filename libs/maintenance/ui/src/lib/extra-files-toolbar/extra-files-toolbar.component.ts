@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from 
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { NavToolbarComponent } from '@metal-p3/shared/navigation';
+import { input } from '@angular/core';
 
 @Component({
   standalone: true,
@@ -11,8 +12,7 @@ import { NavToolbarComponent } from '@metal-p3/shared/navigation';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ExtraFilesToolbarComponent {
-  @Input()
-  running: boolean | null | undefined;
+  running = input<boolean | null | undefined>();
 
   @Output()
   readonly stop = new EventEmitter<void>();

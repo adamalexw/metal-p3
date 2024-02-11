@@ -1,4 +1,4 @@
-import { AfterViewInit, ChangeDetectionStrategy, Component, EventEmitter, HostBinding, Inject, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, HostBinding, Output, effect, inject, input } from '@angular/core';
 import { FormGroup, FormsModule, NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
@@ -7,9 +7,9 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatListModule } from '@angular/material/list';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
-import { Router, RouterModule } from '@angular/router';
+import { RouterModule } from '@angular/router';
 import { AlbumDataAccessModule } from '@metal-p3/album/data-access';
-import { AlbumForm } from '@metal-p3/album/domain';
+import { AlbumDetailsForm, AlbumForm } from '@metal-p3/album/domain';
 import { AlbumDto, BandProps, MetalArchivesAlbumTrack, MetalArchivesUrl, TrackBase } from '@metal-p3/api-interfaces';
 import { CoverComponent } from '@metal-p3/cover/ui';
 import { Album, AlbumWithoutTracks } from '@metal-p3/shared/data-access';
@@ -44,72 +44,33 @@ import { AlbumToolbarComponent } from '../album-toolbar/album-toolbar.component'
   templateUrl: './album.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class AlbumComponent implements OnChanges, AfterViewInit {
-  @Input()
-  album: Album | null | undefined;
+export class AlbumComponent {
+  private readonly fb = inject(NonNullableFormBuilder);
+  private readonly windowRef = inject(WINDOW);
+  private readonly notificationService = inject(NotificationService);
 
-  @Input()
-  albumSaving: boolean | null = false;
-
-  @Input()
-  tracks: Track[] | null | undefined = [];
-
-  @Input()
-  tracksLoading: boolean | null = false;
-
-  @Input()
-  tracksError: string | null | undefined;
-
-  @Input()
-  albumDuration: number | null = 0;
-
-  @Input()
-  trackSavingProgress: number | null = 0;
-
-  @Input()
-  coverLoading: boolean | null = false;
-
-  @Input()
-  cover: string | null | undefined;
-
-  @Input()
-  findingUrl: boolean | null = false;
-
-  @Input()
-  maUrls: MetalArchivesUrl | null = null;
-
-  @Input()
-  gettingMaTracks: boolean | null = false;
-
-  @Input()
-  maTracks: MetalArchivesAlbumTrack[] | null | undefined = [];
-
-  @Input()
-  trackRenaming: boolean | null = false;
-
-  @Input()
-  trackRenamingProgress: number | null = 0;
-
-  @Input()
-  trackTransferring: boolean | null = false;
-
-  @Input()
-  trackTransferringProgress: number | null = 0;
-
-  @Input()
-  renamingFolder: boolean | null = false;
-
-  @Input()
-  renamingFolderError: string | null | undefined;
-
-  @Input()
-  lyricsLoading: boolean | null = false;
-
-  @Input()
-  gettingBandProps: boolean | null = false;
-
-  @Input()
-  bandProps: BandProps | null | undefined = null;
+  album = input.required<Album | null>();
+  albumSaving = input<boolean | null>(false);
+  tracks = input<Track[] | null | undefined>([]);
+  tracksLoading = input<boolean | null>(false);
+  tracksError = input<string | null>();
+  albumDuration = input<number | null>(0);
+  trackSavingProgress = input<number | null>(0);
+  coverLoading = input<boolean | null>(false);
+  cover = input<string | null | undefined>();
+  findingUrl = input<boolean | null>(false);
+  maUrls = input<MetalArchivesUrl | null>(null);
+  gettingMaTracks = input<boolean | null>(false);
+  maTracks = input<MetalArchivesAlbumTrack[] | null | undefined>([]);
+  trackRenaming = input<boolean | null>(false);
+  trackRenamingProgress = input<number | null>(0);
+  trackTransferring = input<boolean | null>(false);
+  trackTransferringProgress = input<number | null>(0);
+  renamingFolder = input<boolean | null>(false);
+  renamingFolderError = input<string | null | undefined>();
+  lyricsLoading = input<boolean | null>(false);
+  gettingBandProps = input<boolean | null>(false);
+  bandProps = input<BandProps | null | undefined>(null);
 
   @Output()
   readonly save = new EventEmitter<{ album: AlbumWithoutTracks; tracks: TrackBase[] }>();
@@ -176,129 +137,141 @@ export class AlbumComponent implements OnChanges, AfterViewInit {
 
   @HostBinding('class') class = 'block h-screen lg:overflow-hidden';
 
-  get albumUrl(): string | undefined {
-    return this.form.controls.albumUrl.value;
+  get albumUrl() {
+    return this.details.controls.albumUrl;
   }
 
-  get artistUrl(): string | undefined {
-    return this.form.controls.albumUrl.value;
+  get artistUrl() {
+    return this.details.controls.albumUrl;
   }
 
-  get hasLyrics(): boolean {
-    return this.form.controls.hasLyrics.value ?? false;
+  get hasLyrics() {
+    return this.details.controls.hasLyrics;
+  }
+
+  private get details() {
+    return this.form.controls.details;
+  }
+
+  private get genre() {
+    return this.details.controls.genre;
+  }
+
+  private get country() {
+    return this.details.controls.country;
   }
 
   form = this.fb.group<AlbumForm>({
-    artist: this.fb.control('', Validators.required),
-    album: this.fb.control('', Validators.required),
-    year: this.fb.control(0, Validators.required),
-    genre: this.fb.control(undefined, Validators.required),
-    country: this.fb.control(undefined, Validators.required),
-    artistUrl: this.fb.control(undefined),
-    albumUrl: this.fb.control(undefined),
-    ignore: this.fb.control(false),
-    transferred: this.fb.control(undefined),
-    hasLyrics: this.fb.control(undefined),
-    dateCreated: this.fb.control(''),
+    details: this.fb.group<AlbumDetailsForm>({
+      artist: this.fb.control('', Validators.required),
+      album: this.fb.control('', Validators.required),
+      year: this.fb.control(0, Validators.required),
+      genre: this.fb.control(undefined, Validators.required),
+      country: this.fb.control(undefined, Validators.required),
+      artistUrl: this.fb.control(undefined),
+      albumUrl: this.fb.control(undefined),
+      ignore: this.fb.control(false),
+      transferred: this.fb.control(undefined),
+      hasLyrics: this.fb.control(undefined),
+      dateCreated: this.fb.control(''),
+    }),
     tracks: this.fb.array<FormGroup<TracksForm>>([]),
   });
 
-  shouldCheckBandProps = false;
+  private shouldCheckBandProps = false;
 
-  constructor(
-    private readonly fb: NonNullableFormBuilder,
-    @Inject(WINDOW) readonly windowRef: Window,
-    private notificationService: NotificationService,
-    private readonly router: Router,
-  ) {}
+  constructor() {
+    effect(() => {
+      const album = this.album();
 
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes.album && changes.album.currentValue && (changes.album.previousValue ? changes.album.currentValue.id !== changes.album.previousValue.id : !changes.album.previousValue)) {
-      const { tracks: _tracks, maTracks: _maTracks, ...rest } = changes.album.currentValue;
-      this.patchForm(rest);
-    }
-
-    if (changes.maUrls && this.maUrls) {
-      this.setMaUrls(this.maUrls);
-
-      if (this.shouldCheckBandProps && this.maUrls.artistUrl) {
-        this.checkBandProps(this.maUrls.artistUrl);
-        this.shouldCheckBandProps = false;
+      if (album) {
+        this.form.controls.details.patchValue(album);
       }
-    }
+    });
 
-    if (changes.bandProps && this.bandProps) {
-      this.setBandProps(this.bandProps);
-    }
+    effect(() => {
+      const maUrls = this.maUrls();
 
-    if (changes.renamingFolderError && this.renamingFolderError) {
-      this.notificationService.showError(this.renamingFolderError, 'Rename Folder');
-    }
-  }
+      if (maUrls) {
+        this.setMaUrls(maUrls);
 
-  ngAfterViewInit(): void {
-    if (!this.album) {
-      this.router.navigate(['/']);
-    }
-  }
+        if (this.shouldCheckBandProps && maUrls.artistUrl) {
+          this.checkBandProps(maUrls.artistUrl);
+          this.shouldCheckBandProps = false;
+        }
+      }
+    });
 
-  private patchForm(album: AlbumWithoutTracks) {
-    this.form.patchValue(album);
+    effect(() => {
+      const bandProps = this.bandProps();
+
+      if (bandProps) {
+        this.setBandProps(bandProps);
+      }
+    });
+
+    effect(() => {
+      const renamingFolderError = this.renamingFolderError();
+
+      if (renamingFolderError) {
+        this.notificationService.showError(renamingFolderError, 'Rename Folder');
+      }
+    });
   }
 
   private setMaUrls(urls: MetalArchivesUrl) {
-    this.form.controls.artistUrl.setValue(urls.artistUrl);
-    this.form.controls.albumUrl.setValue(urls.albumUrl);
+    this.artistUrl.setValue(urls.artistUrl);
+    this.albumUrl.setValue(urls.albumUrl);
   }
 
   private checkBandProps(artistUrl: string | undefined) {
-    if (artistUrl && (!this.form.controls.genre.value || !this.form.controls.country.value)) {
+    if (artistUrl && (!this.genre.value || !this.country.value)) {
       this.findBandProps.emit({ id: this.albumId, url: artistUrl });
     }
   }
 
   private setBandProps(props: BandProps) {
-    this.form.controls.genre.setValue(props.genre);
-    this.form.controls.country.setValue(props.country);
+    this.genre.setValue(props.genre);
+    this.country.setValue(props.country);
   }
 
   private getTracks(): TrackBase[] {
-    const tracks = this.form.value.tracks;
+    const tracks = this.form.controls.tracks.value;
 
     if (tracks) {
-      return tracks as unknown as TrackBase[];
+      return tracks as TrackBase[];
     }
 
     return [];
   }
 
   onSave(): void {
-    const { folder, fullPath } = this.album as AlbumDto;
-    const { tracks: _tracks, ...album } = this.form.getRawValue();
+    const { folder, fullPath } = this.album() as AlbumDto;
+    const album = this.details.getRawValue();
 
     this.save.emit({
       album: {
         ...album,
-        id: this.album?.id ?? 0,
+        id: this.album()?.id ?? 0,
         folder,
         fullPath,
-        bandId: this.album?.bandId ?? 0,
-        cover: this.cover ?? '',
+        bandId: this.album()?.bandId ?? 0,
+        cover: this.cover() ?? '',
       },
       tracks: this.getTracks(),
     });
   }
 
   get albumId(): number {
-    return this.album?.id || 0;
+    return this.album()?.id || 0;
   }
 
   onImageSearch() {
-    this.openLink(encodeURI(`https://google.com/images?q=${this.form.controls.artist.value} ${this.form.controls.album.value}`));
+    this.openLink(encodeURI(`https://google.com/images?q=${this.details.controls.artist.value} ${this.details.controls.album.value}`));
   }
 
   onFindUrl() {
-    const { artist, album } = this.form.value;
+    const { artist, album } = this.details.value;
 
     if (artist && album) {
       this.shouldCheckBandProps = true;
@@ -319,22 +292,22 @@ export class AlbumComponent implements OnChanges, AfterViewInit {
   }
 
   onMaTracks() {
-    if (this.albumUrl) {
-      this.getMaTracks.emit({ id: this.albumId, url: this.albumUrl });
+    if (this.albumUrl.value) {
+      this.getMaTracks.emit({ id: this.albumId, url: this.albumUrl.value });
     }
   }
 
   onLyrics() {
-    if (this.albumUrl) {
-      this.lyrics.emit({ id: this.albumId, url: this.albumUrl });
+    if (this.albumUrl.value) {
+      this.lyrics.emit({ id: this.albumId, url: this.albumUrl.value });
     }
   }
 
   onRenameFolder() {
-    const { artist, album } = this.form.value;
+    const { artist, album } = this.details.value;
 
     if (artist && album) {
-      this.renameFolder.emit({ id: this.albumId, src: this.album?.fullPath || '', artist, album });
+      this.renameFolder.emit({ id: this.albumId, src: this.album()?.fullPath || '', artist, album });
     }
   }
 
@@ -347,9 +320,10 @@ export class AlbumComponent implements OnChanges, AfterViewInit {
   }
 
   onTransferAlbum() {
-    if (this.tracks) {
-      const tracks = this.tracks.map((track) => ({ id: this.albumId, trackId: track.id }));
-      this.transferAlbum.emit(tracks);
+    const tracks = this.tracks();
+    if (tracks?.length) {
+      const transferTracks = tracks.map((track) => ({ id: this.albumId, trackId: track.id }));
+      this.transferAlbum.emit(transferTracks);
     }
   }
 

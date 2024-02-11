@@ -1,4 +1,4 @@
-import { AfterViewInit, ChangeDetectionStrategy, Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, ViewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Output, ViewChild, effect, inject, input } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatIconModule } from '@angular/material/icon';
@@ -17,9 +17,8 @@ import { ConfirmDeleteDirective } from '@metal-p3/shared/feedback';
   styleUrls: ['./lyrics-history.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class LyricsHistoryComponent implements OnChanges, AfterViewInit {
-  @Input()
-  lyrics: LyricsHistoryDto[] | null = [];
+export class LyricsHistoryComponent implements AfterViewInit {
+  lyrics = input<LyricsHistoryDto[] | null>([]);
 
   @Output()
   readonly checked = new EventEmitter<{ id: number; checked: boolean }>();
@@ -33,13 +32,15 @@ export class LyricsHistoryComponent implements OnChanges, AfterViewInit {
   @ViewChild(MatSort) sort!: MatSort;
 
   displayedColumns = ['folder', 'url', 'year', 'numTracks', 'numLyrics', 'numLyricsHistory', 'checked', 'complete', 'actions'];
-  dataSource: MatTableDataSource<LyricsHistoryDto> = new MatTableDataSource();
+  dataSource = new MatTableDataSource<LyricsHistoryDto>();
 
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes.lyrics && this.lyrics) {
-      this.dataSource = new MatTableDataSource(this.lyrics);
-      this.dataSource.sort = this.sort;
-    }
+  constructor() {
+    effect(() => {
+      const lyrics = this.lyrics();
+      if (lyrics) {
+        this.dataSource.data = lyrics;
+      }
+    });
   }
 
   ngAfterViewInit(): void {

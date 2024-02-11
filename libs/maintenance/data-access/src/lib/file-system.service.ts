@@ -11,7 +11,11 @@ import { Observable } from 'rxjs';
 export class FileSystemMaintenanceService {
   readonly baseUrl = `${this.api}maintenance/file-system`;
 
-  constructor(private readonly http: HttpClient, private readonly socket: Socket, @Inject(API) private readonly api: string) {}
+  constructor(
+    private readonly http: HttpClient,
+    private readonly socket: Socket,
+    @Inject(API) private readonly api: string,
+  ) {}
 
   getUnmappedFolders(): Observable<string[]> {
     return this.http.get<string[]>(`${this.baseUrl}/unmappedFolders`);
@@ -21,16 +25,16 @@ export class FileSystemMaintenanceService {
     return this.http.delete<void>(`${this.baseUrl}/folder?folder=${encodeURIComponent(folder)}`);
   }
 
-  getExtraFiles(): Observable<never> {
-    return this.http.get<never>(`${this.baseUrl}/extraFiles`);
+  getExtraFiles(): Observable<void> {
+    return this.http.get<void>(`${this.baseUrl}/extraFiles`);
   }
 
   extraFilesUpdate(): Observable<string> {
     return this.socket.fromEvent(EXTRA_FILES);
   }
 
-  cancelExtraFiles(): Observable<never> {
-    return this.http.get<never>(`${this.baseUrl}/cancel`);
+  cancelExtraFiles(): Observable<void> {
+    return this.http.get<void>(`${this.baseUrl}/cancel`);
   }
 
   extraFilesComplete(): Observable<boolean> {

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, OnInit, Output, effect, input } from '@angular/core';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -20,15 +20,10 @@ import { debounceTime, distinctUntilChanged, tap } from 'rxjs/operators';
   styleUrls: ['./list-toolbar.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ListToolbarComponent implements OnInit, OnChanges {
-  @Input()
-  creatingNew: boolean | null | undefined = false;
-
-  @Input()
-  searching: boolean | null | undefined = false;
-
-  @Input()
-  folder: string | null | undefined = '';
+export class ListToolbarComponent implements OnInit {
+  creatingNew = input<boolean | null | undefined>(false);
+  searching = input<boolean | null | undefined>(false);
+  folder = input<string | null | undefined>('');
 
   @Output()
   readonly advancedSearch = new EventEmitter<void>();
@@ -51,10 +46,14 @@ export class ListToolbarComponent implements OnInit, OnChanges {
     folder: this.folderControl,
   });
 
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes.folder && this.form && this.folder !== this.form.value.folder) {
-      this.folderControl.setValue(this.folder ?? '', { emitEvent: false });
-    }
+  constructor() {
+    effect(() => {
+      const folder = this.folder();
+
+      if (folder && folder !== this.form.value) {
+        this.folderControl.setValue(folder, { emitEvent: false });
+      }
+    });
   }
 
   ngOnInit(): void {

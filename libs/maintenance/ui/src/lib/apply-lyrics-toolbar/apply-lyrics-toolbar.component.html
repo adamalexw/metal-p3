@@ -1,20 +1,20 @@
-<app-nav-toolbar [showClose]="showClose">
+<app-nav-toolbar [showClose]="showClose()">
   <div class="flex items-center gap-3 leading-5 -pl-4">
-    <app-cover [loading]="coverLoading" [cover]="cover" [width]="64" [height]="64" />
-    <button mat-icon-button type="button" [disabled]="applying" (click)="apply.emit()">
+    <app-cover [loading]="coverLoading()" [cover]="cover()" [width]="64" [height]="64" />
+    <button mat-icon-button type="button" [disabled]="applying()" (click)="apply.emit()">
       <mat-icon title="apply">spellcheck</mat-icon>
     </button>
-    @if (albumUrl) {
+    @if (albumUrl(); as albumUrl) {
       <button mat-icon-button type="button" (click)="openLink(albumUrl)">
         <mat-icon title="metal archives">link</mat-icon>
       </button>
     }
-    <button mat-icon-button type="button" [disabled]="trackTransferring" (click)="transfer.emit()">
+    <button mat-icon-button type="button" [disabled]="trackTransferring()" (click)="transfer.emit()">
       <mat-icon title="transfer">adb</mat-icon>
     </button>
-    <h3 class="cursor-pointer" [routerLink]="['/album', albumId]">{{ folder }}</h3>
+    <h3 class="cursor-pointer" [routerLink]="['/album', albumId]">{{ folder() }}</h3>
   </div>
-  @if (!showClose) {
+  @if (!showClose()) {
     <div class="flex flex-row-reverse w-full">
       <mat-icon class="cursor-pointer" (click)="done.emit()">close</mat-icon>
     </div>
