@@ -20,7 +20,7 @@ export class AlbumService {
     private readonly trackService: TrackService,
     private readonly albumGateway: AlbumGateway,
     @Inject('BASE_PATH') private readonly basePath: string,
-    @Inject('TAKE') private readonly take: number
+    @Inject('TAKE') private readonly take: number,
   ) {
     if (basePath) {
       this.addFileWatcher(basePath);
@@ -104,7 +104,7 @@ export class AlbumService {
         console.log(err);
         return of([]);
       }),
-      map((albums) => albums.map((album) => this.mapAlbumToAlbumDto(album)))
+      map((albums) => albums.map((album) => this.mapAlbumToAlbumDto(album))),
     );
   }
 
@@ -142,8 +142,11 @@ export class AlbumService {
     const watcher = chokidar.watch(basePath, {
       depth: 1,
       ignored: /(^|[/\\])\../,
-      alwaysStat: true,
+      awaitWriteFinish: true,
+      ignoreInitial: true,
     });
+
+    watcher.on('ready', () => console.log(new Date()));
 
     watcher.on('addDir', (path) => {
       const folder = this.fileSystemService.getFilename(path);
@@ -187,7 +190,7 @@ export class AlbumService {
       catchError((error) => {
         console.log(error);
         return EMPTY;
-      })
+      }),
     );
   }
 
@@ -295,7 +298,7 @@ export class AlbumService {
       catchError((error) => {
         Logger.error(error);
         return of(false);
-      })
+      }),
     );
   }
 }
