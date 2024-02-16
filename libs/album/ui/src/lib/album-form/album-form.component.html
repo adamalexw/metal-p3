@@ -1,12 +1,12 @@
 <form [formGroup]="form" autocomplete="off" class="w-full flex flex-col gap-2">
   <mat-form-field class="w-full">
     <mat-label>Band</mat-label>
-    <input matInput formControlName="artist" />
+    <input matInput formControlName="artist" appTitleCase />
   </mat-form-field>
 
   <mat-form-field class="w-full">
     <mat-label>Album</mat-label>
-    <input matInput formControlName="album" />
+    <input matInput formControlName="album" appTitleCase />
   </mat-form-field>
 
   <mat-form-field class="w-full">

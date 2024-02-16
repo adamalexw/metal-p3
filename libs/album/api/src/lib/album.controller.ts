@@ -15,7 +15,7 @@ export class AlbumController {
     private readonly albumService: AlbumService,
     private readonly trackService: TrackService,
     private readonly metalArchivesService: MetalArchivesService,
-    private readonly fileSystemService: FileSystemService
+    private readonly fileSystemService: FileSystemService,
   ) {}
 
   @Get('search')
@@ -27,7 +27,7 @@ export class AlbumController {
   tracks(@Query('folder') folder: string): Observable<TrackDto[]> {
     return of(this.fileSystemService.getFiles(folder)).pipe(
       map((files) => files.map((file) => join(folder, file))),
-      switchMap((files) => this.trackService.getTracks(files))
+      switchMap((files) => this.trackService.getTracks(files)),
     );
   }
 

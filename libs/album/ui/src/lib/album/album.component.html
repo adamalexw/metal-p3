@@ -11,9 +11,9 @@
       (imageSearch)="onImageSearch()"
       (findUrl)="onFindUrl()"
       (renameFolder)="onRenameFolder()"
-      (openFolder)="openFolder.emit({ id: albumId, folder: album.fullPath })"
+      (openFolder)="openFolder.emit({ id: albumId(), folder: album.fullPath })"
       (transfer)="onTransferAlbum()"
-      (delete)="deleteAlbum.emit(albumId)"
+      (delete)="deleteAlbum.emit(albumId())"
     />
   </nav>
 
@@ -32,7 +32,7 @@
         (coverUrl)="coverUrl.emit({ id: album.id, url: $event })"
       />
 
-      <app-album-form class="block w-full mt-1 mb-0 lg:mx-2" (findBandProps)="findBandProps.emit({ id: albumId, url: $event })" (lyricsPriority)="lyricsPriority.emit(albumId)" />
+      <app-album-form class="block w-full mt-1 mb-0 lg:mx-2" (findBandProps)="getBandProps($event)" (lyricsPriority)="lyricsPriority.emit(albumId())" />
     </section>
 
     <section>
@@ -43,11 +43,11 @@
         [albumDuration]="albumDuration() || 0"
         (renameTracks)="onRenameTracks()"
         (trackNumbers)="onTrackNumbers()"
-        (maTracks())="onMaTracks()"
+        (maTracks)="onMaTracks()"
         (lyrics)="onLyrics()"
         (refreshTracks)="refreshTracks.emit({ id: album.id, folder: album.folder })"
-        (playAlbum)="playAlbum.emit(this.albumId)"
-        (addAlbumToPlaylist)="addAlbumToPlaylist.emit(this.albumId)"
+        (playAlbum)="playAlbum.emit(albumId())"
+        (addAlbumToPlaylist)="addAlbumToPlaylist.emit(albumId())"
       />
 
       <app-tracks
@@ -56,9 +56,9 @@
         [tracks]="tracks() || []"
         [tracksError]="tracksError()"
         (transferTrack)="onTransferTrack($event)"
-        (playTrack)="playTrack.emit({ track: $event, albumId: albumId })"
-        (addTrackToPlaylist)="addTrackToPlaylist.emit({ track: $event, albumId: albumId })"
-        (delete)="deleteTrack.emit({ track: $event, albumId: albumId })"
+        (playTrack)="playTrack.emit({ track: $event, albumId: albumId() })"
+        (addTrackToPlaylist)="addTrackToPlaylist.emit({ track: $event, albumId: albumId() })"
+        (delete)="deleteTrack.emit({ track: $event, albumId: albumId() })"
       />
     </section>
   </form>

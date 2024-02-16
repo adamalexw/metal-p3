@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, HostBinding, Output, effect, inject, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, HostBinding, Output, computed, effect, inject, input, untracked } from '@angular/core';
 import { FormGroup, FormsModule, NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
@@ -137,12 +137,14 @@ export class AlbumComponent {
 
   @HostBinding('class') class = 'block h-screen lg:overflow-hidden';
 
+  albumId = computed(() => this.album()?.id ?? 0);
+
   get albumUrl() {
     return this.details.controls.albumUrl;
   }
 
   get artistUrl() {
-    return this.details.controls.albumUrl;
+    return this.details.controls.artistUrl;
   }
 
   get hasLyrics() {
@@ -166,8 +168,8 @@ export class AlbumComponent {
       artist: this.fb.control('', Validators.required),
       album: this.fb.control('', Validators.required),
       year: this.fb.control(0, Validators.required),
-      genre: this.fb.control(undefined, Validators.required),
-      country: this.fb.control(undefined, Validators.required),
+      genre: this.fb.control('', Validators.required),
+      country: this.fb.control('', Validators.required),
       artistUrl: this.fb.control(undefined),
       albumUrl: this.fb.control(undefined),
       ignore: this.fb.control(false),
@@ -178,30 +180,36 @@ export class AlbumComponent {
     tracks: this.fb.array<FormGroup<TracksForm>>([]),
   });
 
-  private shouldCheckBandProps = false;
-
   constructor() {
     effect(() => {
-      const album = this.album();
+      const albumId = this.albumId();
 
-      if (album) {
-        this.form.controls.details.patchValue(album);
-      }
-    });
+      if (albumId) {
+        const album = untracked(this.album);
 
-    effect(() => {
-      const maUrls = this.maUrls();
-
-      if (maUrls) {
-        this.setMaUrls(maUrls);
-
-        if (this.shouldCheckBandProps && maUrls.artistUrl) {
-          this.checkBandProps(maUrls.artistUrl);
-          this.shouldCheckBandProps = false;
+        if (album) {
+          this.form.controls.details.patchValue(album);
         }
       }
     });
 
+    effect(
+      () => {
+        const maUrls = this.maUrls();
+        const gettingBandProps = this.gettingBandProps() ?? false;
+
+        if (maUrls) {
+          this.setMaUrls(maUrls);
+
+          if (maUrls.artistUrl && (!this.genre.value || !this.country.value) && !gettingBandProps) {
+            this.getBandProps(maUrls.artistUrl);
+          }
+        }
+      },
+      { allowSignalWrites: true },
+    );
+
+    // prevent band genre and country from being overidden
     effect(() => {
       const bandProps = this.bandProps();
 
@@ -222,12 +230,6 @@ export class AlbumComponent {
   private setMaUrls(urls: MetalArchivesUrl) {
     this.artistUrl.setValue(urls.artistUrl);
     this.albumUrl.setValue(urls.albumUrl);
-  }
-
-  private checkBandProps(artistUrl: string | undefined) {
-    if (artistUrl && (!this.genre.value || !this.country.value)) {
-      this.findBandProps.emit({ id: this.albumId, url: artistUrl });
-    }
   }
 
   private setBandProps(props: BandProps) {
@@ -252,7 +254,7 @@ export class AlbumComponent {
     this.save.emit({
       album: {
         ...album,
-        id: this.album()?.id ?? 0,
+        id: this.albumId(),
         folder,
         fullPath,
         bandId: this.album()?.bandId ?? 0,
@@ -260,10 +262,6 @@ export class AlbumComponent {
       },
       tracks: this.getTracks(),
     });
-  }
-
-  get albumId(): number {
-    return this.album()?.id || 0;
   }
 
   onImageSearch() {
@@ -274,8 +272,7 @@ export class AlbumComponent {
     const { artist, album } = this.details.value;
 
     if (artist && album) {
-      this.shouldCheckBandProps = true;
-      this.findUrl.emit({ id: this.albumId, artist, album });
+      this.findUrl.emit({ id: this.albumId(), artist, album });
     }
   }
 
@@ -283,23 +280,23 @@ export class AlbumComponent {
     const tracks = this.getTracks();
 
     if (tracks.length) {
-      this.renameTracks.emit({ id: this.albumId, tracks });
+      this.renameTracks.emit({ id: this.albumId(), tracks });
     }
   }
 
   onTrackNumbers() {
-    this.trackNumbers.emit(this.albumId);
+    this.trackNumbers.emit(this.albumId());
   }
 
   onMaTracks() {
     if (this.albumUrl.value) {
-      this.getMaTracks.emit({ id: this.albumId, url: this.albumUrl.value });
+      this.getMaTracks.emit({ id: this.albumId(), url: this.albumUrl.value });
     }
   }
 
   onLyrics() {
     if (this.albumUrl.value) {
-      this.lyrics.emit({ id: this.albumId, url: this.albumUrl.value });
+      this.lyrics.emit({ id: this.albumId(), url: this.albumUrl.value });
     }
   }
 
@@ -307,7 +304,7 @@ export class AlbumComponent {
     const { artist, album } = this.details.value;
 
     if (artist && album) {
-      this.renameFolder.emit({ id: this.albumId, src: this.album()?.fullPath || '', artist, album });
+      this.renameFolder.emit({ id: this.albumId(), src: this.album()?.fullPath || '', artist, album });
     }
   }
 
@@ -316,18 +313,18 @@ export class AlbumComponent {
   }
 
   getBandProps(url: string) {
-    this.findBandProps.emit({ id: this.albumId, url });
+    this.findBandProps.emit({ id: this.albumId(), url });
   }
 
   onTransferAlbum() {
     const tracks = this.tracks();
     if (tracks?.length) {
-      const transferTracks = tracks.map((track) => ({ id: this.albumId, trackId: track.id }));
+      const transferTracks = tracks.map((track) => ({ id: this.albumId(), trackId: track.id }));
       this.transferAlbum.emit(transferTracks);
     }
   }
 
   onTransferTrack(trackId: number) {
-    this.transferTrack.emit({ id: this.albumId, trackId });
+    this.transferTrack.emit({ id: this.albumId(), trackId });
   }
 }

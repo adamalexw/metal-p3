@@ -72,9 +72,9 @@
 
 <ng-template #detailsTemplate>
   <div class="flex-col text-center">
-    @if (currentItem()) {
-      <div class="text-sm">{{ currentItem().artist }} - {{ currentItem().album }}</div>
-      <div class="text-sm">{{ currentItem().year }} - {{ currentItem().genre }}</div>
+    @if (currentItem(); as currentItem) {
+      <div class="text-sm">{{ currentItem.artist }} - {{ currentItem.album }}</div>
+      <div class="text-sm">{{ currentItem.year }} - {{ currentItem.genre }}</div>
     }
   </div>
 </ng-template>

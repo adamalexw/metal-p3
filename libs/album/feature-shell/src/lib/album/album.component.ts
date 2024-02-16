@@ -42,7 +42,7 @@ import {
   selectTracksRequired,
 } from '@metal-p3/shared/data-access';
 import { NotificationService } from '@metal-p3/shared/feedback';
-import { nonNullable } from '@metal-p3/shared/utils';
+import { nonNullable, objectDistinctUntilChanged } from '@metal-p3/shared/utils';
 import { Track } from '@metal-p3/track/domain';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { Update } from '@ngrx/entity';
@@ -81,7 +81,10 @@ export class AlbumShellComponent implements OnInit {
   cover$ = this.store.select(selectCover);
 
   findingUrl$ = this.store.select(selectFindingUrl);
-  maUrls$ = this.store.select(selectMaUrls).pipe(filter((urls) => !!urls && !!(urls.albumUrl || urls.artistUrl)));
+  maUrls$ = this.store.select(selectMaUrls).pipe(
+    filter((urls) => !!urls && !!(urls.albumUrl || urls.artistUrl)),
+    objectDistinctUntilChanged(),
+  );
 
   trackRenaming$ = this.store.select(selectTrackRenaming);
   trackRenamingProgress$ = this.store.select(selectTrackRenamingProgress);

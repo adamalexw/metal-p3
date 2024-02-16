@@ -8,7 +8,7 @@
     </div>
   }
   @if (!coverError() && cover(); as cover) {
-    <div appCoverDnd [enableDnd]="enableDnd()" (coverUrl)="coverUrl.emit($event)" [style.width.px]="width()" [style.height().px]="height()">
+    <div appCoverDnd [enableDnd]="enableDnd()" (coverUrl)="coverUrl.emit($event)" [style.width.px]="width()" [style.height.px]="height()">
       <img [src]="cover | safe: 'resourceUrl'" alt="album cover()" [style.width.px]="width()" [style.height.px]="height()" loading="lazy" />
     </div>
   }

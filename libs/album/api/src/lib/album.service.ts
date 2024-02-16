@@ -8,8 +8,8 @@ import * as chokidar from 'chokidar';
 import * as fs from 'fs';
 import * as NodeID3 from 'node-id3';
 import * as path from 'path';
-import { EMPTY, Observable, forkJoin, from, iif, of } from 'rxjs';
-import { catchError, concatMap, filter, map, mergeMap, tap } from 'rxjs/operators';
+import { Observable, combineLatest, from, iif, of } from 'rxjs';
+import { catchError, concatMap, map, mergeMap, tap } from 'rxjs/operators';
 import { AlbumGateway } from './album-gateway.service';
 
 @Injectable()
@@ -167,8 +167,11 @@ export class AlbumService {
     const dirName = this.fileSystemService.getFilename(folder);
 
     return this.getAlbums({ take: 1, folder: dirName, exactMatch: true }).pipe(
-      filter((album) => !album.length),
-      map(() => {
+      map((album) => {
+        if (album.length) {
+          throw new Error('folder already exists');
+        }
+
         this.fileSystemService.moveFilesToTheRoot(folder, folder);
 
         const files = this.fileSystemService.getFiles(folder);
@@ -177,20 +180,23 @@ export class AlbumService {
           const file = files[index];
           if (path.extname(file) == '.mp3') {
             const tags = this.trackService.getTags(path.join(folder, file));
-            return tags;
+
+            if (tags.artist) {
+              return tags;
+            }
+
+            const folderName = this.fileSystemService.getFilename(folder);
+            const folderSplit = folderName.split('-');
+
+            return { artist: folderSplit[0].trim(), album: folderSplit?.[1]?.trim() };
           }
         }
       }),
-      filter((tags) => !!tags?.artist),
-      concatMap((tags) => forkJoin([of(tags), from(this.dbService.bands({ Name: tags.artist }))])),
-      concatMap(([tags, bands]) => forkJoin([of(tags), iif(() => !!bands.length, of(bands[0]), from(this.dbService.createBand({ Name: tags.artist })))])),
+      concatMap((tags) => combineLatest([of(tags), from(this.dbService.bands({ Name: tags.artist }))])),
+      concatMap(([tags, bands]) => combineLatest([of(tags), iif(() => !!bands.length, of(bands[0]), from(this.dbService.createBand({ Name: tags.artist })))])),
       map(([tags, band]) => this.mapTagsToAlbum(path.basename(folder), tags, band)),
       concatMap((data) => from(this.dbService.createAlbum(data))),
       map((newAlbum) => this.mapAlbumToAlbumDto(newAlbum)),
-      catchError((error) => {
-        console.log(error);
-        return EMPTY;
-      }),
     );
   }
 

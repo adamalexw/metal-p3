@@ -11,6 +11,7 @@ import { RouterModule } from '@angular/router';
 import { AlbumDataAccessModule } from '@metal-p3/album/data-access';
 import { AlbumDetailsForm } from '@metal-p3/album/domain';
 import { CoverComponent } from '@metal-p3/cover/ui';
+import { TitleCaseDirective } from '@metal-p3/shared/title-case';
 import { TracksComponent, TracksToolbarComponent } from '@metal-p3/track/ui';
 import { WINDOW } from '@ng-web-apis/common';
 import { AlbumToolbarComponent } from '../album-toolbar/album-toolbar.component';
@@ -30,6 +31,7 @@ import { AlbumToolbarComponent } from '../album-toolbar/album-toolbar.component'
     MatProgressBarModule,
     ReactiveFormsModule,
     RouterModule,
+    TitleCaseDirective,
     TracksComponent,
     TracksToolbarComponent,
   ],

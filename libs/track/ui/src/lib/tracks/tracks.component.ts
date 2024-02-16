@@ -1,6 +1,6 @@
 import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 import { AsyncPipe } from '@angular/common';
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, OnInit, Output, effect, inject, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, OnInit, Output, effect, inject, input } from '@angular/core';
 import { ControlContainer, FormArray, FormGroup, FormsModule, NonNullableFormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { MatBottomSheet, MatBottomSheetModule } from '@angular/material/bottom-sheet';
 import { MatButtonModule } from '@angular/material/button';
@@ -12,6 +12,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { ConfirmDeleteDirective } from '@metal-p3/shared/feedback';
+import { TitleCaseDirective } from '@metal-p3/shared/title-case';
 import { Track, TracksForm } from '@metal-p3/track/domain';
 import { BitRatePipe, TimePipe } from '@metal-p3/track/util';
 import { Observable } from 'rxjs';
@@ -37,6 +38,7 @@ import { LyricsComponent } from '../lyrics/lyrics.component';
     MatTooltipModule,
     ReactiveFormsModule,
     TimePipe,
+    TitleCaseDirective,
   ],
   selector: 'app-tracks',
   templateUrl: './tracks.component.html',

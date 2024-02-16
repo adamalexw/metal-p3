@@ -32,17 +32,17 @@ export class AlbumEffects {
           this.service.getAlbums(request).pipe(
             map((albums) => albums as Album[]),
             map((albums) => (!request.skip ? AlbumActions.loadAlbumsSuccess({ albums }) : AlbumActions.loadAlbumsPageSuccess({ albums }))),
-            catchError((error) => of(AlbumActions.loadAlbumsError({ loadError: error })))
-          )
-        )
-      )
+            catchError((error) => of(AlbumActions.loadAlbumsError({ loadError: error }))),
+          ),
+        ),
+      ),
     );
   });
 
   loadAlbumsSuccess$ = createEffect(() => {
     return this.actions$.pipe(
       ofType(AlbumActions.loadAlbumsSuccess, AlbumActions.loadAlbumsPageSuccess),
-      map(({ albums }) => CoverActions.getMany({ request: { requests: albums.map(({ id, folder }) => ({ id, folder })) } }))
+      map(({ albums }) => CoverActions.getMany({ request: { requests: albums.map(({ id, folder }) => ({ id, folder })) } })),
     );
   });
 
@@ -53,9 +53,9 @@ export class AlbumEffects {
         this.service.getAlbum(id).pipe(
           map((album) => AlbumDtoToAlbum(album) as Album),
           map((album) => AlbumActions.addAlbum({ album })),
-          catchError((error) => of(AlbumActions.getAlbumError({ update: { id, changes: { getError: this.errorService.getError(error) } } })))
-        )
-      )
+          catchError((error) => of(AlbumActions.getAlbumError({ update: { id, changes: { getError: this.errorService.getError(error) } } }))),
+        ),
+      ),
     );
   });
 
@@ -72,9 +72,9 @@ export class AlbumEffects {
           catchError((error) => {
             this.notificationService.showError(`${folder}: ${this.errorService.getError(error)}`, 'New Album');
             return of(AlbumActions.addNewAlbumError({ error }));
-          })
-        )
-      )
+          }),
+        ),
+      ),
     );
   });
 
@@ -87,9 +87,9 @@ export class AlbumEffects {
           catchError((error) => {
             this.notificationService.showError(`${folder}: ${this.errorService.getError(error)}`, 'Extra Files');
             return of(AlbumActions.setExtraFiles({ update: { id, changes: { extraFiles: false } } }));
-          })
-        )
-      )
+          }),
+        ),
+      ),
     );
   });
 
@@ -103,9 +103,9 @@ export class AlbumEffects {
             return rest;
           }),
           map((album) => AlbumActions.saveAlbumSuccess({ update: { id: album.id, changes: { ...album, saving: false, saveError: undefined } } })),
-          catchError((error) => of(AlbumActions.saveAlbumError({ update: { id: album.id, changes: { saving: false, saveError: this.errorService.getError(error) } } })))
-        )
-      )
+          catchError((error) => of(AlbumActions.saveAlbumError({ update: { id: album.id, changes: { saving: false, saveError: this.errorService.getError(error) } } }))),
+        ),
+      ),
     );
   });
 
@@ -124,7 +124,7 @@ export class AlbumEffects {
         };
 
         return BandActions.save({ band });
-      })
+      }),
     );
   });
 
@@ -137,9 +137,9 @@ export class AlbumEffects {
           catchError((error) => {
             console.error(error);
             return EMPTY;
-          })
-        )
-      )
+          }),
+        ),
+      ),
     );
   });
 
@@ -152,9 +152,9 @@ export class AlbumEffects {
           catchError((error) => {
             console.error(error);
             return EMPTY;
-          })
-        )
-      )
+          }),
+        ),
+      ),
     );
   });
 
@@ -186,11 +186,15 @@ export class AlbumEffects {
           }),
           map(({ artistUrl, albumUrl }) => AlbumActions.findMetalArchivesUrlSuccess({ update: { id, changes: { artistUrl, albumUrl, findingUrl: false } } })),
           catchError((error) => {
-            console.error(error);
+            const isKnownError = typeof error === 'object' && error instanceof Error && ['no results', 'too many results'].includes(error.message);
+
+            if (!isKnownError) {
+              console.error(error);
+            }
             return of(AlbumActions.findMetalArchivesUrlSuccess({ update: { id, changes: { findingUrl: false } } }));
-          })
-        )
-      )
+          }),
+        ),
+      ),
     );
   });
 
@@ -201,9 +205,9 @@ export class AlbumEffects {
       mergeMap(({ id, src, dest }) =>
         this.service.renameFolder(id, src, dest).pipe(
           map(({ fullPath, folder }) => AlbumActions.renameFolderSuccess({ update: { id, changes: { fullPath, folder, renamingFolder: false, renamingFolderError: undefined } } })),
-          catchError((error) => of(AlbumActions.renameFolderError({ update: { id, changes: { renamingFolder: false, renamingFolderError: this.errorService.getError(error) } } })))
-        )
-      )
+          catchError((error) => of(AlbumActions.renameFolderError({ update: { id, changes: { renamingFolder: false, renamingFolderError: this.errorService.getError(error) } } }))),
+        ),
+      ),
     );
   });
 
@@ -217,7 +221,7 @@ export class AlbumEffects {
         const updates = (tracks || []).map((track) => ({ id: track.id, changes: { folder: fullPath, fullPath: `${fullPath}/${track.file}` } })) as Update<Track>[];
 
         return TrackActions.updateTracksSuccess({ id: +id, updates });
-      })
+      }),
     );
   });
 
@@ -231,9 +235,9 @@ export class AlbumEffects {
           catchError((error) => {
             this.notificationService.showError(`${this.errorService.getError(error)}`, 'Create New Album');
             return EMPTY;
-          })
-        )
-      )
+          }),
+        ),
+      ),
     );
   });
 
@@ -246,9 +250,9 @@ export class AlbumEffects {
           catchError((error) => {
             this.notificationService.showError(`${this.errorService.getError(error)}`, 'Delete Album');
             return of(AlbumActions.deleteAlbumError({ id, error }));
-          })
-        )
-      )
+          }),
+        ),
+      ),
     );
   });
 
@@ -260,6 +264,6 @@ export class AlbumEffects {
     private readonly notificationService: NotificationService,
     private readonly errorService: ErrorService,
     @Inject(WINDOW) readonly windowRef: Window,
-    @Inject(BASE_PATH) private readonly basePath: string
+    @Inject(BASE_PATH) private readonly basePath: string,
   ) {}
 }
