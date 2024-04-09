@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Output, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Output, input, model, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -22,7 +22,7 @@ export class PlaylistToolbarComponent {
   playlistSize = input<number | null | undefined>();
   playlists = input<PlaylistDto[] | null>(null);
   activePlaylist = input<number | null | undefined>(0);
-  playlistName = input<string | null | undefined>('');
+  playlistName = model<string | null | undefined>('');
   transferring = input<boolean | null>(false);
 
   @Output()
@@ -55,7 +55,7 @@ export class PlaylistToolbarComponent {
   @Output()
   readonly togglePlaylist = new EventEmitter<void>();
 
-  saving = false;
+  protected readonly saving = signal(false);
 
   onLoadPlaylists() {
     if (!this.playlists()?.length) {
@@ -64,8 +64,8 @@ export class PlaylistToolbarComponent {
   }
 
   onCreate() {
-    if (!this.saving) {
-      this.saving = true;
+    if (!this.saving()) {
+      this.saving.set(true);
       return;
     }
 
@@ -73,7 +73,7 @@ export class PlaylistToolbarComponent {
 
     if (platListName) {
       this.createPlaylist.emit(platListName);
-      this.saving = false;
+      this.saving.set(false);
     }
   }
 

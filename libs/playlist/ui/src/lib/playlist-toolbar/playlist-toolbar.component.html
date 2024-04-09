@@ -11,20 +11,20 @@
 
     @if (activePlaylist()) {
       <mat-form-field>
-        <input matInput placeholder="playlist name" class="w-auto" required [(ngModel)]="playlistName" />
+        <input matInput placeholder="playlist name" class="w-auto" required [ngModel]="playlistName()" (ngModelChange)="playlistName.set($event)" />
       </mat-form-field>
       <button mat-icon-button (click)="updatePlaylist.emit(playlistName() || '')">
         <mat-icon title="save">save</mat-icon>
       </button>
     } @else {
-      @if (saving) {
+      @if (saving()) {
         <mat-form-field>
-          <input matInput placeholder="playlist name" class="w-auto" required [(ngModel)]="playlistName" />
+          <input matInput placeholder="playlist name" class="w-auto" required [ngModel]="playlistName" (ngModelChange)="playlistName.set($event)" />
         </mat-form-field>
       }
 
       @if (duration() ?? 0 > 0) {
-        <button mat-icon-button [disabled]="saving && !playlistName()" (click)="onCreate()">
+        <button mat-icon-button [disabled]="saving() && !playlistName()" (click)="onCreate()">
           <mat-icon title="create">playlist_add</mat-icon>
         </button>
       }

@@ -1,5 +1,5 @@
 import { AsyncPipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, ElementRef, OnInit, ViewChild, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, OnInit, inject, viewChild } from '@angular/core';
 import { Title } from '@angular/platform-browser';
 import { CoverComponent } from '@metal-p3/cover/ui';
 import {
@@ -38,7 +38,7 @@ export class PlayerShellComponent implements OnInit {
   private readonly trackService = inject(TrackService);
   private readonly title = inject(Title);
 
-  @ViewChild('audio', { static: true }) audio!: ElementRef;
+  private readonly audio = viewChild.required<ElementRef>('audio');
 
   playerOpen$ = this.store.select(selectPlayerOpen);
 
@@ -99,7 +99,7 @@ export class PlayerShellComponent implements OnInit {
   }
 
   private listenToAudioEvents() {
-    fromEvent(this.audio.nativeElement, 'ended')
+    fromEvent(this.audio().nativeElement, 'ended')
       .pipe(
         untilDestroyed(this),
         withLatestFrom(this.playlist$),
@@ -128,11 +128,11 @@ export class PlayerShellComponent implements OnInit {
       )
       .subscribe();
 
-    this.elapsedTime$ = fromEvent(this.audio.nativeElement, 'timeupdate').pipe(map(() => (this.audio.nativeElement as AudioContext).currentTime));
+    this.elapsedTime$ = fromEvent(this.audio().nativeElement, 'timeupdate').pipe(map(() => (this.audio().nativeElement as AudioContext).currentTime));
   }
 
   private get audioElement() {
-    return this.audio.nativeElement as HTMLAudioElement;
+    return this.audio().nativeElement as HTMLAudioElement;
   }
 
   onPlay() {
