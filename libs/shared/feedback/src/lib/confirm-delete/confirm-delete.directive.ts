@@ -1,7 +1,6 @@
-import { Directive, ElementRef, EventEmitter, HostListener, Input, Output } from '@angular/core';
+import { Directive, ElementRef, HostListener, input, output } from '@angular/core';
 import { OverlayService } from '../overlay/overlay.service';
 import { ConfirmDeleteComponent } from './confirm-delete.component';
-import { input } from '@angular/core';
 
 @Directive({
   standalone: true,
@@ -12,9 +11,7 @@ export class ConfirmDeleteDirective {
   private confirmDeleteComponent = ConfirmDeleteComponent;
 
   itemName = input('');
-
-  @Output()
-  readonly confirmResult = new EventEmitter<boolean>();
+  readonly confirmResult = output<boolean>();
 
   @HostListener('click') onClick() {
     const ref = this.overlayService.open(this.element.nativeElement, this.confirmDeleteComponent, { name: this.itemName() });

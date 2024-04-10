@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { DatePipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, EventEmitter, Output, effect, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, input, output } from '@angular/core';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
@@ -36,14 +36,19 @@ export class ApplyLyricsComponent {
   folder = input<string | null | undefined>();
   showClose = input(true);
 
-  @Output()
-  readonly applyLyrics = new EventEmitter<{ id: number; lyrics: ApplyLyrics[] }>();
+  readonly applyLyrics = output<{
+    id: number;
+    lyrics: ApplyLyrics[];
+  }>();
 
-  @Output()
-  readonly transfer = new EventEmitter<{ id: number; trackId: number }[]>();
+  readonly transfer = output<
+    {
+      id: number;
+      trackId: number;
+    }[]
+  >();
 
-  @Output()
-  readonly done = new EventEmitter<void>();
+  readonly done = output<void>();
 
   displayedColumns = ['trackNumber', 'title', 'duration', 'maTrack', 'selected'];
   dataSource: ApplyLyrics[] = [];

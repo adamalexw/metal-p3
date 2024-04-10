@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Output, effect, input, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, input, output, viewChild } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatIconModule } from '@angular/material/icon';
@@ -20,14 +20,17 @@ import { ConfirmDeleteDirective } from '@metal-p3/shared/feedback';
 export class LyricsHistoryComponent {
   lyrics = input<LyricsHistoryDto[] | null>([]);
 
-  @Output()
-  readonly checked = new EventEmitter<{ id: number; checked: boolean }>();
+  readonly checked = output<{
+    id: number;
+    checked: boolean;
+  }>();
 
-  @Output()
-  readonly applyLyrics = new EventEmitter<{ albumId: number; historyId: number }>();
+  readonly applyLyrics = output<{
+    albumId: number;
+    historyId: number;
+  }>();
 
-  @Output()
-  readonly deleteHistory = new EventEmitter<number>();
+  readonly deleteHistory = output<number>();
 
   private readonly sort = viewChild.required(MatSort);
 

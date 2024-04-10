@@ -1,5 +1,5 @@
 import { NgClass, NgTemplateOutlet } from '@angular/common';
-import { ChangeDetectionStrategy, Component, EventEmitter, Output, ViewEncapsulation, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ViewEncapsulation, input, output } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSliderModule } from '@angular/material/slider';
 import { MatToolbarModule } from '@angular/material/toolbar';
@@ -24,29 +24,14 @@ export class PlayerControlsComponent {
   toggleIcon = input<'expand_more' | 'expand_less' | null>('expand_more');
   gain = input(1);
 
-  @Output()
-  readonly previous = new EventEmitter<void>();
-
-  @Output()
-  readonly playItem = new EventEmitter<void>();
-
-  @Output()
-  readonly pauseItem = new EventEmitter<void>();
-
-  @Output()
-  readonly next = new EventEmitter<void>();
-
-  @Output()
-  readonly seekTo = new EventEmitter<number>();
-
-  @Output()
-  readonly volume = new EventEmitter<number>();
-
-  @Output()
-  readonly mute = new EventEmitter<void>();
-
-  @Output()
-  readonly toggleView = new EventEmitter<number>();
+  readonly previous = output<void>();
+  readonly playItem = output<void>();
+  readonly pauseItem = output<void>();
+  readonly next = output<void>();
+  readonly seekTo = output<number>();
+  readonly volume = output<number>();
+  readonly mute = output<void>();
+  readonly toggleView = output();
 
   onPrevious() {
     if ((this.elapsedTime() ?? 0) > 10 || this.isFirstItemPlaying()) {

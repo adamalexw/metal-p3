@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Output, ViewEncapsulation, inject, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ViewEncapsulation, inject, input, output } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { RouterModule } from '@angular/router';
 import { CoverComponent } from '@metal-p3/cover/ui';
@@ -26,14 +26,9 @@ export class ApplyLyricsToolbarComponent {
   trackTransferring = input(false);
   showClose = input(true);
 
-  @Output()
-  readonly apply = new EventEmitter<void>();
-
-  @Output()
-  readonly transfer = new EventEmitter<void>();
-
-  @Output()
-  readonly done = new EventEmitter<void>();
+  readonly apply = output<void>();
+  readonly transfer = output<void>();
+  readonly done = output<void>();
 
   openLink(url: string) {
     this.windowRef.open(url, '_blank');

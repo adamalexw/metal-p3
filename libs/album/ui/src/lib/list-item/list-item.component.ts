@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Output, ViewEncapsulation, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ViewEncapsulation, input, output } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
@@ -17,18 +17,9 @@ import { Album } from '@metal-p3/shared/data-access';
 export class ListItemComponent {
   album = input.required<Album>();
 
-  @Output()
-  readonly openAlbum = new EventEmitter<number>();
-
-  @Output()
-  readonly renameFolder = new EventEmitter<void>();
-
-  @Output()
-  readonly transferAlbum = new EventEmitter<void>();
-
-  @Output()
-  readonly playAlbum = new EventEmitter<void>();
-
-  @Output()
-  readonly addToPlaylist = new EventEmitter<void>();
+  readonly openAlbum = output<number>();
+  readonly renameFolder = output<void>();
+  readonly transferAlbum = output<void>();
+  readonly playAlbum = output<void>();
+  readonly addToPlaylist = output<void>();
 }

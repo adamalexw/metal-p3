@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, output } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSliderModule } from '@angular/material/slider';
@@ -12,11 +12,8 @@ import { MatSliderModule } from '@angular/material/slider';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class VolumeComponent {
-  @Output()
-  readonly volume = new EventEmitter<number>();
-
-  @Output()
-  readonly mute = new EventEmitter<void>();
+  readonly volume = output<number>();
+  readonly mute = output<void>();
 
   gain = 1;
   restoreGain = 1;

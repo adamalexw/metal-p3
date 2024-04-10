@@ -1,6 +1,6 @@
 import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 import { AsyncPipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, EventEmitter, OnInit, Output, effect, inject, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, effect, inject, input, output } from '@angular/core';
 import { ControlContainer, FormArray, FormGroup, FormsModule, NonNullableFormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { MatBottomSheet, MatBottomSheetModule } from '@angular/material/bottom-sheet';
 import { MatButtonModule } from '@angular/material/button';
@@ -57,17 +57,10 @@ export class TracksComponent implements OnInit {
   tracks = input<Track[]>([]);
   tracksError = input<string | null | undefined>();
 
-  @Output()
-  transferTrack = new EventEmitter<number>();
-
-  @Output()
-  playTrack = new EventEmitter<Track>();
-
-  @Output()
-  addTrackToPlaylist = new EventEmitter<Track>();
-
-  @Output()
-  delete = new EventEmitter<Track>();
+  transferTrack = output<number>();
+  playTrack = output<Track>();
+  addTrackToPlaylist = output<Track>();
+  delete = output<Track>();
 
   displayedColumns$: Observable<string[]>;
   dataSource = new MatTableDataSource<FormGroup<TracksForm>>();
@@ -130,16 +123,16 @@ export class TracksComponent implements OnInit {
   }
 
   onPlayTrack(id: number) {
-    this.playTrack.emit(this.tracks().find((t) => t.id === id));
+    this.playTrack.emit(this.tracks()!.find((t) => t.id === id));
   }
 
   onAddTrackToPlaylist(id: number) {
-    this.addTrackToPlaylist.emit(this.tracks().find((t) => t.id === id));
+    this.addTrackToPlaylist.emit(this.tracks()!.find((t) => t.id === id));
   }
 
   onDelete(result: boolean, id: number) {
     if (result) {
-      this.delete.emit(this.tracks().find((t) => t.id === id));
+      this.delete.emit(this.tracks()!.find((t) => t.id === id));
     }
   }
 

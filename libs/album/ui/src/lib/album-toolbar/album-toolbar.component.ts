@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Output, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 import { MatBadgeModule } from '@angular/material/badge';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -22,26 +22,13 @@ export class AlbumToolbarComponent {
   folder = input('');
   extraFiles = input<boolean | undefined>();
 
-  @Output()
-  readonly save = new EventEmitter<void>();
-
-  @Output()
-  readonly imageSearch = new EventEmitter<void>();
-
-  @Output()
-  readonly findUrl = new EventEmitter<void>();
-
-  @Output()
-  readonly renameFolder = new EventEmitter<void>();
-
-  @Output()
-  readonly openFolder = new EventEmitter<void>();
-
-  @Output()
-  readonly transfer = new EventEmitter<void>();
-
-  @Output()
-  readonly delete = new EventEmitter<void>();
+  readonly save = output<void>();
+  readonly imageSearch = output<void>();
+  readonly findUrl = output<void>();
+  readonly renameFolder = output<void>();
+  readonly openFolder = output<void>();
+  readonly transfer = output<void>();
+  readonly delete = output<void>();
 
   onDelete(result: boolean) {
     if (result) {

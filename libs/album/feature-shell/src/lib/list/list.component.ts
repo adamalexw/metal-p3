@@ -1,6 +1,6 @@
 import { CdkVirtualScrollViewport, ScrollingModule, ViewportRuler } from '@angular/cdk/scrolling';
 import { AsyncPipe, DOCUMENT, Location } from '@angular/common';
-import { ChangeDetectionStrategy, Component, EventEmitter, OnInit, Output, inject, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, inject, output, viewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { AlbumService } from '@metal-p3/album/data-access';
 import { TAKE } from '@metal-p3/album/domain';
@@ -75,8 +75,7 @@ export class ListComponent implements OnInit {
     }),
   );
 
-  @Output()
-  readonly openAlbum = new EventEmitter<number>();
+  readonly openAlbum = output<number>();
 
   private fetchedPage = 0;
   private readonly scrollViewport = viewChild.required(CdkVirtualScrollViewport);

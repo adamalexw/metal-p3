@@ -1,5 +1,5 @@
 import { AsyncPipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, Inject, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, inject } from '@angular/core';
 import { AlbumService } from '@metal-p3/album/data-access';
 import { BASE_PATH } from '@metal-p3/album/domain';
 import { FileSystemMaintenanceService } from '@metal-p3/maintenance/data-access';
@@ -17,9 +17,9 @@ import { concatMap, finalize, tap } from 'rxjs/operators';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ExtraFilesShellComponent implements OnInit {
-  private readonly service = Inject(FileSystemMaintenanceService);
-  private readonly albumService = Inject(AlbumService);
-  private readonly basePath = Inject(BASE_PATH);
+  private readonly service = inject(FileSystemMaintenanceService);
+  private readonly albumService = inject(AlbumService);
+  private readonly basePath = inject(BASE_PATH);
 
   private extraFiles: string[] = [];
   private extraFiles$$ = new BehaviorSubject<string[]>([]);

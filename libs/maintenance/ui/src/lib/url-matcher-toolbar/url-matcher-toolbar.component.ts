@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Output, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { NavToolbarComponent } from '@metal-p3/shared/navigation';
@@ -14,9 +14,6 @@ export class UrlMatcherToolbarComponent {
   getting = input(false);
   matching = input<boolean | null | undefined>(false);
 
-  @Output()
-  readonly startMatching = new EventEmitter<void>();
-
-  @Output()
-  readonly stopMatching = new EventEmitter<void>();
+  readonly startMatching = output<void>();
+  readonly stopMatching = output<void>();
 }

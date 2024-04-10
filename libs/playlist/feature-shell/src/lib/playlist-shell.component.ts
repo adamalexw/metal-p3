@@ -1,5 +1,5 @@
 import { AsyncPipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, EventEmitter, Output, inject, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, input, output } from '@angular/core';
 import { PlayerActions, selectPlaylistItemSize } from '@metal-p3/player/data-access';
 import { PlaylistActions, selectActivePlaylistId, selectActivePlaylistName, selectPlaylistTransferring, selectPlaylists } from '@metal-p3/playlist/data-access';
 import { PlaylistToolbarComponent } from '@metal-p3/playlist/ui';
@@ -17,14 +17,9 @@ export class PlaylistShellComponent {
 
   duration = input<number | null | undefined>(0);
 
-  @Output()
-  readonly clearPlaylist = new EventEmitter<void>();
-
-  @Output()
-  readonly closePlaylist = new EventEmitter<void>();
-
-  @Output()
-  readonly togglePlaylist = new EventEmitter<void>();
+  readonly clearPlaylist = output<void>();
+  readonly closePlaylist = output<void>();
+  readonly togglePlaylist = output<void>();
 
   playlists$ = this.store.select(selectPlaylists);
   activePlaylistId$ = this.store.select(selectActivePlaylistId);

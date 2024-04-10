@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, EventEmitter, Output, input } from 
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { SafePipe } from '@metal-p3/shared/safe-pipe';
 import { CoverDragDirective } from './cover-dnd.directive';
+import { output } from '@angular/core';
 
 @Component({
   standalone: true,
@@ -18,6 +19,5 @@ export class CoverComponent {
   height = input<number | null>(null);
   enableDnd = input(false);
 
-  @Output()
-  readonly coverUrl = new EventEmitter<string>();
+  readonly coverUrl = output<string>();
 }

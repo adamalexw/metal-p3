@@ -1,5 +1,4 @@
-import { Directive, EventEmitter, HostBinding, HostListener, Input, Output } from '@angular/core';
-import { input } from '@angular/core';
+import { Directive, HostBinding, HostListener, input, output } from '@angular/core';
 
 @Directive({
   standalone: true,
@@ -7,9 +6,7 @@ import { input } from '@angular/core';
 })
 export class CoverDragDirective {
   enableDnd = input(true);
-
-  @Output()
-  coverUrl = new EventEmitter<string>();
+  coverUrl = output<string>();
 
   @HostBinding('class') private coverClass = '';
 

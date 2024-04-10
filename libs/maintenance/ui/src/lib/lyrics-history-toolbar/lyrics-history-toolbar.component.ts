@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Output, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
@@ -16,18 +16,9 @@ export class LyricsHistoryToolbarComponent {
   getting = input<boolean | null>(false);
   checking = input<boolean | null>(false);
 
-  @Output()
-  readonly viewPriority = new EventEmitter<void>();
-
-  @Output()
-  readonly checkPriority = new EventEmitter<void>();
-
-  @Output()
-  readonly viewCheck = new EventEmitter<void>();
-
-  @Output()
-  readonly startCheck = new EventEmitter<void>();
-
-  @Output()
-  readonly stopCheck = new EventEmitter<void>();
+  readonly viewPriority = output<void>();
+  readonly checkPriority = output<void>();
+  readonly viewCheck = output<void>();
+  readonly startCheck = output<void>();
+  readonly stopCheck = output<void>();
 }

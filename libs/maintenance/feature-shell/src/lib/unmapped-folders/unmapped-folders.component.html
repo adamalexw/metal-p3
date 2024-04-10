@@ -1,1 +1,3 @@
-<app-unmapped-folders [folders]="unmappedFolders$ | async" (openFolder)="onOpenFolder($event)" (search)="onSearch($event)" (add)="onAdd($event)" (delete)="onDelete($event)" />
+@if (unmappedFolders$ | async; as unMappedFolders) {
+  <app-unmapped-folders [folders]="unMappedFolders" (openFolder)="onOpenFolder($event)" (search)="onSearch($event)" (add)="onAdd($event)" (delete)="onDelete($event)" />
+}

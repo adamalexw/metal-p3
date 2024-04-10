@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, HostBinding, Output, computed, effect, inject, input, untracked } from '@angular/core';
+import { ChangeDetectionStrategy, Component, HostBinding, computed, effect, inject, input, output, untracked } from '@angular/core';
 import { FormGroup, FormsModule, NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
@@ -72,68 +72,100 @@ export class AlbumComponent {
   gettingBandProps = input<boolean | null>(false);
   bandProps = input<BandProps | null | undefined>(null);
 
-  @Output()
-  readonly save = new EventEmitter<{ album: AlbumWithoutTracks; tracks: TrackBase[] }>();
+  readonly save = output<{
+    album: AlbumWithoutTracks;
+    tracks: TrackBase[];
+  }>();
 
-  @Output()
-  readonly coverUrl = new EventEmitter<{ id: number; url: string }>();
+  readonly coverUrl = output<{
+    id: number;
+    url: string;
+  }>();
 
-  @Output()
-  readonly findUrl = new EventEmitter<{ id: number; artist: string; album: string }>();
+  readonly findUrl = output<{
+    id: number;
+    artist: string;
+    album: string;
+  }>();
 
-  @Output()
-  readonly getMaTracks = new EventEmitter<{ id: number; url: string }>();
+  readonly getMaTracks = output<{
+    id: number;
+    url: string;
+  }>();
 
-  @Output()
-  readonly lyrics = new EventEmitter<{ id: number; url: string }>();
+  readonly lyrics = output<{
+    id: number;
+    url: string;
+  }>();
 
-  @Output()
-  readonly trackNumbers = new EventEmitter<number>();
+  readonly trackNumbers = output<number>();
 
-  @Output()
-  readonly renameTracks = new EventEmitter<{ id: number; tracks: Track[] }>();
+  readonly renameTracks = output<{
+    id: number;
+    tracks: Track[];
+  }>();
 
-  @Output()
-  readonly renameFolder = new EventEmitter<{ id: number; src: string; artist: string; album: string }>();
+  readonly renameFolder = output<{
+    id: number;
+    src: string;
+    artist: string;
+    album: string;
+  }>();
 
-  @Output()
-  readonly openFolder = new EventEmitter<{ id: number; folder: string }>();
+  readonly openFolder = output<{
+    id: number;
+    folder: string;
+  }>();
 
-  @Output()
-  readonly lyricsPriority = new EventEmitter<number>();
+  readonly lyricsPriority = output<number>();
 
-  @Output()
-  readonly refreshTracks = new EventEmitter<{ id: number; folder: string }>();
+  readonly refreshTracks = output<{
+    id: number;
+    folder: string;
+  }>();
 
-  @Output()
-  readonly findBandProps = new EventEmitter<{ id: number; url: string }>();
+  readonly findBandProps = output<{
+    id: number;
+    url: string;
+  }>();
 
-  @Output()
-  readonly findCountry = new EventEmitter<{ id: number; url: string }>();
+  readonly findCountry = output<{
+    id: number;
+    url: string;
+  }>();
 
-  @Output()
-  readonly transferAlbum = new EventEmitter<{ id: number; trackId: number }[]>();
+  readonly transferAlbum = output<
+    {
+      id: number;
+      trackId: number;
+    }[]
+  >();
 
-  @Output()
-  readonly transferTrack = new EventEmitter<{ id: number; trackId: number }>();
+  readonly transferTrack = output<{
+    id: number;
+    trackId: number;
+  }>();
 
-  @Output()
-  readonly playAlbum = new EventEmitter<number>();
+  readonly playAlbum = output<number>();
 
-  @Output()
-  readonly addAlbumToPlaylist = new EventEmitter<number>();
+  readonly addAlbumToPlaylist = output<number>();
 
-  @Output()
-  readonly playTrack = new EventEmitter<{ track: Track; albumId: number }>();
+  readonly playTrack = output<{
+    track: Track;
+    albumId: number;
+  }>();
 
-  @Output()
-  readonly addTrackToPlaylist = new EventEmitter<{ track: Track; albumId: number }>();
+  readonly addTrackToPlaylist = output<{
+    track: Track;
+    albumId: number;
+  }>();
 
-  @Output()
-  readonly deleteTrack = new EventEmitter<{ track: Track; albumId: number }>();
+  readonly deleteTrack = output<{
+    track: Track;
+    albumId: number;
+  }>();
 
-  @Output()
-  readonly deleteAlbum = new EventEmitter<number>();
+  readonly deleteAlbum = output<number>();
 
   @HostBinding('class') class = 'block h-screen lg:overflow-hidden';
 

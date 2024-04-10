@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Output, input, model, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input, model, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -25,35 +25,16 @@ export class PlaylistToolbarComponent {
   playlistName = model<string | null | undefined>('');
   transferring = input<boolean | null>(false);
 
-  @Output()
-  readonly loadPlaylists = new EventEmitter<void>();
-
-  @Output()
-  readonly updatePlaylist = new EventEmitter<string>();
-
-  @Output()
-  readonly createPlaylist = new EventEmitter<string>();
-
-  @Output()
-  readonly loadPlaylist = new EventEmitter<number>();
-
-  @Output()
-  readonly shuffle = new EventEmitter<void>();
-
-  @Output()
-  readonly clearPlaylist = new EventEmitter<void>();
-
-  @Output()
-  readonly deletePlaylist = new EventEmitter<void>();
-
-  @Output()
-  readonly closePlaylist = new EventEmitter<void>();
-
-  @Output()
-  readonly transfer = new EventEmitter<void>();
-
-  @Output()
-  readonly togglePlaylist = new EventEmitter<void>();
+  readonly loadPlaylists = output<void>();
+  readonly updatePlaylist = output<string>();
+  readonly createPlaylist = output<string>();
+  readonly loadPlaylist = output<number>();
+  readonly shuffle = output<void>();
+  readonly clearPlaylist = output<void>();
+  readonly deletePlaylist = output<void>();
+  readonly closePlaylist = output<void>();
+  readonly transfer = output<void>();
+  readonly togglePlaylist = output<void>();
 
   protected readonly saving = signal(false);
 

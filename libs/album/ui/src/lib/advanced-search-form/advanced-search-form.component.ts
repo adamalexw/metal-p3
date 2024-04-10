@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Output, effect, inject, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, inject, input, output } from '@angular/core';
 import { NonNullableFormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
@@ -22,9 +22,7 @@ export class AdvancedSearchFormComponent {
   private readonly fb = inject(NonNullableFormBuilder);
 
   request = input.required<SearchRequest | null | undefined>();
-
-  @Output()
-  searchRequest = new EventEmitter<SearchRequest>();
+  searchRequest = output<SearchRequest>();
 
   form = this.createForm();
 

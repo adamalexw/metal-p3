@@ -1,6 +1,6 @@
 import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-drop';
 import { CdkTableModule } from '@angular/cdk/table';
-import { ChangeDetectionStrategy, Component, EventEmitter, Output, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTableModule } from '@angular/material/table';
 import { CoverComponent } from '@metal-p3/cover/ui';
@@ -20,23 +20,12 @@ export class PlaylistComponent {
   playlist = input<PlaylistItem[] | null | undefined>([]);
   currentItem = input<PlaylistItem | null | undefined>();
 
-  @Output()
-  readonly playItem = new EventEmitter<string>();
-
-  @Output()
-  readonly resumeItem = new EventEmitter<void>();
-
-  @Output()
-  readonly pauseItem = new EventEmitter<void>();
-
-  @Output()
-  readonly reorder = new EventEmitter<PlaylistItem[]>();
-
-  @Output()
-  readonly removeItem = new EventEmitter<string>();
-
-  @Output()
-  readonly hide = new EventEmitter<void>();
+  readonly playItem = output<string>();
+  readonly resumeItem = output<void>();
+  readonly pauseItem = output<void>();
+  readonly reorder = output<PlaylistItem[]>();
+  readonly removeItem = output<string>();
+  readonly hide = output<void>();
 
   displayedColumns = ['action', 'trackNumber', 'title', 'artist', 'duration'];
 

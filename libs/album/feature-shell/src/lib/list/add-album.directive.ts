@@ -1,12 +1,11 @@
-import { Directive, EventEmitter, HostBinding, HostListener, Output } from '@angular/core';
+import { Directive, HostBinding, HostListener, output } from '@angular/core';
 
 @Directive({
   standalone: true,
   selector: '[appAddAlbum]',
 })
 export class AddAlbumDirective {
-  @Output()
-  readonly albumAdded = new EventEmitter<string[]>();
+  readonly albumAdded = output<string[]>();
 
   @HostBinding('class') private addClass = '';
 

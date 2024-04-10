@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Output, effect, input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, model, output } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { MatListModule } from '@angular/material/list';
 import { ConfirmDeleteDirective } from '@metal-p3/shared/feedback';
@@ -12,34 +12,12 @@ import { NavToolbarComponent } from '@metal-p3/shared/navigation';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class UnmappedFoldersComponent {
-  folders = input<string[] | null>([]);
+  folders = model<string[]>([]);
 
-  @Output()
-  readonly openFolder = new EventEmitter<string>();
-
-  @Output()
-  readonly add = new EventEmitter<string>();
-
-  @Output()
-  readonly search = new EventEmitter<string>();
-
-  @Output()
-  readonly delete = new EventEmitter<string>();
-
-  unMappedFolders = signal<string[]>([]);
-
-  constructor() {
-    effect(
-      () => {
-        const folders = this.folders();
-
-        if (folders) {
-          this.unMappedFolders.set(folders);
-        }
-      },
-      { allowSignalWrites: true },
-    );
-  }
+  readonly openFolder = output<string>();
+  readonly add = output<string>();
+  readonly search = output<string>();
+  readonly delete = output<string>();
 
   onAdd(folder: string) {
     this.add.emit(folder);
@@ -54,6 +32,6 @@ export class UnmappedFoldersComponent {
   }
 
   private updateFolders(folder: string) {
-    this.unMappedFolders.update((folders) => folders?.filter((f) => f !== folder));
+    this.folders.update((folders) => folders.filter((f) => f !== folder) || null);
   }
 }

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, OnInit, Output, effect, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, effect, input, output } from '@angular/core';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -25,20 +25,11 @@ export class ListToolbarComponent implements OnInit {
   searching = input<boolean | null | undefined>(false);
   folder = input<string | null | undefined>('');
 
-  @Output()
-  readonly advancedSearch = new EventEmitter<void>();
-
-  @Output()
-  readonly searchRequest = new EventEmitter<SearchRequest>();
-
-  @Output()
-  readonly showPlayer = new EventEmitter<void>();
-
-  @Output()
-  readonly createNew = new EventEmitter<void>();
-
-  @Output()
-  readonly lyricsPriority = new EventEmitter<void>();
+  readonly advancedSearch = output<void>();
+  readonly searchRequest = output<SearchRequest>();
+  readonly showPlayer = output<void>();
+  readonly createNew = output<void>();
+  readonly lyricsPriority = output<void>();
 
   protected folderControl = new FormControl<string | undefined>('', { nonNullable: true });
 

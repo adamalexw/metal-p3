@@ -1,5 +1,5 @@
 import { NgTemplateOutlet } from '@angular/common';
-import { ChangeDetectionStrategy, Component, EventEmitter, Output, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatToolbarModule } from '@angular/material/toolbar';
@@ -19,24 +19,11 @@ export class TracksToolbarComponent {
   lyricsLoading = input(false);
   albumDuration = input(0);
 
-  @Output()
-  readonly trackNumbers = new EventEmitter<void>();
-
-  @Output()
-  readonly renameTracks = new EventEmitter<void>();
-
-  @Output()
-  readonly maTracks = new EventEmitter<void>();
-
-  @Output()
-  readonly lyrics = new EventEmitter<void>();
-
-  @Output()
-  readonly refreshTracks = new EventEmitter<void>();
-
-  @Output()
-  readonly playAlbum = new EventEmitter<void>();
-
-  @Output()
-  readonly addAlbumToPlaylist = new EventEmitter<void>();
+  readonly trackNumbers = output<void>();
+  readonly renameTracks = output<void>();
+  readonly maTracks = output<void>();
+  readonly lyrics = output<void>();
+  readonly refreshTracks = output<void>();
+  readonly playAlbum = output<void>();
+  readonly addAlbumToPlaylist = output<void>();
 }

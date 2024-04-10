@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { ChangeDetectionStrategy, Component, EventEmitter, OnInit, Output, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, inject, output } from '@angular/core';
 import { ControlContainer, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
@@ -43,11 +43,8 @@ export class AlbumFormComponent implements OnInit {
   private readonly controlContainer = inject(ControlContainer);
   private readonly windowRef = inject(WINDOW);
 
-  @Output()
-  readonly lyricsPriority = new EventEmitter<void>();
-
-  @Output()
-  readonly findBandProps = new EventEmitter<string>();
+  readonly lyricsPriority = output<void>();
+  readonly findBandProps = output<string>();
 
   get albumUrl(): string | undefined {
     return this.form.controls.albumUrl.value;

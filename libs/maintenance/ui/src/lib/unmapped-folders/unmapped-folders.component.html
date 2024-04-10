@@ -2,8 +2,8 @@
   <h2>Unmapped Folders</h2>
 </app-nav-toolbar>
 <mat-list>
-  @if (unMappedFolders().length) {
-    @for (folder of unMappedFolders(); track folder) {
+  @if (folders().length) {
+    @for (folder of folders(); track folder) {
       <mat-list-item>
         <mat-icon matListItemIcon class="cursor-pointer" (click)="openFolder.emit(folder)" title="open folder">folder</mat-icon>
         <div matListItemTitle>{{ folder }}</div>
