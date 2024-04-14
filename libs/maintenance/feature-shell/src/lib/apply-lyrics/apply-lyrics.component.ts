@@ -117,7 +117,9 @@ export class ApplyLyricsShellComponent implements OnInit {
         filter((maTracks) => !!maTracks),
         withLatestFrom(this.albumId$),
         tap(([maTracks, id]) => {
-          maTracks?.filter((track) => track.hasLyrics && !track.lyricsLoading).forEach((track) => this.store.dispatch(TrackActions.getLyrics({ id, trackId: track.id })));
+          maTracks
+            ?.filter((track) => track.hasLyrics && !track.lyricsLoading)
+            .forEach((track, i) => setTimeout(() => this.store.dispatch(TrackActions.getLyrics({ id, trackId: track.id })), i > 0 ? 5000 : 0));
         }),
         take(1),
       )

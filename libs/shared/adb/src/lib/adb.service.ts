@@ -38,7 +38,7 @@ export class AdbService {
             deviceClient
               .shell(command)
               .then(Adb.Adb.util.readAll)
-              .then(function (output) {
+              .then(function (output: any) {
                 console.log('[%s] %s', device.id, output.toString().trim());
               });
 
@@ -47,7 +47,7 @@ export class AdbService {
           transfer.on('error', reject);
         });
       });
-    } catch (err) {
+    } catch (err: any) {
       console.error('Something went wrong:', err.stack);
     }
   }

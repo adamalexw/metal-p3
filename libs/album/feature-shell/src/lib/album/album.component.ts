@@ -47,8 +47,8 @@ import { Track } from '@metal-p3/track/domain';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { Update } from '@ngrx/entity';
 import { Store } from '@ngrx/store';
-import { Observable, combineLatest, of } from 'rxjs';
-import { distinctUntilChanged, exhaustMap, filter, map, take, tap, withLatestFrom } from 'rxjs/operators';
+import { Observable, combineLatest } from 'rxjs';
+import { distinctUntilChanged, filter, map, take, tap, withLatestFrom } from 'rxjs/operators';
 
 @UntilDestroy()
 @Component({
@@ -218,10 +218,6 @@ export class AlbumShellComponent implements OnInit {
 
     maTracks$
       .pipe(
-        exhaustMap((maTracks) => {
-          maTracks?.forEach((track) => this.store.dispatch(TrackActions.getLyrics({ id, trackId: track.id })));
-          return of(maTracks);
-        }),
         take(1),
         tap(() => this.router.navigate(['maintenance', 'lyrics', id])),
       )

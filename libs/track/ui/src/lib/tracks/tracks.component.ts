@@ -123,20 +123,36 @@ export class TracksComponent implements OnInit {
   }
 
   onPlayTrack(id: number) {
-    this.playTrack.emit(this.tracks()!.find((t) => t.id === id));
+    const track = this.getTrack(id);
+
+    if (track) {
+      this.playTrack.emit(track);
+    }
   }
 
   onAddTrackToPlaylist(id: number) {
-    this.addTrackToPlaylist.emit(this.tracks()!.find((t) => t.id === id));
+    const track = this.getTrack(id);
+
+    if (track) {
+      this.addTrackToPlaylist.emit(track);
+    }
   }
 
   onDelete(result: boolean, id: number) {
     if (result) {
-      this.delete.emit(this.tracks()!.find((t) => t.id === id));
+      const track = this.getTrack(id);
+
+      if (track) {
+        this.delete.emit(track);
+      }
     }
   }
 
   trackByFn(index: number, item: FormGroup<TracksForm>) {
     return item.controls.id.value || index;
+  }
+
+  private getTrack(id: number): Track | undefined {
+    return this.tracks()?.find((t) => t.id === id);
   }
 }
