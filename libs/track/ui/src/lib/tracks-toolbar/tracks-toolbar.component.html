@@ -7,27 +7,27 @@
 </mat-toolbar>
 
 <mat-toolbar class="pl-0!">
-  <button mat-icon-button (click)="trackNumbers.emit()">
+  <button mat-icon-button (click)="trackNumbers.emit()" title="Track Numbers">
     <mat-icon title="track numbers">tag</mat-icon>
   </button>
-  <button mat-icon-button [disabled]="trackRenaming()" (click)="renameTracks.emit()">
+  <button mat-icon-button [disabled]="trackRenaming()" (click)="renameTracks.emit()" title="Rename">
     <mat-icon title="rename tracks">drive_file_rename_outline</mat-icon>
   </button>
   @if (enableMaActions()) {
-    <button mat-icon-button [disabled]="gettingMaTracks()" (click)="maTracks.emit()">
+    <button mat-icon-button [disabled]="gettingMaTracks()" (click)="maTracks.emit()" title="MA Track Names">
       <mat-icon title="ma tracks">format_list_numbered</mat-icon>
     </button>
-    <button mat-icon-button [disabled]="lyricsLoading()" (click)="lyrics.emit()">
+    <button mat-icon-button [disabled]="lyricsLoading()" (click)="lyrics.emit()" title="Lyrics">
       <mat-icon title="lyrics">article</mat-icon>
     </button>
   }
-  <button mat-icon-button (click)="refreshTracks.emit()">
+  <button mat-icon-button (click)="refreshTracks.emit()" title="Refresh Tracks">
     <mat-icon title="refresh">refresh</mat-icon>
   </button>
-  <button mat-icon-button (click)="playAlbum.emit()">
+  <button mat-icon-button (click)="playAlbum.emit()" title="Play Album">
     <mat-icon title="play">play_arrow</mat-icon>
   </button>
-  <button mat-icon-button (click)="addAlbumToPlaylist.emit()">
+  <button mat-icon-button (click)="addAlbumToPlaylist.emit()" title="Add To Playlist">
     <mat-icon title="add to playlist">playlist_add</mat-icon>
   </button>
 
