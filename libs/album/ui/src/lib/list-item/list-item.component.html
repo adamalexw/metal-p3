@@ -1,4 +1,4 @@
-<mat-card appearance="raised" class="hover:bg-background hover:shadow-2xl h-full">
+<mat-card appearance="raised" class="hover:bg-background hover:shadow-2xl">
   <mat-card-header class="py-2">
     <mat-card-title
       ><p class="line-clamp-1">{{ album().artist }}</p></mat-card-title
@@ -8,8 +8,8 @@
     >
   </mat-card-header>
 
-  <mat-card-content class="h-full">
-    <div (click)="openAlbum.emit(album().id)" class="flex justify-center cursor-pointer overflow-hidden">
+  <mat-card-content>
+    <div (click)="openAlbum.emit(album().id)" class="flex justify-center cursor-pointer overflow-hidden my-2">
       <app-cover
         class="block z-10 hover:transition hover:scale-110"
         [class.animate-spin]="album().coverLoading"
@@ -20,10 +20,10 @@
     </div>
   </mat-card-content>
 
-  <mat-card-footer class="flex h-12 w-full pl-4">
-    <div class="grow truncate self-center">{{ album().year }} - {{ album().genre }}</div>
-    <button mat-icon-button [matMenuTriggerFor]="menu" [disableRipple]="true">
-      <mat-icon class="absolute bottom-3 right-3">more_vert</mat-icon>
+  <mat-card-footer class="flex items-center w-full h-12 px-4">
+    <div class="grow truncate">{{ album().year }} - {{ album().genre }}</div>
+    <button mat-icon-button [matMenuTriggerFor]="menu" class="!p-0.5">
+      <mat-icon>more_vert</mat-icon>
     </button>
 
     <mat-menu #menu="matMenu">

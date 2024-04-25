@@ -26,7 +26,7 @@ body {
 ::-webkit-scrollbar-thumb {
   -webkit-border-radius: 5px;
   border-radius: 5px;
-  background: mat.get-theme-color($theme, primary, 50);
+  background: mat.get-theme-color($theme, primary, 80);
 }
 
 .mat-column-trackNumber {
@@ -44,6 +44,6 @@ body {
 }
 
 .snackbar-info {
-  --mdc-snackbar-container-color: orange;
+  --mdc-snackbar-container-color: mat.get-theme-color($theme, primary, 80);
   --mdc-snackbar-supporting-text-color: black;
 }
