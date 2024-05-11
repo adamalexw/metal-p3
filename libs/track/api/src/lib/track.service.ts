@@ -50,7 +50,6 @@ export class TrackService {
   }
 
   private mapTrack(fullPath: string, tags: NodeID3.Tags, mm: mm.IAudioMetadata, index: number): TrackDto {
-    console.log('🚀 ~ TrackService ~ mapTrack ~ tags:', tags);
     return {
       id: index + 1,
       fullPath,
