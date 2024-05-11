@@ -12,7 +12,11 @@ import * as sharp from 'sharp';
 export class CoverService {
   readonly cover = 'Cover.jpg';
 
-  constructor(private readonly trackService: TrackService, private readonly fileSystemService: FileSystemService, private readonly httpService: HttpService) {}
+  constructor(
+    private readonly trackService: TrackService,
+    private readonly fileSystemService: FileSystemService,
+    private readonly httpService: HttpService,
+  ) {}
 
   getCover(location: string): Observable<string> {
     const coverPath = path.join(location, this.cover);
@@ -65,7 +69,11 @@ export class CoverService {
     const location = path.join(folder, this.cover);
     const buffer = Buffer.from(cover.replace('data:image/png;base64,', ''), 'base64');
 
-    sharp(buffer).resize({ height: 500, width: 500 }).toFile(location);
+    try {
+      sharp(buffer).resize({ height: 500, width: 500 }).toFile(location);
+    } catch (error) {
+      console.error(error);
+    }
   }
 
   resize() {

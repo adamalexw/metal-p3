@@ -37,7 +37,7 @@
   </div>
 
   <div class="flex flex-row gap-6 items-center">
-    <button type="submit" mat-flat-button color="primary">Search</button>
-    <button type="reset" mat-flat-button color="secondary" (click)="searchRequest.emit({ take, skip: 0 })">Clear</button>
+    <button type="submit" mat-flat-button>Search</button>
+    <button type="reset" mat-flat-button color="error" (click)="searchRequest.emit({ take, skip: 0 })">Clear</button>
   </div>
 </form>
