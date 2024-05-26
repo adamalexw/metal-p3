@@ -1,7 +1,7 @@
 import { AsyncPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, OnInit, inject } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
-import { AlbumDataAccessModule, AlbumService } from '@metal-p3/album/data-access';
+import { AlbumService } from '@metal-p3/album/data-access';
 import { AlbumComponent } from '@metal-p3/album/ui';
 import { MetalArchivesAlbumTrack, TrackBase } from '@metal-p3/api-interfaces';
 import { CoverService } from '@metal-p3/cover/data-access';
@@ -53,7 +53,7 @@ import { distinctUntilChanged, filter, map, take, tap, withLatestFrom } from 'rx
 @UntilDestroy()
 @Component({
   standalone: true,
-  imports: [AsyncPipe, RouterModule, AlbumDataAccessModule, AlbumComponent],
+  imports: [AsyncPipe, RouterModule, AlbumComponent],
   selector: 'app-album-shell',
   templateUrl: './album.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,

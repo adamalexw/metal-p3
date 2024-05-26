@@ -8,7 +8,6 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { RouterModule } from '@angular/router';
-import { AlbumDataAccessModule } from '@metal-p3/album/data-access';
 import { AlbumDetailsForm } from '@metal-p3/album/domain';
 import { CoverComponent } from '@metal-p3/cover/ui';
 import { TitleCaseDirective } from '@metal-p3/shared/title-case';
@@ -19,7 +18,6 @@ import { AlbumToolbarComponent } from '../album-toolbar/album-toolbar.component'
 @Component({
   standalone: true,
   imports: [
-    AlbumDataAccessModule,
     AlbumToolbarComponent,
     CoverComponent,
     FormsModule,

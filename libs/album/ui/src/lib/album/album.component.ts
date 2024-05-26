@@ -8,7 +8,6 @@ import { MatInputModule } from '@angular/material/input';
 import { MatListModule } from '@angular/material/list';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { RouterModule } from '@angular/router';
-import { AlbumDataAccessModule } from '@metal-p3/album/data-access';
 import { AlbumDetailsForm, AlbumForm } from '@metal-p3/album/domain';
 import { AlbumDto, BandProps, MetalArchivesAlbumTrack, MetalArchivesUrl, TrackBase } from '@metal-p3/api-interfaces';
 import { CoverComponent } from '@metal-p3/cover/ui';
@@ -23,7 +22,6 @@ import { AlbumToolbarComponent } from '../album-toolbar/album-toolbar.component'
 @Component({
   standalone: true,
   imports: [
-    AlbumDataAccessModule,
     AlbumFormComponent,
     AlbumToolbarComponent,
     CoverComponent,

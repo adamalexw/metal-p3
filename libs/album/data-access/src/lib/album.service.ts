@@ -18,7 +18,7 @@ export class AlbumService {
     @Inject(API) private readonly api: string,
     @Inject(BASE_PATH) private readonly basePath: string,
     @Inject(TAKE) private readonly take: number,
-    private readonly socket: Socket
+    private readonly socket: Socket,
   ) {}
 
   getAlbums(request: Partial<SearchRequest>): Observable<AlbumDto[]> {
