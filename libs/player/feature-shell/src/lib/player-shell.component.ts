@@ -52,7 +52,7 @@ export class PlayerShellComponent implements OnInit {
 
   cover$ = this.store.select(selectActiveItemCover);
   coverSize$ = this.footerMode$.pipe(
-    map((footerMode) => (footerMode ? { 'h-16': true, 'w-16': true } : { 'w-screen': true, 'lg:w-64': true, 'lg:h-64': true })),
+    map((footerMode) => (footerMode ? { 'h-16': true, 'w-16': true } : { 'w-screen': true, 'lg:w-[18.5rem]': true })),
     shareReplay(),
   );
 

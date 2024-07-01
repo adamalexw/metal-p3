@@ -3,7 +3,8 @@ import { BASE_PATH } from '@metal-p3/album/domain';
 import { ErrorService } from '@metal-p3/shared/error';
 import { TrackService } from '@metal-p3/track/data-access';
 import { Track } from '@metal-p3/track/domain';
-import { Actions, concatLatestFrom, createEffect, ofType } from '@ngrx/effects';
+import { Actions, createEffect, ofType } from '@ngrx/effects';
+import { concatLatestFrom } from '@ngrx/operators';
 import { Store } from '@ngrx/store';
 import { EMPTY, of } from 'rxjs';
 import { catchError, map, mergeMap } from 'rxjs/operators';
@@ -18,9 +19,9 @@ export class TrackEffects {
       mergeMap(({ id, folder }) =>
         this.service.getTracks(`${this.basePath}/${folder}`).pipe(
           map((tracks) => TrackActions.getTracksSuccess({ id, tracks })),
-          catchError((error) => of(TrackActions.getTracksError({ id, error: this.errorService.getError(error) })))
-        )
-      )
+          catchError((error) => of(TrackActions.getTracksError({ id, error: this.errorService.getError(error) }))),
+        ),
+      ),
     );
   });
 
@@ -33,9 +34,9 @@ export class TrackEffects {
           catchError((error) => {
             console.error(error);
             return EMPTY;
-          })
-        )
-      )
+          }),
+        ),
+      ),
     );
   });
 
@@ -48,9 +49,9 @@ export class TrackEffects {
           catchError((error) => {
             console.error(error);
             return EMPTY;
-          })
-        )
-      )
+          }),
+        ),
+      ),
     );
   });
 
@@ -60,9 +61,9 @@ export class TrackEffects {
       mergeMap(({ id, trackId }) =>
         this.service.getLyrics(trackId).pipe(
           map((lyrics) => TrackActions.getLyricsSuccess({ id, trackId, lyrics })),
-          catchError((error) => of(TrackActions.getLyricsError({ id, trackId, error: this.errorService.getError(error) })))
-        )
-      )
+          catchError((error) => of(TrackActions.getLyricsError({ id, trackId, error: this.errorService.getError(error) }))),
+        ),
+      ),
     );
   });
 
@@ -75,9 +76,9 @@ export class TrackEffects {
           catchError((error) => {
             console.error(error);
             return EMPTY;
-          })
-        )
-      )
+          }),
+        ),
+      ),
     );
   });
 
@@ -91,9 +92,9 @@ export class TrackEffects {
           catchError((error) => {
             console.error(error);
             return EMPTY;
-          })
-        )
-      )
+          }),
+        ),
+      ),
     );
   });
 
@@ -103,9 +104,9 @@ export class TrackEffects {
       mergeMap(({ id, track }) =>
         this.service.deleteTrack(track.fullPath || '').pipe(
           map(() => TrackActions.deleteTrackSuccess({ id, track })),
-          catchError((error) => of(TrackActions.deleteTrackError({ id, trackId: track.id, error: this.errorService.getError(error) })))
-        )
-      )
+          catchError((error) => of(TrackActions.deleteTrackError({ id, trackId: track.id, error: this.errorService.getError(error) }))),
+        ),
+      ),
     );
   });
 
@@ -114,6 +115,6 @@ export class TrackEffects {
     private readonly service: TrackService,
     private readonly store: Store,
     @Inject(BASE_PATH) private readonly basePath: string,
-    private errorService: ErrorService
+    private errorService: ErrorService,
   ) {}
 }

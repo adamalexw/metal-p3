@@ -7,8 +7,9 @@ import { ErrorService } from '@metal-p3/shared/error';
 import { nonNullable } from '@metal-p3/shared/utils';
 import { TrackService } from '@metal-p3/track/data-access';
 import { Track } from '@metal-p3/track/domain';
-import { Actions, concatLatestFrom, createEffect, ofType } from '@ngrx/effects';
+import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { Update } from '@ngrx/entity';
+import { concatLatestFrom } from '@ngrx/operators';
 import { Store } from '@ngrx/store';
 import { Observable, forkJoin, of } from 'rxjs';
 import { catchError, concatMap, filter, map, tap } from 'rxjs/operators';
@@ -23,7 +24,7 @@ export class PlaylistEffects {
       ofType(PlaylistActions.loadPlaylists),
       concatMap(() => this.playlistService.getPlaylists()),
       map((playlists) => PlaylistActions.loadPlaylistsSuccess({ playlists })),
-      catchError((error) => of(PlaylistActions.loadPlaylistsError({ error: this.errorService.getError(error) })))
+      catchError((error) => of(PlaylistActions.loadPlaylistsError({ error: this.errorService.getError(error) }))),
     );
   });
 
@@ -38,7 +39,7 @@ export class PlaylistEffects {
 
         this.playerService.playPlaylist(tracks);
       }),
-      map(([{ id }, _playlist]) => PlaylistActions.loadPlaylistSuccess({ id }))
+      map(([{ id }, _playlist]) => PlaylistActions.loadPlaylistSuccess({ id })),
     );
   });
 
@@ -57,7 +58,7 @@ export class PlaylistEffects {
       }),
       concatMap((playlist) => this.playlistService.createPlaylist(playlist)),
       map((playlist) => PlaylistActions.createSuccess({ playlist })),
-      catchError((error) => of(PlaylistActions.createError({ error: this.errorService.getError(error) })))
+      catchError((error) => of(PlaylistActions.createError({ error: this.errorService.getError(error) }))),
     );
   });
 
@@ -72,7 +73,7 @@ export class PlaylistEffects {
       })),
       concatMap((playlist: PlaylistDto) => this.playlistService.updatePlaylist(playlist)),
       map((playlist) => PlaylistActions.saveSuccess({ playlist })),
-      catchError((error) => of(PlaylistActions.saveError({ error: this.errorService.getError(error) })))
+      catchError((error) => of(PlaylistActions.saveError({ error: this.errorService.getError(error) }))),
     );
   });
 
@@ -100,7 +101,7 @@ export class PlaylistEffects {
         return updateItems;
       }),
       filter((updates) => updates?.length > 0),
-      map((updates) => PlayerActions.updateItems({ updates }))
+      map((updates) => PlayerActions.updateItems({ updates })),
     );
   });
 
@@ -111,12 +112,12 @@ export class PlaylistEffects {
         concatLatestFrom(({ id }) => this.store.select(selectItemById(id)).pipe(nonNullable())),
         map(([_, item]) => item),
         filter((item) => !!item.playlistItemId),
-        concatMap((item) => this.playlistService.removeItem(item.playlistItemId || 0))
+        concatMap((item) => this.playlistService.removeItem(item.playlistItemId || 0)),
       );
     },
     {
       dispatch: false,
-    }
+    },
   );
 
   delete$ = createEffect(() => {
@@ -126,9 +127,9 @@ export class PlaylistEffects {
       concatMap(([_, id]) =>
         this.playlistService.deletePlaylist(id).pipe(
           map(() => PlaylistActions.deleteSuccess({ id })),
-          catchError((error) => of(PlaylistActions.deleteError({ error })))
-        )
-      )
+          catchError((error) => of(PlaylistActions.deleteError({ error }))),
+        ),
+      ),
     );
   });
 
@@ -141,7 +142,7 @@ export class PlaylistEffects {
 
         return forkJoin(tracks$);
       }),
-      map(() => PlaylistActions.transferComplete())
+      map(() => PlaylistActions.transferComplete()),
     );
   });
 
@@ -151,6 +152,6 @@ export class PlaylistEffects {
     private readonly playlistService: PlaylistService,
     private readonly trackService: TrackService,
     private readonly playerService: PlayerService,
-    private readonly errorService: ErrorService
+    private readonly errorService: ErrorService,
   ) {}
 }

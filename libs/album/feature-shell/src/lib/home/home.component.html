@@ -1,13 +1,13 @@
-<mat-sidenav-container fullscreen>
-  <mat-sidenav [opened]="avancedSearchOpen$ | async" #searchnav mode="over" position="start" (closedStart)="onCloseAdvancedSearch()">
+<mat-drawer-container fullscreen>
+  <mat-drawer [opened]="avancedSearchOpen$ | async" mode="over" (closedStart)="onCloseAdvancedSearch()">
     <app-advanced-search-shell />
-  </mat-sidenav>
+  </mat-drawer>
 
-  <mat-sidenav-content>
+  <mat-drawer-content>
     <app-list />
-  </mat-sidenav-content>
+  </mat-drawer-content>
 
-  <mat-sidenav [opened]="sideNavOpen$ | async" #sidenav [mode]="(sideNavMode$ | async) ?? 'side'" position="end" class="w-screen lg:!w-album">
+  <mat-drawer [opened]="sideNavOpen$ | async" [mode]="sideNavMode()" position="end" class="!w-screen lg:!w-album">
     <router-outlet></router-outlet>
-  </mat-sidenav>
-</mat-sidenav-container>
+  </mat-drawer>
+</mat-drawer-container>

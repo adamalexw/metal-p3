@@ -3,8 +3,9 @@ import { BASE_PATH, CoverRequest } from '@metal-p3/album/domain';
 import { CoverService } from '@metal-p3/cover/data-access';
 import { ErrorService } from '@metal-p3/shared/error';
 import { WINDOW } from '@ng-web-apis/common';
-import { Actions, concatLatestFrom, createEffect, ofType } from '@ngrx/effects';
+import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { Update } from '@ngrx/entity';
+import { concatLatestFrom } from '@ngrx/operators';
 import { Store } from '@ngrx/store';
 import { EMPTY, Observable, forkJoin, iif, of } from 'rxjs';
 import { catchError, filter, map, mergeMap, switchMap, tap } from 'rxjs/operators';
@@ -21,23 +22,23 @@ export class CoverEffects {
       mergeMap(({ id, folder }) =>
         this.service.getCover(`${this.basePath}/${folder}`).pipe(
           map((cover) => CoverActions.getSuccess({ update: { id, changes: { cover, coverLoading: false, coverError: undefined } } })),
-          catchError((error) => of(CoverActions.getError({ update: { id, changes: { coverLoading: false, coverError: this.errorService.getError(error) } } })))
-        )
-      )
+          catchError((error) => of(CoverActions.getError({ update: { id, changes: { coverLoading: false, coverError: this.errorService.getError(error) } } }))),
+        ),
+      ),
     );
   });
 
   cancelCovers$ = createEffect(() => {
     return this.actions$.pipe(
       ofType(AlbumActions.cancelPreviousSearchSuccess),
-      map(() => CoverActions.cancelPreviousGetMany({ request: { requests: [], cancel: true } }))
+      map(() => CoverActions.cancelPreviousGetMany({ request: { requests: [], cancel: true } })),
     );
   });
 
   getMany$ = createEffect(() => {
     return this.actions$.pipe(
       ofType(CoverActions.getMany, CoverActions.cancelPreviousGetMany),
-      switchMap(({ request }) => iif(() => !!request.cancel, of(CoverActions.clearAll()), this.covers$(request.requests).pipe(map((update) => CoverActions.getManySuccess({ update })))))
+      switchMap(({ request }) => iif(() => !!request.cancel, of(CoverActions.clearAll()), this.covers$(request.requests).pipe(map((update) => CoverActions.getManySuccess({ update }))))),
     );
   });
 
@@ -50,9 +51,9 @@ export class CoverEffects {
           catchError((error) => {
             console.error(error);
             return EMPTY;
-          })
-        )
-      )
+          }),
+        ),
+      ),
     );
   });
 
@@ -65,11 +66,11 @@ export class CoverEffects {
         tap(([_, covers]) =>
           covers.forEach((cover) => {
             typeof cover === 'string' ? URL.revokeObjectURL(cover) : '';
-          })
-        )
+          }),
+        ),
       );
     },
-    { dispatch: false }
+    { dispatch: false },
   );
 
   saveCover$ = createEffect(() => {
@@ -81,9 +82,9 @@ export class CoverEffects {
           catchError((error) => {
             console.error(error);
             return EMPTY;
-          })
-        )
-      )
+          }),
+        ),
+      ),
     );
   });
 
@@ -97,8 +98,8 @@ export class CoverEffects {
           catchError((error) => {
             const coverError = this.errorService.getError(error);
             return of({ cover: '/assets/blank.png', coverError });
-          })
-        ))
+          }),
+        )),
     );
 
     return forkJoin(sources).pipe(map((covers) => Object.entries(covers).map(([id, value]) => ({ id, changes: { coverLoading: false, cover: value.cover, coverError: value.coverError } }))));
@@ -110,6 +111,6 @@ export class CoverEffects {
     private readonly store: Store,
     private readonly errorService: ErrorService,
     @Inject(WINDOW) readonly windowRef: Window,
-    @Inject(BASE_PATH) private readonly basePath: string
+    @Inject(BASE_PATH) private readonly basePath: string,
   ) {}
 }

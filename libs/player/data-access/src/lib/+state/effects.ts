@@ -2,7 +2,8 @@ import { Injectable } from '@angular/core';
 import { CoverService } from '@metal-p3/cover/data-access';
 import { shuffleArray } from '@metal-p3/player/util';
 import { ErrorService } from '@metal-p3/shared/error';
-import { Actions, concatLatestFrom, createEffect, ofType } from '@ngrx/effects';
+import { Actions, createEffect, ofType } from '@ngrx/effects';
+import { concatLatestFrom } from '@ngrx/operators';
 import { Store } from '@ngrx/store';
 import { of } from 'rxjs';
 import { catchError, filter, map, mergeMap, tap } from 'rxjs/operators';
@@ -16,7 +17,7 @@ export class PlayerEffects {
       ofType(PlayerActions.play),
       concatLatestFrom(() => this.store.select(selectPlaylist)),
       map(([{ id }, playlistItems]) => playlistItems.map((item) => ({ id: item.id, changes: { playing: item.id === id, paused: false } }))),
-      map((updates) => PlayerActions.updateItems({ updates }))
+      map((updates) => PlayerActions.updateItems({ updates })),
     );
   });
 
@@ -24,7 +25,7 @@ export class PlayerEffects {
     return this.actions$.pipe(
       ofType(PlayerActions.pause),
       concatLatestFrom(() => this.store.select(selectActivePlaylistItem)),
-      map(([_, item]) => PlayerActions.updateItem({ update: { id: item?.id || '', changes: { playing: false, paused: true } } }))
+      map(([_, item]) => PlayerActions.updateItem({ update: { id: item?.id || '', changes: { playing: false, paused: true } } })),
     );
   });
 
@@ -35,7 +36,7 @@ export class PlayerEffects {
       map(([_, playlist, index]) => {
         const id = playlist[index - 1].id;
         return PlayerActions.play({ id });
-      })
+      }),
     );
   });
 
@@ -46,14 +47,14 @@ export class PlayerEffects {
       map(([_, playlist, index]) => {
         const id = playlist[index + 1].id;
         return PlayerActions.play({ id });
-      })
+      }),
     );
   });
 
   addItem$ = createEffect(() => {
     return this.actions$.pipe(
       ofType(PlayerActions.addItem),
-      map(({ track }) => PlayerActions.getCover({ id: track.id, folder: track.folder || '' }))
+      map(({ track }) => PlayerActions.getCover({ id: track.id, folder: track.folder || '' })),
     );
   });
 
@@ -61,7 +62,7 @@ export class PlayerEffects {
     return this.actions$.pipe(
       ofType(PlayerActions.addItems),
       concatLatestFrom(() => this.store.select(selectActivePlaylistItem)),
-      map(([{ tracks }, item]) => (item?.playing || item?.paused ? PlayerActions.noop() : PlayerActions.play({ id: tracks[0]?.id })))
+      map(([{ tracks }, item]) => (item?.playing || item?.paused ? PlayerActions.noop() : PlayerActions.play({ id: tracks[0]?.id }))),
     );
   });
 
@@ -76,7 +77,7 @@ export class PlayerEffects {
         }
       }),
       map(([{ id }, _item]) => id),
-      map((id) => PlayerActions.removeSuccess({ id }))
+      map((id) => PlayerActions.removeSuccess({ id })),
     );
   });
 
@@ -86,9 +87,9 @@ export class PlayerEffects {
       mergeMap(({ id, folder }) =>
         this.coverService.getCover(folder).pipe(
           map((cover) => PlayerActions.getCoverSuccess({ update: { id, changes: { cover } } })),
-          catchError((error) => of(PlayerActions.getCoverError({ update: { id, changes: { cover: this.errorService.getError(error) } } })))
-        )
-      )
+          catchError((error) => of(PlayerActions.getCoverError({ update: { id, changes: { cover: this.errorService.getError(error) } } }))),
+        ),
+      ),
     );
   });
 
@@ -99,7 +100,7 @@ export class PlayerEffects {
       map(([_, playlist]) => {
         shuffleArray(playlist);
         return PlayerActions.shuffleSuccess({ updates: playlist.map((item, index) => ({ id: item.id, changes: { index } })) });
-      })
+      }),
     );
   });
 
@@ -111,11 +112,16 @@ export class PlayerEffects {
       tap(([_, blobs]) =>
         blobs.forEach((blob) => {
           typeof blob === 'string' ? URL.revokeObjectURL(blob) : '';
-        })
+        }),
       ),
-      map(() => PlayerActions.clearSuccess())
+      map(() => PlayerActions.clearSuccess()),
     );
   });
 
-  constructor(private readonly actions$: Actions, private readonly store: Store, private readonly coverService: CoverService, private readonly errorService: ErrorService) {}
+  constructor(
+    private readonly actions$: Actions,
+    private readonly store: Store,
+    private readonly coverService: CoverService,
+    private readonly errorService: ErrorService,
+  ) {}
 }
