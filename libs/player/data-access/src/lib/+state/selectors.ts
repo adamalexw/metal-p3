@@ -17,7 +17,7 @@ export const selectPlayerOpen = createSelector(selectPlaylist, selectPlayerVisib
 
 export const selectActiveItemId = createSelector(selectPlaylistState, (state) => state.activeTrack);
 export const selectActivePlaylistItem = createSelector(selectPlaylistEntities, selectActiveItemId, (playlist, id) => (playlist && id ? playlist[id] : undefined));
-export const selectActiveItemCover = createSelector(selectActivePlaylistItem, (item) => item?.cover);
+export const selectActiveItemCover = createSelector(selectActivePlaylistItem, (item) => item?.cover ?? '/assets/blank.png');
 
 export const selectActiveItemIndex = createSelector(selectPlaylist, selectActiveItemId, (playlist, item) => playlist && playlist.findIndex((pl) => pl.id === item));
 export const selectFirstItemPlaying = createSelector(selectActiveItemIndex, (index) => index === 0);
