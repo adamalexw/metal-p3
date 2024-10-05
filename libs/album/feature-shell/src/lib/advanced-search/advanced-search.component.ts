@@ -3,10 +3,8 @@ import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { AdvancedSearchFormComponent } from '@metal-p3/album/ui';
 import { SearchRequest } from '@metal-p3/api-interfaces';
 import { AlbumActions, selectAlbumsSearchRequest } from '@metal-p3/shared/data-access';
-import { UntilDestroy } from '@ngneat/until-destroy';
 import { Store } from '@ngrx/store';
 
-@UntilDestroy()
 @Component({
   standalone: true,
   imports: [AsyncPipe, AdvancedSearchFormComponent],

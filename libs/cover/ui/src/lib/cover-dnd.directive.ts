@@ -1,14 +1,17 @@
-import { Directive, HostBinding, HostListener, input, output } from '@angular/core';
+import { Directive, HostListener, input, output } from '@angular/core';
 
 @Directive({
   standalone: true,
   selector: '[appCoverDnd]',
+  host: {
+    '[class]': 'coverClass',
+  },
 })
 export class CoverDragDirective {
   enableDnd = input(true);
   coverUrl = output<string>();
 
-  @HostBinding('class') private coverClass = '';
+  coverClass = '';
 
   @HostListener('dragover', ['$event']) public onDragOver(evt: DragEvent) {
     if (this.enableDnd()) {

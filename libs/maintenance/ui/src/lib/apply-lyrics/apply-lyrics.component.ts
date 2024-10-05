@@ -58,8 +58,8 @@ export class ApplyLyricsComponent {
       const tracks = this.tracks();
       const maTracks = this.maTracks();
 
-      if (tracks || maTracks) {
-        this.mapDataSource(tracks || [], maTracks || []);
+      if (tracks?.length && maTracks?.length) {
+        this.mapDataSource(tracks, maTracks);
       }
     });
   }
@@ -69,7 +69,7 @@ export class ApplyLyricsComponent {
   }
 
   private mapDataSource(tracks: Track[], maTracks: MetalArchivesAlbumTrack[]) {
-    if (tracks?.length && maTracks?.length) {
+    if (tracks && maTracks) {
       this.dataSource = tracks.map((track) => this.mapApplyLyrics(track, maTracks));
     }
   }

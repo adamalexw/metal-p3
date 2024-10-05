@@ -1,5 +1,6 @@
 import { AsyncPipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, OnInit, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { ApplyLyrics } from '@metal-p3/album/domain';
 import { ApplyLyricsComponent } from '@metal-p3/maintenance/ui';
@@ -24,12 +25,10 @@ import {
   selectTracksLoading,
 } from '@metal-p3/shared/data-access';
 import { nonNullable } from '@metal-p3/shared/utils';
-import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { Store } from '@ngrx/store';
 import { Observable, combineLatest } from 'rxjs';
 import { filter, map, take, tap, withLatestFrom } from 'rxjs/operators';
 
-@UntilDestroy()
 @Component({
   standalone: true,
   imports: [AsyncPipe, ApplyLyricsComponent, MatDialogModule],
@@ -40,12 +39,15 @@ import { filter, map, take, tap, withLatestFrom } from 'rxjs/operators';
 export class ApplyLyricsShellComponent implements OnInit {
   private readonly store = inject(Store);
   private readonly dialogRef = inject(MatDialogRef<ApplyLyricsShellComponent>, { optional: true });
+  private readonly destroyRef = inject(DestroyRef);
+
   private readonly data: { albumId: number; historyId: number } = inject(MAT_DIALOG_DATA, { optional: true });
 
   albumId$: Observable<number> = this.store.select(selectRouteParams).pipe(
-    untilDestroyed(this),
     map((params) => params?.id || this.data?.albumId),
     filter((id) => !!id),
+    map((id) => +id),
+    takeUntilDestroyed(),
   );
 
   album$ = this.store.select(selectAlbum);
@@ -81,39 +83,38 @@ export class ApplyLyricsShellComponent implements OnInit {
       )
       .subscribe();
 
-    this.album$
+    const album$ = this.album$.pipe(nonNullable());
+
+    album$
       .pipe(
-        untilDestroyed(this),
-        filter((album) => !album),
         take(1),
-        withLatestFrom(this.albumId$),
-        tap(([_album, id]) => this.store.dispatch(AlbumActions.getAlbum({ id }))),
+        tap(({ id }) => this.store.dispatch(AlbumActions.getAlbum({ id }))),
+        takeUntilDestroyed(this.destroyRef),
       )
       .subscribe();
 
-    combineLatest([this.album$.pipe(nonNullable()), this.tracks$])
+    combineLatest([album$, this.tracks$])
       .pipe(
-        untilDestroyed(this),
         filter(([album, tracks]) => !album.tracksLoading && !tracks),
         map(([album]) => ({ id: album.id, folder: album.folder })),
         tap(({ id, folder }) => this.store.dispatch(TrackActions.getTracks({ id, folder }))),
         take(1),
+        takeUntilDestroyed(this.destroyRef),
       )
       .subscribe();
 
-    combineLatest([this.album$.pipe(nonNullable()), this.maTracks$])
+    combineLatest([album$, this.maTracks$])
       .pipe(
-        untilDestroyed(this),
         filter(([album, maTracks]) => !!album.albumUrl && !album.gettingMaTracks && !maTracks),
         map(([album]) => ({ id: album.id, url: album.albumUrl || '' })),
         tap(({ id, url }) => this.store.dispatch(TrackActions.getMetalArchivesTracks({ id, url }))),
         take(1),
+        takeUntilDestroyed(this.destroyRef),
       )
       .subscribe();
 
     this.maTracks$
       .pipe(
-        untilDestroyed(this),
         filter((maTracks) => !!maTracks),
         withLatestFrom(this.albumId$),
         tap(([maTracks, id]) => {
@@ -122,16 +123,17 @@ export class ApplyLyricsShellComponent implements OnInit {
             .forEach((track, i) => setTimeout(() => this.store.dispatch(TrackActions.getLyrics({ id, trackId: track.id })), i > 0 ? 5000 : 0));
         }),
         take(1),
+        takeUntilDestroyed(this.destroyRef),
       )
       .subscribe();
 
-    combineLatest([this.album$.pipe(nonNullable()), this.cover$])
+    combineLatest([album$, this.cover$])
       .pipe(
-        untilDestroyed(this),
         filter(([album, cover]) => !album.cover && !cover),
         map(([album]) => ({ id: album.id, folder: album.folder })),
         take(1),
         tap(({ id, folder }) => this.store.dispatch(CoverActions.get({ id, folder }))),
+        takeUntilDestroyed(this.destroyRef),
       )
       .subscribe();
   }

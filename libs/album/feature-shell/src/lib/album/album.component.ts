@@ -1,5 +1,6 @@
 import { AsyncPipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, OnInit, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router, RouterModule } from '@angular/router';
 import { AlbumService } from '@metal-p3/album/data-access';
 import { AlbumComponent } from '@metal-p3/album/ui';
@@ -44,13 +45,11 @@ import {
 import { NotificationService } from '@metal-p3/shared/feedback';
 import { nonNullable, objectDistinctUntilChanged } from '@metal-p3/shared/utils';
 import { Track } from '@metal-p3/track/domain';
-import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { Update } from '@ngrx/entity';
 import { Store } from '@ngrx/store';
 import { Observable, combineLatest } from 'rxjs';
 import { distinctUntilChanged, filter, map, take, tap, withLatestFrom } from 'rxjs/operators';
 
-@UntilDestroy()
 @Component({
   standalone: true,
   imports: [AsyncPipe, RouterModule, AlbumComponent],
@@ -65,6 +64,7 @@ export class AlbumShellComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly notificationService = inject(NotificationService);
   private readonly playerService = inject(PlayerService);
+  private readonly destroyRef = inject(DestroyRef);
 
   album$ = this.store.select(selectAlbum).pipe(nonNullable());
   albumSaving$ = this.store.select(selectAlbumSaving);
@@ -103,7 +103,7 @@ export class AlbumShellComponent implements OnInit {
   gettingBandProps$ = this.store.select(selectGettingBandProps);
   bandProps$ = this.store.select(selectBandProps);
 
-  routeId$ = this.store.select(selectRouteId).pipe(untilDestroyed(this), nonNullable());
+  routeId$ = this.store.select(selectRouteId).pipe(nonNullable());
 
   ngOnInit(): void {
     this.setState();
@@ -111,12 +111,11 @@ export class AlbumShellComponent implements OnInit {
   }
 
   private setState(): void {
-    // when refreshing the page get the album id from the url
     this.routeId$
       .pipe(
         withLatestFrom(this.store.select(selectSelectedAlbumId)),
         filter(([routeId, selectedId]) => +routeId !== selectedId),
-        tap(([routeId, _albumId]) => this.store.dispatch(AlbumActions.viewAlbum({ id: +routeId }))),
+        tap(([routeId]) => this.store.dispatch(AlbumActions.viewAlbum({ id: +routeId }))),
         take(1),
       )
       .subscribe();
@@ -128,20 +127,20 @@ export class AlbumShellComponent implements OnInit {
     );
 
     // if tracks haven't been loaded dispatch an action to the load them
-    combineLatest([dispatchProps$, this.tracksLoading$, this.store.select(selectTracksRequired)])
+    combineLatest({ props: dispatchProps$, loading: this.tracksLoading$, required: this.store.select(selectTracksRequired) })
       .pipe(
-        untilDestroyed(this),
-        filter(([_props, loading, required]) => required && !loading),
-        tap(([props, _loading, _required]) => this.store.dispatch(TrackActions.getTracks(props))),
+        filter(({ loading, required }) => required && !loading),
+        tap(({ props }) => this.store.dispatch(TrackActions.getTracks(props))),
+        takeUntilDestroyed(this.destroyRef),
       )
       .subscribe();
 
     // if the album doesn't have a cover dispatch an action to load it
-    combineLatest([dispatchProps$, this.coverLoading$, this.store.select(selectCoverRequired)])
+    combineLatest({ props: dispatchProps$, loading: this.coverLoading$, required: this.store.select(selectCoverRequired) })
       .pipe(
-        untilDestroyed(this),
-        filter(([_props, loading, required]) => required && !loading),
-        tap(([props, _loading, _required]) => this.store.dispatch(CoverActions.get(props))),
+        filter(({ loading, required }) => required && !loading),
+        tap(({ props }) => this.store.dispatch(CoverActions.get(props))),
+        takeUntilDestroyed(this.destroyRef),
       )
       .subscribe();
 
@@ -167,8 +166,8 @@ export class AlbumShellComponent implements OnInit {
         .getCoverDto(album.cover)
         .pipe(
           map((cover) => cover as string),
-          tap((cover) => this.dispatchTracks({ ...album, cover }, tracks)),
           tap((cover) => this.store.dispatch(CoverActions.save({ id: album.id, folder: album.fullPath, cover }))),
+          tap((cover) => this.dispatchTracks({ ...album, cover }, tracks)),
         )
         .subscribe();
     } else {
@@ -250,10 +249,10 @@ export class AlbumShellComponent implements OnInit {
   onFindBandProps(id: number, url: string) {
     this.bandProps$
       .pipe(
-        untilDestroyed(this),
         filter((props) => !props),
         tap(() => this.store.dispatch(BandActions.getProps({ id, url }))),
         take(1),
+        takeUntilDestroyed(this.destroyRef),
       )
       .subscribe();
   }
@@ -295,7 +294,6 @@ export class AlbumShellComponent implements OnInit {
 
   private getMaTracks(id: number, url: string): Observable<MetalArchivesAlbumTrack[] | undefined> {
     return this.maTracks$.pipe(
-      untilDestroyed(this),
       tap((maTracks) => {
         if (!maTracks) {
           this.store.dispatch(TrackActions.getMetalArchivesTracks({ id, url }));
@@ -322,9 +320,9 @@ export class AlbumShellComponent implements OnInit {
   private errorNotifications() {
     this.saveError$
       .pipe(
-        untilDestroyed(this),
         nonNullable(),
         tap((error) => this.notificationService.showError(error, 'Save')),
+        takeUntilDestroyed(this.destroyRef),
       )
       .subscribe();
   }

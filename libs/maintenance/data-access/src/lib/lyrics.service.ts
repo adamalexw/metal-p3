@@ -12,7 +12,11 @@ import { Observable } from 'rxjs';
 export class LyricsMaintenanceService {
   readonly baseUrl = `${this.api}maintenance/lyrics`;
 
-  constructor(private readonly http: HttpClient, private readonly socket: Socket, @Inject(API) private readonly api: string) {}
+  constructor(
+    private readonly http: HttpClient,
+    private readonly socket: Socket,
+    @Inject(API) private readonly api: string,
+  ) {}
 
   getHistory(): Observable<LyricsHistoryDto[]> {
     return this.http.get<LyricsHistoryDto[]>(`${this.baseUrl}/history`);
@@ -51,6 +55,6 @@ export class LyricsMaintenanceService {
   }
 
   cancelHistoryCheck(): Observable<void> {
-    return this.http.get<never>(`${this.baseUrl}/cancel`);
+    return this.http.get<void>(`${this.baseUrl}/cancel`);
   }
 }

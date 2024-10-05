@@ -1,5 +1,6 @@
 import { AsyncPipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, ElementRef, OnInit, inject, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, OnInit, inject, viewChild } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Title } from '@angular/platform-browser';
 import { CoverComponent } from '@metal-p3/cover/ui';
 import {
@@ -20,12 +21,10 @@ import { PlaylistShellComponent } from '@metal-p3/playlist';
 import { PlaylistComponent } from '@metal-p3/playlist/ui';
 import { nonNullable } from '@metal-p3/shared/utils';
 import { TrackService } from '@metal-p3/track/data-access';
-import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { Store } from '@ngrx/store';
 import { Observable, fromEvent, iif, of } from 'rxjs';
 import { concatMap, distinctUntilKeyChanged, filter, map, shareReplay, take, tap, withLatestFrom } from 'rxjs/operators';
 
-@UntilDestroy()
 @Component({
   standalone: true,
   imports: [AsyncPipe, CoverComponent, PlayerControlsComponent, PlaylistShellComponent, PlaylistComponent],
@@ -37,6 +36,7 @@ export class PlayerShellComponent implements OnInit {
   private readonly store = inject(Store);
   private readonly trackService = inject(TrackService);
   private readonly title = inject(Title);
+  private readonly destroyRef = inject(DestroyRef);
 
   private readonly audio = viewChild.required<ElementRef>('audio');
 
@@ -68,7 +68,6 @@ export class PlayerShellComponent implements OnInit {
   constructor() {
     this.activeItem$
       .pipe(
-        untilDestroyed(this),
         filter((item) => !!item?.playing),
         nonNullable(),
         tap(({ artist, title }) => this.title.setTitle(`${artist} - ${title}`)),
@@ -79,6 +78,7 @@ export class PlayerShellComponent implements OnInit {
             this.audioElement.src = url;
           }
         }),
+        takeUntilDestroyed(),
       )
       .subscribe();
   }
@@ -101,7 +101,6 @@ export class PlayerShellComponent implements OnInit {
   private listenToAudioEvents() {
     fromEvent(this.audio().nativeElement, 'ended')
       .pipe(
-        untilDestroyed(this),
         withLatestFrom(this.playlist$),
         tap(([_ended, playlist]) => {
           const currentIndex = playlist.findIndex((pl) => pl.playing);
@@ -125,6 +124,7 @@ export class PlayerShellComponent implements OnInit {
             return;
           }
         }),
+        takeUntilDestroyed(this.destroyRef),
       )
       .subscribe();
 

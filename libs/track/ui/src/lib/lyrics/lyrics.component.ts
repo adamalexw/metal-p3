@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, HostBinding, OnInit, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, inject } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MAT_BOTTOM_SHEET_DATA, MatBottomSheetModule, MatBottomSheetRef } from '@angular/material/bottom-sheet';
 import { MatButtonModule } from '@angular/material/button';
@@ -12,14 +12,14 @@ import { MatInputModule } from '@angular/material/input';
   selector: 'app-lyrics',
   templateUrl: './lyrics.component.html',
   styleUrls: ['./lyrics.component.scss'],
+  host: {
+    class: 'flex flex-col',
+  },
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LyricsComponent implements OnInit {
   private readonly bottomSheetRef = inject(MatBottomSheetRef<LyricsComponent>);
   private readonly data: { lyrics: string } = inject(MAT_BOTTOM_SHEET_DATA);
-
-  @HostBinding('class')
-  hostClass = 'flex flex-col';
 
   lyrics = '';
 

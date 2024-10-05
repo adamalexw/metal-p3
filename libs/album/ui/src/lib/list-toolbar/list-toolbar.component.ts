@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, OnInit, effect, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, input, output } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -8,10 +9,8 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { RouterModule } from '@angular/router';
 import { SearchRequest } from '@metal-p3/api-interfaces';
-import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { debounceTime, distinctUntilChanged, tap } from 'rxjs/operators';
 
-@UntilDestroy()
 @Component({
   standalone: true,
   imports: [FormsModule, ReactiveFormsModule, MatToolbarModule, RouterModule, MatInputModule, MatButtonModule, MatIconModule, MatMenuModule, MatProgressBarModule],
@@ -20,7 +19,7 @@ import { debounceTime, distinctUntilChanged, tap } from 'rxjs/operators';
   styleUrls: ['./list-toolbar.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ListToolbarComponent implements OnInit {
+export class ListToolbarComponent {
   creatingNew = input<boolean | null | undefined>(false);
   searching = input<boolean | null | undefined>(false);
   folder = input<string | null | undefined>('');
@@ -45,15 +44,13 @@ export class ListToolbarComponent implements OnInit {
         this.folderControl.setValue(folder, { emitEvent: false });
       }
     });
-  }
 
-  ngOnInit(): void {
     this.form.valueChanges
       .pipe(
-        untilDestroyed(this),
         debounceTime(500),
         distinctUntilChanged(),
         tap((request: SearchRequest) => this.searchRequest.emit(request)),
+        takeUntilDestroyed(),
       )
       .subscribe();
   }

@@ -11,7 +11,10 @@ import { map, switchMap } from 'rxjs/operators';
 export class CoverService {
   readonly baseUrl = `${this.api}cover`;
 
-  constructor(private readonly http: HttpClient, @Inject(API) private readonly api: string) {}
+  constructor(
+    private readonly http: HttpClient,
+    @Inject(API) private readonly api: string,
+  ) {}
 
   getCover(location: string): Observable<string> {
     return this.http.get(`${this.baseUrl}?location=${encodeURIComponent(location)}`, { responseType: 'text' }).pipe(map(createToObjectUrl));
@@ -25,7 +28,7 @@ export class CoverService {
     return this.http.get(blobUrl, { responseType: 'blob' }).pipe(switchMap((blob) => mapBlobToBase64(blob)));
   }
 
-  saveCover(folder: string, cover: string): Observable<never> {
-    return this.http.post<never>(this.baseUrl, { folder, cover });
+  saveCover(folder: string, cover: string): Observable<void> {
+    return this.http.post<void>(this.baseUrl, { folder, cover });
   }
 }

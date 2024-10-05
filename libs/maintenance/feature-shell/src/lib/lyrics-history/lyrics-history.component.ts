@@ -1,16 +1,15 @@
 import { ScrollingModule, ViewportRuler } from '@angular/cdk/scrolling';
 import { AsyncPipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, OnInit, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatSelectModule } from '@angular/material/select';
 import { LyricsMaintenanceService, MaintenanceActions, selectCheckingLyrics, selectGettingLyrics, selectLyrics } from '@metal-p3/maintenance/data-access';
 import { LyricsHistoryComponent, LyricsHistoryToolbarComponent } from '@metal-p3/maintenance/ui';
-import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { Store } from '@ngrx/store';
 import { tap } from 'rxjs/operators';
 import { ApplyLyricsShellComponent } from '../apply-lyrics/apply-lyrics.component';
 
-@UntilDestroy()
 @Component({
   standalone: true,
   imports: [AsyncPipe, LyricsHistoryToolbarComponent, LyricsHistoryComponent, MatDialogModule, ScrollingModule, MatSelectModule],
@@ -23,6 +22,7 @@ export class LyricsHistoryShellComponent implements OnInit {
   private readonly lyricsMaintenanceService = inject(LyricsMaintenanceService);
   private readonly dialog = inject(MatDialog);
   private readonly viewportRuler = inject(ViewportRuler);
+  private readonly destroyRef = inject(DestroyRef);
 
   getting$ = this.store.select(selectGettingLyrics);
   checking$ = this.store.select(selectCheckingLyrics);
@@ -36,16 +36,16 @@ export class LyricsHistoryShellComponent implements OnInit {
     this.lyricsMaintenanceService
       .lyricsHistoryUpdate()
       .pipe(
-        untilDestroyed(this),
         tap((lyricsHistory) => this.store.dispatch(MaintenanceActions.updateLyricsHistory({ update: { id: lyricsHistory.id, changes: { ...lyricsHistory, complete: true } } }))),
+        takeUntilDestroyed(this.destroyRef),
       )
       .subscribe();
 
     this.lyricsMaintenanceService
       .lyricsHistoryComplete()
       .pipe(
-        untilDestroyed(this),
         tap(() => this.store.dispatch(MaintenanceActions.stopLyricsHistoryCheck())),
+        takeUntilDestroyed(this.destroyRef),
       )
       .subscribe();
   }
@@ -84,7 +84,7 @@ export class LyricsHistoryShellComponent implements OnInit {
 
     dialogRef
       .afterClosed()
-      .pipe(untilDestroyed(this))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((result: { id: number; apply: boolean } | undefined) => {
         if (result?.apply) {
           this.store.dispatch(MaintenanceActions.deleteLyricsHistorySuccess({ id: result.id }));

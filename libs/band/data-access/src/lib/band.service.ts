@@ -10,10 +10,13 @@ import { Observable } from 'rxjs';
 export class BandService {
   readonly baseUrl = `${this.api}band`;
 
-  constructor(private readonly http: HttpClient, @Inject(API) private readonly api: string) {}
+  constructor(
+    private readonly http: HttpClient,
+    @Inject(API) private readonly api: string,
+  ) {}
 
-  saveBand(band: BandDto): Observable<never> {
-    return this.http.patch<never>(this.baseUrl, band);
+  saveBand(band: BandDto): Observable<void> {
+    return this.http.patch<void>(this.baseUrl, band);
   }
 
   getBandProps(url: string): Observable<BandProps> {

@@ -40,16 +40,16 @@ export class AlbumService {
     return this.http.get<string>(`${this.baseUrl}/extraFiles?folder=${encodeURIComponent(folder)}`, { responseType: 'text' as 'json' }).pipe(map((response) => /true/i.test(response)));
   }
 
-  saveAlbum(album: AlbumDto): Observable<never> {
-    return this.http.patch<never>(this.baseUrl, album);
+  saveAlbum(album: AlbumDto): Observable<void> {
+    return this.http.patch<void>(this.baseUrl, album);
   }
 
-  setHasLyrics(id: number, hasLyrics: boolean): Observable<never> {
-    return this.http.patch<never>(`${this.baseUrl}/setHasLyrics?id=${id}&hasLyrics=${hasLyrics}`, {});
+  setHasLyrics(id: number, hasLyrics: boolean): Observable<void> {
+    return this.http.patch<void>(`${this.baseUrl}/setHasLyrics?id=${id}&hasLyrics=${hasLyrics}`, {});
   }
 
-  setTransferred(id: number, transferred: boolean): Observable<never> {
-    return this.http.patch<never>(`${this.baseUrl}/setTransferred?id=${id}&transferred=${transferred}`, {});
+  setTransferred(id: number, transferred: boolean): Observable<void> {
+    return this.http.patch<void>(`${this.baseUrl}/setTransferred?id=${id}&transferred=${transferred}`, {});
   }
 
   findMaUrl(artist: string, album: string): Observable<MetalArchivesSearchResponse> {
@@ -72,8 +72,8 @@ export class AlbumService {
     return this.http.get<RenameFolder>(`${this.baseUrl}/rename?id=${id}&src=${encodeURIComponent(src)}&dest=${encodeURIComponent(dest)}`);
   }
 
-  openFolder(folder: string): Observable<never> {
-    return this.http.get<never>(`${this.baseUrl}/openFolder?folder=${encodeURIComponent(folder)}`);
+  openFolder(folder: string): Observable<void> {
+    return this.http.get<void>(`${this.baseUrl}/openFolder?folder=${encodeURIComponent(folder)}`);
   }
 
   createAlbumFromRootFiles(): Observable<string[]> {

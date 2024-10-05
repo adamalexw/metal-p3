@@ -1,13 +1,16 @@
-import { Directive, HostBinding, HostListener, output } from '@angular/core';
+import { Directive, HostListener, output } from '@angular/core';
 
 @Directive({
   standalone: true,
   selector: '[appAddAlbum]',
+  host: {
+    '[class]': 'addClass',
+  },
 })
 export class AddAlbumDirective {
   readonly albumAdded = output<string[]>();
 
-  @HostBinding('class') private addClass = '';
+  addClass = '';
 
   @HostListener('dragover', ['$event']) public onDragOver(evt: DragEvent) {
     evt.preventDefault();

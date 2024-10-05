@@ -12,14 +12,18 @@ import { Observable } from 'rxjs';
 export class UrlMaintenanceService {
   readonly baseUrl = `${this.api}maintenance/url`;
 
-  constructor(private readonly http: HttpClient, private readonly socket: Socket, @Inject(API) private readonly api: string) {}
+  constructor(
+    private readonly http: HttpClient,
+    private readonly socket: Socket,
+    @Inject(API) private readonly api: string,
+  ) {}
 
   list(): Observable<UrlMatcher[]> {
     return this.http.get<UrlMatcher[]>(`${this.baseUrl}/list`);
   }
 
-  match(): Observable<never> {
-    return this.http.get<never>(`${this.baseUrl}/match`);
+  match(): Observable<void> {
+    return this.http.get<void>(`${this.baseUrl}/match`);
   }
 
   update(): Observable<UrlMatcher> {
@@ -30,7 +34,7 @@ export class UrlMaintenanceService {
     return this.socket.fromEvent(URL_MATCHER_COMPLETE);
   }
 
-  cancel(): Observable<never> {
-    return this.http.get<never>(`${this.baseUrl}/cancel`);
+  cancel(): Observable<void> {
+    return this.http.get<void>(`${this.baseUrl}/cancel`);
   }
 }

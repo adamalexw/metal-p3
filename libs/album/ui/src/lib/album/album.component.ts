@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, HostBinding, computed, effect, inject, input, output, untracked } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, input, output, untracked } from '@angular/core';
 import { FormGroup, FormsModule, NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
@@ -40,6 +40,9 @@ import { AlbumToolbarComponent } from '../album-toolbar/album-toolbar.component'
   ],
   selector: 'app-album',
   templateUrl: './album.component.html',
+  host: {
+    class: 'block h-screen lg:overflow-hidden',
+  },
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AlbumComponent {
@@ -164,8 +167,6 @@ export class AlbumComponent {
   }>();
 
   readonly deleteAlbum = output<number>();
-
-  @HostBinding('class') class = 'block h-screen lg:overflow-hidden';
 
   albumId = computed(() => this.album()?.id ?? 0);
 

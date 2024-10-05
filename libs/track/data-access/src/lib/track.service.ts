@@ -11,7 +11,10 @@ export class TrackService {
   readonly baseUrl = `${this.api}track`;
   readonly albumUrl = `${this.api}album`;
 
-  constructor(private readonly http: HttpClient, @Inject(API) private readonly api: string) {}
+  constructor(
+    private readonly http: HttpClient,
+    @Inject(API) private readonly api: string,
+  ) {}
 
   getTrack(file: string): Observable<TrackDto> {
     return this.http.get<TrackDto>(`${this.baseUrl}/trackDetails?file=${encodeURIComponent(file)}`);
@@ -21,8 +24,8 @@ export class TrackService {
     return this.http.get<TrackDto[]>(`${this.albumUrl}/tracks?folder=${encodeURIComponent(folder)}`);
   }
 
-  saveTrack(track: TrackDto): Observable<never> {
-    return this.http.patch<never>(this.baseUrl, track);
+  saveTrack(track: TrackDto): Observable<void> {
+    return this.http.patch<void>(this.baseUrl, track);
   }
 
   getMaTracks(url: string): Observable<MetalArchivesAlbumTrack[]> {
@@ -41,8 +44,8 @@ export class TrackService {
     return this.http.patch<RenameTrack>(`${this.baseUrl}/rename`, track);
   }
 
-  transferTrack(file: string): Observable<never> {
-    return this.http.get<never>(`${this.baseUrl}/transferTrack?file=${encodeURIComponent(file)}`);
+  transferTrack(file: string): Observable<void> {
+    return this.http.get<void>(`${this.baseUrl}/transferTrack?file=${encodeURIComponent(file)}`);
   }
 
   playTrack(file: string): Observable<Blob> {
