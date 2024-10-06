@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { ErrorService } from '@metal-p3/shared/error';
 import { NotificationService } from '@metal-p3/shared/feedback';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
@@ -10,6 +10,12 @@ import { MaintenanceActions } from './actions';
 
 @Injectable()
 export class MaintenanceEffects {
+  private readonly actions$ = inject(Actions);
+  private readonly lyricsService = inject(LyricsMaintenanceService);
+  private readonly urlService = inject(UrlMaintenanceService);
+  private readonly errorService = inject(ErrorService);
+  private readonly notificationService = inject(NotificationService);
+
   addLyricsPriority$ = createEffect(
     () => {
       return this.actions$.pipe(
@@ -19,10 +25,10 @@ export class MaintenanceEffects {
         catchError((error) => {
           this.notificationService.showError(this.errorService.getError(error), 'Lyrics Priority Error');
           return EMPTY;
-        })
+        }),
       );
     },
-    { dispatch: false }
+    { dispatch: false },
   );
 
   getLyricsHistory$ = createEffect(() => {
@@ -30,7 +36,7 @@ export class MaintenanceEffects {
       ofType(MaintenanceActions.getLyricsHistory),
       concatMap(({ priority }) => iif(() => priority, this.lyricsService.getPriority(), this.lyricsService.getHistory())),
       map((history) => MaintenanceActions.getLyricsHistorySuccess({ history })),
-      catchError((error) => of(MaintenanceActions.getLyricsHistoryError({ error: this.errorService.getError(error) })))
+      catchError((error) => of(MaintenanceActions.getLyricsHistoryError({ error: this.errorService.getError(error) }))),
     );
   });
 
@@ -39,7 +45,7 @@ export class MaintenanceEffects {
       ofType(MaintenanceActions.checkLyricsHistory),
       concatMap(({ priority }) => iif(() => priority, this.lyricsService.checkPriority(), this.lyricsService.checkHistory())),
       map(() => MaintenanceActions.checkLyricsHistorySuccess()),
-      catchError((error) => of(MaintenanceActions.checkLyricsHistoryError({ error: this.errorService.getError(error) })))
+      catchError((error) => of(MaintenanceActions.checkLyricsHistoryError({ error: this.errorService.getError(error) }))),
     );
   });
 
@@ -52,9 +58,9 @@ export class MaintenanceEffects {
           catchError((error) => {
             this.notificationService.showError(this.errorService.getError(error), 'Checked Lyrics History Error');
             return of(MaintenanceActions.checkedLyricsHistoryError({ id, error }));
-          })
-        )
-      )
+          }),
+        ),
+      ),
     );
   });
 
@@ -67,9 +73,9 @@ export class MaintenanceEffects {
           catchError((error) => {
             this.notificationService.showError(this.errorService.getError(error), 'Delete Lyrics History Error');
             return of(MaintenanceActions.deleteLyricsHistoryError({ id, error }));
-          })
-        )
-      )
+          }),
+        ),
+      ),
     );
   });
 
@@ -77,7 +83,7 @@ export class MaintenanceEffects {
     () => {
       return this.actions$.pipe(ofType(MaintenanceActions.stopLyricsHistoryCheck), concatMapTo(this.lyricsService.cancelHistoryCheck()));
     },
-    { dispatch: false }
+    { dispatch: false },
   );
 
   getUrlMatcher$ = createEffect(() => {
@@ -85,7 +91,7 @@ export class MaintenanceEffects {
       ofType(MaintenanceActions.getUrlMatcher),
       concatMap(() => this.urlService.list()),
       map((albums) => MaintenanceActions.getUrlMatcherSuccess({ albums })),
-      catchError((error) => of(MaintenanceActions.getUrlMatcherError({ error: this.errorService.getError(error) })))
+      catchError((error) => of(MaintenanceActions.getUrlMatcherError({ error: this.errorService.getError(error) }))),
     );
   });
 
@@ -93,27 +99,19 @@ export class MaintenanceEffects {
     () => {
       return this.actions$.pipe(
         ofType(MaintenanceActions.startUrlMatcher),
-        concatMap(() => this.urlService.match())
+        concatMap(() => this.urlService.match()),
       );
     },
-    { dispatch: false }
+    { dispatch: false },
   );
 
   stopUrlMatcher$ = createEffect(
     () => {
       return this.actions$.pipe(
         ofType(MaintenanceActions.stopUrlMatcher),
-        concatMap(() => this.urlService.cancel())
+        concatMap(() => this.urlService.cancel()),
       );
     },
-    { dispatch: false }
+    { dispatch: false },
   );
-
-  constructor(
-    private readonly actions$: Actions,
-    private readonly lyricsService: LyricsMaintenanceService,
-    private readonly urlService: UrlMaintenanceService,
-    private readonly errorService: ErrorService,
-    private readonly notificationService: NotificationService
-  ) {}
 }

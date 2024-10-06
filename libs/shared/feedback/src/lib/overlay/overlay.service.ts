@@ -1,12 +1,12 @@
 import { ConnectionPositionPair, Overlay, OverlayConfig, PositionStrategy } from '@angular/cdk/overlay';
 import { ComponentPortal } from '@angular/cdk/portal';
-import { Injectable, Injector, TemplateRef, Type } from '@angular/core';
+import { inject, Injectable, Injector, TemplateRef, Type } from '@angular/core';
 import { AppOverlayRef } from './overlay-ref';
 import { OverlayComponent } from './overlay.component';
 
 @Injectable()
 export class OverlayService {
-  constructor(private readonly overlay: Overlay) {}
+  private readonly overlay = inject(Overlay);
 
   open<R = unknown, T = unknown>(origin: HTMLElement, content: string | TemplateRef<unknown> | Type<unknown>, data: T): AppOverlayRef<R> {
     const config = new OverlayConfig({

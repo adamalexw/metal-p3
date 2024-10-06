@@ -3,6 +3,7 @@ import { TrackService } from '@metal-p3/track/api';
 import { HttpService } from '@nestjs/axios';
 import { Injectable } from '@nestjs/common';
 import * as fs from 'fs';
+import { selectCover } from 'music-metadata';
 import * as path from 'path';
 import { EMPTY, Observable, of } from 'rxjs';
 import { filter, map } from 'rxjs/operators';
@@ -45,7 +46,10 @@ export class CoverService {
   }
 
   private getCoverFromAudioFile(location: string): Observable<string> {
-    return this.trackService.getMetadata(location).pipe(map((metadata) => (metadata.common.picture?.length ? this.toBase64Image(metadata.common.picture[0].data) : '')));
+    return this.trackService.getMetadata(location).pipe(
+      map((metadata) => selectCover(metadata.common.picture)),
+      map((cover) => (cover?.data ? this.toBase64Image(Buffer.from(cover.data)) : '')),
+    );
   }
 
   private getCoverFromImageFile(location: string): Observable<string> {

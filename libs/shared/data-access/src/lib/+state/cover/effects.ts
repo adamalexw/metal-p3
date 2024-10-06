@@ -1,13 +1,12 @@
-import { Inject, Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { BASE_PATH, CoverRequest } from '@metal-p3/album/domain';
 import { CoverService } from '@metal-p3/cover/data-access';
 import { ErrorService } from '@metal-p3/shared/error';
-import { WINDOW } from '@ng-web-apis/common';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { Update } from '@ngrx/entity';
 import { concatLatestFrom } from '@ngrx/operators';
 import { Store } from '@ngrx/store';
-import { EMPTY, Observable, forkJoin, iif, of } from 'rxjs';
+import { EMPTY, forkJoin, iif, Observable, of } from 'rxjs';
 import { catchError, filter, map, mergeMap, switchMap, tap } from 'rxjs/operators';
 import { AlbumActions } from '../actions';
 import { Album } from '../model';
@@ -16,6 +15,12 @@ import { selectBlobCovers } from './selectors';
 
 @Injectable()
 export class CoverEffects {
+  private readonly actions$ = inject(Actions);
+  private readonly service = inject(CoverService);
+  private readonly store = inject(Store);
+  private readonly errorService = inject(ErrorService);
+  private readonly basePath = inject(BASE_PATH);
+
   getCover$ = createEffect(() => {
     return this.actions$.pipe(
       ofType(CoverActions.get),
@@ -104,13 +109,4 @@ export class CoverEffects {
 
     return forkJoin(sources).pipe(map((covers) => Object.entries(covers).map(([id, value]) => ({ id, changes: { coverLoading: false, cover: value.cover, coverError: value.coverError } }))));
   }
-
-  constructor(
-    private readonly actions$: Actions,
-    private readonly service: CoverService,
-    private readonly store: Store,
-    private readonly errorService: ErrorService,
-    @Inject(WINDOW) readonly windowRef: Window,
-    @Inject(BASE_PATH) private readonly basePath: string,
-  ) {}
 }

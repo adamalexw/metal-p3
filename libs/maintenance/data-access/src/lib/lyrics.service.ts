@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { Inject, Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { API } from '@metal-p3/album/domain';
 import { LYRICS_HISTORY_COMPLETE, LYRICS_HISTORY_UPDATE } from '@metal-p3/api-interfaces';
 import { LyricsHistoryDto } from '@metal-p3/maintenance/domain';
@@ -10,13 +10,11 @@ import { Observable } from 'rxjs';
   providedIn: 'root',
 })
 export class LyricsMaintenanceService {
-  readonly baseUrl = `${this.api}maintenance/lyrics`;
+  private readonly http = inject(HttpClient);
+  private readonly api = inject(API);
+  private readonly socket = inject(Socket);
 
-  constructor(
-    private readonly http: HttpClient,
-    private readonly socket: Socket,
-    @Inject(API) private readonly api: string,
-  ) {}
+  private readonly baseUrl = `${this.api}maintenance/lyrics`;
 
   getHistory(): Observable<LyricsHistoryDto[]> {
     return this.http.get<LyricsHistoryDto[]>(`${this.baseUrl}/history`);

@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { Inject, Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { API } from '@metal-p3/album/domain';
 import { PlaylistDto } from '@metal-p3/playlist/domain';
 import { Observable } from 'rxjs';
@@ -8,9 +8,10 @@ import { Observable } from 'rxjs';
   providedIn: 'root',
 })
 export class PlaylistService {
-  readonly baseUrl = `${this.api}playlist`;
+  private readonly http = inject(HttpClient);
+  private readonly api = inject(API);
 
-  constructor(private readonly http: HttpClient, @Inject(API) private readonly api: string) {}
+  private readonly baseUrl = `${this.api}playlist`;
 
   getPlaylists(): Observable<PlaylistDto[]> {
     return this.http.get<PlaylistDto[]>(`${this.baseUrl}/list`);

@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { TrackDto } from '@metal-p3/api-interfaces';
 import { PlaylistItem } from '@metal-p3/player/domain';
 import { Track } from '@metal-p3/track/domain';
@@ -13,7 +13,7 @@ import { PlayerActions } from './+state/actions';
   providedIn: 'root',
 })
 export class PlayerService {
-  constructor(private readonly store: Store) {}
+  private readonly store = inject(Store);
 
   playAlbum(albumId: number, tracks$: Observable<TrackDto[] | undefined>): void {
     this.clear();
@@ -27,7 +27,7 @@ export class PlayerService {
         take(1),
         withLatestFrom(this.store.select(selectPlaylistItemSize)),
         map(([tracks, size]) => tracks?.map((track, index) => this.mapTrackToPlaylistItem(track, albumId, index + size))),
-        tap((tracks) => this.addTracks(tracks))
+        tap((tracks) => this.addTracks(tracks)),
       )
       .subscribe();
   }
@@ -50,7 +50,7 @@ export class PlayerService {
           if (play || track.index === 0) {
             this.store.dispatch(PlayerActions.play({ id: track.id }));
           }
-        })
+        }),
       )
       .subscribe();
   }
@@ -68,7 +68,7 @@ export class PlayerService {
         toArray(),
         map((tracks) => tracks?.map((track, index) => this.mapTrackToPlaylistItem(track, 0, index))),
         tap((tracks) => this.addTracks(tracks)),
-        take(1)
+        take(1),
       )
       .subscribe();
   }

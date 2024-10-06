@@ -3,7 +3,7 @@ import { AdbService } from '@metal-p3/shared/adb';
 import { FileSystemService } from '@metal-p3/shared/file-system';
 import { Injectable } from '@nestjs/common';
 import { createReadStream } from 'fs';
-import * as mm from 'music-metadata';
+import { IAudioMetadata, IOptions, parseFile } from 'music-metadata';
 import * as NodeID3 from 'node-id3';
 import { ReadStream } from 'node:fs';
 import { basename, dirname, extname } from 'path';
@@ -27,8 +27,8 @@ export class TrackService {
     return EMPTY;
   }
 
-  getMetadata(file: string, options?: mm.IOptions): Observable<mm.IAudioMetadata> {
-    return from(mm.parseFile(file, options));
+  getMetadata(file: string, options?: IOptions): Observable<IAudioMetadata> {
+    return from(parseFile(file, options));
   }
 
   getTags(file: string): NodeID3.Tags {
@@ -49,7 +49,7 @@ export class TrackService {
     return EMPTY;
   }
 
-  private mapTrack(fullPath: string, tags: NodeID3.Tags, mm: mm.IAudioMetadata, index: number): TrackDto {
+  private mapTrack(fullPath: string, tags: NodeID3.Tags, mm: IAudioMetadata, index: number): TrackDto {
     return {
       id: index + 1,
       fullPath,

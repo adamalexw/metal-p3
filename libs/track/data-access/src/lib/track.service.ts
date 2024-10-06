@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { Inject, Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { API, ApplyLyrics } from '@metal-p3/album/domain';
 import { AlbumDto, MetalArchivesAlbumTrack, RenameTrack, TrackDto } from '@metal-p3/api-interfaces';
 import { Observable } from 'rxjs';
@@ -8,13 +8,11 @@ import { Observable } from 'rxjs';
   providedIn: 'root',
 })
 export class TrackService {
-  readonly baseUrl = `${this.api}track`;
-  readonly albumUrl = `${this.api}album`;
+  private readonly http = inject(HttpClient);
+  private readonly api = inject(API);
 
-  constructor(
-    private readonly http: HttpClient,
-    @Inject(API) private readonly api: string,
-  ) {}
+  private readonly baseUrl = `${this.api}track`;
+  private readonly albumUrl = `${this.api}album`;
 
   getTrack(file: string): Observable<TrackDto> {
     return this.http.get<TrackDto>(`${this.baseUrl}/trackDetails?file=${encodeURIComponent(file)}`);

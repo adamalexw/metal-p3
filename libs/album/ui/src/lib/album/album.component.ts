@@ -224,9 +224,10 @@ export class AlbumComponent {
       }
     });
 
-    effect(
-      () => {
-        const maUrls = this.maUrls();
+    effect(() => {
+      const maUrls = this.maUrls();
+
+      untracked(() => {
         const gettingBandProps = this.gettingBandProps() ?? false;
 
         if (maUrls) {
@@ -236,9 +237,8 @@ export class AlbumComponent {
             this.getBandProps(maUrls.artistUrl);
           }
         }
-      },
-      { allowSignalWrites: true },
-    );
+      });
+    });
 
     // prevent band genre and country from being overidden
     effect(() => {

@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { PlayerActions, PlayerService, selectItemById, selectPlaylist } from '@metal-p3/player/data-access';
 import { PlaylistItem } from '@metal-p3/player/domain';
 import { playlistItemToDto } from '@metal-p3/player/util';
@@ -11,7 +11,7 @@ import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { Update } from '@ngrx/entity';
 import { concatLatestFrom } from '@ngrx/operators';
 import { Store } from '@ngrx/store';
-import { Observable, forkJoin, of } from 'rxjs';
+import { forkJoin, Observable, of } from 'rxjs';
 import { catchError, concatMap, filter, map, tap } from 'rxjs/operators';
 import { PlaylistService } from '../playlist.service';
 import { PlaylistActions } from './actions';
@@ -19,6 +19,13 @@ import { selectActivePlaylistId, selectPlaylistById } from './selectors';
 
 @Injectable()
 export class PlaylistEffects {
+  private readonly actions$ = inject(Actions);
+  private readonly store = inject(Store);
+  private readonly playlistService = inject(PlaylistService);
+  private readonly trackService = inject(TrackService);
+  private readonly playerService = inject(PlayerService);
+  private readonly errorService = inject(ErrorService);
+
   loadPlaylists$ = createEffect(() => {
     return this.actions$.pipe(
       ofType(PlaylistActions.loadPlaylists),
@@ -145,13 +152,4 @@ export class PlaylistEffects {
       map(() => PlaylistActions.transferComplete()),
     );
   });
-
-  constructor(
-    private readonly actions$: Actions,
-    private readonly store: Store,
-    private readonly playlistService: PlaylistService,
-    private readonly trackService: TrackService,
-    private readonly playerService: PlayerService,
-    private readonly errorService: ErrorService,
-  ) {}
 }

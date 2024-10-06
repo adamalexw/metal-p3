@@ -28,7 +28,7 @@ import {
   selectMaUrls,
   selectRenamingFolder,
   selectRenamingFolderError,
-  selectRouteId,
+  selectRouteNestedParam,
   selectSaveAlbumError,
   selectSelectedAlbumId,
   selectTrackRenaming,
@@ -103,7 +103,10 @@ export class AlbumShellComponent implements OnInit {
   gettingBandProps$ = this.store.select(selectGettingBandProps);
   bandProps$ = this.store.select(selectBandProps);
 
-  routeId$ = this.store.select(selectRouteId).pipe(nonNullable());
+  routeId$ = this.store.select(selectRouteNestedParam('id')).pipe(
+    nonNullable(),
+    map((route) => +route),
+  );
 
   ngOnInit(): void {
     this.setState();
@@ -114,9 +117,9 @@ export class AlbumShellComponent implements OnInit {
     this.routeId$
       .pipe(
         withLatestFrom(this.store.select(selectSelectedAlbumId)),
-        filter(([routeId, selectedId]) => +routeId !== selectedId),
-        tap(([routeId]) => this.store.dispatch(AlbumActions.viewAlbum({ id: +routeId }))),
-        take(1),
+        filter(([routeId, selectedId]) => routeId !== selectedId),
+        tap(([routeId]) => this.store.dispatch(AlbumActions.viewAlbum({ id: routeId }))),
+        takeUntilDestroyed(this.destroyRef),
       )
       .subscribe();
 

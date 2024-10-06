@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { AlbumService } from '@metal-p3/album/data-access';
 import { BASE_PATH } from '@metal-p3/album/domain';
 import { BandDto, MetalArchivesSearchResponse } from '@metal-p3/api-interfaces';
@@ -7,7 +7,7 @@ import { ErrorService } from '@metal-p3/shared/error';
 import { NotificationService } from '@metal-p3/shared/feedback';
 import { nonNullable } from '@metal-p3/shared/utils';
 import { Track } from '@metal-p3/track/domain';
-import { WINDOW } from '@ng-web-apis/common';
+import { WA_WINDOW } from '@ng-web-apis/common';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { Update } from '@ngrx/entity';
 import { concatLatestFrom } from '@ngrx/operators';
@@ -23,6 +23,15 @@ import { AlbumActions } from './actions';
 
 @Injectable()
 export class AlbumEffects {
+  private readonly actions$ = inject(Actions);
+  private readonly service = inject(AlbumService);
+  private readonly coverService = inject(CoverService);
+  private readonly store = inject(Store);
+  private readonly notificationService = inject(NotificationService);
+  private readonly errorService = inject(ErrorService);
+  private readonly windowRef = inject(WA_WINDOW);
+  private readonly basePath = inject(BASE_PATH);
+
   loadAlbums$ = createEffect(() => {
     return this.actions$.pipe(
       ofType(AlbumActions.loadAlbums, AlbumActions.cancelPreviousSearch),
@@ -256,15 +265,4 @@ export class AlbumEffects {
       ),
     );
   });
-
-  constructor(
-    private readonly actions$: Actions,
-    private readonly service: AlbumService,
-    private readonly coverService: CoverService,
-    private readonly store: Store,
-    private readonly notificationService: NotificationService,
-    private readonly errorService: ErrorService,
-    @Inject(WINDOW) readonly windowRef: Window,
-    @Inject(BASE_PATH) private readonly basePath: string,
-  ) {}
 }

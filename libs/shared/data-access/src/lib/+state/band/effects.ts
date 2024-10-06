@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { BandService } from '@metal-p3/band/data-access';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { EMPTY } from 'rxjs';
@@ -7,6 +7,9 @@ import { BandActions } from './actions';
 
 @Injectable()
 export class BandEffects {
+  private readonly actions$ = inject(Actions);
+  private readonly service = inject(BandService);
+
   saveBand$ = createEffect(() => {
     return this.actions$.pipe(
       ofType(BandActions.save),
@@ -16,9 +19,9 @@ export class BandEffects {
           catchError((error) => {
             console.error(error);
             return EMPTY;
-          })
-        )
-      )
+          }),
+        ),
+      ),
     );
   });
 
@@ -31,11 +34,9 @@ export class BandEffects {
           catchError((error) => {
             console.error(error);
             return EMPTY;
-          })
-        )
-      )
+          }),
+        ),
+      ),
     );
   });
-
-  constructor(private readonly actions$: Actions, private readonly service: BandService) {}
 }

@@ -1,5 +1,5 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Inject, Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { API, ApplyLyrics, BASE_PATH, TAKE } from '@metal-p3/album/domain';
 import { ALBUM_ADDED, AlbumDto, MetalArchivesSearchResponse, RenameFolder, SearchRequest, TrackDto } from '@metal-p3/api-interfaces';
 import { removeNullValuesFromQueryParams } from '@metal-p3/shared/utils';
@@ -11,15 +11,13 @@ import { map } from 'rxjs/operators';
   providedIn: 'root',
 })
 export class AlbumService {
-  readonly baseUrl = `${this.api}album`;
+  private readonly http = inject(HttpClient);
+  private readonly api = inject(API);
+  private readonly basePath = inject(BASE_PATH);
+  private readonly take = inject(TAKE);
+  private readonly socket = inject(Socket);
 
-  constructor(
-    private readonly http: HttpClient,
-    @Inject(API) private readonly api: string,
-    @Inject(BASE_PATH) private readonly basePath: string,
-    @Inject(TAKE) private readonly take: number,
-    private readonly socket: Socket,
-  ) {}
+  private readonly baseUrl = `${this.api}album`;
 
   getAlbums(request: Partial<SearchRequest>): Observable<AlbumDto[]> {
     const url = `${this.baseUrl}/search`;

@@ -1,3 +1,4 @@
+import { inject } from '@angular/core';
 import type { BandProps, MetalArchivesAlbumTrack, MetalArchivesSearchResponse, MetalArchivesSearchResponseItem } from '@metal-p3/api-interfaces';
 import { extractUrl } from '@metal-p3/shared/utils';
 import { HttpService } from '@nestjs/axios';
@@ -8,9 +9,9 @@ import { map } from 'rxjs/operators';
 
 @Injectable()
 export class MetalArchivesService {
-  readonly baseUrl = 'https://www.metal-archives.com/';
+  private readonly httpService = inject(HttpService);
 
-  constructor(private readonly httpService: HttpService) {}
+  private readonly baseUrl = 'https://www.metal-archives.com/';
 
   findUrl(artist: string, album: string): Observable<MetalArchivesSearchResponse> {
     return this.httpService

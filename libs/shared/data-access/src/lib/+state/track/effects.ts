@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { BASE_PATH } from '@metal-p3/album/domain';
 import { ErrorService } from '@metal-p3/shared/error';
 import { TrackService } from '@metal-p3/track/data-access';
@@ -13,6 +13,12 @@ import { selectTrack } from './selectors';
 
 @Injectable()
 export class TrackEffects {
+  private readonly actions$ = inject(Actions);
+  private readonly service = inject(TrackService);
+  private readonly store = inject(Store);
+  private readonly basePath = inject(BASE_PATH);
+  private readonly errorService = inject(ErrorService);
+
   getTracks$ = createEffect(() => {
     return this.actions$.pipe(
       ofType(TrackActions.getTracks),
@@ -109,12 +115,4 @@ export class TrackEffects {
       ),
     );
   });
-
-  constructor(
-    private readonly actions$: Actions,
-    private readonly service: TrackService,
-    private readonly store: Store,
-    @Inject(BASE_PATH) private readonly basePath: string,
-    private errorService: ErrorService,
-  ) {}
 }

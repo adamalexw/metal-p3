@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { Inject, Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { API } from '@metal-p3/album/domain';
 import { URL_MATCHER, URL_MATCHER_COMPLETE } from '@metal-p3/api-interfaces';
 import { UrlMatcher } from '@metal-p3/maintenance/domain';
@@ -10,13 +10,11 @@ import { Observable } from 'rxjs';
   providedIn: 'root',
 })
 export class UrlMaintenanceService {
-  readonly baseUrl = `${this.api}maintenance/url`;
+  private readonly http = inject(HttpClient);
+  private readonly api = inject(API);
+  private readonly socket = inject(Socket);
 
-  constructor(
-    private readonly http: HttpClient,
-    private readonly socket: Socket,
-    @Inject(API) private readonly api: string,
-  ) {}
+  readonly baseUrl = `${this.api}maintenance/url`;
 
   list(): Observable<UrlMatcher[]> {
     return this.http.get<UrlMatcher[]>(`${this.baseUrl}/list`);

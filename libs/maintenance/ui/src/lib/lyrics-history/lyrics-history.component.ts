@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, effect, input, output, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, input, output, untracked, viewChild } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatIconModule } from '@angular/material/icon';
@@ -38,16 +38,15 @@ export class LyricsHistoryComponent {
   dataSource = new MatTableDataSource<LyricsHistoryDto>();
 
   constructor() {
-    effect(
-      () => {
-        const lyrics = this.lyrics();
+    effect(() => {
+      const lyrics = this.lyrics();
 
+      untracked(() => {
         if (lyrics?.length) {
           this.dataSource.data = lyrics;
         }
-      },
-      { allowSignalWrites: true }, // TODO why
-    );
+      });
+    });
 
     effect(() => {
       const sort = this.sort();
