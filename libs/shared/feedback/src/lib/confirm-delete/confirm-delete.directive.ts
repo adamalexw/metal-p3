@@ -6,7 +6,7 @@ import { ConfirmDeleteComponent } from './confirm-delete.component';
   standalone: true,
   selector: '[appConfirmDelete]',
   host: {
-    '(click)': 'onClick',
+    '(click)': 'onClick()',
   },
   providers: [OverlayService],
 })
@@ -20,6 +20,7 @@ export class ConfirmDeleteDirective {
   readonly confirmResult = output<boolean>();
 
   onClick() {
+    console.log('here');
     const ref = this.overlayService.open(this.element.nativeElement, this.confirmDeleteComponent, { name: this.itemName() });
 
     ref.afterClosed$.subscribe((res) => {
