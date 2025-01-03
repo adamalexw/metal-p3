@@ -20,13 +20,11 @@ import { filter, map, take, tap } from 'rxjs/operators';
 import { LyricsComponent } from '../lyrics/lyrics.component';
 
 @Component({
-  standalone: true,
   imports: [
     AsyncPipe,
     BitRatePipe,
     ConfirmDeleteDirective,
     FormsModule,
-    LyricsComponent,
     MatBottomSheetModule,
     MatButtonModule,
     MatFormFieldModule,

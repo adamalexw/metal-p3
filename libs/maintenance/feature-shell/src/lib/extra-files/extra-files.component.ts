@@ -9,7 +9,6 @@ import { BehaviorSubject } from 'rxjs';
 import { concatMap, finalize, tap } from 'rxjs/operators';
 
 @Component({
-  standalone: true,
   imports: [AsyncPipe, ExtraFilesToolbarComponent, ExtraFilesComponent],
   selector: 'app-extra-files-shell',
   templateUrl: './extra-files.component.html',

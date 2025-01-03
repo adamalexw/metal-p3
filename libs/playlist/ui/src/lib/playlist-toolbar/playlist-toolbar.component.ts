@@ -11,7 +11,6 @@ import { ConfirmDeleteDirective } from '@metal-p3/shared/feedback';
 import { TimePipe } from '@metal-p3/track/util';
 
 @Component({
-  standalone: true,
   imports: [FormsModule, TimePipe, ConfirmDeleteDirective, MatToolbarModule, MatMenuModule, MatButtonModule, MatIconModule, MatInputModule, MatFormFieldModule],
   selector: 'app-playlist-toolbar',
   templateUrl: './playlist-toolbar.component.html',

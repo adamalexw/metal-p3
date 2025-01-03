@@ -12,7 +12,6 @@ import { Track } from '@metal-p3/track/domain';
 import { ApplyLyricsToolbarComponent } from '../apply-lyrics-toolbar/apply-lyrics-toolbar.component';
 
 @Component({
-  standalone: true,
   imports: [DatePipe, ApplyLyricsToolbarComponent, MatProgressBarModule, MatTableModule, MatFormFieldModule, MatSelectModule, MatCheckboxModule],
   selector: 'app-apply-lyrics',
   templateUrl: './apply-lyrics.component.html',

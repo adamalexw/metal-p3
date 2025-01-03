@@ -15,7 +15,7 @@ export class FileSystemMaintenanceService {
     private readonly dbService: DbService,
     private readonly fileSystemService: FileSystemService,
     private readonly maintenanceGateway: MaintenanceGateway,
-    @Inject('BASE_PATH') private readonly basePath: string
+    @Inject('BASE_PATH') private readonly basePath: string,
   ) {}
 
   getUnmappedFolders(): Observable<string[]> {
@@ -25,9 +25,9 @@ export class FileSystemMaintenanceService {
 
         return difference(
           fsFolders,
-          folders.map((f) => f.Folder)
+          folders.map((f) => f.Folder),
         );
-      })
+      }),
     );
   }
 
@@ -49,7 +49,7 @@ export class FileSystemMaintenanceService {
             }
           }
         }),
-        finalize(() => this.maintenanceGateway.extraFilesComplete())
+        finalize(() => this.maintenanceGateway.extraFilesComplete()),
       )
       .subscribe();
   }

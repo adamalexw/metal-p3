@@ -5,7 +5,6 @@ import { CoverDragDirective } from './cover-dnd.directive';
 import { output } from '@angular/core';
 
 @Component({
-  standalone: true,
   imports: [CoverDragDirective, MatProgressSpinnerModule, SafePipe],
   selector: 'app-cover',
   templateUrl: './cover.component.html',

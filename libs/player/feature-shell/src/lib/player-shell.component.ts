@@ -26,7 +26,6 @@ import { Observable, fromEvent, iif, of } from 'rxjs';
 import { concatMap, distinctUntilKeyChanged, filter, map, shareReplay, take, tap, withLatestFrom } from 'rxjs/operators';
 
 @Component({
-  standalone: true,
   imports: [AsyncPipe, CoverComponent, PlayerControlsComponent, PlaylistShellComponent, PlaylistComponent],
   selector: 'app-player',
   templateUrl: './player-shell.component.html',

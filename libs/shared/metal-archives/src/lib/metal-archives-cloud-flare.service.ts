@@ -16,7 +16,7 @@ export class MetalArchivesService {
       'iTotalRecords',
       true,
     ).pipe(
-      map((response: MetalArchivesSearchResponse) => ({ ...response, results: this.mapSearchResults(response.aaData) })),
+      map((response) => ({ ...response, results: this.mapSearchResults(response.aaData) })),
       catchError((error) => {
         console.log(error);
         return of({
@@ -113,7 +113,7 @@ export class MetalArchivesService {
     );
   }
 
-  private async getPageContents<T>(url: string, waitFor: 'page' | 'url', waitItem: string, isJson = false): Promise<string | T> {
+  private async getPageContents<T>(url: string, waitFor: 'page' | 'url', waitItem: string, isJson = false): Promise<T> {
     const StealthPlugin = require('puppeteer-extra-plugin-stealth');
     const puppeteerStealth = StealthPlugin();
 

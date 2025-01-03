@@ -6,7 +6,6 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { NavToolbarComponent } from '@metal-p3/shared/navigation';
 
 @Component({
-  standalone: true,
   imports: [NavToolbarComponent, MatIconModule, MatButtonModule, MatMenuModule, MatProgressBarModule],
   selector: 'app-lyrics-history-toolbar',
   templateUrl: './lyrics-history-toolbar.component.html',

@@ -6,7 +6,6 @@ import { RouterModule } from '@angular/router';
 import { UrlMatcher } from '@metal-p3/maintenance/domain';
 
 @Component({
-  standalone: true,
   imports: [RouterModule, MatTableModule, MatIconModule, MatTooltipModule],
   selector: 'app-url-matcher',
   templateUrl: './url-matcher.component.html',

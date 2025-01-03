@@ -1,8 +1,8 @@
 @use '@angular/material' as mat;
+@forward 'theme';
+@forward 'variables';
 @tailwind base;
 @tailwind utilities;
-@import 'theme';
-@import 'variables';
 
 html,
 body {
@@ -26,25 +26,25 @@ body {
 ::-webkit-scrollbar-thumb {
   -webkit-border-radius: 5px;
   border-radius: 5px;
-  background: mat.get-theme-color($theme, primary, 80);
+  background: var(--mat-text-button-state-layer-color);
 }
 
 .mat-column-trackNumber {
-  max-width: $track-number-width;
-  width: $track-number-width;
+  max-width: var(--track-number-width);
+  width: var(--track-number-width);
 }
 
 .mat-column-duration {
-  width: $duration-width;
+  width: var(--duration-width);
 }
 
 .snackbar-error {
-  --mdc-snackbar-container-color: red;
+  --mdc-snackbar-container-color: var(--mat-form-field-error-text-color);
   --mdc-snackbar-supporting-text-color: white;
   --mat-snack-bar-button-color: white;
 }
 
 .snackbar-info {
-  --mdc-snackbar-container-color: mat.get-theme-color($theme, primary, 80);
+  --mdc-snackbar-container-color: var(--mat-text-button-state-layer-color);
   --mdc-snackbar-supporting-text-color: black;
 }

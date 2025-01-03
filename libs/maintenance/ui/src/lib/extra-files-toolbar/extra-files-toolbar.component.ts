@@ -4,7 +4,6 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { NavToolbarComponent } from '@metal-p3/shared/navigation';
 
 @Component({
-  standalone: true,
   imports: [NavToolbarComponent, MatIconModule, MatProgressBarModule],
   selector: 'app-extra-files-toolbar',
   templateUrl: './extra-files-toolbar.component.html',
@@ -12,5 +11,5 @@ import { NavToolbarComponent } from '@metal-p3/shared/navigation';
 })
 export class ExtraFilesToolbarComponent {
   running = input<boolean | null | undefined>();
-  readonly stop = output<void>();
+  readonly stopProcessing = output<void>();
 }

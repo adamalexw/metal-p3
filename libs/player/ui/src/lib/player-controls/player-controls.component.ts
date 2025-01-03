@@ -8,7 +8,6 @@ import { TimePipe } from '@metal-p3/track/util';
 import { VolumeComponent } from '../volume/volume.component';
 
 @Component({
-  standalone: true,
   imports: [NgClass, NgTemplateOutlet, VolumeComponent, TimePipe, MatToolbarModule, MatSliderModule, MatIconModule],
   selector: 'app-player-controls',
   templateUrl: './player-controls.component.html',

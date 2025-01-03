@@ -6,7 +6,6 @@ import { NavToolbarComponent } from '@metal-p3/shared/navigation';
 import { WINDOW } from '@ng-web-apis/common';
 
 @Component({
-  standalone: true,
   imports: [RouterModule, NavToolbarComponent, CoverComponent, MatIconModule],
   selector: 'app-lyrics-toolbar',
   templateUrl: './apply-lyrics-toolbar.component.html',

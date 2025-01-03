@@ -1,11 +1,7 @@
-@import 'variables';
-
 .mat-column-actions {
-  max-width: $actions-width;
-  width: $actions-width;
+  max-width: var(--actions-width);
+  width: var(--actions-width);
 }
-
-$numWidth: 70px;
 
 .mat-column-url,
 .mat-column-year,
@@ -14,8 +10,6 @@ $numWidth: 70px;
 .mat-column-numLyricsHistory,
 .mat-column-checked,
 .mat-column-complete {
-    max-width: $numWidth;
-    @apply justify-center
+  max-width: 70px;
+  @apply justify-center;
 }
-
-

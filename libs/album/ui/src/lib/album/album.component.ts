@@ -20,7 +20,6 @@ import { AlbumFormComponent } from '../album-form/album-form.component';
 import { AlbumToolbarComponent } from '../album-toolbar/album-toolbar.component';
 
 @Component({
-  standalone: true,
   imports: [
     AlbumFormComponent,
     AlbumToolbarComponent,

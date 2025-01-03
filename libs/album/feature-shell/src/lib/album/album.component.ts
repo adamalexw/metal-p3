@@ -51,7 +51,6 @@ import { Observable, combineLatest } from 'rxjs';
 import { distinctUntilChanged, filter, map, take, tap, withLatestFrom } from 'rxjs/operators';
 
 @Component({
-  standalone: true,
   imports: [AsyncPipe, RouterModule, AlbumComponent],
   selector: 'app-album-shell',
   templateUrl: './album.component.html',

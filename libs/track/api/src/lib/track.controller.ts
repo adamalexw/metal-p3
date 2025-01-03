@@ -6,7 +6,10 @@ import { TrackService } from './track.service';
 
 @Controller('track')
 export class TrackController {
-  constructor(private readonly trackService: TrackService, private readonly fileSystemService: FileSystemService) {}
+  constructor(
+    private readonly trackService: TrackService,
+    private readonly fileSystemService: FileSystemService,
+  ) {}
 
   @Get('files')
   files(@Query('folder') folder: string): string[] {

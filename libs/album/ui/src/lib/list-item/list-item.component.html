@@ -27,10 +27,6 @@
     </button>
 
     <mat-menu #menu="matMenu">
-      <button mat-menu-item (click)="renameFolder.emit()">
-        <mat-icon>folder</mat-icon>
-        <span>Rename Folder</span>
-      </button>
       <button mat-menu-item (click)="transferAlbum.emit()">
         <mat-icon>adb</mat-icon>
         <span>Transfer</span>
@@ -42,6 +38,10 @@
       <button mat-menu-item (click)="addToPlaylist.emit()">
         <mat-icon>playlist_add</mat-icon>
         <span>Add To Playlist</span>
+      </button>
+      <button mat-menu-item appConfirmDelete itemName="album" (confirmResult)="onDelete($event)">
+        <mat-icon>delete</mat-icon>
+        <span>Delete</span>
       </button>
     </mat-menu>
   </mat-card-footer>

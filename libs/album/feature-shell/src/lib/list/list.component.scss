@@ -1,5 +1,5 @@
 cdk-virtual-scroll-viewport {
-  height: var(--list-height);
+  min-height: var(--list-height);
   width: 100%;
 }
 

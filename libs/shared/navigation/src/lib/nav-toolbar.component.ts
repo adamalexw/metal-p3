@@ -4,7 +4,6 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatToolbarModule } from '@angular/material/toolbar';
 
 @Component({
-  standalone: true,
   imports: [MatToolbarModule, MatIconModule],
   selector: 'app-nav-toolbar',
   templateUrl: './nav-toolbar.component.html',

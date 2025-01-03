@@ -56,7 +56,7 @@ export class PlaylistService {
       catchError((error) => {
         Logger.error(error);
         return of(error);
-      })
+      }),
     );
   }
 
@@ -82,7 +82,7 @@ export class PlaylistService {
       catchError((error) => {
         Logger.error(error);
         return of(error);
-      })
+      }),
     );
   }
 
@@ -92,7 +92,7 @@ export class PlaylistService {
       catchError((error) => {
         Logger.error(error);
         return of(error);
-      })
+      }),
     );
   }
 
@@ -102,7 +102,7 @@ export class PlaylistService {
       catchError((error) => {
         Logger.error(error);
         return of(error);
-      })
+      }),
     );
   }
 }

@@ -11,7 +11,6 @@ import { tap } from 'rxjs/operators';
 import { ApplyLyricsShellComponent } from '../apply-lyrics/apply-lyrics.component';
 
 @Component({
-  standalone: true,
   imports: [AsyncPipe, LyricsHistoryToolbarComponent, LyricsHistoryComponent, MatDialogModule, ScrollingModule, MatSelectModule],
   selector: 'app-lyrics-history-shell',
   templateUrl: './lyrics-history.component.html',

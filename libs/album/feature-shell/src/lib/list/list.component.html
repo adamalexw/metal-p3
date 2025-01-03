@@ -9,24 +9,26 @@
 />
 
 @if (searchRequest$ | async; as searchRequest) {
-  <cdk-virtual-scroll-viewport [itemSize]="379" (scrolledIndexChange)="scrollIndexChange($event, searchRequest, false)">
+  <cdk-virtual-scroll-viewport [itemSize]="380" minBufferPx="1520" maxBufferPx="1900" (scrolledIndexChange)="scrollIndexChange($event, searchRequest, false)">
     <div class="mx-4 overflow-hidden" appAddAlbum (albumAdded)="onAlbumAdded($event)">
-      <div class="grid grid-flow-col auto-cols-fr lg:auto-cols-min gap-2 py-2" *cdkVirtualFor="let albums of albumsView$; trackBy: trackByVirtualFn">
-        @if (albums.length === 0 && (albumsLoading$ | async) === false) {
-          <div class="w-max text-xl">no albums found</div>
-        }
+      <div *cdkVirtualFor="let albums of albumsView$; trackBy: trackByVirtualFn">
+        <div class="grid grid-flow-col auto-cols-fr lg:auto-cols-min gap-4 py-2">
+          @if (albums.length === 0 && (albumsLoading$ | async) === false) {
+            <div class="w-max text-xl">no albums found</div>
+          }
 
-        @for (album of albums; track trackByAlbumFn($index, album)) {
-          <app-list-item
-            class="w-full lg:w-[275px]"
-            [album]="album"
-            (openAlbum)="onOpenAlbum($event)"
-            (renameFolder)="onRenameFolder(album.id, album.fullPath, album.artist, album.album)"
-            (transferAlbum)="onTransferAlbum(album.id, album.folder)"
-            (playAlbum)="onPlayAlbum(album.id, album.folder)"
-            (addToPlaylist)="onAddToPlaylist(album.id, album.folder)"
-          />
-        }
+          @for (album of albums; track trackByAlbumFn($index, album)) {
+            <app-list-item
+              class="w-full lg:w-[276px]"
+              [album]="album"
+              (openAlbum)="onOpenAlbum($event)"
+              (deleteAlbum)="onDeleteAlbum(album.id)"
+              (transferAlbum)="onTransferAlbum(album.id, album.folder)"
+              (playAlbum)="onPlayAlbum(album.id, album.folder)"
+              (addToPlaylist)="onAddToPlaylist(album.id, album.folder)"
+            />
+          }
+        </div>
       </div>
     </div>
   </cdk-virtual-scroll-viewport>

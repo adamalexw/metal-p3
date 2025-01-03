@@ -9,7 +9,6 @@ import { MatCardModule } from '@angular/material/card';
 import { AppOverlayRef } from './overlay-ref';
 
 @Component({
-  standalone: true,
   imports: [NgComponentOutlet, OverlayModule, PortalModule, MatCardModule, MatButtonModule],
   selector: 'app-overlay',
   templateUrl: './overlay.component.html',

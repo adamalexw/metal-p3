@@ -35,6 +35,6 @@ export const playlistFeature = {
     on(PlaylistActions.deleteSuccess, (state, { id }) => adapter.removeOne(id, { ...state, active: undefined })),
     on(PlaylistActions.transfer, (state): PlaylistState => ({ ...state, transferring: true })),
     on(PlaylistActions.transferComplete, (state): PlaylistState => ({ ...state, transferring: false })),
-    on(PlayerActions.clear, (state): PlaylistState => ({ ...state, active: undefined }))
+    on(PlayerActions.clear, (state): PlaylistState => ({ ...state, active: undefined })),
   ),
 };

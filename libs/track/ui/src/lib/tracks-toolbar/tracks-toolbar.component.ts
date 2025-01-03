@@ -6,7 +6,6 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { TimePipe } from '@metal-p3/track/util';
 
 @Component({
-  standalone: true,
   imports: [NgTemplateOutlet, MatToolbarModule, MatButtonModule, MatIconModule, TimePipe],
   selector: 'app-tracks-toolbar',
   templateUrl: './tracks-toolbar.component.html',

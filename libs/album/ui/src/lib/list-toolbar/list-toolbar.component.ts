@@ -12,7 +12,6 @@ import { SearchRequest } from '@metal-p3/api-interfaces';
 import { debounceTime, distinctUntilChanged, tap } from 'rxjs/operators';
 
 @Component({
-  standalone: true,
   imports: [FormsModule, ReactiveFormsModule, MatToolbarModule, RouterModule, MatInputModule, MatButtonModule, MatIconModule, MatMenuModule, MatProgressBarModule],
   selector: 'app-list-toolbar',
   templateUrl: './list-toolbar.component.html',

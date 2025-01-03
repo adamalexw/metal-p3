@@ -31,7 +31,7 @@ export const albumAdapter: EntityAdapter<Album> = createEntityAdapter<Album>({
 export const trackAdapter: EntityAdapter<Track> = createEntityAdapter<Track>();
 export const maTrackAdapter: EntityAdapter<MetalArchivesAlbumTrack> = createEntityAdapter<MetalArchivesAlbumTrack>();
 
-const initalSearchRequest: SearchRequest = { skip: 60, take: 0 };
+const initalSearchRequest: SearchRequest = { skip: 65, take: 0 };
 
 const initialState = albumAdapter.getInitialState({
   loading: false,
@@ -81,8 +81,8 @@ export const albumsFeature = createFeature({
     on(CoverActions.getMany, (state, { request }) =>
       albumAdapter.updateMany(
         request.requests.map((r) => ({ id: r.id, changes: { coverLoading: true } })),
-        state
-      )
+        state,
+      ),
     ),
     on(CoverActions.getManySuccess, (state, { update }) => albumAdapter.updateMany(update, state)),
     on(CoverActions.save, (state, { id }) => albumAdapter.updateOne({ id: id, changes: { savingCover: true } }, state)),
@@ -100,8 +100,8 @@ export const albumsFeature = createFeature({
             tracksError: undefined,
           },
         },
-        state
-      )
+        state,
+      ),
     ),
     on(TrackActions.getTracksError, (state, { id, error }) =>
       albumAdapter.updateOne(
@@ -113,8 +113,8 @@ export const albumsFeature = createFeature({
             tracks: trackAdapter.setAll([], state.tracks),
           },
         },
-        state
-      )
+        state,
+      ),
     ),
     on(TrackActions.saveTrack, (state, { id, track }) =>
       albumAdapter.mapOne(
@@ -125,8 +125,8 @@ export const albumsFeature = createFeature({
             tracks: trackAdapter.updateOne({ id: track.id, changes: { ...track, trackSaving: true } }, album.tracks),
           }),
         },
-        state
-      )
+        state,
+      ),
     ),
     on(TrackActions.saveTrackSuccess, (state, { id, track }) =>
       albumAdapter.mapOne(
@@ -137,8 +137,8 @@ export const albumsFeature = createFeature({
             tracks: trackAdapter.updateOne({ id: track.id, changes: { ...track, trackSaving: false } }, album.tracks),
           }),
         },
-        state
-      )
+        state,
+      ),
     ),
     on(TrackActions.getLyrics, (state, { id, trackId }) =>
       albumAdapter.mapOne(
@@ -149,8 +149,8 @@ export const albumsFeature = createFeature({
             maTracks: maTrackAdapter.updateOne({ id: trackId, changes: { lyricsLoading: true } }, album.maTracks),
           }),
         },
-        state
-      )
+        state,
+      ),
     ),
     on(TrackActions.getLyricsSuccess, (state, { id, trackId, lyrics }) =>
       albumAdapter.mapOne(
@@ -161,8 +161,8 @@ export const albumsFeature = createFeature({
             maTracks: maTrackAdapter.map((track) => (track.id === trackId ? { ...track, lyrics, lyricsLoading: false } : track), album.maTracks),
           }),
         },
-        state
-      )
+        state,
+      ),
     ),
     on(TrackActions.getLyricsError, (state, { id, trackId, error }) =>
       albumAdapter.mapOne(
@@ -173,8 +173,8 @@ export const albumsFeature = createFeature({
             maTracks: maTrackAdapter.map((track) => (track.id === trackId ? { ...track, error, lyricsLoading: false } : track), album.maTracks),
           }),
         },
-        state
-      )
+        state,
+      ),
     ),
     on(TrackActions.getMetalArchivesTracks, (state, { id }) => albumAdapter.updateOne({ id, changes: { gettingMaTracks: true } }, state)),
     on(TrackActions.getMetalArchivesTracksSuccess, (state, { id, maTracks }) =>
@@ -186,8 +186,8 @@ export const albumsFeature = createFeature({
             gettingMaTracks: false,
           },
         },
-        state
-      )
+        state,
+      ),
     ),
     on(TrackActions.renameTrack, (state, { id, track }) =>
       albumAdapter.mapOne(
@@ -198,8 +198,8 @@ export const albumsFeature = createFeature({
             tracks: trackAdapter.updateOne({ id: track.id, changes: { trackRenaming: true } }, album.tracks),
           }),
         },
-        state
-      )
+        state,
+      ),
     ),
     on(TrackActions.renameTrackSuccess, (state, { id, trackId, file, fullPath }) =>
       albumAdapter.mapOne(
@@ -210,8 +210,8 @@ export const albumsFeature = createFeature({
             tracks: trackAdapter.updateOne({ id: trackId, changes: { file, fullPath, trackRenaming: false } }, album.tracks),
           }),
         },
-        state
-      )
+        state,
+      ),
     ),
     on(TrackActions.updateTracksSuccess, (state, { id, updates }) =>
       albumAdapter.mapOne(
@@ -222,8 +222,8 @@ export const albumsFeature = createFeature({
             tracks: trackAdapter.updateMany(updates, album.tracks),
           }),
         },
-        state
-      )
+        state,
+      ),
     ),
     on(TrackActions.transferTrack, (state, { id, trackId }) =>
       albumAdapter.mapOne(
@@ -234,8 +234,8 @@ export const albumsFeature = createFeature({
             tracks: trackAdapter.updateOne({ id: trackId, changes: { trackTransferring: true } }, album.tracks),
           }),
         },
-        state
-      )
+        state,
+      ),
     ),
     on(TrackActions.transferTrackSuccess, (state, { id, track }) =>
       albumAdapter.mapOne(
@@ -246,8 +246,8 @@ export const albumsFeature = createFeature({
             tracks: trackAdapter.updateOne({ id: track.id, changes: { trackTransferring: false } }, album.tracks),
           }),
         },
-        state
-      )
+        state,
+      ),
     ),
     on(TrackActions.deleteTrack, (state, { id, track }) =>
       albumAdapter.mapOne(
@@ -258,8 +258,8 @@ export const albumsFeature = createFeature({
             tracks: trackAdapter.updateOne({ id: track.id, changes: { trackDeleting: true, trackDeletionError: undefined } }, album.tracks),
           }),
         },
-        state
-      )
+        state,
+      ),
     ),
     on(TrackActions.deleteTrackSuccess, (state, { id, track }) =>
       albumAdapter.mapOne(
@@ -270,8 +270,8 @@ export const albumsFeature = createFeature({
             tracks: trackAdapter.removeOne(track.id, album.tracks),
           }),
         },
-        state
-      )
+        state,
+      ),
     ),
     on(TrackActions.deleteTrackError, (state, { id, trackId, error }) =>
       albumAdapter.mapOne(
@@ -282,8 +282,8 @@ export const albumsFeature = createFeature({
             tracks: trackAdapter.updateOne({ id: trackId, changes: { trackDeleting: false, trackDeletionError: error } }, album.tracks),
           }),
         },
-        state
-      )
+        state,
+      ),
     ),
 
     /** BAND */
@@ -292,6 +292,6 @@ export const albumsFeature = createFeature({
     }),
     on(BandActions.getPropsSuccess, (state, { update }) => {
       return albumAdapter.updateOne(update, state);
-    })
+    }),
   ),
 });

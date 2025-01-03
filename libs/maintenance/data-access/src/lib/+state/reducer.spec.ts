@@ -119,7 +119,7 @@ it('MaintenanceActions.updateLyricsHistory update lyrics history entity complete
         },
       },
     },
-    MaintenanceActions.updateLyricsHistory({ update })
+    MaintenanceActions.updateLyricsHistory({ update }),
   );
 
   expect(state).toEqual({
@@ -157,7 +157,7 @@ it('MaintenanceActions.deleteLyricsHistorySuccess delete lyrics entity', () => {
         },
       },
     },
-    MaintenanceActions.deleteLyricsHistorySuccess({ id })
+    MaintenanceActions.deleteLyricsHistorySuccess({ id }),
   );
 
   expect(state).toEqual({
@@ -252,7 +252,7 @@ it('MaintenanceActions.updateUrlMatcher update metalArchivesMatcher entity', () 
         },
       },
     },
-    MaintenanceActions.updateUrlMatcher({ update })
+    MaintenanceActions.updateUrlMatcher({ update }),
   );
 
   expect(state).toEqual({

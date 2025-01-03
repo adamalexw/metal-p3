@@ -6,7 +6,6 @@ import { PlaylistToolbarComponent } from '@metal-p3/playlist/ui';
 import { Store } from '@ngrx/store';
 
 @Component({
-  standalone: true,
   imports: [AsyncPipe, PlaylistToolbarComponent],
   selector: 'app-playlist-shell',
   templateUrl: './playlist-shell.component.html',

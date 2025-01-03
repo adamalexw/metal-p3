@@ -7,7 +7,6 @@ import { Store } from '@ngrx/store';
 import { filter, take, tap } from 'rxjs/operators';
 
 @Component({
-  standalone: true,
   imports: [AsyncPipe, UrlMatcherToolbarComponent, UrlMatcherComponent],
   selector: 'app-url-matcher-shell',
   templateUrl: './url-matcher.component.html',

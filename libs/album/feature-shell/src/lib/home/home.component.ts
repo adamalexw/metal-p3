@@ -11,7 +11,6 @@ import { AdvancedSearchShellComponent } from '../advanced-search/advanced-search
 import { ListComponent } from '../list/list.component';
 
 @Component({
-  standalone: true,
   imports: [AsyncPipe, RouterModule, MatSidenavModule, ListComponent, AdvancedSearchShellComponent],
   selector: 'app-home',
   templateUrl: './home.component.html',

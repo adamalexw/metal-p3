@@ -4,7 +4,6 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatSliderModule } from '@angular/material/slider';
 
 @Component({
-  standalone: true,
   imports: [MatButtonModule, MatSliderModule, MatIconModule],
   selector: 'app-volume',
   templateUrl: './volume.component.html',

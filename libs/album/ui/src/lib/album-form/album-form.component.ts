@@ -9,37 +9,18 @@ import { MatInputModule } from '@angular/material/input';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { RouterModule } from '@angular/router';
 import { AlbumDetailsForm } from '@metal-p3/album/domain';
-import { CoverComponent } from '@metal-p3/cover/ui';
 import { TitleCaseDirective } from '@metal-p3/shared/title-case';
-import { TracksComponent, TracksToolbarComponent } from '@metal-p3/track/ui';
-import { WINDOW } from '@ng-web-apis/common';
-import { AlbumToolbarComponent } from '../album-toolbar/album-toolbar.component';
+import { WA_WINDOW } from '@ng-web-apis/common';
 
 @Component({
-  standalone: true,
-  imports: [
-    AlbumToolbarComponent,
-    CoverComponent,
-    FormsModule,
-    MatButtonModule,
-    MatCheckboxModule,
-    MatFormFieldModule,
-    MatIconModule,
-    MatInputModule,
-    MatProgressBarModule,
-    ReactiveFormsModule,
-    RouterModule,
-    TitleCaseDirective,
-    TracksComponent,
-    TracksToolbarComponent,
-  ],
+  imports: [FormsModule, MatButtonModule, MatCheckboxModule, MatFormFieldModule, MatIconModule, MatInputModule, MatProgressBarModule, ReactiveFormsModule, RouterModule, TitleCaseDirective],
   selector: 'app-album-form',
   templateUrl: './album-form.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AlbumFormComponent implements OnInit {
   private readonly controlContainer = inject(ControlContainer);
-  private readonly windowRef = inject(WINDOW);
+  private readonly windowRef = inject(WA_WINDOW);
 
   readonly lyricsPriority = output<void>();
   readonly findBandProps = output<string>();

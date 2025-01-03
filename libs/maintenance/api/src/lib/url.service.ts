@@ -13,7 +13,11 @@ import { MaintenanceGateway } from './maintenance-gateway.service';
 export class UrlService {
   notifier = new Subject<void>();
 
-  constructor(private readonly dbService: DbService, private readonly metalArchivesService: MetalArchivesService, private readonly maintenanceGateway: MaintenanceGateway) {}
+  constructor(
+    private readonly dbService: DbService,
+    private readonly metalArchivesService: MetalArchivesService,
+    private readonly maintenanceGateway: MaintenanceGateway,
+  ) {}
 
   getMissingUrls(): Observable<UrlMatcher[]> {
     return from(this.dbService.missingUrls()).pipe(map((albums) => albums.map((album) => this.albumToMatcherDto(album))));
@@ -23,7 +27,7 @@ export class UrlService {
     this.notifier = new Subject();
     return this.matchUrls(this.getMissingUrls()).pipe(
       takeUntil(this.notifier),
-      finalize(() => this.maintenanceGateway.urlMatcherComplete())
+      finalize(() => this.maintenanceGateway.urlMatcherComplete()),
     );
   }
 
@@ -66,11 +70,11 @@ export class UrlService {
                 return of({ ...matcher, result: 'error', error } as UrlMatcher);
               }),
               tap((matcher) => this.maintenanceGateway.urlMatcher(matcher)),
-              toArray()
-            )
-          )
-        )
-      )
+              toArray(),
+            ),
+          ),
+        ),
+      ),
     );
   }
 

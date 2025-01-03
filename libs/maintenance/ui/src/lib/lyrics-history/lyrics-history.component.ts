@@ -10,7 +10,6 @@ import { LyricsHistoryDto } from '@metal-p3/maintenance/domain';
 import { ConfirmDeleteDirective } from '@metal-p3/shared/feedback';
 
 @Component({
-  standalone: true,
   imports: [ConfirmDeleteDirective, MatTableModule, MatIconModule, MatCheckboxModule, MatButtonModule, MatMenuModule, MatSortModule, MatTooltipModule],
   selector: 'app-lyrics-history',
   templateUrl: './lyrics-history.component.html',

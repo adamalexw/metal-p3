@@ -45,6 +45,6 @@ export const maintenanceFeature = createFeature({
       metalArchivesMatcherLoaded: true,
       metalArchivesMatcher: metalArchivesMatcherAdapter.setAll(albums, state.metalArchivesMatcher),
     })),
-    on(MaintenanceActions.updateUrlMatcher, (state, { update }) => ({ ...state, metalArchivesMatcher: metalArchivesMatcherAdapter.updateOne(update, state.metalArchivesMatcher) }))
+    on(MaintenanceActions.updateUrlMatcher, (state, { update }) => ({ ...state, metalArchivesMatcher: metalArchivesMatcherAdapter.updateOne(update, state.metalArchivesMatcher) })),
   ),
 });

@@ -5,7 +5,6 @@ import { ConfirmDeleteDirective } from '@metal-p3/shared/feedback';
 import { NavToolbarComponent } from '@metal-p3/shared/navigation';
 
 @Component({
-  standalone: true,
   imports: [NavToolbarComponent, ConfirmDeleteDirective, MatIconModule, MatListModule],
   selector: 'app-unmapped-folders',
   templateUrl: './unmapped-folders.component.html',

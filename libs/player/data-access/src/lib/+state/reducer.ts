@@ -41,6 +41,6 @@ export const playerFeature = createFeature({
     on(PlayerActions.play, (state, { id }): PlayerState => ({ ...state, activeTrack: id })),
     on(PlayerActions.removeSuccess, (state, { id }) => adapter.removeOne(id, state)),
     on(PlayerActions.clearSuccess, (state) => adapter.removeAll({ ...state, activeTrack: undefined })),
-    on(PlayerActions.tooglePlaylist, (state): PlayerState => ({ ...state, showPlaylist: !state.showPlaylist }))
+    on(PlayerActions.tooglePlaylist, (state): PlayerState => ({ ...state, showPlaylist: !state.showPlaylist })),
   ),
 });

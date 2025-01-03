@@ -12,11 +12,15 @@ import { MaintenanceGateway } from './maintenance-gateway.service';
 export class LyricsService {
   notifier = new Subject<void>();
 
-  constructor(private readonly dbService: DbService, private readonly metalArchivesService: MetalArchivesService, private readonly maintenanceGateway: MaintenanceGateway) {}
+  constructor(
+    private readonly dbService: DbService,
+    private readonly metalArchivesService: MetalArchivesService,
+    private readonly maintenanceGateway: MaintenanceGateway,
+  ) {}
 
   getHistory(): Observable<LyricsHistoryDto[]> {
     return from(this.dbService.lyricsHistory()).pipe(
-      map((album) => album.map((album) => this.lyricsHistoryToDto(album, album['LyricsHistory'] && album['LyricsHistory'].length && album['LyricsHistory'][0])))
+      map((album) => album.map((album) => this.lyricsHistoryToDto(album, album['LyricsHistory'] && album['LyricsHistory'].length && album['LyricsHistory'][0]))),
     );
   }
 
@@ -51,9 +55,9 @@ export class LyricsService {
       concatMap((history) =>
         history
           ? from(this.dbService.updateLyricsHistory({ where: { LyricsHistoryId: history.LyricsHistoryId }, data: { Priority: true } }))
-          : from(this.dbService.createLyricsHistory({ Priority: true, Album: this.getAlbumInput(albumId) }))
+          : from(this.dbService.createLyricsHistory({ Priority: true, Album: this.getAlbumInput(albumId) })),
       ),
-      map((history) => this.lyricsHistoryToDto(history['Album'], history))
+      map((history) => this.lyricsHistoryToDto(history['Album'], history)),
     );
   }
 
@@ -65,7 +69,7 @@ export class LyricsService {
     this.notifier = new Subject<void>();
     return this.checkLyrics(this.getPriority()).pipe(
       takeUntil(this.notifier),
-      finalize(() => this.maintenanceGateway.lyricsHistoryComplete())
+      finalize(() => this.maintenanceGateway.lyricsHistoryComplete()),
     );
   }
 
@@ -73,7 +77,7 @@ export class LyricsService {
     this.notifier = new Subject();
     return this.checkLyrics(this.getHistory()).pipe(
       takeUntil(this.notifier),
-      finalize(() => this.maintenanceGateway.lyricsHistoryComplete())
+      finalize(() => this.maintenanceGateway.lyricsHistoryComplete()),
     );
   }
 
@@ -111,11 +115,11 @@ export class LyricsService {
                 return of({ ...history, error });
               }),
               tap((history) => this.maintenanceGateway.lyricsHistoryMessage(history)),
-              toArray()
-            )
-          )
-        )
-      )
+              toArray(),
+            ),
+          ),
+        ),
+      ),
     );
   }
 
@@ -135,7 +139,7 @@ export class LyricsService {
       catchError((error) => {
         Logger.error(error);
         return of(error);
-      })
+      }),
     );
   }
 }

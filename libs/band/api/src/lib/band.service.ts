@@ -8,7 +8,10 @@ import { map } from 'rxjs/operators';
 
 @Injectable()
 export class BandService {
-  constructor(private readonly dbService: DbService, private readonly metalArchivesService: MetalArchivesService) {}
+  constructor(
+    private readonly dbService: DbService,
+    private readonly metalArchivesService: MetalArchivesService,
+  ) {}
 
   getBands(request: { criteria?: string }): Observable<BandDto[]> {
     let where: Prisma.BandWhereInput;

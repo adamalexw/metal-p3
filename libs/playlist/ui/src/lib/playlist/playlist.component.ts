@@ -9,7 +9,6 @@ import { TimePipe } from '@metal-p3/track/util';
 import { cloneDeep } from 'lodash-es';
 
 @Component({
-  standalone: true,
   imports: [CoverComponent, TimePipe, CdkTableModule, DragDropModule, MatTableModule, MatIconModule],
   selector: 'app-playlist',
   templateUrl: './playlist.component.html',

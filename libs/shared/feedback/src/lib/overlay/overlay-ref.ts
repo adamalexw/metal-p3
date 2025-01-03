@@ -11,7 +11,11 @@ export interface OverlayCloseEvent<R> {
 export class AppOverlayRef<R = any, T = any> {
   afterClosed$ = new Subject<OverlayCloseEvent<R | undefined>>();
 
-  constructor(public readonly overlay: OverlayRef, public readonly content: string | TemplateRef<unknown> | Type<unknown>, public readonly data: T) {
+  constructor(
+    public readonly overlay: OverlayRef,
+    public readonly content: string | TemplateRef<unknown> | Type<unknown>,
+    public readonly data: T,
+  ) {
     overlay.backdropClick().subscribe(() => {
       this._close('backdropClick', undefined);
     });

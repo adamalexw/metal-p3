@@ -21,7 +21,8 @@
             "prefix": "metal-p3",
             "style": "kebab-case"
           }
-        ]
+        ],
+        "@angular-eslint/prefer-standalone": "off"
       }
     },
     {

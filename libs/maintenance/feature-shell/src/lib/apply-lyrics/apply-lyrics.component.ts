@@ -30,7 +30,6 @@ import { Observable, combineLatest } from 'rxjs';
 import { filter, map, take, tap, withLatestFrom } from 'rxjs/operators';
 
 @Component({
-  standalone: true,
   imports: [AsyncPipe, ApplyLyricsComponent, MatDialogModule],
   selector: 'app-apply-lyrics-shell',
   templateUrl: './apply-lyrics.component.html',

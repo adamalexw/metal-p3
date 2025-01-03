@@ -6,7 +6,6 @@ import { AlbumActions, selectAlbumsSearchRequest } from '@metal-p3/shared/data-a
 import { Store } from '@ngrx/store';
 
 @Component({
-  standalone: true,
   imports: [AsyncPipe, AdvancedSearchFormComponent],
   selector: 'app-advanced-search-shell',
   templateUrl: './advanced-search.component.html',

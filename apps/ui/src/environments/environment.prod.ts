@@ -3,5 +3,5 @@ export const environment = {
   baseFolderLocation: 'd:/mp3',
   api: 'http://localhost:3333/api/',
   wsUrl: 'http://localhost:3333',
-  take: 60,
+  take: 65,
 };

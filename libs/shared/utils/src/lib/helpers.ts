@@ -39,7 +39,7 @@ export const mapBlobToBase64 = (blob: Blob) => {
 
       reader.onloadend = () => resolve(reader.result as string);
       reader.onerror = () => reject(reader.error);
-    })
+    }),
   );
 };
 

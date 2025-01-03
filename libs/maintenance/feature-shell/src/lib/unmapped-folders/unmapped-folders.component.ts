@@ -9,7 +9,6 @@ import { Store } from '@ngrx/store';
 import { shareReplay } from 'rxjs/operators';
 
 @Component({
-  standalone: true,
   imports: [AsyncPipe, UnmappedFoldersComponent],
   selector: 'app-unmapped-folders-shell',
   templateUrl: './unmapped-folders.component.html',

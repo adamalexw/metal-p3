@@ -32,7 +32,6 @@ import { delay, filter, map, startWith, take, tap } from 'rxjs/operators';
 import { AddAlbumDirective } from './add-album.directive';
 
 @Component({
-  standalone: true,
   imports: [AsyncPipe, ScrollingModule, ListToolbarComponent, ListItemComponent, PlayerShellComponent, AddAlbumDirective],
   selector: 'app-list',
   templateUrl: './list.component.html',
@@ -69,7 +68,7 @@ export class ListComponent implements OnInit {
     map(([albums, width, open]) => {
       // if the side nav is open we remove it's width
       const listWidth = open ? width - 1130 : width;
-      const chunks = Math.floor(listWidth / 286);
+      const chunks = Math.floor(listWidth / 275);
 
       return toChunks(albums, chunks);
     }),
@@ -111,8 +110,8 @@ export class ListComponent implements OnInit {
       .subscribe((height) => this.document.documentElement.style.setProperty('--list-height', height.toString() + 'px'));
   }
 
-  onRenameFolder(id: number, src: string, artist: string, album: string) {
-    this.store.dispatch(AlbumActions.renameFolder({ id, src, artist, album }));
+  onDeleteAlbum(id: number) {
+    this.store.dispatch(AlbumActions.deleteAlbum({ id }));
   }
 
   onTransferAlbum(id: number, folder: string) {
@@ -191,7 +190,7 @@ export class ListComponent implements OnInit {
 
     const initialSize = this.take;
     let skip = 0;
-    let take = 60;
+    let take = 65;
 
     switch (page) {
       case 0:

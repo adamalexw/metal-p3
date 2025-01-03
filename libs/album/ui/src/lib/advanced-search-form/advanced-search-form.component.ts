@@ -11,7 +11,6 @@ import { SearchRequest } from '@metal-p3/api-interfaces';
 import { objectKeys } from '@metal-p3/shared/utils';
 
 @Component({
-  standalone: true,
   imports: [RouterModule, ReactiveFormsModule, MatFormFieldModule, MatCheckboxModule, MatIconModule, MatInputModule, MatButtonModule],
   selector: 'app-advanced-search-form',
   templateUrl: './advanced-search-form.component.html',

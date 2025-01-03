@@ -8,7 +8,6 @@ import { NavToolbarComponent } from '@metal-p3/shared/navigation';
 import { AlbumHeaderComponent } from '../album-header/album-header.component';
 
 @Component({
-  standalone: true,
   imports: [NavToolbarComponent, AlbumHeaderComponent, ConfirmDeleteDirective, MatIconModule, MatButtonModule, MatToolbarModule, MatBadgeModule],
   selector: 'app-album-toolbar',
   templateUrl: './album-toolbar.component.html',
