@@ -4,7 +4,7 @@ import { FileSystemService } from '@metal-p3/shared/file-system';
 import { TrackService } from '@metal-p3/track/api';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { Album, Band, Prisma } from '@prisma/client';
-import * as chokidar from 'chokidar';
+import chokidar from 'chokidar';
 import * as fs from 'fs';
 import * as NodeID3 from 'node-id3';
 import * as path from 'path';
@@ -142,11 +142,12 @@ export class AlbumService {
     const watcher = chokidar.watch(basePath, {
       depth: 1,
       ignored: /(^|[/\\])\../,
-      awaitWriteFinish: true,
+      awaitWriteFinish: {
+        stabilityThreshold: 5000,
+        pollInterval: 2000,
+      },
       ignoreInitial: true,
     });
-
-    watcher.on('ready', () => console.log(new Date()));
 
     watcher.on('addDir', (path) => {
       const folder = this.fileSystemService.getFilename(path);
@@ -188,7 +189,7 @@ export class AlbumService {
             const folderName = this.fileSystemService.getFilename(folder);
             const folderSplit = folderName.split('-');
 
-            return { artist: folderSplit[0].trim(), album: folderSplit?.[1]?.trim() };
+            return { ...tags, artist: folderSplit[0].trim(), album: folderSplit?.[1]?.trim() };
           }
         }
       }),

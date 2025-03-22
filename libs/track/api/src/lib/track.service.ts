@@ -119,7 +119,7 @@ export class TrackService {
     return result;
   }
 
-  private mapTrackToTags(track: TrackDto, baseTags: NodeID3.Tags): NodeID3.Tags {
+  private mapTrackToTags(track: TrackDto, baseTags: Partial<NodeID3.Tags>): NodeID3.Tags {
     const tags = { ...baseTags, trackNumber: track.trackNumber, title: track.title } as NodeID3.Tags;
     return tags;
   }

@@ -32,7 +32,7 @@
               "with": "apps/ui/src/environments/environment.prod.ts"
             }
           ],
-          "optimization": true,
+          "optimization": { "styles": { "inlineCritical": false } },
           "outputHashing": "all",
           "sourceMap": false,
           "namedChunks": false,
