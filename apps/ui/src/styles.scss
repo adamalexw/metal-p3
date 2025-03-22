@@ -1,8 +1,8 @@
 @use '@angular/material' as mat;
 @forward 'theme';
 @forward 'variables';
-@tailwind base;
-@tailwind utilities;
+
+@use 'tailwind';
 
 html,
 body {
