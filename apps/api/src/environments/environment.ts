@@ -1,5 +1,5 @@
 export const environment = {
   production: false,
-  basePath: 'd:/mp3',
+  basePath: 'm:/mp3',
   take: 65,
 };

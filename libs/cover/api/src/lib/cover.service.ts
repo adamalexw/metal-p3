@@ -81,15 +81,15 @@ export class CoverService {
   }
 
   resize() {
-    const folders = this.fileSystemService.getFolders('d:/mp3');
+    const folders = this.fileSystemService.getFolders('m:/mp3');
 
     for (let index = 0; index < folders.length; index++) {
-      const f = `d:/mp3/${folders[index]}/${this.cover}`;
+      const f = `m:/mp3/${folders[index]}/${this.cover}`;
 
       if (fs.existsSync(f)) {
         console.log(((index / folders.length) * 100).toFixed(1), folders[index]);
 
-        sharp(f).resize({ height: 500 }).toFile(`d:/mp3/${folders[index]}/${this.cover}`);
+        sharp(f).resize({ height: 500 }).toFile(`m:/mp3/${folders[index]}/${this.cover}`);
       }
 
       if (index > 10) {

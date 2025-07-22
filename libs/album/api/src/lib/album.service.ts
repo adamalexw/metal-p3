@@ -9,7 +9,7 @@ import * as fs from 'fs';
 import * as NodeID3 from 'node-id3';
 import * as path from 'path';
 import { Observable, combineLatest, from, iif, of } from 'rxjs';
-import { catchError, concatMap, map, mergeMap, tap } from 'rxjs/operators';
+import { catchError, concatMap, delay, map, mergeMap, tap } from 'rxjs/operators';
 import { AlbumGateway } from './album-gateway.service';
 
 @Injectable()
@@ -152,7 +152,7 @@ export class AlbumService {
     watcher.on('addDir', (path) => {
       const folder = this.fileSystemService.getFilename(path);
 
-      // ensure we aren't reanming an existing folder
+      // ensure we aren't renanming an existing folder
       this.dbService
         .albums({ take: 1, where: { Folder: folder } })
         .then((album) => {
@@ -172,7 +172,9 @@ export class AlbumService {
         if (album.length) {
           throw new Error('folder already exists');
         }
-
+      }),
+      delay(5000),
+      map(() => {
         this.fileSystemService.moveFilesToTheRoot(folder, folder);
 
         const files = this.fileSystemService.getFiles(folder);

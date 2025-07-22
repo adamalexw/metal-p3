@@ -26,7 +26,7 @@ body {
 ::-webkit-scrollbar-thumb {
   -webkit-border-radius: 5px;
   border-radius: 5px;
-  background: var(--mat-text-button-state-layer-color);
+  background: var(--mat-button-text-state-layer-color);
 }
 
 .mat-column-trackNumber {
@@ -39,12 +39,12 @@ body {
 }
 
 .snackbar-error {
-  --mdc-snackbar-container-color: var(--mat-form-field-error-text-color);
-  --mdc-snackbar-supporting-text-color: white;
+  --mat-snackbar-container-color: var(--mat-form-field-error-text-color);
+  --mat-snackbar-supporting-text-color: white;
   --mat-snack-bar-button-color: white;
 }
 
 .snackbar-info {
-  --mdc-snackbar-container-color: var(--mat-text-button-state-layer-color);
-  --mdc-snackbar-supporting-text-color: black;
+  --mat-snackbar-container-color: var(--mat-button-text-state-layer-color);
+  --mat-snackbar-supporting-text-color: black;
 }

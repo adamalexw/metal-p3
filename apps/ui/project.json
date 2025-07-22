@@ -4,9 +4,10 @@
   "projectType": "application",
   "sourceRoot": "apps/ui/src",
   "prefix": "app",
+  "tags": ["scope:track", "type:ui"],
   "targets": {
     "build": {
-      "executor": "@angular-devkit/build-angular:application",
+      "executor": "@angular/build:application",
       "options": {
         "outputPath": "dist/apps/ui",
         "index": "apps/ui/src/index.html",
@@ -32,7 +33,11 @@
               "with": "apps/ui/src/environments/environment.prod.ts"
             }
           ],
-          "optimization": { "styles": { "inlineCritical": false } },
+          "optimization": {
+            "styles": {
+              "inlineCritical": false
+            }
+          },
           "outputHashing": "all",
           "sourceMap": false,
           "namedChunks": false,
@@ -53,7 +58,7 @@
       }
     },
     "serve": {
-      "executor": "@angular-devkit/build-angular:dev-server",
+      "executor": "@angular/build:dev-server",
       "options": {
         "proxyConfig": "apps/ui/proxy.conf.json",
         "buildTarget": "ui:build"
@@ -62,10 +67,11 @@
         "production": {
           "buildTarget": "ui:build:production"
         }
-      }
+      },
+      "continuous": true
     },
     "extract-i18n": {
-      "executor": "@angular-devkit/build-angular:extract-i18n",
+      "executor": "@angular/build:extract-i18n",
       "options": {
         "buildTarget": "ui:build"
       }
@@ -80,6 +86,5 @@
         "jestConfig": "apps/ui/jest.config.ts"
       }
     }
-  },
-  "tags": ["scope:track", "type:ui"]
+  }
 }

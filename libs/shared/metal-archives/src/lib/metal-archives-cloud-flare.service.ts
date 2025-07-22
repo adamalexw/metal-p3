@@ -95,11 +95,11 @@ export class MetalArchivesService {
     return this.getApiResponse<string>(`${this.baseUrl}release/ajax-view-lyrics/id/${trackId}`, '<br>').pipe(map((htmlLyrics) => parse(htmlLyrics).innerText));
   }
 
-  private getApiResponse<T>(url: string, waitItem: string, isJson = false): Observable<T | string> {
+  private getApiResponse<T>(url: string, waitItem: string, isJson = false): Observable<T> {
     return from(this.getPageContents<T>(url, 'url', waitItem, isJson)).pipe(
       catchError((err) => {
         console.log(err);
-        return of('');
+        return of('' as T);
       }),
     );
   }
@@ -134,7 +134,7 @@ export class MetalArchivesService {
       const content = await defaultPage.content();
 
       if (!isJson) {
-        return content;
+        return content as T;
       }
 
       const apiResponse = this.extractApiResponse(content);
@@ -146,7 +146,7 @@ export class MetalArchivesService {
     const content = await defaultPage.content();
 
     //await browser.close();
-    return content;
+    return content as T;
   }
 
   getBandProps(url: string): Observable<BandProps> {

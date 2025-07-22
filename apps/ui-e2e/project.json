@@ -3,12 +3,13 @@
   "$schema": "..\\..\\node_modules\\nx\\schemas\\project-schema.json",
   "sourceRoot": "apps/ui-e2e/src",
   "projectType": "application",
+  "tags": [],
+  "implicitDependencies": ["ui"],
   "targets": {
     "e2e": {
       "executor": "@nx/cypress:cypress",
       "options": {
         "cypressConfig": "apps/ui-e2e/cypress.json",
-        "tsConfig": "apps/ui-e2e/tsconfig.e2e.json",
         "devServerTarget": "ui:serve"
       },
       "configurations": {
@@ -20,7 +21,5 @@
     "lint": {
       "executor": "@nx/eslint:lint"
     }
-  },
-  "tags": [],
-  "implicitDependencies": ["ui"]
+  }
 }

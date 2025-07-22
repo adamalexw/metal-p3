@@ -55,13 +55,24 @@ export class FileSystemService {
   }
 
   filenameValidator(filename: string): string {
-    return (
-      filename
-        .replace(/\n/g, ' ')
-        // eslint-disable-next-line no-control-regex
-        .replace(/[<>:"/\\|?*\x00-\x1F]| +$/g, '')
-        .replace(/^(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])$/, (x) => x + '_')
-    );
+    let newName = filename
+      .replace(/\n/g, ' ')
+      // eslint-disable-next-line no-control-regex
+      .replace(/[<>:"/\\|?*\x00-\x1F]| +$/g, '')
+      .replace(/^(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])$/, (x) => x + '_')
+      .trim();
+
+    if (newName.startsWith('.')) {
+      newName = newName.substring(0);
+      return this.filenameValidator(newName);
+    }
+
+    if (newName.endsWith('.')) {
+      newName = newName.slice(0, -1);
+      return this.filenameValidator(newName);
+    }
+
+    return newName;
   }
 
   getFileStats(file: string) {

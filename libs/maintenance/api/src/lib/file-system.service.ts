@@ -31,6 +31,19 @@ export class FileSystemMaintenanceService {
     );
   }
 
+  getMissingFolders(): Observable<string[]> {
+    return from(this.dbService.folders()).pipe(
+      map((folders) => {
+        const fsFolders = this.fileSystemService.getFolders(this.basePath);
+
+        return difference(
+          folders.map((f) => f.Folder),
+          fsFolders,
+        );
+      }),
+    );
+  }
+
   deleteFolder(folder: string) {
     this.fileSystemService.deleteFolder(join(this.basePath, folder));
   }

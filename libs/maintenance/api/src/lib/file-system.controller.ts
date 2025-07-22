@@ -11,6 +11,11 @@ export class FileSystemController {
     return this.service.getUnmappedFolders();
   }
 
+  @Get('missingFolders')
+  getMissingFolders(): Observable<string[]> {
+    return this.service.getMissingFolders();
+  }
+
   @Delete('folder')
   deleteFolder(@Query('folder') folder: string) {
     this.service.deleteFolder(folder);

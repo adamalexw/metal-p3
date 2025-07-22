@@ -8,7 +8,7 @@ describe('AlbumService', () => {
   let spectator: SpectatorHttp<AlbumService>;
   const createService = createHttpFactory({
     service: AlbumService,
-    providers: [{ provide: API, useValue: 'api/' }, { provide: BASE_PATH, useValue: 'd:/mp3' }, { provide: TAKE, useValue: 10 }, mockProvider(Socket)],
+    providers: [{ provide: API, useValue: 'api/' }, { provide: BASE_PATH, useValue: 'm:/mp3' }, { provide: TAKE, useValue: 10 }, mockProvider(Socket)],
   });
 
   beforeEach(() => (spectator = createService()));

@@ -1,6 +1,6 @@
 import { CdkVirtualScrollViewport, ScrollingModule, ViewportRuler } from '@angular/cdk/scrolling';
-import { AsyncPipe, DOCUMENT, Location } from '@angular/common';
-import { ChangeDetectionStrategy, Component, OnInit, inject, output, viewChild } from '@angular/core';
+import { AsyncPipe, Location } from '@angular/common';
+import { ChangeDetectionStrategy, Component, OnInit, inject, output, viewChild, DOCUMENT } from '@angular/core';
 import { Router } from '@angular/router';
 import { AlbumService } from '@metal-p3/album/data-access';
 import { TAKE } from '@metal-p3/album/domain';

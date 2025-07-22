@@ -2,14 +2,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { OverlayModule } from '@angular/cdk/overlay';
 import { PortalModule } from '@angular/cdk/portal';
-import { NgComponentOutlet } from '@angular/common';
+import { NgComponentOutlet, NgTemplateOutlet } from '@angular/common';
 import { Component, OnInit, TemplateRef, Type, inject } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { AppOverlayRef } from './overlay-ref';
 
 @Component({
-  imports: [NgComponentOutlet, OverlayModule, PortalModule, MatCardModule, MatButtonModule],
+  imports: [NgComponentOutlet, NgTemplateOutlet, OverlayModule, PortalModule, MatCardModule, MatButtonModule],
   selector: 'app-overlay',
   templateUrl: './overlay.component.html',
 })

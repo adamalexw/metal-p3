@@ -19,7 +19,7 @@
 
           @for (album of albums; track trackByAlbumFn($index, album)) {
             <app-list-item
-              class="w-full lg:w-[276px]"
+              class="w-full lg:w-[268px]"
               [album]="album"
               (openAlbum)="onOpenAlbum($event)"
               (deleteAlbum)="onDeleteAlbum(album.id)"
