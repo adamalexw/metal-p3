@@ -1,10 +1,10 @@
 import { MetalArchivesSearchResponse } from '@metal-p3/api-interfaces';
 import { UrlMatcher } from '@metal-p3/maintenance/domain';
+import { Album } from '@metal-p3/prisma/client';
 import { DbService } from '@metal-p3/shared/database';
 import { MetalArchivesService } from '@metal-p3/shared/metal-archives';
 import { extractUrl } from '@metal-p3/shared/utils';
 import { Injectable, Logger } from '@nestjs/common';
-import { Album } from '@prisma/client';
 import { Observable, Subject, from, of } from 'rxjs';
 import { catchError, concatMap, finalize, map, takeUntil, tap, toArray } from 'rxjs/operators';
 import { MaintenanceGateway } from './maintenance-gateway.service';

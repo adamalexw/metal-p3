@@ -1,7 +1,7 @@
 import { PlaylistDto, PlaylistItemDto } from '@metal-p3/playlist/domain';
+import { Playlist, PlaylistItem, Prisma } from '@metal-p3/prisma/client';
 import { DbService } from '@metal-p3/shared/database';
 import { Injectable, Logger } from '@nestjs/common';
-import { Playlist, PlaylistItem, Prisma } from '@prisma/client';
 import { from, Observable, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 

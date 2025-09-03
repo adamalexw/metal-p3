@@ -1,19 +1,14 @@
 @use '@angular/material' as mat;
 
-@include mat.elevation-classes();
-@include mat.app-background();
-
-$theme: mat.define-theme(
-  (
-    color: (
-      theme-type: dark,
-      primary: mat.$orange-palette,
-    ),
-  )
-);
-
 html {
   @include mat.elevation-classes();
   @include mat.app-background();
-  @include mat.all-component-themes($theme);
+  color-scheme: dark;
+  @include mat.theme(
+    (
+      color: mat.$orange-palette,
+      typography: Roboto,
+      density: -1,
+    )
+  );
 }

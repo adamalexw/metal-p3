@@ -11,12 +11,12 @@ export const ALBUMS_FEATURE_KEY = 'albums';
 export interface AlbumState extends EntityState<Album> {
   loading: boolean;
   loaded: boolean;
-  loadError?: string;
+  loadError: string | undefined;
   advancedSearchOpen: boolean;
   searchRequest: SearchRequest;
-  error?: HttpErrorResponse | Error;
-  creatingNew?: boolean;
-  selectedAlbumId?: number;
+  error: HttpErrorResponse | Error | undefined;
+  creatingNew: boolean | undefined;
+  selectedAlbumId: number | undefined;
   tracks: EntityState<Track>;
   maTracks: EntityState<MetalArchivesAlbumTrack>;
 }
@@ -33,11 +33,15 @@ export const maTrackAdapter: EntityAdapter<MetalArchivesAlbumTrack> = createEnti
 
 const initalSearchRequest: SearchRequest = { skip: 65, take: 0 };
 
-const initialState = albumAdapter.getInitialState({
+const initialState: AlbumState = albumAdapter.getInitialState({
   loading: false,
   loaded: false,
+  loadError: undefined,
   advancedSearchOpen: false,
   searchRequest: initalSearchRequest,
+  error: undefined,
+  creatingNew: undefined,
+  selectedAlbumId: undefined,
   tracks: trackAdapter.getInitialState(),
   maTracks: maTrackAdapter.getInitialState(),
 });

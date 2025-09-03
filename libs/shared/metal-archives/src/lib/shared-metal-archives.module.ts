@@ -1,6 +1,6 @@
 import { HttpModule } from '@nestjs/axios';
 import { Module } from '@nestjs/common';
-import { MetalArchivesService } from './metal-archives.service';
+import { MetalArchivesService } from './metal-archives-cloud-flare.service';
 
 @Module({
   imports: [HttpModule],

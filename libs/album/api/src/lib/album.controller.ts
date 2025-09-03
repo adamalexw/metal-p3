@@ -1,5 +1,5 @@
-import { Album } from '.prisma/client';
 import { AlbumDto, MetalArchivesAlbumTrack, MetalArchivesSearchResponse, RenameFolder, SearchRequest, TrackDto } from '@metal-p3/api-interfaces';
+import { Album } from '@metal-p3/prisma/client';
 import { FileSystemService } from '@metal-p3/shared/file-system';
 import { MetalArchivesService } from '@metal-p3/shared/metal-archives';
 import { TrackService } from '@metal-p3/track/api';

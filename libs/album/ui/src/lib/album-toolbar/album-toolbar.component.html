@@ -9,10 +9,10 @@
     <mat-icon title="ma search">pageview</mat-icon>
   </button>
   <button mat-icon-button [disabled]="renamingFolder()" (click)="renameFolder.emit()">
-    <mat-icon title="rename folder()">source</mat-icon>
+    <mat-icon title="rename folder">source</mat-icon>
   </button>
   <button mat-icon-button (click)="openFolder.emit()" matBadge="!" matBadgeColor="warn" [matBadgeHidden]="!extraFiles()" class="!hidden lg:!block">
-    <mat-icon title="open folder()">folder()</mat-icon>
+    <mat-icon title="open folder">folder()</mat-icon>
   </button>
   <button mat-icon-button [disabled]="trackTransferring()" (click)="transfer.emit()" class="!hidden lg:!block">
     <mat-icon title="transfer">adb</mat-icon>

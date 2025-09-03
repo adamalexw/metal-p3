@@ -1,9 +1,9 @@
 import { MetalArchivesAlbumTrack } from '@metal-p3/api-interfaces';
 import { LyricsHistoryDto } from '@metal-p3/maintenance/domain';
+import { Album, LyricsHistory, Prisma } from '@metal-p3/prisma/client';
 import { DbService } from '@metal-p3/shared/database';
 import { MetalArchivesService } from '@metal-p3/shared/metal-archives';
 import { Injectable, Logger } from '@nestjs/common';
-import { Album, LyricsHistory, Prisma } from '@prisma/client';
 import { from, Observable, of, Subject } from 'rxjs';
 import { catchError, concatMap, finalize, map, takeUntil, tap, toArray } from 'rxjs/operators';
 import { MaintenanceGateway } from './maintenance-gateway.service';

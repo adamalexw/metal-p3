@@ -9,16 +9,18 @@ export const PLAYLIST_FEATURE_KEY = 'playlist';
 export interface PlaylistState extends EntityState<PlaylistDto> {
   loaded: boolean;
   loading: boolean;
-  loadError?: string;
-  active?: number;
+  loadError: string | undefined;
+  active: number | undefined;
   transferring: boolean;
 }
 
 export const adapter: EntityAdapter<PlaylistDto> = createEntityAdapter<PlaylistDto>({});
 
-const initialState = adapter.getInitialState({
+const initialState: PlaylistState = adapter.getInitialState({
   loaded: false,
   loading: false,
+  loadError: undefined,
+  active: undefined,
   transferring: false,
 });
 

@@ -1,5 +1,5 @@
+import { Album, Band, LyricsHistory, Playlist, PlaylistItem, Prisma } from '@metal-p3/prisma/client';
 import { Injectable, UseFilters } from '@nestjs/common';
-import { Album, Band, LyricsHistory, Playlist, PlaylistItem, Prisma } from '@prisma/client';
 import { DbExceptionsFilter } from './db-exceptions-filter';
 import { PrismaService } from './prisma.service';
 

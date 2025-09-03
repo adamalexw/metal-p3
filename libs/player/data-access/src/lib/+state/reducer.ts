@@ -9,8 +9,8 @@ export interface PlayerState extends EntityState<PlaylistItem> {
   visible: boolean;
   footerMode: boolean;
   showPlaylist: boolean;
-  activeTrack?: string;
-  activePlaylist?: number;
+  activeTrack: string | undefined;
+  activePlaylist: number | undefined;
 }
 
 function sortByIndex(a: PlaylistItem, b: PlaylistItem): number {
@@ -21,10 +21,12 @@ export const adapter: EntityAdapter<PlaylistItem> = createEntityAdapter<Playlist
   sortComparer: sortByIndex,
 });
 
-const initialState = adapter.getInitialState({
+const initialState: PlayerState = adapter.getInitialState({
   visible: false,
   footerMode: true,
   showPlaylist: true,
+  activeTrack: undefined,
+  activePlaylist: undefined,
 });
 
 export const playerFeature = createFeature({

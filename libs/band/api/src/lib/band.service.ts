@@ -1,8 +1,8 @@
 import { BandDto, BandProps } from '@metal-p3/api-interfaces';
+import { Band, Prisma } from '@metal-p3/prisma/client';
 import { DbService } from '@metal-p3/shared/database';
 import { MetalArchivesService } from '@metal-p3/shared/metal-archives';
 import { Injectable } from '@nestjs/common';
-import { Band, Prisma } from '@prisma/client';
 import { from, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 

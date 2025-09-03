@@ -1,9 +1,9 @@
 import { AlbumDto, RenameFolder, SearchRequest } from '@metal-p3/api-interfaces';
+import { Album, Band, Prisma } from '@metal-p3/prisma/client';
 import { DbService } from '@metal-p3/shared/database';
 import { FileSystemService } from '@metal-p3/shared/file-system';
 import { TrackService } from '@metal-p3/track/api';
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import { Album, Band, Prisma } from '@prisma/client';
 import chokidar from 'chokidar';
 import * as fs from 'fs';
 import * as NodeID3 from 'node-id3';
