@@ -1,5 +1,5 @@
 import { createFeatureSelector, createSelector } from '@ngrx/store';
-import { albumAdapter, AlbumState, ALBUMS_FEATURE_KEY } from '../reducer';
+import { albumAdapter, ALBUMS_FEATURE_KEY, AlbumState } from '../reducer';
 
 export const selectAlbumState = createFeatureSelector<AlbumState>(ALBUMS_FEATURE_KEY);
 

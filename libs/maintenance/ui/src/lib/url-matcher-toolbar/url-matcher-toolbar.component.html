@@ -1,10 +1,10 @@
 <app-nav-toolbar>
-  <button mat-icon-button [disabled]="matching()" (click)="startMatching.emit()">
+  <button [disabled]="matching()" (click)="startMatching.emit()" mat-icon-button>
     <mat-icon title="all">play_arrow</mat-icon>
   </button>
 
   @if (matching()) {
-    <button mat-icon-button (click)="stopMatching.emit()">
+    <button (click)="stopMatching.emit()" mat-icon-button>
       <mat-icon title="stop">stop</mat-icon>
     </button>
   }

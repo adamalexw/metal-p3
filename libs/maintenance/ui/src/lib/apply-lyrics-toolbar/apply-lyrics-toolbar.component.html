@@ -1,21 +1,21 @@
 <app-nav-toolbar [showClose]="showClose()">
-  <div class="flex items-center gap-3 leading-5 -pl-4">
+  <div class="-pl-4 flex items-center gap-3 leading-5">
     <app-cover [loading]="coverLoading()" [cover]="cover()" [width]="64" [height]="64" />
-    <button mat-icon-button type="button" [disabled]="applying()" (click)="apply.emit()">
+    <button type="button" [disabled]="applying()" (click)="apply.emit()" mat-icon-button>
       <mat-icon title="apply">spellcheck</mat-icon>
     </button>
     @if (albumUrl(); as albumUrl) {
-      <button mat-icon-button type="button" (click)="openLink(albumUrl)">
+      <button type="button" (click)="openLink(albumUrl)" mat-icon-button>
         <mat-icon title="metal archives">link</mat-icon>
       </button>
     }
-    <button mat-icon-button type="button" [disabled]="trackTransferring()" (click)="transfer.emit()">
+    <button type="button" [disabled]="trackTransferring()" (click)="transfer.emit()" mat-icon-button>
       <mat-icon title="transfer">adb</mat-icon>
     </button>
     <h3 class="cursor-pointer" [routerLink]="['/album', albumId]">{{ folder() }}</h3>
   </div>
   @if (!showClose()) {
-    <div class="flex flex-row-reverse w-full">
+    <div class="flex w-full flex-row-reverse">
       <mat-icon class="cursor-pointer" (click)="done.emit()">close</mat-icon>
     </div>
   }

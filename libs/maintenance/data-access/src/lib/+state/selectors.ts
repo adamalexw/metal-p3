@@ -1,5 +1,5 @@
 import { createFeatureSelector, createSelector } from '@ngrx/store';
-import { lyricsAdapter, MaintenanceState, MAINTENANCE_FEATURE_KEY, metalArchivesMatcherAdapter } from './reducer';
+import { lyricsAdapter, MAINTENANCE_FEATURE_KEY, MaintenanceState, metalArchivesMatcherAdapter } from './reducer';
 
 export const selectMaintenceState = createFeatureSelector<MaintenanceState>(MAINTENANCE_FEATURE_KEY);
 

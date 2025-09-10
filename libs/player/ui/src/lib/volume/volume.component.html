@@ -1,8 +1,8 @@
 <div class="flex items-center">
-  <button mat-icon-button (click)="onMute()">
+  <button (click)="onMute()" mat-icon-button>
     <mat-icon>{{ muteIcon }}</mat-icon>
   </button>
   <mat-slider class="volume" min="0" max="1" step="0.1">
-    <input matSliderThumb [value]="gain" (valueChange)="onVolumeChange($event)" />
+    <input [value]="gain" (valueChange)="onVolumeChange($event)" matSliderThumb />
   </mat-slider>
 </div>

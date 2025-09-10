@@ -4,7 +4,7 @@
   </div>
 }
 
-<mat-toolbar class="h-full w-full relative">
+<mat-toolbar class="relative h-full w-full">
   @if (!footerMode()) {
     <mat-toolbar-row>
       <div class="w-full">
@@ -17,22 +17,22 @@
       </div>
     </mat-toolbar-row>
   }
-  <mat-toolbar-row class="!h-16 gap-2 -mr-16 lg:mr-0">
+  <mat-toolbar-row class="-mr-16 !h-16 gap-2 lg:mr-0">
     <div class="flex h-full items-center" [ngClass]="{ 'w-full justify-center gap-2': !footerMode() }">
       <ng-container *ngTemplateOutlet="controlsTemplate"></ng-container>
     </div>
     @if (footerMode()) {
-      <div class="hidden lg:block text-xs">{{ elapsedTime() | time }} / {{ currentItem()?.duration | time }}</div>
+      <div class="hidden text-xs lg:block">{{ elapsedTime() | time }} / {{ currentItem()?.duration | time }}</div>
       @if (currentItem()) {
-        <div class="text-xs line-clamp-1 mr-4 lg:mr-0">{{ currentItem()?.trackNumber }} - {{ currentItem()?.title }}</div>
+        <div class="mr-4 line-clamp-1 text-xs lg:mr-0">{{ currentItem()?.trackNumber }} - {{ currentItem()?.title }}</div>
       }
-      <div class="hidden lg:block absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+      <div class="absolute top-1/2 left-1/2 hidden -translate-x-1/2 -translate-y-1/2 transform lg:block">
         <ng-container *ngTemplateOutlet="detailsTemplate"></ng-container>
       </div>
     }
-    <div class="flex absolute right-2">
+    <div class="absolute right-2 flex">
       <app-volume class="hidden lg:block" (volume)="volume.emit($event)" (mute)="mute.emit()" />
-      <button class="self-center ml-4 leading-none" mat-icon-button (click)="toggleView.emit()">
+      <button class="ml-4 self-center leading-none" (click)="toggleView.emit()" mat-icon-button>
         <mat-icon mat-list-icon>{{ toggleIcon() }}</mat-icon>
       </button>
     </div>
@@ -52,20 +52,20 @@
 </mat-toolbar>
 
 <ng-template #controlsTemplate>
-  <button mat-icon-button (click)="onPrevious()" class="leading-none" [ngClass]="{ 'scale-150': !footerMode(), 'lg:scale-100': !footerMode() }">
+  <button class="leading-none" [ngClass]="{ 'scale-150': !footerMode(), 'lg:scale-100': !footerMode() }" (click)="onPrevious()" mat-icon-button>
     <mat-icon mat-list-icon>skip_previous</mat-icon>
   </button>
   @if (!currentItem()?.playing) {
-    <button mat-icon-button (click)="playItem.emit()" class="leading-none" [ngClass]="{ 'scale-150': !footerMode(), 'lg:scale-100': !footerMode() }">
+    <button class="leading-none" [ngClass]="{ 'scale-150': !footerMode(), 'lg:scale-100': !footerMode() }" (click)="playItem.emit()" mat-icon-button>
       <mat-icon mat-list-icon>play_arrow</mat-icon>
     </button>
   }
   @if (currentItem()?.playing) {
-    <button mat-icon-button (click)="pauseItem.emit()" class="leading-none" [ngClass]="{ 'scale-150': !footerMode(), 'lg:scale-100': !footerMode() }">
+    <button class="leading-none" [ngClass]="{ 'scale-150': !footerMode(), 'lg:scale-100': !footerMode() }" (click)="pauseItem.emit()" mat-icon-button>
       <mat-icon mat-list-icon>pause</mat-icon>
     </button>
   }
-  <button mat-icon-button [disabled]="isLastItemPlaying()" (click)="next.emit()" class="leading-none" [ngClass]="{ 'scale-150': !footerMode(), 'lg:scale-100': !footerMode() }">
+  <button class="leading-none" [ngClass]="{ 'scale-150': !footerMode(), 'lg:scale-100': !footerMode() }" [disabled]="isLastItemPlaying()" (click)="next.emit()" mat-icon-button>
     <mat-icon mat-list-icon>skip_next</mat-icon>
   </button>
 </ng-template>
@@ -80,7 +80,7 @@
 </ng-template>
 
 <ng-template #durationTemplate>
-  <mat-slider class="!w-full !m-0 z-10" min="0" [max]="currentItem()?.duration" step="1" [disabled]="!currentItem()">
-    <input matSliderThumb [value]="elapsedTime()" (valueChange)="onSeek($event)" />
+  <mat-slider class="z-10 !m-0 !w-full" [max]="currentItem()?.duration" [disabled]="!currentItem()" min="0" step="1">
+    <input [value]="elapsedTime()" (valueChange)="onSeek($event)" matSliderThumb />
   </mat-slider>
 </ng-template>

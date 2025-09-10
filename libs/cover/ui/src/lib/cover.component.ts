@@ -1,8 +1,7 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Output, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { SafePipe } from '@metal-p3/shared/safe-pipe';
 import { CoverDragDirective } from './cover-dnd.directive';
-import { output } from '@angular/core';
 
 @Component({
   imports: [CoverDragDirective, MatProgressSpinnerModule, SafePipe],

@@ -9,10 +9,10 @@
 />
 
 @if (searchRequest$ | async; as searchRequest) {
-  <cdk-virtual-scroll-viewport [itemSize]="380" minBufferPx="1520" maxBufferPx="1900" (scrolledIndexChange)="scrollIndexChange($event, searchRequest, false)">
-    <div class="mx-4 overflow-hidden" appAddAlbum (albumAdded)="onAlbumAdded($event)">
+  <cdk-virtual-scroll-viewport [itemSize]="380" (scrolledIndexChange)="scrollIndexChange($event, searchRequest, false)" minBufferPx="1520" maxBufferPx="1900">
+    <div class="mx-4 overflow-hidden" (albumAdded)="onAlbumAdded($event)" appAddAlbum>
       <div *cdkVirtualFor="let albums of albumsView$; trackBy: trackByVirtualFn">
-        <div class="grid grid-flow-col auto-cols-fr lg:auto-cols-min gap-4 py-2">
+        <div class="grid auto-cols-fr grid-flow-col gap-4 py-2 lg:auto-cols-min">
           @if (albums.length === 0 && (albumsLoading$ | async) === false) {
             <div class="w-max text-xl">no albums found</div>
           }

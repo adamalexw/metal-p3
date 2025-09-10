@@ -1,4 +1,4 @@
-<mat-table [dataSource]="dataSource" matSort [trackBy]="trackByFn">
+<mat-table [dataSource]="dataSource" [trackBy]="trackByFn" matSort>
   <ng-container matColumnDef="folder">
     <mat-header-cell *matHeaderCellDef mat-sort-header>Album</mat-header-cell>
     <mat-cell *matCellDef="let element">
@@ -9,7 +9,7 @@
   <ng-container matColumnDef="url">
     <mat-header-cell *matHeaderCellDef>Url</mat-header-cell>
     <mat-cell *matCellDef="let element">
-      <a mat-button [href]="element.url" target="_blank">View</a>
+      <a [href]="element.url" mat-button target="_blank">View</a>
     </mat-cell>
   </ng-container>
 
@@ -64,15 +64,15 @@
   <ng-container matColumnDef="actions">
     <mat-header-cell *matHeaderCellDef></mat-header-cell>
     <mat-cell *matCellDef="let element">
-      <button mat-icon-button [matMenuTriggerFor]="menu" class="max-w-min">
+      <button class="max-w-min" [matMenuTriggerFor]="menu" mat-icon-button>
         <mat-icon>more_vert</mat-icon>
       </button>
       <mat-menu #menu="matMenu">
-        <button mat-menu-item (click)="onApply(element.albumId, element.id)">
+        <button (click)="onApply(element.albumId, element.id)" mat-menu-item>
           <mat-icon>approval</mat-icon>
           <span>Apply</span>
         </button>
-        <button mat-menu-item appConfirmDelete [itemName]="'lyrics() history'" (confirmResult)="onDelete($event, element.id)">
+        <button [itemName]="'lyrics() history'" (confirmResult)="onDelete($event, element.id)" mat-menu-item appConfirmDelete>
           <mat-icon>delete</mat-icon>
           <span>Delete</span>
         </button>

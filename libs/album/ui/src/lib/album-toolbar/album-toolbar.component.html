@@ -1,27 +1,27 @@
 <app-nav-toolbar [closeFullWidth]="false">
-  <button mat-icon-button [disabled]="saving()" (click)="save.emit()">
+  <button [disabled]="saving()" (click)="save.emit()" mat-icon-button>
     <mat-icon title="save">save</mat-icon>
   </button>
-  <button mat-icon-button (click)="imageSearch.emit()">
+  <button (click)="imageSearch.emit()" mat-icon-button>
     <mat-icon title="cover search">image_search</mat-icon>
   </button>
-  <button mat-icon-button [disabled]="findingUrl()" (click)="findUrl.emit()">
+  <button [disabled]="findingUrl()" (click)="findUrl.emit()" mat-icon-button>
     <mat-icon title="ma search">pageview</mat-icon>
   </button>
-  <button mat-icon-button [disabled]="renamingFolder()" (click)="renameFolder.emit()">
+  <button [disabled]="renamingFolder()" (click)="renameFolder.emit()" mat-icon-button>
     <mat-icon title="rename folder">source</mat-icon>
   </button>
-  <button mat-icon-button (click)="openFolder.emit()" matBadge="!" matBadgeColor="warn" [matBadgeHidden]="!extraFiles()" class="!hidden lg:!block">
+  <button class="!hidden lg:!block" [matBadgeHidden]="!extraFiles()" (click)="openFolder.emit()" mat-icon-button matBadge="!" matBadgeColor="warn">
     <mat-icon title="open folder">folder()</mat-icon>
   </button>
-  <button mat-icon-button [disabled]="trackTransferring()" (click)="transfer.emit()" class="!hidden lg:!block">
+  <button class="!hidden lg:!block" [disabled]="trackTransferring()" (click)="transfer.emit()" mat-icon-button>
     <mat-icon title="transfer">adb</mat-icon>
   </button>
-  <button mat-icon-button appConfirmDelete [itemName]="'album'" (confirmResult)="onDelete($event)">
+  <button [itemName]="'album'" (confirmResult)="onDelete($event)" mat-icon-button appConfirmDelete>
     <mat-icon title="delete">delete</mat-icon>
   </button>
 
-  <div class="hidden lg:flex flex-row-reverse flex-grow">
+  <div class="hidden flex-grow flex-row-reverse lg:flex">
     <app-album-header class="max-w-[745px]" [folder]="folder()" />
   </div>
 </app-nav-toolbar>

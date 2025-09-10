@@ -2,7 +2,7 @@
   <div mat-subheader>Folders</div>
   @for (folder of folders(); track folder) {
     <mat-list-item>
-      <mat-icon matListItemIcon class="cursor-pointer" (click)="openFolder.emit(folder)">folder</mat-icon>
+      <mat-icon class="cursor-pointer" (click)="openFolder.emit(folder)" matListItemIcon>folder</mat-icon>
       <div matListItemTitle>{{ folder }}</div>
     </mat-list-item>
   }

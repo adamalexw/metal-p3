@@ -5,16 +5,16 @@
   @if (folders().length) {
     @for (folder of folders(); track folder) {
       <mat-list-item>
-        <mat-icon matListItemIcon class="cursor-pointer" (click)="openFolder.emit(folder)" title="open folder">folder</mat-icon>
+        <mat-icon class="cursor-pointer" (click)="openFolder.emit(folder)" matListItemIcon title="open folder">folder</mat-icon>
         <div matListItemTitle>{{ folder }}</div>
-        <div matListItemLine class="!flex !mt-2">
-          <mat-icon mat-list-icon class="cursor-pointer" (click)="search.emit(folder)" title="search for existing album">search</mat-icon>
-          <mat-icon mat-list-icon class="cursor-pointer" (click)="add.emit(folder)" title="add album">add</mat-icon>
-          <mat-icon mat-list-icon class="cursor-pointer" appConfirmDelete [itemName]="folder" (confirmResult)="onDelete($event, folder)" title="delete folder">delete</mat-icon>
+        <div class="!mt-2 !flex" matListItemLine>
+          <mat-icon class="cursor-pointer" (click)="search.emit(folder)" mat-list-icon title="search for existing album">search</mat-icon>
+          <mat-icon class="cursor-pointer" (click)="add.emit(folder)" mat-list-icon title="add album">add</mat-icon>
+          <mat-icon class="cursor-pointer" [itemName]="folder" (confirmResult)="onDelete($event, folder)" mat-list-icon appConfirmDelete title="delete folder">delete</mat-icon>
         </div>
       </mat-list-item>
     }
   } @else {
-    <div class="flex items-center gap-1 ml-4"><mat-icon>info</mat-icon> <span>No unmapped folders</span></div>
+    <div class="ml-4 flex items-center gap-1"><mat-icon>info</mat-icon> <span>No unmapped folders</span></div>
   }
 </mat-list>

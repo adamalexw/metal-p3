@@ -1,5 +1,5 @@
 @if (album(); as album) {
-  <nav class="sticky top-0 lg:block z-10">
+  <nav class="sticky top-0 z-10 lg:block">
     <app-album-toolbar
       [saving]="albumSaving()"
       [findingUrl]="findingUrl()"
@@ -18,13 +18,13 @@
   </nav>
 
   @if (trackSavingProgress() || trackTransferringProgress() || trackRenamingProgress(); as progress) {
-    <mat-progress-bar class="fixed top-0 w-full z-50 lg:block" mode="determinate" [value]="progress"> </mat-progress-bar>
+    <mat-progress-bar class="fixed top-0 z-50 w-full lg:block" [value]="progress" mode="determinate"> </mat-progress-bar>
   }
 
   <form [formGroup]="form">
     <section class="flex flex-col lg:flex-row">
       <app-cover
-        class="w-full lg:min-w-[500px] lg:max-w-[500px]"
+        class="w-full lg:max-w-[500px] lg:min-w-[500px]"
         [loading]="coverLoading()"
         [cover]="album.cover"
         [coverError]="album.coverError"
@@ -32,7 +32,7 @@
         (coverUrl)="coverUrl.emit({ id: album.id, url: $event })"
       />
 
-      <app-album-form class="block w-full mt-1 mb-0 lg:mx-2" (findBandProps)="getBandProps($event)" (lyricsPriority)="lyricsPriority.emit(albumId())" />
+      <app-album-form class="mt-1 mb-0 block w-full lg:mx-2" (findBandProps)="getBandProps($event)" (lyricsPriority)="lyricsPriority.emit(albumId())" />
     </section>
 
     <section>

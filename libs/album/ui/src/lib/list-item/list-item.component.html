@@ -1,17 +1,17 @@
-<mat-card appearance="raised" class="hover:bg-background hover:shadow-2xl">
+<mat-card class="hover:bg-background hover:shadow-2xl" appearance="raised">
   <mat-card-header class="py-2">
     <mat-card-title
       ><p class="line-clamp-1">{{ album().artist }}</p></mat-card-title
     >
     <mat-card-subtitle (click)="openAlbum.emit(album().id)"
-      ><p class="cursor-pointer line-clamp-1">{{ album().album }}</p></mat-card-subtitle
+      ><p class="line-clamp-1 cursor-pointer">{{ album().album }}</p></mat-card-subtitle
     >
   </mat-card-header>
 
   <mat-card-content>
-    <div (click)="openAlbum.emit(album().id)" class="flex justify-center cursor-pointer overflow-hidden my-2">
+    <div class="my-2 flex cursor-pointer justify-center overflow-hidden" (click)="openAlbum.emit(album().id)">
       <app-cover
-        class="block z-10 hover:transition hover:scale-110"
+        class="z-10 block hover:scale-110 hover:transition"
         [class.animate-spin]="album().coverLoading"
         [cover]="album().cover"
         [coverError]="album().coverError"
@@ -20,26 +20,26 @@
     </div>
   </mat-card-content>
 
-  <mat-card-footer class="flex items-center w-full h-12 px-4">
+  <mat-card-footer class="flex h-12 w-full items-center px-4">
     <div class="grow truncate">{{ album().year }} - {{ album().genre }}</div>
-    <button mat-icon-button [matMenuTriggerFor]="menu" class="!p-0">
+    <button class="!p-0" [matMenuTriggerFor]="menu" mat-icon-button>
       <mat-icon>more_vert</mat-icon>
     </button>
 
     <mat-menu #menu="matMenu">
-      <button mat-menu-item (click)="transferAlbum.emit()">
+      <button (click)="transferAlbum.emit()" mat-menu-item>
         <mat-icon>adb</mat-icon>
         <span>Transfer</span>
       </button>
-      <button mat-menu-item (click)="playAlbum.emit()">
+      <button (click)="playAlbum.emit()" mat-menu-item>
         <mat-icon>playlist_play</mat-icon>
         <span>Play</span>
       </button>
-      <button mat-menu-item (click)="addToPlaylist.emit()">
+      <button (click)="addToPlaylist.emit()" mat-menu-item>
         <mat-icon>playlist_add</mat-icon>
         <span>Add To Playlist</span>
       </button>
-      <button mat-menu-item appConfirmDelete itemName="album" (confirmResult)="onDelete($event)">
+      <button (confirmResult)="onDelete($event)" mat-menu-item appConfirmDelete itemName="album">
         <mat-icon>delete</mat-icon>
         <span>Delete</span>
       </button>

@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { CoverService } from '@metal-p3/cover/data-access';
 import { shuffleArray } from '@metal-p3/player/util';
 import { ErrorService } from '@metal-p3/shared/error';
@@ -11,6 +11,11 @@ import { selectActiveItemIndex, selectActivePlaylistItem, selectItemById, select
 
 @Injectable()
 export class PlayerEffects {
+  private readonly actions$ = inject(Actions);
+  private readonly store = inject(Store);
+  private readonly coverService = inject(CoverService);
+  private readonly errorService = inject(ErrorService);
+
   play$ = createEffect(() => {
     return this.actions$.pipe(
       ofType(PlayerActions.play),
@@ -116,11 +121,4 @@ export class PlayerEffects {
       map(() => PlayerActions.clearSuccess()),
     );
   });
-
-  constructor(
-    private readonly actions$: Actions,
-    private readonly store: Store,
-    private readonly coverService: CoverService,
-    private readonly errorService: ErrorService,
-  ) {}
 }

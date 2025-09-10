@@ -1,15 +1,15 @@
 @if (loading()) {
-  <img src="/assets/blank.png" [style.width.px]="width()" [style.height.px]="height()" alt="blank cover()" />
+  <img alt="blank cover()" [style.width.px]="width()" [style.height.px]="height()" src="/assets/blank.png" />
 } @else {
   @if (coverError()) {
-    <div class="relative w-full" appCoverDnd [enableDnd]="enableDnd()" (coverUrl)="coverUrl.emit($event)">
-      <img src="/assets/blank.png" [style.width.px]="width()" [style.height.px]="height()" alt="blank cover()" />
-      <div class="absolute w-full top-12 text-center bg-red-700 text-white rounded-md">COVER ERROR</div>
+    <div class="relative w-full" [enableDnd]="enableDnd()" (coverUrl)="coverUrl.emit($event)" appCoverDnd>
+      <img alt="blank cover()" [style.width.px]="width()" [style.height.px]="height()" src="/assets/blank.png" />
+      <div class="absolute top-12 w-full rounded-md bg-red-700 text-center text-white">COVER ERROR</div>
     </div>
   }
   @if (!coverError() && cover(); as cover) {
-    <div appCoverDnd [enableDnd]="enableDnd()" (coverUrl)="coverUrl.emit($event)" [style.width.px]="width()" [style.height.px]="height()">
-      <img [src]="cover | safe: 'resourceUrl'" alt="album cover()" [style.width.px]="width()" [style.height.px]="height()" loading="lazy" />
+    <div [style.width.px]="width()" [style.height.px]="height()" [enableDnd]="enableDnd()" (coverUrl)="coverUrl.emit($event)" appCoverDnd>
+      <img alt="album cover()" [style.width.px]="width()" [style.height.px]="height()" [src]="cover | safe: 'resourceUrl'" loading="lazy" />
     </div>
   }
 }

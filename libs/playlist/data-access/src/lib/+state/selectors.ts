@@ -1,5 +1,5 @@
 import { createFeatureSelector, createSelector } from '@ngrx/store';
-import { adapter, PlaylistState, PLAYLIST_FEATURE_KEY } from './reducer';
+import { adapter, PLAYLIST_FEATURE_KEY, PlaylistState } from './reducer';
 
 export const selectPlaylistState = createFeatureSelector<PlaylistState>(PLAYLIST_FEATURE_KEY);
 

@@ -1,6 +1,6 @@
 <app-nav-toolbar>
   @if (running()) {
-    <button mat-icon-button (click)="stopProcessing.emit()">
+    <button (click)="stopProcessing.emit()" mat-icon-button>
       <mat-icon title="stop">stop</mat-icon>
     </button>
   }

@@ -1,24 +1,24 @@
 <app-nav-toolbar>
-  <button mat-icon-button [disabled]="getting() || checking()" [matMenuTriggerFor]="priorityMenu">
+  <button [disabled]="getting() || checking()" [matMenuTriggerFor]="priorityMenu" mat-icon-button>
     <mat-icon title="priority">new_releases</mat-icon>
   </button>
 
   <mat-menu #priorityMenu="matMenu">
-    <button mat-menu-item (click)="viewPriority.emit()">View</button>
-    <button mat-menu-item (click)="checkPriority.emit()">View & Update</button>
+    <button (click)="viewPriority.emit()" mat-menu-item>View</button>
+    <button (click)="checkPriority.emit()" mat-menu-item>View & Update</button>
   </mat-menu>
 
-  <button mat-icon-button [disabled]="getting() || checking()" [matMenuTriggerFor]="allMenu">
+  <button [disabled]="getting() || checking()" [matMenuTriggerFor]="allMenu" mat-icon-button>
     <mat-icon title="all">play_arrow</mat-icon>
   </button>
 
   <mat-menu #allMenu="matMenu">
-    <button mat-menu-item (click)="viewCheck.emit()">View</button>
-    <button mat-menu-item (click)="startCheck.emit()">View & Update</button>
+    <button (click)="viewCheck.emit()" mat-menu-item>View</button>
+    <button (click)="startCheck.emit()" mat-menu-item>View & Update</button>
   </mat-menu>
 
   @if (checking()) {
-    <button mat-icon-button (click)="stopCheck.emit()">
+    <button (click)="stopCheck.emit()" mat-icon-button>
       <mat-icon title="stop">stop</mat-icon>
     </button>
   }

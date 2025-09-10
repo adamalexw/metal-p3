@@ -2,7 +2,7 @@
   <ng-content></ng-content>
 
   @if (showClose()) {
-    <div class="flex flex-row-reverse grow mr-2 lg:grow-0 lg:mr-0" [class.w-full]="closeFullWidth()">
+    <div class="mr-2 flex grow flex-row-reverse lg:mr-0 lg:grow-0" [class.w-full]="closeFullWidth()">
       <mat-icon class="cursor-pointer" (click)="onClose()">close</mat-icon>
     </div>
   }

@@ -3,7 +3,7 @@
     <p class="text-center text-white">Are you sure you want to delete {{ ref.data?.name }}?</p>
   </mat-card-content>
   <mat-card-actions class="flex justify-center gap-2">
-    <button mat-raised-button (click)="close(true)" color="warn">Confirm</button>
-    <button mat-raised-button (click)="close(false)">Cancel</button>
+    <button (click)="close(true)" mat-raised-button color="warn">Confirm</button>
+    <button (click)="close(false)" mat-raised-button>Cancel</button>
   </mat-card-actions>
 </mat-card>

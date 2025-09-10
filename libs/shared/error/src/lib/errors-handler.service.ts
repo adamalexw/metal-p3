@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { ErrorHandler, Injectable, Injector } from '@angular/core';
+import { ErrorHandler, inject, Injectable, Injector } from '@angular/core';
 import { NotificationService } from '@metal-p3/shared/feedback';
 //import { LoggerService } from '@shared/util-logging';
 import { ErrorService } from './error.service';
@@ -7,7 +7,7 @@ import { ErrorService } from './error.service';
 @Injectable({ providedIn: 'root' })
 export class ErrorsHandler implements ErrorHandler {
   // Can not use dependency injection because error handling is loaded first, have to use injector to get access to those dependencies
-  constructor(private readonly injector: Injector) {}
+  private readonly injector = inject(Injector);
 
   handleError(error: Error | HttpErrorResponse) {
     console.error(error);

@@ -1,5 +1,5 @@
 <mat-drawer-container fullscreen>
-  <mat-drawer [opened]="avancedSearchOpen$ | async" mode="over" (closedStart)="onCloseAdvancedSearch()">
+  <mat-drawer [opened]="avancedSearchOpen$ | async" (closedStart)="onCloseAdvancedSearch()" mode="over">
     <app-advanced-search-shell />
   </mat-drawer>
 
@@ -7,7 +7,7 @@
     <app-list />
   </mat-drawer-content>
 
-  <mat-drawer [opened]="sideNavOpen$ | async" [mode]="sideNavMode()" position="end" class="!w-screen lg:!w-album">
+  <mat-drawer class="lg:!w-album !w-screen" [opened]="sideNavOpen$ | async" [mode]="sideNavMode()" position="end">
     <router-outlet></router-outlet>
   </mat-drawer>
 </mat-drawer-container>
