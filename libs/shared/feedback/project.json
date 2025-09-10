@@ -4,17 +4,18 @@
   "projectType": "library",
   "sourceRoot": "libs/shared/feedback/src",
   "prefix": "app",
+  "tags": ["scope:shared", "type:util"],
   "targets": {
     "test": {
       "executor": "@nx/jest:jest",
       "outputs": ["{workspaceRoot}/coverage/libs/shared/feedback"],
       "options": {
-        "jestConfig": "libs/shared/feedback/jest.config.ts"
+        "jestConfig": "libs/shared/feedback/jest.config.ts",
+        "tsConfig": "libs/shared/feedback/tsconfig.spec.json"
       }
     },
     "lint": {
       "executor": "@nx/eslint:lint"
     }
-  },
-  "tags": ["scope:shared", "type:util"]
+  }
 }

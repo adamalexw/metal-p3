@@ -6,8 +6,7 @@ import { Track } from '@metal-p3/track/domain';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { concatLatestFrom } from '@ngrx/operators';
 import { Store } from '@ngrx/store';
-import { EMPTY, of } from 'rxjs';
-import { catchError, map, mergeMap } from 'rxjs/operators';
+import { catchError, EMPTY, map, mergeMap, of } from 'rxjs';
 import { TrackActions } from './actions';
 import { selectTrack } from './selectors';
 

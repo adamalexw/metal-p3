@@ -5,8 +5,7 @@ import { Injectable } from '@nestjs/common';
 import * as fs from 'fs';
 import { selectCover } from 'music-metadata';
 import * as path from 'path';
-import { EMPTY, Observable, of } from 'rxjs';
-import { filter, map } from 'rxjs/operators';
+import { EMPTY, filter, map, Observable, of } from 'rxjs';
 import * as sharp from 'sharp';
 
 @Injectable()
@@ -48,13 +47,13 @@ export class CoverService {
   private getCoverFromAudioFile(location: string): Observable<string> {
     return this.trackService.getMetadata(location).pipe(
       map((metadata) => selectCover(metadata.common.picture)),
-      map((cover) => (cover?.data ? this.toBase64Image(Buffer.from(cover.data)) : '')),
+      map((cover) => (cover?.data ? this.toBase64Image(cover.data) : '')),
     );
   }
 
   private getCoverFromImageFile(location: string): Observable<string> {
     const data = fs.readFileSync(location);
-    return of(Buffer.from(data).toString('base64'));
+    return of(data).pipe(map((buffer) => buffer.toString('base64')));
   }
 
   downloadCover(url: string | string[]): Observable<string> {

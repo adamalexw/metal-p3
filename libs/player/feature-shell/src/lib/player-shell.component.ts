@@ -19,11 +19,11 @@ import { PlaylistItem } from '@metal-p3/player/domain';
 import { PlayerControlsComponent } from '@metal-p3/player/ui';
 import { PlaylistShellComponent } from '@metal-p3/playlist';
 import { PlaylistComponent } from '@metal-p3/playlist/ui';
+import { NotificationService } from '@metal-p3/shared/feedback';
 import { nonNullable } from '@metal-p3/shared/utils';
 import { TrackService } from '@metal-p3/track/data-access';
 import { Store } from '@ngrx/store';
-import { Observable, fromEvent, iif, of } from 'rxjs';
-import { concatMap, distinctUntilKeyChanged, filter, map, shareReplay, take, tap, withLatestFrom } from 'rxjs/operators';
+import { EMPTY, Observable, catchError, concatMap, distinctUntilKeyChanged, filter, fromEvent, iif, map, of, shareReplay, take, tap, withLatestFrom } from 'rxjs';
 
 @Component({
   imports: [AsyncPipe, CoverComponent, PlayerControlsComponent, PlaylistShellComponent, PlaylistComponent],
@@ -36,6 +36,7 @@ export class PlayerShellComponent implements OnInit {
   private readonly trackService = inject(TrackService);
   private readonly title = inject(Title);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly notificationService = inject(NotificationService);
 
   private readonly audio = viewChild.required<ElementRef>('audio');
 
@@ -78,6 +79,11 @@ export class PlayerShellComponent implements OnInit {
           }
         }),
         takeUntilDestroyed(),
+        catchError((error) => {
+          console.error(error);
+          this.notificationService.showError(`Error playing track ${JSON.stringify(error)}`, 'Close');
+          return EMPTY;
+        }),
       )
       .subscribe();
   }
@@ -93,7 +99,11 @@ export class PlayerShellComponent implements OnInit {
   private getBlobUrl(id: string, file: string): Observable<string> {
     return this.trackService.playTrack(file).pipe(
       map((response) => URL.createObjectURL(response)),
-      tap((url) => this.store.dispatch(PlayerActions.updateItem({ update: { id, changes: { url } } }))),
+      tap((url) => this.store.dispatch(PlayerActions.updateItem({ update: { id, changes: { url, error: undefined } } }))),
+      catchError((error) => {
+        this.store.dispatch(PlayerActions.playError({ update: { id, changes: { error } } }));
+        return EMPTY;
+      }),
     );
   }
 

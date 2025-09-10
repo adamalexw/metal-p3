@@ -4,6 +4,7 @@
   "projectType": "library",
   "sourceRoot": "libs/album/data-access/src",
   "prefix": "app",
+  "tags": ["scope:album", "type:data-access"],
   "targets": {
     "lint": {
       "executor": "@nx/eslint:lint"
@@ -12,9 +13,9 @@
       "executor": "@nx/jest:jest",
       "outputs": ["{workspaceRoot}/coverage/libs/album/data-access"],
       "options": {
-        "jestConfig": "libs/album/data-access/jest.config.ts"
+        "jestConfig": "libs/album/data-access/jest.config.ts",
+        "tsConfig": "libs/album/data-access/tsconfig.spec.json"
       }
     }
-  },
-  "tags": ["scope:album", "type:data-access"]
+  }
 }

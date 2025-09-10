@@ -1,6 +1,6 @@
 import { CdkVirtualScrollViewport, ScrollingModule, ViewportRuler } from '@angular/cdk/scrolling';
 import { AsyncPipe, Location } from '@angular/common';
-import { ChangeDetectionStrategy, Component, OnInit, inject, output, viewChild, DOCUMENT } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DOCUMENT, OnInit, inject, output, viewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { AlbumService } from '@metal-p3/album/data-access';
 import { TAKE } from '@metal-p3/album/domain';
@@ -27,8 +27,7 @@ import { NotificationService } from '@metal-p3/shared/feedback';
 import { nonNullable, toChunks } from '@metal-p3/shared/utils';
 import { Track } from '@metal-p3/track/domain';
 import { Store } from '@ngrx/store';
-import { Observable, combineLatest } from 'rxjs';
-import { delay, filter, map, startWith, take, tap } from 'rxjs/operators';
+import { Observable, combineLatest, delay, filter, map, startWith, take, tap } from 'rxjs';
 import { AddAlbumDirective } from './add-album.directive';
 
 @Component({

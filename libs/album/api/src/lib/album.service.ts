@@ -8,8 +8,7 @@ import chokidar from 'chokidar';
 import * as fs from 'fs';
 import * as NodeID3 from 'node-id3';
 import * as path from 'path';
-import { Observable, combineLatest, from, iif, of } from 'rxjs';
-import { catchError, concatMap, delay, map, mergeMap, tap } from 'rxjs/operators';
+import { Observable, catchError, combineLatest, concatMap, delay, from, iif, map, mergeMap, of, tap } from 'rxjs';
 import { AlbumGateway } from './album-gateway.service';
 
 @Injectable()
@@ -148,6 +147,8 @@ export class AlbumService {
       },
       ignoreInitial: true,
     });
+
+    watcher.on('ready', () => console.log('Initial scan complete. Ready for changes', new Date()));
 
     watcher.on('addDir', (path) => {
       const folder = this.fileSystemService.getFilename(path);

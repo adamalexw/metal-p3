@@ -4,6 +4,7 @@
   "projectType": "library",
   "sourceRoot": "libs/album/ui/src",
   "prefix": "app",
+  "tags": ["scope:album", "tags:ui"],
   "targets": {
     "lint": {
       "executor": "@nx/eslint:lint"
@@ -12,9 +13,9 @@
       "executor": "@nx/jest:jest",
       "outputs": ["{workspaceRoot}/coverage/libs/album/ui"],
       "options": {
-        "jestConfig": "libs/album/ui/jest.config.ts"
+        "jestConfig": "libs/album/ui/jest.config.ts",
+        "tsConfig": "libs/album/ui/tsconfig.spec.json"
       }
     }
-  },
-  "tags": ["scope:album", "tags:ui"]
+  }
 }

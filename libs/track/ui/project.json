@@ -4,17 +4,18 @@
   "projectType": "library",
   "sourceRoot": "libs/track/ui/src",
   "prefix": "app",
+  "tags": ["scope:track", "type:ui"],
   "targets": {
     "test": {
       "executor": "@nx/jest:jest",
       "outputs": ["{workspaceRoot}/coverage/libs/track/ui"],
       "options": {
-        "jestConfig": "libs/track/ui/jest.config.ts"
+        "jestConfig": "libs/track/ui/jest.config.ts",
+        "tsConfig": "libs/track/ui/tsconfig.spec.json"
       }
     },
     "lint": {
       "executor": "@nx/eslint:lint"
     }
-  },
-  "tags": ["scope:track", "type:ui"]
+  }
 }

@@ -1,8 +1,7 @@
 import type { BandProps, MetalArchivesAlbumTrack, MetalArchivesSearchResponse } from '@metal-p3/api-interfaces';
 import { HttpService } from '@nestjs/axios';
 import { Injectable } from '@nestjs/common';
-import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { map, Observable } from 'rxjs';
 import { extractBandProps, extractTracks, mapSearchResults } from './metal-archives-helpers';
 
 @Injectable()

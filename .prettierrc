@@ -1,4 +1,33 @@
 {
   "singleQuote": true,
-  "printWidth": 200
+  "printWidth": 200,
+  "tailwindConfig": "./tailwind.base.js",
+  "attributeGroups": [
+    "^(id|name)$",
+    "$ANGULAR_STRUCTURAL_DIRECTIVE",
+    "^rma",
+    "$ANGULAR_ELEMENT_REF",
+    "data-testid",
+    "tabindex",
+    "$ALT",
+    "$ARIA",
+    "$ROLE",
+    "$TYPE",
+    "$CLASS",
+    "ngClass",
+    "^\\[style",
+    "$ANGULAR_ANIMATION",
+    "$ANGULAR_ANIMATION_INPUT",
+    "^\\[attr",
+    "$ANGULAR_TWO_WAY_BINDING",
+    "$ANGULAR_INPUT",
+    "^(\\(blur\\)|\\(focus\\)|)$",
+    "^(\\(click\\)|\\(dbclick\\)|\\(submit\\))$",
+    "^(\\(cut\\)|\\(copy\\)|\\(paste\\))$",
+    "^(\\(keyup\\)|\\(keypress\\)|\\(keydown\\))$",
+    "^(\\(mouseup\\)|\\(mousedown\\)|\\(mouseenter\\)|\\(scroll\\))$",
+    "^(\\(drag\\)|\\(drop\\)|\\(dragover\\))$",
+    "$ANGULAR_OUTPUT"
+  ],
+  "plugins": ["prettier-plugin-organize-attributes", "prettier-plugin-organize-imports", "prettier-plugin-tailwindcss"]
 }

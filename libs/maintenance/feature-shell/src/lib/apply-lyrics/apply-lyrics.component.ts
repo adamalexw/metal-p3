@@ -26,8 +26,7 @@ import {
 } from '@metal-p3/shared/data-access';
 import { nonNullable } from '@metal-p3/shared/utils';
 import { Store } from '@ngrx/store';
-import { Observable, combineLatest } from 'rxjs';
-import { filter, map, take, tap, withLatestFrom } from 'rxjs/operators';
+import { Observable, combineLatest, filter, map, take, tap, withLatestFrom } from 'rxjs';
 
 @Component({
   imports: [AsyncPipe, ApplyLyricsComponent, MatDialogModule],

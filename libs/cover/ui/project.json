@@ -4,17 +4,18 @@
   "projectType": "library",
   "sourceRoot": "libs/cover/ui/src",
   "prefix": "app",
+  "tags": ["scope:cover", "type:ui"],
   "targets": {
     "test": {
       "executor": "@nx/jest:jest",
       "outputs": ["{workspaceRoot}/coverage/libs/cover/ui"],
       "options": {
-        "jestConfig": "libs/cover/ui/jest.config.ts"
+        "jestConfig": "libs/cover/ui/jest.config.ts",
+        "tsConfig": "libs/cover/ui/tsconfig.spec.json"
       }
     },
     "lint": {
       "executor": "@nx/eslint:lint"
     }
-  },
-  "tags": ["scope:cover", "type:ui"]
+  }
 }

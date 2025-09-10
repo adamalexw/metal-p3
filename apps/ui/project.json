@@ -83,7 +83,8 @@
       "executor": "@nx/jest:jest",
       "outputs": ["{workspaceRoot}/coverage/apps/ui"],
       "options": {
-        "jestConfig": "apps/ui/jest.config.ts"
+        "jestConfig": "apps/ui/jest.config.ts",
+        "tsConfig": "apps/ui/tsconfig.spec.json"
       }
     }
   }

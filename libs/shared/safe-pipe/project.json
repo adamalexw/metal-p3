@@ -4,17 +4,18 @@
   "projectType": "library",
   "sourceRoot": "libs/shared/safe-pipe/src",
   "prefix": "metal-p3",
+  "tags": [],
   "targets": {
     "test": {
       "executor": "@nx/jest:jest",
       "outputs": ["{workspaceRoot}/coverage/libs/shared/safe-pipe"],
       "options": {
-        "jestConfig": "libs/shared/safe-pipe/jest.config.ts"
+        "jestConfig": "libs/shared/safe-pipe/jest.config.ts",
+        "tsConfig": "libs/shared/safe-pipe/tsconfig.spec.json"
       }
     },
     "lint": {
       "executor": "@nx/eslint:lint"
     }
-  },
-  "tags": []
+  }
 }

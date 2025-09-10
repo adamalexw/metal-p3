@@ -4,17 +4,18 @@
   "projectType": "library",
   "sourceRoot": "libs/playlist/ui/src",
   "prefix": "app",
+  "tags": ["scope:playlist", "type:ui"],
   "targets": {
     "test": {
       "executor": "@nx/jest:jest",
       "outputs": ["{workspaceRoot}/coverage/libs/playlist/ui"],
       "options": {
-        "jestConfig": "libs/playlist/ui/jest.config.ts"
+        "jestConfig": "libs/playlist/ui/jest.config.ts",
+        "tsConfig": "libs/playlist/ui/tsconfig.spec.json"
       }
     },
     "lint": {
       "executor": "@nx/eslint:lint"
     }
-  },
-  "tags": ["scope:playlist", "type:ui"]
+  }
 }

@@ -14,6 +14,7 @@ export const PlayerActions = createActionGroup({
     'Update Item': props<{ update: Update<PlaylistItem> }>(),
     Reorder: props<{ updates: Update<PlaylistItem>[] }>(),
     Play: props<{ id: string }>(),
+    'Play Error': props<{ update: Update<PlaylistItem> }>(),
     Pause: emptyProps(),
     Remove: props<{ id: string }>(),
     'Remove Success': props<{ id: string }>(),

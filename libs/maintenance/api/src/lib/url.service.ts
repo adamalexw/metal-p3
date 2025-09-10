@@ -5,8 +5,7 @@ import { DbService } from '@metal-p3/shared/database';
 import { MetalArchivesService } from '@metal-p3/shared/metal-archives';
 import { extractUrl } from '@metal-p3/shared/utils';
 import { Injectable, Logger } from '@nestjs/common';
-import { Observable, Subject, from, of } from 'rxjs';
-import { catchError, concatMap, finalize, map, takeUntil, tap, toArray } from 'rxjs/operators';
+import { Observable, Subject, catchError, concatMap, finalize, from, map, of, takeUntil, tap, toArray } from 'rxjs';
 import { MaintenanceGateway } from './maintenance-gateway.service';
 
 @Injectable()

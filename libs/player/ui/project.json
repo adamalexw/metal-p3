@@ -4,17 +4,18 @@
   "projectType": "library",
   "sourceRoot": "libs/player/ui/src",
   "prefix": "app",
+  "tags": ["scope:player", "type:ui"],
   "targets": {
     "test": {
       "executor": "@nx/jest:jest",
       "outputs": ["{workspaceRoot}/coverage/libs/player/ui"],
       "options": {
-        "jestConfig": "libs/player/ui/jest.config.ts"
+        "jestConfig": "libs/player/ui/jest.config.ts",
+        "tsConfig": "libs/player/ui/tsconfig.spec.json"
       }
     },
     "lint": {
       "executor": "@nx/eslint:lint"
     }
-  },
-  "tags": ["scope:player", "type:ui"]
+  }
 }

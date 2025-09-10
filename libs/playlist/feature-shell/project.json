@@ -4,17 +4,18 @@
   "projectType": "library",
   "sourceRoot": "libs/playlist/feature-shell/src",
   "prefix": "app",
+  "tags": ["scope:playlist", "type:feature"],
   "targets": {
     "test": {
       "executor": "@nx/jest:jest",
       "outputs": ["{workspaceRoot}/coverage/libs/playlist/feature-shell"],
       "options": {
-        "jestConfig": "libs/playlist/feature-shell/jest.config.ts"
+        "jestConfig": "libs/playlist/feature-shell/jest.config.ts",
+        "tsConfig": "libs/playlist/feature-shell/tsconfig.spec.json"
       }
     },
     "lint": {
       "executor": "@nx/eslint:lint"
     }
-  },
-  "tags": ["scope:playlist", "type:feature"]
+  }
 }

@@ -47,8 +47,7 @@ import { nonNullable, objectDistinctUntilChanged } from '@metal-p3/shared/utils'
 import { Track } from '@metal-p3/track/domain';
 import { Update } from '@ngrx/entity';
 import { Store } from '@ngrx/store';
-import { Observable, combineLatest } from 'rxjs';
-import { distinctUntilChanged, filter, map, take, tap, withLatestFrom } from 'rxjs/operators';
+import { Observable, combineLatest, distinctUntilChanged, filter, map, take, tap, withLatestFrom } from 'rxjs';
 
 @Component({
   imports: [AsyncPipe, RouterModule, AlbumComponent],

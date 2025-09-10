@@ -77,7 +77,7 @@ describe('MaintenanceEffects', () => {
         effectsSpy = subscribeSpyTo(spectator.service.getLyricsHistory$);
 
         expect(effectsSpy.getFirstValue()).toEqual(MaintenanceActions.getLyricsHistorySuccess({ history: [history] }));
-        expect(lyricsMaintenanceService.getPriority).toBeCalled();
+        expect(lyricsMaintenanceService.getPriority).toHaveBeenCalled();
       });
 
       it('should return getLyricsHistorySuccess action and call getHistory', () => {
@@ -96,7 +96,7 @@ describe('MaintenanceEffects', () => {
         effectsSpy = subscribeSpyTo(spectator.service.getLyricsHistory$);
 
         expect(effectsSpy.getFirstValue()).toEqual(MaintenanceActions.getLyricsHistorySuccess({ history }));
-        expect(lyricsMaintenanceService.getHistory).toBeCalled();
+        expect(lyricsMaintenanceService.getHistory).toHaveBeenCalled();
       });
 
       it('should return getLyricsHistoryError action on error', () => {
@@ -119,7 +119,7 @@ describe('MaintenanceEffects', () => {
         effectsSpy = subscribeSpyTo(spectator.service.checkLyricsHistory$);
 
         expect(effectsSpy.getFirstValue()).toEqual(MaintenanceActions.checkLyricsHistorySuccess());
-        expect(lyricsMaintenanceService.checkPriority).toBeCalled();
+        expect(lyricsMaintenanceService.checkPriority).toHaveBeenCalled();
       });
 
       it('should return checkLyricsHistorySuccess action and call checkHistory', () => {
@@ -129,7 +129,7 @@ describe('MaintenanceEffects', () => {
         effectsSpy = subscribeSpyTo(spectator.service.checkLyricsHistory$);
 
         expect(effectsSpy.getFirstValue()).toEqual(MaintenanceActions.checkLyricsHistorySuccess());
-        expect(lyricsMaintenanceService.checkHistory).toBeCalled();
+        expect(lyricsMaintenanceService.checkHistory).toHaveBeenCalled();
       });
 
       it('should return checkLyricsHistoryError action on error', () => {
@@ -154,7 +154,7 @@ describe('MaintenanceEffects', () => {
 
         effectsSpy = subscribeSpyTo(spectator.service.checkedLyricsHistory$);
 
-        expect(lyricsMaintenanceService.checkedLyricsHistory).toBeCalled();
+        expect(lyricsMaintenanceService.checkedLyricsHistory).toHaveBeenCalled();
         expect(effectsSpy.getFirstValue()).toEqual(MaintenanceActions.checkedLyricsHistorySuccess({ update: { id, changes: { checked } } }));
       });
 
@@ -167,7 +167,7 @@ describe('MaintenanceEffects', () => {
 
         effectsSpy = subscribeSpyTo(spectator.service.checkedLyricsHistory$);
 
-        expect(lyricsMaintenanceService.checkedLyricsHistory).toBeCalled();
+        expect(lyricsMaintenanceService.checkedLyricsHistory).toHaveBeenCalled();
         expect(notificationService.showError).toHaveBeenCalledWith(undefined, 'Checked Lyrics History Error');
         expect(effectsSpy.getFirstValue()).toEqual(MaintenanceActions.checkedLyricsHistoryError({ id, error: expect.anything() }));
       });
@@ -182,7 +182,7 @@ describe('MaintenanceEffects', () => {
 
         effectsSpy = subscribeSpyTo(spectator.service.deleteLyricsHistory$);
 
-        expect(lyricsMaintenanceService.deleteLyricsHistory).toBeCalled();
+        expect(lyricsMaintenanceService.deleteLyricsHistory).toHaveBeenCalled();
         expect(effectsSpy.getFirstValue()).toEqual(MaintenanceActions.deleteLyricsHistorySuccess({ id }));
       });
 
@@ -194,7 +194,7 @@ describe('MaintenanceEffects', () => {
 
         effectsSpy = subscribeSpyTo(spectator.service.deleteLyricsHistory$);
 
-        expect(lyricsMaintenanceService.deleteLyricsHistory).toBeCalled();
+        expect(lyricsMaintenanceService.deleteLyricsHistory).toHaveBeenCalled();
         expect(notificationService.showError).toHaveBeenCalledWith(undefined, 'Delete Lyrics History Error');
         expect(effectsSpy.getFirstValue()).toEqual(MaintenanceActions.deleteLyricsHistoryError({ id, error: expect.anything() }));
       });
@@ -207,7 +207,7 @@ describe('MaintenanceEffects', () => {
         const nonDispatchEffectsSpy = subscribeSpyTo(spectator.service.stopLyricsHistoryCheck$);
         nonDispatchEffectsSpy.getFirstValue();
 
-        expect(lyricsMaintenanceService.cancelHistoryCheck).toBeCalled();
+        expect(lyricsMaintenanceService.cancelHistoryCheck).toHaveBeenCalled();
       });
     });
   });
@@ -265,7 +265,7 @@ describe('MaintenanceEffects', () => {
         const nonDispatchEffectsSpy = subscribeSpyTo(spectator.service.startUrlMatcher$);
         nonDispatchEffectsSpy.getFirstValue();
 
-        expect(urlMaintenanceService.match).toBeCalled();
+        expect(urlMaintenanceService.match).toHaveBeenCalled();
       });
     });
 
@@ -276,7 +276,7 @@ describe('MaintenanceEffects', () => {
         const nonDispatchEffectsSpy = subscribeSpyTo(spectator.service.stopUrlMatcher$);
         nonDispatchEffectsSpy.getFirstValue();
 
-        expect(urlMaintenanceService.cancel).toBeCalled();
+        expect(urlMaintenanceService.cancel).toHaveBeenCalled();
       });
     });
   });

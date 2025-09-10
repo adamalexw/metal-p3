@@ -4,6 +4,7 @@
   "projectType": "library",
   "sourceRoot": "libs/album/feature-shell/src",
   "prefix": "app",
+  "tags": ["scope:album", "type:feature"],
   "targets": {
     "lint": {
       "executor": "@nx/eslint:lint"
@@ -12,9 +13,9 @@
       "executor": "@nx/jest:jest",
       "outputs": ["{workspaceRoot}/coverage/libs/album/feature-shell"],
       "options": {
-        "jestConfig": "libs/album/feature-shell/jest.config.ts"
+        "jestConfig": "libs/album/feature-shell/jest.config.ts",
+        "tsConfig": "libs/album/feature-shell/tsconfig.spec.json"
       }
     }
-  },
-  "tags": ["scope:album", "type:feature"]
+  }
 }

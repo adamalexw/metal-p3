@@ -4,17 +4,18 @@
   "projectType": "library",
   "sourceRoot": "libs/playlist/data-access/src",
   "prefix": "app",
+  "tags": ["scope:playlist", "type:data-access"],
   "targets": {
     "test": {
       "executor": "@nx/jest:jest",
       "outputs": ["{workspaceRoot}/coverage/libs/playlist/data-access"],
       "options": {
-        "jestConfig": "libs/playlist/data-access/jest.config.ts"
+        "jestConfig": "libs/playlist/data-access/jest.config.ts",
+        "tsConfig": "libs/playlist/data-access/tsconfig.spec.json"
       }
     },
     "lint": {
       "executor": "@nx/eslint:lint"
     }
-  },
-  "tags": ["scope:playlist", "type:data-access"]
+  }
 }

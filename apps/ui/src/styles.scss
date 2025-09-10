@@ -38,8 +38,15 @@ body {
   width: var(--duration-width);
 }
 
+.mat-mdc-snack-bar-container {
+  .mdc-snackbar__surface {
+    max-width: 100%;
+    width: 100%;
+  }
+}
+
 .snackbar-error {
-  --mat-snackbar-container-color: var(--mat-form-field-error-text-color);
+  --mat-snackbar-container-color: var(--mat-sys-error-container);
   --mat-snackbar-supporting-text-color: white;
   --mat-snack-bar-button-color: white;
 }

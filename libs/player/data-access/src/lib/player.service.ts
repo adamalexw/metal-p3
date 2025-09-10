@@ -4,8 +4,7 @@ import { PlaylistItem } from '@metal-p3/player/domain';
 import { Track } from '@metal-p3/track/domain';
 import { Store } from '@ngrx/store';
 import { nanoid } from 'nanoid';
-import { from, Observable } from 'rxjs';
-import { concatAll, filter, map, take, tap, toArray, withLatestFrom } from 'rxjs/operators';
+import { concatAll, filter, from, map, Observable, take, tap, toArray, withLatestFrom } from 'rxjs';
 import { selectPlaylistItemSize } from '..';
 import { PlayerActions } from './+state/actions';
 

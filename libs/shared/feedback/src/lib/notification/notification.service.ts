@@ -1,9 +1,9 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { MatSnackBar, MatSnackBarRef, TextOnlySnackBar } from '@angular/material/snack-bar';
 
 @Injectable({ providedIn: 'root' })
 export class NotificationService {
-  constructor(private readonly snackBar: MatSnackBar) {}
+  private readonly snackBar = inject(MatSnackBar);
 
   showError(message: string, action?: string | undefined) {
     this.snackBar.open(message, action, { panelClass: 'snackbar-error' });

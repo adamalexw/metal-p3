@@ -5,8 +5,7 @@ import { MetalArchivesService } from '@metal-p3/shared/metal-archives';
 import { TrackService } from '@metal-p3/track/api';
 import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Patch, Post, Query } from '@nestjs/common';
 import { join } from 'path';
-import { Observable, of } from 'rxjs';
-import { map, switchMap } from 'rxjs/operators';
+import { map, Observable, of, switchMap } from 'rxjs';
 import { AlbumService } from './album.service';
 
 @Controller('album')

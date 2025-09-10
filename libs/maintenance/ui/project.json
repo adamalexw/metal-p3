@@ -4,17 +4,18 @@
   "projectType": "library",
   "sourceRoot": "libs/maintenance/ui/src",
   "prefix": "app",
+  "tags": ["scope:maintenance", "type:ui"],
   "targets": {
     "test": {
       "executor": "@nx/jest:jest",
       "outputs": ["{workspaceRoot}/coverage/libs/maintenance/ui"],
       "options": {
-        "jestConfig": "libs/maintenance/ui/jest.config.ts"
+        "jestConfig": "libs/maintenance/ui/jest.config.ts",
+        "tsConfig": "libs/maintenance/ui/tsconfig.spec.json"
       }
     },
     "lint": {
       "executor": "@nx/eslint:lint"
     }
-  },
-  "tags": ["scope:maintenance", "type:ui"]
+  }
 }

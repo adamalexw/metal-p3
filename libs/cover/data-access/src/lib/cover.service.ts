@@ -2,8 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { API } from '@metal-p3/album/domain';
 import { createToObjectUrl, mapBlobToBase64 } from '@metal-p3/shared/utils';
-import { Observable } from 'rxjs';
-import { map, switchMap } from 'rxjs/operators';
+import { map, Observable, switchMap } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',

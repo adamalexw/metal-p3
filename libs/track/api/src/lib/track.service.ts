@@ -7,8 +7,7 @@ import { IAudioMetadata, IOptions, parseFile } from 'music-metadata';
 import * as NodeID3 from 'node-id3';
 import { ReadStream } from 'node:fs';
 import { basename, dirname, extname } from 'path';
-import { EMPTY, Observable, from } from 'rxjs';
-import { catchError, concatAll, map, toArray } from 'rxjs/operators';
+import { EMPTY, Observable, catchError, concatAll, from, map, toArray } from 'rxjs';
 
 @Injectable()
 export class TrackService {

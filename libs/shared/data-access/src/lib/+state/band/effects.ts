@@ -1,8 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { BandService } from '@metal-p3/band/data-access';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
-import { EMPTY } from 'rxjs';
-import { catchError, map, mergeMap } from 'rxjs/operators';
+import { catchError, EMPTY, map, mergeMap } from 'rxjs';
 import { BandActions } from './actions';
 
 @Injectable()

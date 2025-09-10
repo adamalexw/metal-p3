@@ -4,17 +4,18 @@
   "projectType": "library",
   "sourceRoot": "libs/maintenance/data-access/src",
   "prefix": "app",
+  "tags": ["scope:maintenance", "type:data-access"],
   "targets": {
     "test": {
       "executor": "@nx/jest:jest",
       "outputs": ["{workspaceRoot}/coverage/libs/maintenance/data-access"],
       "options": {
-        "jestConfig": "libs/maintenance/data-access/jest.config.ts"
+        "jestConfig": "libs/maintenance/data-access/jest.config.ts",
+        "tsConfig": "libs/maintenance/data-access/tsconfig.spec.json"
       }
     },
     "lint": {
       "executor": "@nx/eslint:lint"
     }
-  },
-  "tags": ["scope:maintenance", "type:data-access"]
+  }
 }

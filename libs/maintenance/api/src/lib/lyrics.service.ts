@@ -4,8 +4,7 @@ import { Album, LyricsHistory, Prisma } from '@metal-p3/prisma/client';
 import { DbService } from '@metal-p3/shared/database';
 import { MetalArchivesService } from '@metal-p3/shared/metal-archives';
 import { Injectable, Logger } from '@nestjs/common';
-import { from, Observable, of, Subject } from 'rxjs';
-import { catchError, concatMap, finalize, map, takeUntil, tap, toArray } from 'rxjs/operators';
+import { catchError, concatMap, finalize, from, map, Observable, of, Subject, takeUntil, tap, toArray } from 'rxjs';
 import { MaintenanceGateway } from './maintenance-gateway.service';
 
 @Injectable()

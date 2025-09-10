@@ -4,17 +4,18 @@
   "projectType": "library",
   "sourceRoot": "libs/band/data-access/src",
   "prefix": "app",
+  "tags": ["scope:band", "type:data-access"],
   "targets": {
     "test": {
       "executor": "@nx/jest:jest",
       "outputs": ["{workspaceRoot}/coverage/libs/band/data-access"],
       "options": {
-        "jestConfig": "libs/band/data-access/jest.config.ts"
+        "jestConfig": "libs/band/data-access/jest.config.ts",
+        "tsConfig": "libs/band/data-access/tsconfig.spec.json"
       }
     },
     "lint": {
       "executor": "@nx/eslint:lint"
     }
-  },
-  "tags": ["scope:band", "type:data-access"]
+  }
 }

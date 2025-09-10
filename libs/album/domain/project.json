@@ -4,6 +4,7 @@
   "projectType": "library",
   "sourceRoot": "libs/album/domain/src",
   "prefix": "app",
+  "tags": ["scope:album", "tags:domain"],
   "targets": {
     "lint": {
       "executor": "@nx/eslint:lint"
@@ -12,9 +13,9 @@
       "executor": "@nx/jest:jest",
       "outputs": ["{workspaceRoot}/coverage/libs/album/domain"],
       "options": {
-        "jestConfig": "libs/album/domain/jest.config.ts"
+        "jestConfig": "libs/album/domain/jest.config.ts",
+        "tsConfig": "libs/album/domain/tsconfig.spec.json"
       }
     }
-  },
-  "tags": ["scope:album", "tags:domain"]
+  }
 }

@@ -4,7 +4,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MaintenanceActions, UrlMaintenanceService, selectGettingMetalArchivesMatcher, selectMetalArchivesMatcher, selectMetalArchivesMatcherLoaded } from '@metal-p3/maintenance/data-access';
 import { UrlMatcherComponent, UrlMatcherToolbarComponent } from '@metal-p3/maintenance/ui';
 import { Store } from '@ngrx/store';
-import { filter, take, tap } from 'rxjs/operators';
+import { filter, take, tap } from 'rxjs';
 
 @Component({
   imports: [AsyncPipe, UrlMatcherToolbarComponent, UrlMatcherComponent],

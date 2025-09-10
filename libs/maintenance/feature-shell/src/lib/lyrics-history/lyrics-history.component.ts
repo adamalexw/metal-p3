@@ -7,7 +7,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { LyricsMaintenanceService, MaintenanceActions, selectCheckingLyrics, selectGettingLyrics, selectLyrics } from '@metal-p3/maintenance/data-access';
 import { LyricsHistoryComponent, LyricsHistoryToolbarComponent } from '@metal-p3/maintenance/ui';
 import { Store } from '@ngrx/store';
-import { tap } from 'rxjs/operators';
+import { tap } from 'rxjs';
 import { ApplyLyricsShellComponent } from '../apply-lyrics/apply-lyrics.component';
 
 @Component({

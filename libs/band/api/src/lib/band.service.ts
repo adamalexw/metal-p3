@@ -3,8 +3,7 @@ import { Band, Prisma } from '@metal-p3/prisma/client';
 import { DbService } from '@metal-p3/shared/database';
 import { MetalArchivesService } from '@metal-p3/shared/metal-archives';
 import { Injectable } from '@nestjs/common';
-import { from, Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { from, map, Observable } from 'rxjs';
 
 @Injectable()
 export class BandService {

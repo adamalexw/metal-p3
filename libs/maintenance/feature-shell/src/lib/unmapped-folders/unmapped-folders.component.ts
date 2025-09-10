@@ -6,7 +6,7 @@ import { FileSystemMaintenanceService } from '@metal-p3/maintenance/data-access'
 import { UnmappedFoldersComponent } from '@metal-p3/maintenance/ui';
 import { AlbumActions } from '@metal-p3/shared/data-access';
 import { Store } from '@ngrx/store';
-import { shareReplay } from 'rxjs/operators';
+import { shareReplay } from 'rxjs';
 
 @Component({
   imports: [AsyncPipe, UnmappedFoldersComponent],

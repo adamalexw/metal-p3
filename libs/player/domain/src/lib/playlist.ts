@@ -10,4 +10,5 @@ export interface PlaylistItem extends PlaylistTrack {
   url?: string;
   albumId?: number;
   playlistItemId?: number;
+  error?: unknown;
 }

@@ -15,8 +15,7 @@ import { ConfirmDeleteDirective } from '@metal-p3/shared/feedback';
 import { TitleCaseDirective } from '@metal-p3/shared/title-case';
 import { Track, TracksForm } from '@metal-p3/track/domain';
 import { BitRatePipe, TimePipe } from '@metal-p3/track/util';
-import { Observable } from 'rxjs';
-import { filter, map, take, tap } from 'rxjs/operators';
+import { Observable, filter, map, take, tap } from 'rxjs';
 import { LyricsComponent } from '../lyrics/lyrics.component';
 
 @Component({

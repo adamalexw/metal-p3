@@ -4,8 +4,7 @@ import { API, ApplyLyrics, BASE_PATH, TAKE } from '@metal-p3/album/domain';
 import { ALBUM_ADDED, AlbumDto, MetalArchivesSearchResponse, RenameFolder, SearchRequest, TrackDto } from '@metal-p3/api-interfaces';
 import { removeNullValuesFromQueryParams } from '@metal-p3/shared/utils';
 import { Socket } from 'ngx-socket-io';
-import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { map, Observable } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',

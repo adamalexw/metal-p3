@@ -5,8 +5,7 @@ import { ErrorService } from '@metal-p3/shared/error';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { concatLatestFrom } from '@ngrx/operators';
 import { Store } from '@ngrx/store';
-import { of } from 'rxjs';
-import { catchError, filter, map, mergeMap, tap } from 'rxjs/operators';
+import { catchError, filter, map, mergeMap, of, tap } from 'rxjs';
 import { PlayerActions } from './actions';
 import { selectActiveItemIndex, selectActivePlaylistItem, selectItemById, selectPlaylist, selectPlaylistBlobs } from './selectors';
 

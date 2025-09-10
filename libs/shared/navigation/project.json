@@ -4,17 +4,18 @@
   "projectType": "library",
   "sourceRoot": "libs/shared/navigation/src",
   "prefix": "app",
+  "tags": ["scope:shared", "type:ui"],
   "targets": {
     "test": {
       "executor": "@nx/jest:jest",
       "outputs": ["{workspaceRoot}/coverage/libs/shared/navigation"],
       "options": {
-        "jestConfig": "libs/shared/navigation/jest.config.ts"
+        "jestConfig": "libs/shared/navigation/jest.config.ts",
+        "tsConfig": "libs/shared/navigation/tsconfig.spec.json"
       }
     },
     "lint": {
       "executor": "@nx/eslint:lint"
     }
-  },
-  "tags": ["scope:shared", "type:ui"]
+  }
 }
