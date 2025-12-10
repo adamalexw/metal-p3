@@ -37,12 +37,18 @@ export class FileSystemService {
     return basename(file);
   }
 
-  rename(path: string, newPath: string) {
+  rename(path: string, newPath: string, retry = 0) {
     try {
+      if (retry >= 3) {
+        return;
+      }
       renameSync(path, newPath);
     } catch (error) {
-      this.setReadAndWritePermission(path);
-      renameSync(path, newPath);
+      if (retry == 0) {
+        this.setReadAndWritePermission(path);
+      }
+      Logger.error(`Rename file ${path} - ${newPath}`, error);
+      setTimeout(() => this.rename(path, newPath, retry + 1), 3000);
     }
   }
 
@@ -80,7 +86,11 @@ export class FileSystemService {
   }
 
   setReadAndWritePermission(file: string) {
-    chmodSync(file, this.getFileStats(file).mode | 0o666);
+    try {
+      chmodSync(file, this.getFileStats(file).mode | 0o666);
+    } catch (error) {
+      Logger.error(`Failed to set permissions for ${file}`, error);
+    }
   }
 
   moveFilesToTheRoot(folder: string, rootFolder: string, retry = 0) {
@@ -105,7 +115,7 @@ export class FileSystemService {
         if (this.getFiles(itemPath).length > 0) {
           setTimeout(() => {
             this.moveFilesToTheRoot(folder, rootFolder, retry + 1);
-          }, 1000);
+          }, 3000);
         } else {
           this.cleanEmptyFolders(folder);
         }

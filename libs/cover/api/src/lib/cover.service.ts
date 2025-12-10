@@ -31,10 +31,10 @@ export class CoverService {
 
     try {
       const files = this.fileSystemService.getFiles(location);
+      const audioFile = files?.filter((f) => path.extname(f) == '.mp3')?.[0];
 
-      if (files.length) {
-        location = path.join(location, files[0]);
-
+      if (audioFile) {
+        location = path.join(location, audioFile);
         return this.getCoverFromAudioFile(location);
       }
     } catch (error) {
@@ -53,7 +53,7 @@ export class CoverService {
 
   private getCoverFromImageFile(location: string): Observable<string> {
     const data = fs.readFileSync(location);
-    return of(data).pipe(map((buffer) => buffer.toString('base64')));
+    return of(data).pipe(map((buffer) => this.toBase64Image(buffer)));
   }
 
   downloadCover(url: string | string[]): Observable<string> {

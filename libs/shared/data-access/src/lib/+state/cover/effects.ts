@@ -51,7 +51,7 @@ export class CoverEffects {
       ofType(CoverActions.download),
       mergeMap(({ id, url }) =>
         this.service.downloadCover(url).pipe(
-          map((cover) => CoverActions.downloadSuccess({ update: { id, changes: { cover } } })),
+          map((cover) => CoverActions.downloadSuccess({ update: { id, changes: { cover, coverError: undefined } } })),
           catchError((error) => {
             console.error(error);
             return EMPTY;

@@ -8,7 +8,7 @@ import chokidar from 'chokidar';
 import * as fs from 'fs';
 import * as NodeID3 from 'node-id3';
 import * as path from 'path';
-import { Observable, catchError, combineLatest, concatMap, delay, from, iif, map, mergeMap, of, tap } from 'rxjs';
+import { Observable, catchError, combineLatest, concatMap, from, iif, map, mergeMap, of, tap } from 'rxjs';
 import { AlbumGateway } from './album-gateway.service';
 
 @Injectable()
@@ -139,16 +139,18 @@ export class AlbumService {
 
   private addFileWatcher(basePath: string) {
     const watcher = chokidar.watch(basePath, {
-      depth: 1,
-      ignored: /(^|[/\\])\../,
-      awaitWriteFinish: {
-        stabilityThreshold: 5000,
-        pollInterval: 2000,
+      depth: 0,
+      ignored: (path) => {
+        return !fs.existsSync(path) || !this.fileSystemService.isFolder(path);
       },
       ignoreInitial: true,
+      awaitWriteFinish: {
+        stabilityThreshold: 5000,
+        pollInterval: 1000,
+      },
     });
 
-    watcher.on('ready', () => console.log('Initial scan complete. Ready for changes', new Date()));
+    watcher.on('ready', () => console.log('Initial scan complete. Ready for changes', new Date().toLocaleString()));
 
     watcher.on('addDir', (path) => {
       const folder = this.fileSystemService.getFilename(path);
@@ -158,11 +160,15 @@ export class AlbumService {
         .albums({ take: 1, where: { Folder: folder } })
         .then((album) => {
           if (!album.length) {
-            this.albumGateway.albumAddedMessage(this.fileSystemService.getFilename(path));
+            setTimeout(() => {
+              this.albumGateway.albumAddedMessage(this.fileSystemService.getFilename(path));
+            }, 15000); // unzip may take a while
           }
         })
         .catch((error) => Logger.error(error));
     });
+
+    watcher.on('error', (error) => Logger.error(`Watcher error: ${error}`));
   }
 
   addAlbum(folder: string): Observable<AlbumDto> {
@@ -174,7 +180,6 @@ export class AlbumService {
           throw new Error('folder already exists');
         }
       }),
-      delay(5000),
       map(() => {
         this.fileSystemService.moveFilesToTheRoot(folder, folder);
 

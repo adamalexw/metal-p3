@@ -14,18 +14,23 @@ export function extractUrl(url: string): string | undefined {
 
 export const createToObjectUrl = (image: string): string => {
   if (image) {
-    const byteString = atob(image);
-    const ab = new ArrayBuffer(byteString.length);
-    const ia = new Uint8Array(ab);
+    try {
+      const byteString = atob(image);
+      const ab = new ArrayBuffer(byteString.length);
+      const ia = new Uint8Array(ab);
 
-    for (let i = 0; i < byteString.length; i++) {
-      ia[i] = byteString.charCodeAt(i);
+      for (let i = 0; i < byteString.length; i++) {
+        ia[i] = byteString.charCodeAt(i);
+      }
+
+      const blob = new Blob([ab], { type: 'image/png' });
+
+      const link = URL.createObjectURL(blob);
+      return link;
+    } catch (error) {
+      console.error('Error creating object URL from image', image, error);
+      return '/assets/blank.png';
     }
-
-    const blob = new Blob([ab], { type: 'image/png' });
-
-    const link = URL.createObjectURL(blob);
-    return link;
   }
 
   return '/assets/blank.png';

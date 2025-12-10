@@ -18,7 +18,7 @@ export class MetalArchivesService {
     ).pipe(
       map((response) => ({ ...response, results: mapSearchResults(response.aaData) })),
       catchError((error) => {
-        console.log(error);
+        console.error(error);
         return of({
           iTotalRecords: 0,
           aaData: [],
@@ -43,7 +43,7 @@ export class MetalArchivesService {
   private getApiResponse<T>(url: string, waitItem: string, isJson = false): Observable<T> {
     return from(this.getPageContents<T>(url, 'url', waitItem, isJson)).pipe(
       catchError((err) => {
-        console.log(err);
+        console.error(err);
         return of('' as T);
       }),
     );
@@ -52,7 +52,7 @@ export class MetalArchivesService {
   private downloadPage(url: string): Observable<string> {
     return from(this.getPageContents<string>(url, 'page', '#MA_logo')).pipe(
       catchError((err) => {
-        console.log(err);
+        console.error(err);
         return of('');
       }),
     );
@@ -83,6 +83,7 @@ export class MetalArchivesService {
       }
 
       const apiResponse = this.extractApiResponse(content);
+      await browser.close();
 
       return (await JSON.parse(apiResponse)) as T;
     }
@@ -90,7 +91,7 @@ export class MetalArchivesService {
     await defaultPage.waitForSelector(waitItem, { timeout: 10000 }).catch((error) => console.error(error));
     const content = await defaultPage.content();
 
-    //await browser.close();
+    await browser.close();
     return content as T;
   }
 

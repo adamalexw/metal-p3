@@ -15,7 +15,7 @@ import { Album, AlbumWithoutTracks } from '@metal-p3/shared/data-access';
 import { NotificationService } from '@metal-p3/shared/feedback';
 import { Track, TracksForm } from '@metal-p3/track/domain';
 import { TracksComponent, TracksToolbarComponent } from '@metal-p3/track/ui';
-import { WINDOW } from '@ng-web-apis/common';
+import { WA_WINDOW } from '@ng-web-apis/common';
 import { AlbumFormComponent } from '../album-form/album-form.component';
 import { AlbumToolbarComponent } from '../album-toolbar/album-toolbar.component';
 
@@ -46,7 +46,7 @@ import { AlbumToolbarComponent } from '../album-toolbar/album-toolbar.component'
 })
 export class AlbumComponent {
   private readonly fb = inject(NonNullableFormBuilder);
-  private readonly windowRef = inject(WINDOW);
+  private readonly windowRef = inject(WA_WINDOW);
   private readonly notificationService = inject(NotificationService);
 
   album = input.required<Album | null>();

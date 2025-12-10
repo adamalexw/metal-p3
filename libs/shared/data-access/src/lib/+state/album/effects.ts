@@ -76,7 +76,15 @@ export class AlbumEffects {
           nonNullable(),
           tap((album) => this.notificationService.showInfo(album.folder, 'New Album')),
           map((album) => AlbumDtoToAlbum(album) as Album),
-          concatMap((album) => this.coverService.getCover(`${this.basePath}/${album.folder}`).pipe(map((cover) => ({ ...album, cover })))),
+          concatMap((album) =>
+            this.coverService.getCover(`${this.basePath}/${album.folder}`).pipe(
+              map((cover) => ({ ...album, cover })),
+              catchError((error) => {
+                this.notificationService.showError(`${folder}: ${this.errorService.getError(error)}`, 'Get Cover');
+                return of(album);
+              }),
+            ),
+          ),
           map((album) => AlbumActions.addAlbum({ album })),
           catchError((error) => {
             this.notificationService.showError(`${folder}: ${this.errorService.getError(error)}`, 'New Album');
