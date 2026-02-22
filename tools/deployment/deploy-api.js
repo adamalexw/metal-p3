@@ -7,7 +7,7 @@ const dest = 'c:\\metal-p3\\api';
 
 // netstat -ano | findStr "3333"
 // taskkill /F /PID <PID>
-fs.rmSync(dest, { recursive: true, force: true });
+//fs.rmSync(dest, { recursive: true, force: true });
 
 fs.copySync('.\\dist\\apps\\api', dest);
 fs.copySync('.env', path.join(dest, '.env'));

@@ -1,4 +1,3 @@
-import { HttpParams } from '@angular/common/http';
 import { from } from 'rxjs';
 
 export function extractUrl(url: string): string | undefined {
@@ -46,20 +45,6 @@ export const mapBlobToBase64 = (blob: Blob) => {
       reader.onerror = () => reject(reader.error);
     }),
   );
-};
-
-export const removeNullValuesFromQueryParams = (params: HttpParams) => {
-  let result = params;
-  const paramsKeysAux = params.keys();
-
-  paramsKeysAux.forEach((key) => {
-    const value = params.get(key);
-    if (value === null || value === undefined || value === '') {
-      result = result.delete(key);
-    }
-  });
-
-  return result;
 };
 
 // eslint-disable-next-line @typescript-eslint/ban-types

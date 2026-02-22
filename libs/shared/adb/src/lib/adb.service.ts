@@ -15,7 +15,7 @@ export class AdbService {
     const devices = await this.client.listDevices();
 
     if (!devices.length) {
-      return Error('no devices connected');
+      return Promise.reject(new Error('no devices connected'));
     }
 
     const onlineDevices = devices.filter((d: Adb.Device) => ['device', 'emulator'].includes(d.type));

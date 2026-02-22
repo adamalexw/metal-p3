@@ -2,7 +2,6 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { API, ApplyLyrics, BASE_PATH, TAKE } from '@metal-p3/album/domain';
 import { ALBUM_ADDED, AlbumDto, MetalArchivesSearchResponse, RenameFolder, SearchRequest, TrackDto } from '@metal-p3/api-interfaces';
-import { removeNullValuesFromQueryParams } from '@metal-p3/shared/utils';
 import { Socket } from 'ngx-socket-io';
 import { map, Observable } from 'rxjs';
 
@@ -20,7 +19,10 @@ export class AlbumService {
 
   getAlbums(request: Partial<SearchRequest>): Observable<AlbumDto[]> {
     const url = `${this.baseUrl}/search`;
-    const params = removeNullValuesFromQueryParams(new HttpParams({ fromObject: { ...request, take: request.take ?? this.take, skip: request.skip ?? 0 } }));
+    const fromObject = { ...request, take: request.take ?? this.take, skip: request.skip ?? 0 };
+    const params = new HttpParams({
+      fromObject: Object.fromEntries(Object.entries(fromObject).filter(([, v]) => v != null && v !== '')),
+    });
 
     return this.http.get<AlbumDto[]>(url, { params });
   }
