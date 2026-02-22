@@ -3,7 +3,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { RouterModule } from '@angular/router';
 import { CoverComponent } from '@metal-p3/cover/ui';
 import { NavToolbarComponent } from '@metal-p3/shared/navigation';
-import { WINDOW } from '@ng-web-apis/common';
+import { WA_WINDOW } from '@ng-web-apis/common';
 
 @Component({
   imports: [RouterModule, NavToolbarComponent, CoverComponent, MatIconModule],
@@ -14,7 +14,7 @@ import { WINDOW } from '@ng-web-apis/common';
   encapsulation: ViewEncapsulation.None,
 })
 export class ApplyLyricsToolbarComponent {
-  protected readonly windowRef = inject(WINDOW);
+  protected readonly windowRef = inject(WA_WINDOW);
 
   applying = input(false);
   albumUrl = input<string | null | undefined>();

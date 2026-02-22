@@ -253,6 +253,18 @@ export const albumsFeature = createFeature({
         state,
       ),
     ),
+    on(TrackActions.transferTrackError, (state, { id, track }) =>
+      albumAdapter.mapOne(
+        {
+          id,
+          map: (album) => ({
+            ...album,
+            tracks: trackAdapter.updateOne({ id: track.id, changes: { trackTransferring: false } }, album.tracks),
+          }),
+        },
+        state,
+      ),
+    ),
     on(TrackActions.deleteTrack, (state, { id, track }) =>
       albumAdapter.mapOne(
         {

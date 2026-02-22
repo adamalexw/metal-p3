@@ -96,7 +96,7 @@ export class TrackEffects {
           map(() => TrackActions.transferTrackSuccess({ id, track: { ...(track as Track), trackTransferring: false } })),
           catchError((error) => {
             console.error(error);
-            return EMPTY;
+            return of(TrackActions.transferTrackError({ id, track: { ...(track as Track), trackTransferring: false } }));
           }),
         ),
       ),

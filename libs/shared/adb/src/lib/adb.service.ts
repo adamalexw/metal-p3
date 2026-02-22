@@ -18,13 +18,15 @@ export class AdbService {
       return Error('no devices connected');
     }
 
-    return devices;
+    const onlineDevices = devices.filter((d: Adb.Device) => ['device', 'emulator'].includes(d.type));
+
+    return onlineDevices;
   }
 
   async transferFile(file: string) {
     try {
       const dest = `/storage/emulated/0/Music/${this.fileSystemService.getParentFoler(file)}/${this.fileSystemService.getFilename(file)}`;
-      const devices = await this.client.listDevices();
+      const devices = await this.getDevices()
 
       await Bluebird.map(devices, async (device: Adb.Device) => {
         const deviceClient = this.client.getDevice(device.id);
@@ -49,6 +51,7 @@ export class AdbService {
       });
     } catch (err: any) {
       console.error('Something went wrong:', err.stack);
+      return Promise.reject(new Error(err.stack));
     }
   }
 }

@@ -8,6 +8,10 @@
   width: calc(100vw - 1130px);
 }
 
+@utility bg-background {
+  background-color: var(--mat-sys-background);
+}
+
 /*
   The default border color has changed to `currentColor` in Tailwind CSS v4,
   so we've added these compatibility styles to make sure everything still

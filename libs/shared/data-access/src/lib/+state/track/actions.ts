@@ -17,6 +17,7 @@ export const TrackActions = createActionGroup({
     'Rename Track Success': props<{ id: number; trackId: number; file: string; fullPath: string }>(),
     'Transfer Track': props<{ id: number; trackId: number }>(),
     'Transfer Track Success': props<{ id: number; track: Track }>(),
+    'Transfer Track Error': props<{ id: number; track: Track }>(),
     'Update Tracks Success': props<{ id: number; updates: Update<Track>[] }>(),
     'Get Metal Archives Tracks': props<{ id: number; url: string }>(),
     'Get Metal Archives Tracks Success': props<{ id: number; maTracks: MetalArchivesAlbumTrack[] }>(),

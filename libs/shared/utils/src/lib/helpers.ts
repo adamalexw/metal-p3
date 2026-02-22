@@ -49,15 +49,17 @@ export const mapBlobToBase64 = (blob: Blob) => {
 };
 
 export const removeNullValuesFromQueryParams = (params: HttpParams) => {
+  let result = params;
   const paramsKeysAux = params.keys();
+
   paramsKeysAux.forEach((key) => {
     const value = params.get(key);
     if (value === null || value === undefined || value === '') {
-      params['map'].delete(key);
+      result = result.delete(key);
     }
   });
 
-  return params;
+  return result;
 };
 
 // eslint-disable-next-line @typescript-eslint/ban-types

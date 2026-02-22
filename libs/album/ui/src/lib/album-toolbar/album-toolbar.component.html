@@ -14,7 +14,7 @@
   <button class="!hidden lg:!block" [matBadgeHidden]="!extraFiles()" (click)="openFolder.emit()" mat-icon-button matBadge="!" matBadgeColor="warn">
     <mat-icon title="open folder">folder()</mat-icon>
   </button>
-  <button class="!hidden lg:!block" [disabled]="trackTransferring()" (click)="transfer.emit()" mat-icon-button>
+  <button [disabled]="trackTransferring()" (click)="transfer.emit()" mat-icon-button>
     <mat-icon title="transfer">adb</mat-icon>
   </button>
   <button [itemName]="'album'" (confirmResult)="onDelete($event)" mat-icon-button appConfirmDelete>
