@@ -43,7 +43,7 @@
       "@metal-p3/playlist/data-access": ["libs/playlist/data-access/src/index.ts"],
       "@metal-p3/playlist/domain": ["libs/playlist/domain/src/index.ts"],
       "@metal-p3/playlist/ui": ["libs/playlist/ui/src/index.ts"],
-      "@metal-p3/prisma/client": ["generated/prisma"],
+      "@metal-p3/prisma/client": ["generated/prisma/client.ts"],
       "@metal-p3/shared/adb": ["libs/shared/adb/src/index.ts"],
       "@metal-p3/shared/data-access": ["libs/shared/data-access/src/index.ts"],
       "@metal-p3/shared/database": ["libs/shared/database/src/index.ts"],
