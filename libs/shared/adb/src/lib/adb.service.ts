@@ -11,7 +11,7 @@ export class AdbService {
     this.client = new Adb.Client({ bin: 'C://platform-tools//adb.exe', port: 5037 });
   }
 
-  async getDevices() {
+  async getDevices(): Promise<Adb.Device[]> {
     const devices = await this.client.listDevices();
 
     if (!devices.length) {
@@ -21,6 +21,17 @@ export class AdbService {
     const onlineDevices = devices.filter((d: Adb.Device) => ['device', 'emulator'].includes(d.type));
 
     return onlineDevices;
+  }
+
+  async connectPhone(host: string, port: number): Promise<string> {
+    try {
+      const output = await this.client.connect(host, port);
+      console.log("🚀 ~ AdbService ~ connectPhone ~ output:", output)
+      return Bluebird.resolve(output);
+    } catch (err: any) {
+      console.error('Connection failed:', err.message);
+      return Promise.reject(new Error(err.message));
+    }
   }
 
   async transferFile(file: string) {

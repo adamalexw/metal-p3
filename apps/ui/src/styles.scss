@@ -45,13 +45,20 @@ body {
   }
 }
 
+
 .snackbar-error {
-  --mat-snackbar-container-color: var(--mat-sys-error-container);
-  --mat-snackbar-supporting-text-color: white;
+  --mat-snack-bar-container-color: var(--mat-sys-error-container);
+  --mat-snack-bar-supporting-text-color: white;
   --mat-snack-bar-button-color: white;
 }
 
 .snackbar-info {
-  --mat-snackbar-container-color: var(--mat-button-text-state-layer-color);
-  --mat-snackbar-supporting-text-color: black;
+  --mat-snack-bar-container-color: var(--mat-button-text-state-layer-color);
+  --mat-snack-bar-supporting-text-color: black;
+}
+
+.snackbar-theme {
+  --mat-snack-bar-container-color: var(--mat-sys-surface-container-low);
+  --mat-snack-bar-supporting-text-color: white;
+  --mat-snack-bar-button-color: white;
 }

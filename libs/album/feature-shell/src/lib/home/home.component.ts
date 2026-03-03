@@ -10,6 +10,7 @@ import { map } from 'rxjs';
 import { AdvancedSearchShellComponent } from '../advanced-search/advanced-search.component';
 import { ListComponent } from '../list/list.component';
 
+
 @Component({
   imports: [AsyncPipe, RouterModule, MatSidenavModule, ListComponent, AdvancedSearchShellComponent],
   selector: 'app-home',

@@ -1,5 +1,6 @@
+import { ComponentType } from '@angular/cdk/overlay';
 import { inject, Injectable } from '@angular/core';
-import { MatSnackBar, MatSnackBarRef, TextOnlySnackBar } from '@angular/material/snack-bar';
+import { MatSnackBar, MatSnackBarConfig, MatSnackBarRef, TextOnlySnackBar } from '@angular/material/snack-bar';
 
 @Injectable({ providedIn: 'root' })
 export class NotificationService {
@@ -19,5 +20,9 @@ export class NotificationService {
 
   showInfo(message: string, action?: string | undefined) {
     this.snackBar.open(message, action, { duration: 2000, panelClass: 'snackbar-info' });
+  }
+
+  showComponent<T, D = any>(component: ComponentType<T>, config?: MatSnackBarConfig<D>): MatSnackBarRef<T> {
+    return this.snackBar.openFromComponent(component, config);
   }
 }

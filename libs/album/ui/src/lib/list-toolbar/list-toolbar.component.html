@@ -25,6 +25,9 @@
   <button class="!hidden md:!block" [matMenuTriggerFor]="menu" mat-icon-button>
     <mat-icon title="maintenance">engineering</mat-icon>
   </button>
+  <button (click)="connectPhone.emit()" mat-icon-button>
+    <mat-icon title="connect">adb</mat-icon>
+  </button>
   <mat-menu #menu="matMenu" class="!hidden md:!block">
     <button [routerLink]="['maintenance', 'lyrics']" mat-menu-item>
       <mat-icon>article</mat-icon>

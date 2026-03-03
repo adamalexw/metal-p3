@@ -27,6 +27,7 @@ export class ListToolbarComponent {
   readonly searchRequest = output<SearchRequest>();
   readonly showPlayer = output<void>();
   readonly createNew = output<void>();
+  readonly connectPhone = output<void>();
   readonly lyricsPriority = output<void>();
 
   protected folderControl = new FormControl<string | undefined>('', { nonNullable: true });

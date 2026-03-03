@@ -29,6 +29,7 @@ import { Track } from '@metal-p3/track/domain';
 import { Store } from '@ngrx/store';
 import { Observable, combineLatest, delay, filter, map, startWith, take, tap } from 'rxjs';
 import { AddAlbumDirective } from './add-album.directive';
+import { ConnectPhoneService } from '@metal-p3/shared/transfer';
 
 @Component({
   imports: [AsyncPipe, ScrollingModule, ListToolbarComponent, ListItemComponent, PlayerShellComponent, AddAlbumDirective],
@@ -42,6 +43,7 @@ export class ListComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly playerService = inject(PlayerService);
   private readonly notificationService = inject(NotificationService);
+  private readonly connectPhoneService = inject(ConnectPhoneService);
   private readonly service = inject(AlbumService);
   private readonly viewportRuler = inject(ViewportRuler);
   private readonly location = inject(Location);
@@ -180,6 +182,10 @@ export class ListComponent implements OnInit {
   onOpenAlbum(id: number) {
     this.store.dispatch(AlbumActions.viewAlbum({ id }));
     this.router.navigate(['album', id]);
+  }
+
+  onConnectPhone() {
+    this.connectPhoneService.showConnectPhone();
   }
 
   scrollIndexChange(page: number, request: SearchRequest, force: boolean) {

@@ -86,4 +86,6 @@ export class AlbumService {
   deleteAlbum(id: number) {
     return this.http.delete(`${this.baseUrl}?id=${id}`);
   }
+
+  c
 }
