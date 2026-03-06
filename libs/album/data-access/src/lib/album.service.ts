@@ -87,5 +87,5 @@ export class AlbumService {
     return this.http.delete(`${this.baseUrl}?id=${id}`);
   }
 
-  c
+  c;
 }

@@ -10,7 +10,7 @@ export class ConnectPhoneService {
 
   showConnectPhone() {
     this.snackBarRef = this.snackBar.openFromComponent(ConnectPhoneComponent, { verticalPosition: 'top', horizontalPosition: 'center', panelClass: 'snackbar-theme' });
-  
+
     this.snackBarRef.afterDismissed().subscribe((x) => {
       console.log(x);
       this.snackBarRef = null;

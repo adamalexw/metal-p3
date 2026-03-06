@@ -3,6 +3,7 @@
   "$schema": "..\\..\\..\\node_modules\\nx\\schemas\\project-schema.json",
   "sourceRoot": "libs/album/api/src",
   "projectType": "library",
+  "tags": ["scope:album", "type:api"],
   "targets": {
     "lint": {
       "executor": "@nx/eslint:lint"
@@ -14,6 +15,5 @@
         "jestConfig": "libs/album/api/jest.config.ts"
       }
     }
-  },
-  "tags": ["scope:album", "type:api"]
+  }
 }

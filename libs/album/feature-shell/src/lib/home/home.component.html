@@ -7,7 +7,7 @@
     <app-list />
   </mat-drawer-content>
 
-  <mat-drawer class="lg:!w-album !w-screen" [opened]="sideNavOpen$ | async" [mode]="sideNavMode()" position="end">
+  <mat-drawer class="!w-screen lg:!w-album" [opened]="sideNavOpen$ | async" [mode]="sideNavMode()" position="end">
     <router-outlet></router-outlet>
   </mat-drawer>
 </mat-drawer-container>

@@ -26,7 +26,7 @@ export class AdbService {
   async connectPhone(host: string, port: number): Promise<string> {
     try {
       const output = await this.client.connect(host, port);
-      console.log("🚀 ~ AdbService ~ connectPhone ~ output:", output)
+      console.log('🚀 ~ AdbService ~ connectPhone ~ output:', output);
       return Bluebird.resolve(output);
     } catch (err: any) {
       console.error('Connection failed:', err.message);
@@ -37,7 +37,7 @@ export class AdbService {
   async transferFile(file: string) {
     try {
       const dest = `/storage/emulated/0/Music/${this.fileSystemService.getParentFoler(file)}/${this.fileSystemService.getFilename(file)}`;
-      const devices = await this.getDevices()
+      const devices = await this.getDevices();
 
       await Bluebird.map(devices, async (device: Adb.Device) => {
         const deviceClient = this.client.getDevice(device.id);

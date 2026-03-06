@@ -1,8 +1,8 @@
-import 'dotenv/config';
 import { Logger } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import * as bodyParser from 'body-parser';
+import 'dotenv/config';
 import { AllExceptionsFilter } from './app/all-exceptions-handler';
 import { AppModule } from './app/app.module';
 

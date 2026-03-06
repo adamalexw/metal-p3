@@ -4,6 +4,7 @@
   "projectType": "library",
   "sourceRoot": "libs/player/domain/src",
   "prefix": "app",
+  "tags": ["scope:player", "type:domain"],
   "targets": {
     "test": {
       "executor": "@nx/jest:jest",
@@ -15,6 +16,5 @@
     "lint": {
       "executor": "@nx/eslint:lint"
     }
-  },
-  "tags": ["scope:player", "type:domain"]
+  }
 }

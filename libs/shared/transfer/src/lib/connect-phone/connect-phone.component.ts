@@ -1,11 +1,11 @@
-import { ChangeDetectionStrategy, Component, inject, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { AdbService } from '../adb.service';
 import { MatSnackBarRef } from '@angular/material/snack-bar';
 import { NotificationService } from '@metal-p3/shared/feedback';
+import { AdbService } from '../adb.service';
 
 @Component({
   imports: [FormsModule, MatFormFieldModule, MatInputModule, MatButtonModule],
@@ -23,10 +23,10 @@ export class ConnectPhoneComponent {
   port = 0;
 
   connectPhone() {
-      this.adbService.connectPhone(this.host, this.port).subscribe({
-        next: () => this.snackBarRef.dismissWithAction(),
-        error: (err) => this.notificationService.showError(`Failed to connect phone: ${err}`, 'Connect Phone'),
-      });
+    this.adbService.connectPhone(this.host, this.port).subscribe({
+      next: () => this.snackBarRef.dismissWithAction(),
+      error: (err) => this.notificationService.showError(`Failed to connect phone: ${err}`, 'Connect Phone'),
+    });
   }
 
   cancel() {

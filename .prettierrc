@@ -1,7 +1,7 @@
 {
   "singleQuote": true,
   "printWidth": 200,
-  "tailwindConfig": "./tailwind.base.js",
+  "tailwindStylesheet": "./apps/ui/src/tailwind.css",
   "attributeGroups": [
     "^(id|name)$",
     "$ANGULAR_STRUCTURAL_DIRECTIVE",

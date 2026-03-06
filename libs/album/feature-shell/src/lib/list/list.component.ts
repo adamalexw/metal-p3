@@ -24,12 +24,12 @@ import {
   selectTracksRequiredById,
 } from '@metal-p3/shared/data-access';
 import { NotificationService } from '@metal-p3/shared/feedback';
+import { ConnectPhoneService } from '@metal-p3/shared/transfer';
 import { nonNullable, toChunks } from '@metal-p3/shared/utils';
 import { Track } from '@metal-p3/track/domain';
 import { Store } from '@ngrx/store';
 import { Observable, combineLatest, delay, filter, map, startWith, take, tap } from 'rxjs';
 import { AddAlbumDirective } from './add-album.directive';
-import { ConnectPhoneService } from '@metal-p3/shared/transfer';
 
 @Component({
   imports: [AsyncPipe, ScrollingModule, ListToolbarComponent, ListItemComponent, PlayerShellComponent, AddAlbumDirective],

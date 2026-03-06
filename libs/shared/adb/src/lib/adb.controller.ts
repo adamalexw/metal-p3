@@ -5,12 +5,10 @@ import { AdbService } from './adb.service';
 
 @Controller('adb')
 export class AdbController {
-  constructor(
-    private readonly adbService: AdbService,
-  ) {}
+  constructor(private readonly adbService: AdbService) {}
 
   @Post('connect')
-  connect(@Body() address: { host: string, port: number }): Observable<string> {
+  connect(@Body() address: { host: string; port: number }): Observable<string> {
     return from(this.adbService.connectPhone(address.host, address.port));
   }
 

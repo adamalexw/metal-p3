@@ -3,6 +3,7 @@
   "$schema": "..\\..\\..\\node_modules\\nx\\schemas\\project-schema.json",
   "sourceRoot": "libs/track/api/src",
   "projectType": "library",
+  "tags": ["scope:track", "type:api"],
   "targets": {
     "lint": {
       "executor": "@nx/eslint:lint"
@@ -14,6 +15,5 @@
         "jestConfig": "libs/track/api/jest.config.ts"
       }
     }
-  },
-  "tags": ["scope:track", "type:api"]
+  }
 }

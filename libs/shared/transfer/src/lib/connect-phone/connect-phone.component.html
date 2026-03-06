@@ -1,16 +1,16 @@
-<div matSnackBarLabel class="flex items-center gap-2 mb-4">
-<mat-form-field>
-  <mat-label>Host</mat-label>
-  <input matInput type="text" [(ngModel)]="host" />
-</mat-form-field>
+<div class="mb-4 flex items-center gap-2" matSnackBarLabel>
+  <mat-form-field>
+    <mat-label>Host</mat-label>
+    <input type="text" [(ngModel)]="host" matInput />
+  </mat-form-field>
 
-<mat-form-field>
-  <mat-label>Port</mat-label>
-  <input matInput type="number" [(ngModel)]="port" />
-</mat-form-field>
+  <mat-form-field>
+    <mat-label>Port</mat-label>
+    <input type="number" [(ngModel)]="port" matInput />
+  </mat-form-field>
 </div>
 
 <span matSnackBarActions>
-<button mat-flat-button matSnackBarAction color="primary" (click)="connectPhone()" class="mr-2">Connect</button>
-<button mat-button matSnackBarAction color="accent" (click)="cancel()">Cancel</button>
+  <button type="button" class="mr-2" (click)="connectPhone()" mat-flat-button matSnackBarAction color="primary">Connect</button>
+  <button type="button" (click)="cancel()" mat-button matSnackBarAction color="accent">Cancel</button>
 </span>
