@@ -72,7 +72,7 @@ export class TrackService {
     return track.no?.toString().padStart(2, '0') || '00';
   }
 
-  saveTrack(track: TrackDto): boolean | Error {
+  async saveTrack(track: TrackDto, coverImage?: NodeID3.Tags['image']): Promise<boolean> {
     let baseTags: Partial<NodeID3.Tags> = {
       album: track.album,
       artist: track.artist,
@@ -92,30 +92,45 @@ export class TrackService {
       baseTags = { ...baseTags, unsynchronisedLyrics: { text: track.lyrics, language: 'eng' } };
     }
 
-    if (track.cover) {
-      const image = {
-        mime: 'image/png',
-        type: {
-          id: 3,
-          name: 'front cover',
-        },
-        description: 'front cover',
-        imageBuffer: Buffer.from(track.cover.replace('data:image/png;base64,', ''), 'base64'),
-      };
-
-      baseTags = { ...baseTags, image };
+    if (coverImage) {
+      baseTags = { ...baseTags, image: coverImage };
+    } else if (track.cover) {
+      baseTags = { ...baseTags, image: this.buildCoverImage(track.cover) };
     }
 
     const tags = this.mapTrackToTags(track, baseTags);
 
-    const result = this.updateTrack(tags, track.fullPath);
-
-    if (result instanceof Error) {
+    try {
+      await this.updateTrack(tags, track.fullPath);
+    } catch {
       this.fileSystemService.setReadAndWritePermission(track.fullPath);
-      return this.updateTrack(tags, track.fullPath);
+      await this.updateTrack(tags, track.fullPath);
     }
 
-    return result;
+    return true;
+  }
+
+  async saveTracks(tracks: TrackDto[]): Promise<boolean> {
+    const firstWithCover = tracks.find((t) => t.cover);
+    const coverImage = firstWithCover?.cover ? this.buildCoverImage(firstWithCover.cover) : undefined;
+
+    for (const track of tracks) {
+      await this.saveTrack(track, coverImage);
+    }
+
+    return true;
+  }
+
+  private buildCoverImage(cover: string): NodeID3.Tags['image'] {
+    return {
+      mime: 'image/png',
+      type: {
+        id: 3,
+        name: 'front cover',
+      },
+      description: 'front cover',
+      imageBuffer: Buffer.from(cover.replace('data:image/png;base64,', ''), 'base64'),
+    };
   }
 
   private mapTrackToTags(track: TrackDto, baseTags: Partial<NodeID3.Tags>): NodeID3.Tags {
@@ -123,8 +138,8 @@ export class TrackService {
     return tags;
   }
 
-  updateTrack(tags: NodeID3.Tags, location: string): boolean | Error {
-    return NodeID3.update(tags, location);
+  async updateTrack(tags: NodeID3.Tags, location: string): Promise<void> {
+    await NodeID3.Promise.update(tags, location);
   }
 
   renameTrack(track: TrackDto): RenameTrack {
@@ -132,7 +147,11 @@ export class TrackService {
       const file = `${track.trackNumber} - ${this.fileSystemService.filenameValidator(track.title)}.mp3`;
       const fullPath = `${track.folder}/${file}`;
 
-      this.fileSystemService.rename(track.fullPath, fullPath);
+      try {
+        this.fileSystemService.rename(track.fullPath, fullPath);
+      } catch (error) {
+        throw new Error(`Failed to rename track from "${track.fullPath}" to "${fullPath}": ${error}`);
+      }
 
       return {
         file,

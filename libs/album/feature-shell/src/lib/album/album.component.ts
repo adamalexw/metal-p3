@@ -18,6 +18,7 @@ import {
   selectAlbumSaving,
   selectBandProps,
   selectCover,
+  selectCoverError,
   selectCoverLoading,
   selectCoverRequired,
   selectFindingUrl,
@@ -32,7 +33,9 @@ import {
   selectSaveAlbumError,
   selectSelectedAlbumId,
   selectTrackRenaming,
+  selectTrackRenamingError,
   selectTrackRenamingProgress,
+  selectTrackSavingError,
   selectTrackSavingProgress,
   selectTrackTransferring,
   selectTrackTransferringProgress,
@@ -306,10 +309,8 @@ export class AlbumShellComponent implements OnInit {
   }
 
   private dispatchTracks(album: AlbumWithoutTracks, tracks: TrackBase[]) {
-    tracks.forEach((albumTrack) => {
-      const track = this.getTrack(album, albumTrack);
-      this.store.dispatch(TrackActions.saveTrack({ id: album.id, track }));
-    });
+    const mappedTracks = tracks.map((albumTrack) => this.getTrack(album, albumTrack));
+    this.store.dispatch(TrackActions.saveTracks({ id: album.id, tracks: mappedTracks }));
   }
 
   private getTrack(album: AlbumWithoutTracks, albumTrack: Track): Track {
@@ -323,6 +324,33 @@ export class AlbumShellComponent implements OnInit {
       .pipe(
         nonNullable(),
         tap((error) => this.notificationService.showError(error, 'Save')),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe();
+
+    this.store
+      .select(selectCoverError)
+      .pipe(
+        nonNullable(),
+        tap((error) => this.notificationService.showError(error, 'Cover')),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe();
+
+    this.store
+      .select(selectTrackSavingError)
+      .pipe(
+        nonNullable(),
+        tap((error) => this.notificationService.showError(error, 'Save Tracks')),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe();
+
+    this.store
+      .select(selectTrackRenamingError)
+      .pipe(
+        nonNullable(),
+        tap((error) => this.notificationService.showError(error, 'Rename Track')),
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe();

@@ -144,31 +144,83 @@ export class AlbumService {
         return !fs.existsSync(path) || !this.fileSystemService.isFolder(path);
       },
       ignoreInitial: true,
-      awaitWriteFinish: {
-        stabilityThreshold: 5000,
-        pollInterval: 1000,
-      },
     });
 
     watcher.on('ready', () => console.log('Initial scan complete. Ready for changes', new Date().toLocaleString()));
 
-    watcher.on('addDir', (path) => {
-      const folder = this.fileSystemService.getFilename(path);
+    watcher.on('addDir', (dirPath) => {
+      const folder = this.fileSystemService.getFilename(dirPath);
 
-      // ensure we aren't renanming an existing folder
+      // ensure we aren't renaming an existing folder
       this.dbService
         .albums({ take: 1, where: { Folder: folder } })
         .then((album) => {
           if (!album.length) {
-            setTimeout(() => {
-              this.albumGateway.albumAddedMessage(this.fileSystemService.getFilename(path));
-            }, 15000); // unzip may take a while
+            this.waitForFolderStable(dirPath).then(() => {
+              this.albumGateway.albumAddedMessage(this.fileSystemService.getFilename(dirPath));
+            });
           }
         })
         .catch((error) => Logger.error(error));
     });
 
     watcher.on('error', (error) => Logger.error(`Watcher error: ${error}`));
+  }
+
+  /**
+   * Polls a folder until its total size and file count stop changing,
+   * indicating that an unzip or copy operation has completed.
+   */
+  private waitForFolderStable(folderPath: string, stabilityThreshold = 3000, pollInterval = 1000): Promise<void> {
+    return new Promise((resolve) => {
+      let lastSnapshot = '';
+      let stableSince: number | null = null;
+
+      const check = () => {
+        try {
+          const snapshot = this.getFolderSnapshot(folderPath);
+
+          if (snapshot === lastSnapshot) {
+            if (!stableSince) {
+              stableSince = Date.now();
+            } else if (Date.now() - stableSince >= stabilityThreshold) {
+              resolve();
+              return;
+            }
+          } else {
+            lastSnapshot = snapshot;
+            stableSince = null;
+          }
+        } catch (error) {
+          Logger.error(`Error checking folder stability: ${error}`);
+        }
+
+        setTimeout(check, pollInterval);
+      };
+
+      // initial delay to let the OS create the first files
+      setTimeout(check, pollInterval);
+    });
+  }
+
+  private getFolderSnapshot(folderPath: string): string {
+    try {
+      const entries = fs.readdirSync(folderPath);
+      let totalSize = 0;
+
+      for (const entry of entries) {
+        try {
+          const stat = fs.statSync(path.join(folderPath, entry));
+          totalSize += stat.size;
+        } catch {
+          // file may be in-flight, ignore
+        }
+      }
+
+      return `${entries.length}:${totalSize}`;
+    } catch {
+      return '';
+    }
   }
 
   addAlbum(folder: string): Observable<AlbumDto> {
@@ -234,14 +286,15 @@ export class AlbumService {
   }
 
   setHasLyrics(id: number, hasLyrics: boolean): Observable<Album> {
-    this.dbService
-      .getLyricsHistory(id)
-      .then((history) => {
-        if (history) {
-          this.dbService.deleteLyricsHistory({ where: { LyricsHistoryId: history.LyricsHistoryId } }).catch((error) => Logger.error(error));
-        }
-      })
-      .catch((error) => Logger.error(error));
+    from(this.dbService.getLyricsHistory(id))
+      .pipe(
+        concatMap((history) => (history ? from(this.dbService.deleteLyricsHistory({ where: { LyricsHistoryId: history.LyricsHistoryId } })) : of(null))),
+        catchError((error) => {
+          Logger.error(`Failed to clean up lyrics history for album ${id}: ${error}`);
+          return of(null);
+        }),
+      )
+      .subscribe();
 
     return from(this.dbService.updateAlbum({ where: { AlbumId: id }, data: { Lyrics: hasLyrics } }));
   }
@@ -266,8 +319,27 @@ export class AlbumService {
     const folder = this.fileSystemService.filenameValidator(this.fileSystemService.getFilename(dest));
     const fullPath = `${this.basePath}/${folder}`;
 
-    this.fileSystemService.rename(src, fullPath);
-    this.dbService.updateAlbum({ where: { AlbumId: +id }, data: { Folder: folder } }).catch((error) => Logger.error(error));
+    try {
+      this.fileSystemService.rename(src, fullPath);
+    } catch (error) {
+      Logger.error(`Failed to rename folder from "${src}" to "${fullPath}": ${error}`);
+      throw new Error(`Failed to rename folder: ${error}`);
+    }
+
+    try {
+      await this.dbService.updateAlbum({ where: { AlbumId: +id }, data: { Folder: folder } });
+    } catch (error) {
+      Logger.error(`Folder renamed but failed to update database for album ${id}: ${error}`);
+
+      // attempt to revert the filesystem rename
+      try {
+        this.fileSystemService.rename(fullPath, src);
+      } catch (revertError) {
+        Logger.error(`Failed to revert folder rename from "${fullPath}" to "${src}": ${revertError}`);
+      }
+
+      throw new Error(`Failed to update database after rename: ${error}`);
+    }
 
     return { fullPath, folder };
   }

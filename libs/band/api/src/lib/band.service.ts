@@ -39,7 +39,7 @@ export class BandService {
   }
 
   async saveBand(band: BandDto): Promise<void> {
-    this.dbService.updateBand({ where: { BandId: band.id }, data: this.mapBandDtoToBand(band) });
+    await this.dbService.updateBand({ where: { BandId: band.id }, data: this.mapBandDtoToBand(band) });
   }
 
   private mapBandDtoToBand(bandDto: BandDto): Partial<Band> {

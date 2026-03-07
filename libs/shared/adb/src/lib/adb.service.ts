@@ -26,7 +26,6 @@ export class AdbService {
   async connectPhone(host: string, port: number): Promise<string> {
     try {
       const output = await this.client.connect(host, port);
-      console.log('🚀 ~ AdbService ~ connectPhone ~ output:', output);
       return Bluebird.resolve(output);
     } catch (err: any) {
       console.error('Connection failed:', err.message);
@@ -45,7 +44,7 @@ export class AdbService {
         await new Bluebird(function (resolve, reject) {
           // transfer.on('progress', (stats) => console.log(`[${device.id}] Pushed ${stats.bytesTransferred} bytes so far`));
           transfer.on('end', () => {
-            console.log('[${device.id}] Push complete');
+            console.log(`[${device.id}] Push complete`);
 
             const command = `am broadcast -a android.intent.action.MEDIA_SCANNER_SCAN_FILE -d "file://${dest}"`;
             deviceClient
@@ -53,9 +52,9 @@ export class AdbService {
               .then(Adb.Adb.util.readAll)
               .then(function (output: any) {
                 console.log('[%s] %s', device.id, output.toString().trim());
-              });
-
-            resolve();
+              })
+              .then(() => resolve())
+              .catch(reject);
           });
           transfer.on('error', reject);
         });

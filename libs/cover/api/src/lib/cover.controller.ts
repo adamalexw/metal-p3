@@ -17,12 +17,12 @@ export class CoverController {
   }
 
   @Post()
-  post(@Body() body: { folder: string; cover: string }): void {
-    this.coverService.saveCover(body.folder, body.cover);
+  post(@Body() body: { folder: string; cover: string }): Promise<void> {
+    return this.coverService.saveCover(body.folder, body.cover);
   }
 
   @Get('resize')
-  resize(): void {
+  resize(): Promise<void> {
     return this.coverService.resize();
   }
 }

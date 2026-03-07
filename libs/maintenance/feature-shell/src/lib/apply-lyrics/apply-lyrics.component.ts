@@ -137,11 +137,11 @@ export class ApplyLyricsShellComponent implements OnInit {
   }
 
   onApply(id: number, lyrics: ApplyLyrics[]) {
-    lyrics.map((track) => {
-      if (track.maTrack?.lyrics) {
-        this.store.dispatch(TrackActions.saveTrack({ id, track: { ...track, lyrics: this.formatLyrics(track.maTrack.lyrics) } }));
-      }
-    });
+    const tracksToSave = lyrics.filter((track) => track.maTrack?.lyrics).map((track) => ({ ...track, lyrics: this.formatLyrics(track.maTrack!.lyrics!) }));
+
+    if (tracksToSave.length) {
+      this.store.dispatch(TrackActions.saveTracks({ id, tracks: tracksToSave }));
+    }
 
     this.store.dispatch(AlbumActions.setHasLyrics({ id, hasLyrics: true }));
 

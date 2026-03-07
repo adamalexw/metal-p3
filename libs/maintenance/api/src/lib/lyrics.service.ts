@@ -92,22 +92,26 @@ export class LyricsService {
           concatMap((history) =>
             this.metalArchivesService.getTracks(history.url).pipe(
               map((maTracks) => this.mapLyrics(history, maTracks)),
-              tap((history) => {
-                // no existing history so create it
-                if (history.id === history.albumId) {
-                  this.dbService.createLyricsHistory({
-                    NumLyrics: history.numLyrics,
-                    NumTracks: history.numTracks,
-                    NumLyricsHistory: history.numLyricsHistory,
-                    Checked: history.checked,
-                    Album: this.getAlbumInput(history.albumId),
-                  });
-                } else {
-                  this.dbService.updateLyricsHistory({
-                    where: { LyricsHistoryId: history.id },
-                    data: { NumLyrics: history.numLyrics, NumTracks: history.numTracks, NumLyricsHistory: history.numLyricsHistory, Checked: history.checked },
-                  });
-                }
+              concatMap((history) => {
+                const dbOp$ =
+                  history.id === history.albumId
+                    ? from(
+                        this.dbService.createLyricsHistory({
+                          NumLyrics: history.numLyrics,
+                          NumTracks: history.numTracks,
+                          NumLyricsHistory: history.numLyricsHistory,
+                          Checked: history.checked,
+                          Album: this.getAlbumInput(history.albumId),
+                        }),
+                      )
+                    : from(
+                        this.dbService.updateLyricsHistory({
+                          where: { LyricsHistoryId: history.id },
+                          data: { NumLyrics: history.numLyrics, NumTracks: history.numTracks, NumLyricsHistory: history.numLyricsHistory, Checked: history.checked },
+                        }),
+                      );
+
+                return dbOp$.pipe(map(() => history));
               }),
               catchError((error) => {
                 Logger.error(error);

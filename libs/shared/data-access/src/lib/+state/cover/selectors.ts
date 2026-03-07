@@ -6,5 +6,6 @@ export const selectCoverLoading = createSelector(selectAlbum, (album) => album?.
 export const selectCover = createSelector(selectAlbum, (album) => album?.cover);
 export const selectCoverRequired = createSelector(selectCover, selectCoverLoading, (cover, loading) => (loading ? false : !cover));
 export const selectCoverError = createSelector(selectAlbum, (album) => album?.coverError);
+export const selectSavingCover = createSelector(selectAlbum, (album) => album?.savingCover || false);
 export const selectBlobCovers = createSelector(selectAlbums, (albums) => albums?.filter((album) => album.cover && album.cover.startsWith('blob')).map((album) => album.cover) || []);
 export const selectCoverLoadingByAlbumId = (id: number) => createSelector(selectAlbumById(id), (album) => album?.coverLoading);

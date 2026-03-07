@@ -13,4 +13,6 @@ export const selectMaTracks = createSelector(selectAlbum, (album) => album && al
 
 export const selectTrack = (id: number, trackId: number) => createSelector(selectAlbumById(id), (album) => album?.tracks.entities[trackId]);
 export const selectTracksById = (id: number) => createSelector(selectAlbumById(id), (album) => album?.tracks && trackAdapter.getSelectors().selectAll(album.tracks));
+export const selectTrackSavingError = createSelector(selectTracks, (tracks) => tracks?.find((t) => t.trackSavingError)?.trackSavingError);
+export const selectTrackRenamingError = createSelector(selectTracks, (tracks) => tracks?.find((t) => t.trackRenamingError)?.trackRenamingError);
 export const selectTracksRequiredById = (id: number) => createSelector(selectTracksById(id), selectAlbumById(id), (tracks, album) => (album?.tracksLoading ? false : !tracks));

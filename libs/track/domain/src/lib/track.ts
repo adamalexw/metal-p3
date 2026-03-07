@@ -3,7 +3,9 @@ import { TrackDto } from '@metal-p3/api-interfaces';
 
 export interface Track extends TrackDto {
   trackSaving?: boolean;
+  trackSavingError?: string;
   trackRenaming?: boolean;
+  trackRenamingError?: string;
   trackTransferring?: boolean;
   trackDeleting?: boolean;
   trackDeletionError?: string;

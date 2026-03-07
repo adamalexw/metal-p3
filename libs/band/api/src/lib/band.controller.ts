@@ -24,7 +24,7 @@ export class BandController {
 
   @Patch()
   @HttpCode(HttpStatus.ACCEPTED)
-  patch(@Body() band: BandDto): void {
-    this.bandService.saveBand(band);
+  patch(@Body() band: BandDto): Promise<void> {
+    return this.bandService.saveBand(band);
   }
 }

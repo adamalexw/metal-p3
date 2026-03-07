@@ -22,8 +22,13 @@ export class TrackController {
   }
 
   @Patch()
-  patch(@Body() track: TrackDto): boolean | Error {
+  patch(@Body() track: TrackDto): Promise<boolean> {
     return this.trackService.saveTrack(track);
+  }
+
+  @Patch('batch')
+  saveTracks(@Body() tracks: TrackDto[]): Promise<boolean> {
+    return this.trackService.saveTracks(tracks);
   }
 
   @Patch('rename')

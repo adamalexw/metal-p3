@@ -1,11 +1,11 @@
 import { FileSystemService } from '@metal-p3/shared/file-system';
 import { TrackService } from '@metal-p3/track/api';
 import { HttpService } from '@nestjs/axios';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import * as fs from 'fs';
 import { selectCover } from 'music-metadata';
 import * as path from 'path';
-import { EMPTY, filter, map, Observable, of } from 'rxjs';
+import { catchError, EMPTY, filter, map, Observable, of } from 'rxjs';
 import * as sharp from 'sharp';
 
 @Injectable()
@@ -19,14 +19,35 @@ export class CoverService {
   ) {}
 
   getCover(location: string): Observable<string> {
+    if (!location) {
+      Logger.warn('getCover called with empty location');
+      return EMPTY;
+    }
+
+    if (!fs.existsSync(location)) {
+      Logger.warn(`getCover: location does not exist: "${location}"`);
+      return EMPTY;
+    }
+
     const coverPath = path.join(location, this.cover);
 
     if (fs.existsSync(coverPath)) {
-      return this.getCoverFromImageFile(coverPath);
+      return this.getCoverFromImageFile(coverPath).pipe(
+        catchError((error) => {
+          Logger.error(`Failed to read cover image "${coverPath}": ${error}`);
+          return EMPTY;
+        }),
+      );
     }
 
     if (path.extname(location) == '.mp3') {
-      return this.getCoverFromAudioFile(location).pipe(filter(Boolean));
+      return this.getCoverFromAudioFile(location).pipe(
+        filter(Boolean),
+        catchError((error) => {
+          Logger.error(`Failed to extract cover from audio file "${location}": ${error}`);
+          return EMPTY;
+        }),
+      );
     }
 
     try {
@@ -35,10 +56,15 @@ export class CoverService {
 
       if (audioFile) {
         location = path.join(location, audioFile);
-        return this.getCoverFromAudioFile(location);
+        return this.getCoverFromAudioFile(location).pipe(
+          catchError((error) => {
+            Logger.error(`Failed to extract cover from audio file "${location}": ${error}`);
+            return EMPTY;
+          }),
+        );
       }
     } catch (error) {
-      console.error(error);
+      Logger.error(`Failed to list files in "${location}": ${error}`);
     }
 
     return EMPTY;
@@ -68,18 +94,35 @@ export class CoverService {
     return buffer.toString('base64');
   }
 
-  saveCover(folder: string, cover: string): void {
+  async saveCover(folder: string, cover: string): Promise<void> {
     const location = path.join(folder, this.cover);
     const buffer = Buffer.from(cover.replace('data:image/png;base64,', ''), 'base64');
+    const tempLocation = `${location}.tmp`;
 
     try {
-      sharp(buffer).resize({ height: 500, width: 500 }).toFile(location);
+      await sharp(buffer).resize({ height: 500, width: 500 }).toFile(tempLocation);
+
+      // rename temp file to final location to avoid read/write conflicts
+      if (fs.existsSync(location)) {
+        fs.unlinkSync(location);
+      }
+      fs.renameSync(tempLocation, location);
     } catch (error) {
-      console.error(error);
+      // clean up temp file if it exists
+      if (fs.existsSync(tempLocation)) {
+        try {
+          fs.unlinkSync(tempLocation);
+        } catch {
+          // ignore cleanup errors
+        }
+      }
+
+      Logger.error(`Failed to save cover to "${location}": ${error}`);
+      throw new Error(`Failed to save cover: ${error}`);
     }
   }
 
-  resize() {
+  async resize() {
     const folders = this.fileSystemService.getFolders('m:/mp3');
 
     for (let index = 0; index < folders.length; index++) {
@@ -88,7 +131,21 @@ export class CoverService {
       if (fs.existsSync(f)) {
         console.log(((index / folders.length) * 100).toFixed(1), folders[index]);
 
-        sharp(f).resize({ height: 500 }).toFile(`m:/mp3/${folders[index]}/${this.cover}`);
+        const tempFile = `${f}.tmp`;
+        try {
+          await sharp(f).resize({ height: 500 }).toFile(tempFile);
+          fs.unlinkSync(f);
+          fs.renameSync(tempFile, f);
+        } catch (error) {
+          Logger.error(`Failed to resize cover "${f}": ${error}`);
+          if (fs.existsSync(tempFile)) {
+            try {
+              fs.unlinkSync(tempFile);
+            } catch {
+              // ignore cleanup errors
+            }
+          }
+        }
       }
 
       if (index > 10) {

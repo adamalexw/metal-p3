@@ -45,6 +45,21 @@ export class TrackEffects {
     );
   });
 
+  saveTracks$ = createEffect(() => {
+    return this.actions$.pipe(
+      ofType(TrackActions.saveTracks),
+      mergeMap(({ id, tracks }) =>
+        this.service.saveTracks(tracks).pipe(
+          map(() => TrackActions.saveTracksSuccess({ id, tracks })),
+          catchError((error) => {
+            console.error(error);
+            return of(TrackActions.saveTracksError({ id, tracks, error: this.errorService.getError(error) }));
+          }),
+        ),
+      ),
+    );
+  });
+
   getMaTracks$ = createEffect(() => {
     return this.actions$.pipe(
       ofType(TrackActions.getMetalArchivesTracks),
@@ -78,10 +93,7 @@ export class TrackEffects {
       mergeMap(({ id, track }) =>
         this.service.renameTrack(track).pipe(
           map(({ fullPath, file }) => TrackActions.renameTrackSuccess({ id, trackId: track.id, fullPath, file })),
-          catchError((error) => {
-            console.error(error);
-            return EMPTY;
-          }),
+          catchError((error) => of(TrackActions.renameTrackError({ id, trackId: track.id, error: this.errorService.getError(error) }))),
         ),
       ),
     );

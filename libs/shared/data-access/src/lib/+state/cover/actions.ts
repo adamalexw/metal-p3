@@ -15,9 +15,11 @@ export const CoverActions = createActionGroup({
     'Get Many Error': props<{ update: Update<Album>[] }>(),
     Download: props<{ id: number; url: string }>(),
     'Download Success': props<{ update: Update<Album> }>(),
+    'Download Error': props<{ update: Update<Album> }>(),
     'Clear All': emptyProps(),
     'Clear All Success': emptyProps(),
     Save: props<{ id: number; folder: string; cover: string }>(),
     'Save Success': props<{ update: Update<Album> }>(),
+    'Save Error': props<{ update: Update<Album> }>(),
   },
 });

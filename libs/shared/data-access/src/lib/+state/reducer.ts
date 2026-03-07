@@ -90,7 +90,7 @@ export const albumsFeature = createFeature({
     ),
     on(CoverActions.getManySuccess, (state, { update }) => albumAdapter.updateMany(update, state)),
     on(CoverActions.save, (state, { id }) => albumAdapter.updateOne({ id: id, changes: { savingCover: true } }, state)),
-    on(CoverActions.saveSuccess, CoverActions.downloadSuccess, (state, { update }) => albumAdapter.updateOne(update, state)),
+    on(CoverActions.saveSuccess, CoverActions.downloadSuccess, CoverActions.downloadError, CoverActions.saveError, (state, { update }) => albumAdapter.updateOne(update, state)),
 
     /** TRACK */
     on(TrackActions.getTracks, (state, { id }) => albumAdapter.updateOne({ id, changes: { tracksLoading: true } }, state)),
@@ -139,6 +139,51 @@ export const albumsFeature = createFeature({
           map: (album) => ({
             ...album,
             tracks: trackAdapter.updateOne({ id: track.id, changes: { ...track, trackSaving: false } }, album.tracks),
+          }),
+        },
+        state,
+      ),
+    ),
+    on(TrackActions.saveTracks, (state, { id, tracks }) =>
+      albumAdapter.mapOne(
+        {
+          id,
+          map: (album) => ({
+            ...album,
+            tracks: trackAdapter.updateMany(
+              tracks.map((track) => ({ id: track.id, changes: { ...track, trackSaving: true } })),
+              album.tracks,
+            ),
+          }),
+        },
+        state,
+      ),
+    ),
+    on(TrackActions.saveTracksSuccess, (state, { id, tracks }) =>
+      albumAdapter.mapOne(
+        {
+          id,
+          map: (album) => ({
+            ...album,
+            tracks: trackAdapter.updateMany(
+              tracks.map((track) => ({ id: track.id, changes: { ...track, trackSaving: false } })),
+              album.tracks,
+            ),
+          }),
+        },
+        state,
+      ),
+    ),
+    on(TrackActions.saveTracksError, (state, { id, tracks, error }) =>
+      albumAdapter.mapOne(
+        {
+          id,
+          map: (album) => ({
+            ...album,
+            tracks: trackAdapter.updateMany(
+              tracks.map((track) => ({ id: track.id, changes: { trackSaving: false, trackSavingError: error } })),
+              album.tracks,
+            ),
           }),
         },
         state,
@@ -212,6 +257,18 @@ export const albumsFeature = createFeature({
           map: (album) => ({
             ...album,
             tracks: trackAdapter.updateOne({ id: trackId, changes: { file, fullPath, trackRenaming: false } }, album.tracks),
+          }),
+        },
+        state,
+      ),
+    ),
+    on(TrackActions.renameTrackError, (state, { id, trackId, error }) =>
+      albumAdapter.mapOne(
+        {
+          id,
+          map: (album) => ({
+            ...album,
+            tracks: trackAdapter.updateOne({ id: trackId, changes: { trackRenaming: false, trackRenamingError: error } }, album.tracks),
           }),
         },
         state,

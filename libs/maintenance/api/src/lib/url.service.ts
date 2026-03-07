@@ -52,17 +52,23 @@ export class UrlService {
           concatMap((matcher) =>
             this.metalArchivesService.findUrl(matcher.band, matcher.album).pipe(
               map((response) => this.extractOutcome(matcher, response)),
-              tap((outcome) => {
+              concatMap((outcome) => {
                 if (outcome.result === 'success') {
-                  this.dbService.updateAlbum({
-                    where: { AlbumId: outcome.id },
-                    data: { MetalArchiveUrl: outcome.albumUrl },
-                  });
+                  const updates: Promise<unknown>[] = [
+                    this.dbService.updateAlbum({
+                      where: { AlbumId: outcome.id },
+                      data: { MetalArchiveUrl: outcome.albumUrl },
+                    }),
+                  ];
 
                   if (!matcher.artistUrl) {
-                    this.dbService.updateBand({ where: { BandId: matcher.bandId }, data: { MetalArchiveUrl: outcome.artistUrl } });
+                    updates.push(this.dbService.updateBand({ where: { BandId: matcher.bandId }, data: { MetalArchiveUrl: outcome.artistUrl } }));
                   }
+
+                  return from(Promise.all(updates)).pipe(map(() => outcome));
                 }
+
+                return of(outcome);
               }),
               catchError((error) => {
                 Logger.error(error);

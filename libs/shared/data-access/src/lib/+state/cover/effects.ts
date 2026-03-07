@@ -6,7 +6,7 @@ import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { Update } from '@ngrx/entity';
 import { concatLatestFrom } from '@ngrx/operators';
 import { Store } from '@ngrx/store';
-import { catchError, EMPTY, filter, forkJoin, iif, map, mergeMap, Observable, of, switchMap, tap } from 'rxjs';
+import { catchError, filter, forkJoin, iif, map, mergeMap, Observable, of, switchMap, tap } from 'rxjs';
 import { AlbumActions } from '../actions';
 import { Album } from '../model';
 import { CoverActions } from './actions';
@@ -52,10 +52,7 @@ export class CoverEffects {
       mergeMap(({ id, url }) =>
         this.service.downloadCover(url).pipe(
           map((cover) => CoverActions.downloadSuccess({ update: { id, changes: { cover, coverError: undefined } } })),
-          catchError((error) => {
-            console.error(error);
-            return EMPTY;
-          }),
+          catchError((error) => of(CoverActions.downloadError({ update: { id, changes: { coverError: this.errorService.getError(error) } } }))),
         ),
       ),
     );
@@ -83,10 +80,7 @@ export class CoverEffects {
       mergeMap(({ id, folder, cover }) =>
         this.service.saveCover(folder, cover).pipe(
           map(() => CoverActions.saveSuccess({ update: { id, changes: { savingCover: false } } })),
-          catchError((error) => {
-            console.error(error);
-            return EMPTY;
-          }),
+          catchError((error) => of(CoverActions.saveError({ update: { id, changes: { savingCover: false, coverError: this.errorService.getError(error) } } }))),
         ),
       ),
     );

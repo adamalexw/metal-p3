@@ -11,6 +11,6 @@ export class AdbService {
   private readonly baseUrl = `${this.api}adb`;
 
   connectPhone(host: string, port: number): Observable<string> {
-    return this.http.post<string>(`${this.baseUrl}/connect`, { host, port });
+    return this.http.post<string>(`${this.baseUrl}/connect`, { host, port }, { responseType: 'text' as 'json' });
   }
 }

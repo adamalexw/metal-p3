@@ -26,6 +26,10 @@ export class TrackService {
     return this.http.patch<void>(this.baseUrl, track);
   }
 
+  saveTracks(tracks: TrackDto[]): Observable<void> {
+    return this.http.patch<void>(`${this.baseUrl}/batch`, tracks);
+  }
+
   getMaTracks(url: string): Observable<MetalArchivesAlbumTrack[]> {
     return this.http.get<MetalArchivesAlbumTrack[]>(`${this.albumUrl}/maTracks?url=${encodeURI(url)}`);
   }
