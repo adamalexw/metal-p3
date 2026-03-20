@@ -1,4 +1,4 @@
-<div class="mb-4 flex items-center gap-2" matSnackBarLabel>
+<div class="mb-4 flex flex-col items-center gap-2 md:flex-row" matSnackBarLabel>
   <mat-form-field>
     <mat-label>Host</mat-label>
     <input type="text" [(ngModel)]="host" matInput />
@@ -8,9 +8,18 @@
     <mat-label>Port</mat-label>
     <input type="number" [(ngModel)]="port" matInput />
   </mat-form-field>
+
+  <mat-form-field>
+    <mat-label>Code</mat-label>
+    <input type="text" [(ngModel)]="code" matInput />
+  </mat-form-field>
 </div>
 
 <span matSnackBarActions>
-  <button type="button" class="mr-2" (click)="connectPhone()" mat-flat-button matSnackBarAction color="primary">Connect</button>
-  <button type="button" (click)="cancel()" mat-button matSnackBarAction color="accent">Cancel</button>
+  @if (code) {
+    <button type="button" class="mr-2 hidden" (click)="pairPhone()" matButton="filled" matSnackBarAction color="primary">Pair</button>
+  } @else {
+    <button type="button" class="mr-2" (click)="connectPhone()" matButton="filled" matSnackBarAction color="primary">Connect</button>
+  }
+  <button type="button" (click)="cancel()" matButton="tonal" matSnackBarAction>Cancel</button>
 </span>

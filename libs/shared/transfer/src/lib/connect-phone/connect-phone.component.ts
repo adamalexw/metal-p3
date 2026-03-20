@@ -21,6 +21,14 @@ export class ConnectPhoneComponent {
 
   host = '192.168.86.20';
   port = 0;
+  code = '';
+
+  pairPhone() {
+    this.adbService.pairPhone(this.host, this.port, this.code).subscribe({
+      next: () => (this.code = ''),
+      error: (err) => this.notificationService.showError(`Failed to pair phone: ${err}`, 'Pair Phone'),
+    });
+  }
 
   connectPhone() {
     this.adbService.connectPhone(this.host, this.port).subscribe({

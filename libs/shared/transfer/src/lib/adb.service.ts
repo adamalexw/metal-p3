@@ -10,6 +10,10 @@ export class AdbService {
 
   private readonly baseUrl = `${this.api}adb`;
 
+  pairPhone(host: string, port: number, code: string): Observable<string> {
+    return this.http.post<string>(`${this.baseUrl}/pair`, { host, port, code }, { responseType: 'text' as 'json' });
+  }
+
   connectPhone(host: string, port: number): Observable<string> {
     return this.http.post<string>(`${this.baseUrl}/connect`, { host, port }, { responseType: 'text' as 'json' });
   }

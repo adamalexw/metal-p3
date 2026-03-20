@@ -171,7 +171,7 @@ export class AlbumService {
    * Polls a folder until its total size and file count stop changing,
    * indicating that an unzip or copy operation has completed.
    */
-  private waitForFolderStable(folderPath: string, stabilityThreshold = 3000, pollInterval = 1000): Promise<void> {
+  private waitForFolderStable(folderPath: string, stabilityThreshold = 5000, pollInterval = 1000): Promise<void> {
     return new Promise((resolve) => {
       let lastSnapshot = '';
       let stableSince: number | null = null;
@@ -204,23 +204,33 @@ export class AlbumService {
   }
 
   private getFolderSnapshot(folderPath: string): string {
-    try {
-      const entries = fs.readdirSync(folderPath);
-      let totalSize = 0;
+    let fileCount = 0;
+    let totalSize = 0;
 
-      for (const entry of entries) {
-        try {
-          const stat = fs.statSync(path.join(folderPath, entry));
-          totalSize += stat.size;
-        } catch {
-          // file may be in-flight, ignore
+    const walk = (dir: string) => {
+      try {
+        const entries = fs.readdirSync(dir);
+        for (const entry of entries) {
+          const fullPath = path.join(dir, entry);
+          try {
+            const stat = fs.statSync(fullPath);
+            if (stat.isDirectory()) {
+              walk(fullPath);
+            } else {
+              fileCount++;
+              totalSize += stat.size;
+            }
+          } catch {
+            // file may be in-flight, ignore
+          }
         }
+      } catch {
+        // directory may not be readable yet
       }
+    };
 
-      return `${entries.length}:${totalSize}`;
-    } catch {
-      return '';
-    }
+    walk(folderPath);
+    return `${fileCount}:${totalSize}`;
   }
 
   addAlbum(folder: string): Observable<AlbumDto> {

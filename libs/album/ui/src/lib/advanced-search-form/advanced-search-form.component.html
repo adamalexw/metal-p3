@@ -1,43 +1,43 @@
-<form class="flex w-full flex-col gap-3 p-4" [formGroup]="form" (ngSubmit)="onSearch()" autocomplete="off">
+<form class="flex w-full flex-col gap-3 p-4" (submit)="onSearch($event)" autocomplete="off">
   <mat-form-field class="w-full">
     <mat-label>Folder</mat-label>
-    <input matInput formControlName="folder" />
+    <input [formField]="searchForm.folder" matInput />
   </mat-form-field>
 
   <mat-form-field class="w-full">
     <mat-label>Band</mat-label>
-    <input matInput formControlName="artist" />
+    <input [formField]="searchForm.artist" matInput />
   </mat-form-field>
 
   <mat-form-field class="w-full">
     <mat-label>Album</mat-label>
-    <input matInput formControlName="album" />
+    <input [formField]="searchForm.album" matInput />
   </mat-form-field>
 
   <mat-form-field class="w-full">
     <mat-label>Genre</mat-label>
-    <input matInput formControlName="genre" />
+    <input [formField]="searchForm.genre" matInput />
     <mat-icon matSuffix>music_note</mat-icon>
   </mat-form-field>
 
   <mat-form-field class="w-full">
     <mat-label>Country</mat-label>
-    <input matInput formControlName="country" />
+    <input [formField]="searchForm.country" matInput />
     <mat-icon matSuffix>flag</mat-icon>
   </mat-form-field>
 
   <mat-form-field class="w-full">
     <mat-label>Year</mat-label>
-    <input matInput formControlName="year" />
+    <input type="number" [formField]="searchForm.year" matInput />
   </mat-form-field>
 
   <div class="flex flex-row items-center gap-6">
-    <mat-checkbox [indeterminate]="true" formControlName="transferred"> Transferred </mat-checkbox>
-    <mat-checkbox [indeterminate]="true" formControlName="hasLyrics"> Lyrics </mat-checkbox>
+    <mat-checkbox [indeterminate]="searchForm.transferred().value() === null" [formField]="searchForm.transferred"> Transferred </mat-checkbox>
+    <mat-checkbox [indeterminate]="searchForm.hasLyrics().value() === null" [formField]="searchForm.hasLyrics"> Lyrics </mat-checkbox>
   </div>
 
-  <div class="flex flex-row items-center gap-6">
-    <button type="submit" mat-flat-button>Search</button>
-    <button type="reset" (click)="searchRequest.emit({ take, skip: 0 })" mat-flat-button color="error">Clear</button>
+  <div class="flex flex-row items-center gap-4">
+    <button type="submit" matButton="filled">Search</button>
+    <button type="button" (click)="onClear()" matButton="tonal" color="accent">Clear</button>
   </div>
 </form>
