@@ -3,7 +3,6 @@ import { ErrorHandler, enableProdMode, importProvidersFrom, isDevMode, provideZo
 import { MAT_FORM_FIELD_DEFAULT_OPTIONS } from '@angular/material/form-field';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { bootstrapApplication } from '@angular/platform-browser';
-import { provideAnimations } from '@angular/platform-browser/animations';
 import { provideRouter, withInMemoryScrolling } from '@angular/router';
 import { routes } from '@metal-p3/album';
 import { API, BASE_PATH, TAKE } from '@metal-p3/album/domain';
@@ -29,7 +28,6 @@ bootstrapApplication(AppComponent, {
   providers: [
     provideRouter(routes, withInMemoryScrolling({ scrollPositionRestoration: 'enabled' })),
     provideHttpClient(),
-    provideAnimations(),
     provideZonelessChangeDetection(),
     importProvidersFrom(MatSnackBarModule, SocketIoModule.forRoot(config)),
     provideRouterStore(),

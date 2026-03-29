@@ -6,7 +6,7 @@ import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { Update } from '@ngrx/entity';
 import { concatLatestFrom } from '@ngrx/operators';
 import { Store } from '@ngrx/store';
-import { catchError, filter, forkJoin, iif, map, mergeMap, Observable, of, switchMap, tap } from 'rxjs';
+import { catchError, concat, filter, forkJoin, iif, map, mergeMap, Observable, of, switchMap, tap } from 'rxjs';
 import { AlbumActions } from '../actions';
 import { Album } from '../model';
 import { CoverActions } from './actions';
@@ -89,19 +89,30 @@ export class CoverEffects {
   });
 
   private covers$(requests: CoverRequest[]): Observable<Update<Album>[]> {
-    const sources: Record<number, Observable<{ cover: string; coverError: string | undefined }>> = {};
+    const batchSize = 12;
+    const batches: CoverRequest[][] = [];
 
-    requests.map(
-      ({ id, folder }) =>
-        (sources[id] = this.service.getCover(`${this.basePath}/${folder}`).pipe(
-          map((cover) => ({ cover, coverError: undefined })),
-          catchError((error) => {
-            const coverError = this.errorService.getError(error);
-            return of({ cover: '/assets/blank.png', coverError });
-          }),
-        )),
+    for (let i = 0; i < requests.length; i += batchSize) {
+      batches.push(requests.slice(i, i + batchSize));
+    }
+
+    return concat(
+      ...batches.map((batch) => {
+        const sources: Record<number, Observable<{ cover: string; coverError: string | undefined }>> = {};
+
+        batch.forEach(
+          ({ id, folder }) =>
+            (sources[id] = this.service.getCover(`${this.basePath}/${folder}`).pipe(
+              map((cover) => ({ cover, coverError: undefined })),
+              catchError((error) => {
+                const coverError = this.errorService.getError(error);
+                return of({ cover: '/assets/blank.png', coverError });
+              }),
+            )),
+        );
+
+        return forkJoin(sources).pipe(map((covers) => Object.entries(covers).map(([id, value]) => ({ id, changes: { coverLoading: false, cover: value.cover, coverError: value.coverError } }))));
+      }),
     );
-
-    return forkJoin(sources).pipe(map((covers) => Object.entries(covers).map(([id, value]) => ({ id, changes: { coverLoading: false, cover: value.cover, coverError: value.coverError } }))));
   }
 }
