@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-types */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { OverlayModule } from '@angular/cdk/overlay';
 import { PortalModule } from '@angular/cdk/portal';
 import { NgComponentOutlet, NgTemplateOutlet } from '@angular/common';
@@ -18,7 +16,7 @@ export class OverlayComponent implements OnInit {
 
   contentType: 'template' | 'string' | 'component' = 'string';
   content: string | TemplateRef<unknown> | Type<unknown> = '';
-  context: Object | null = null;
+  context: object | null = null;
 
   close() {
     this.ref.close(null);
@@ -43,7 +41,7 @@ export class OverlayComponent implements OnInit {
     return this.content as TemplateRef<unknown>;
   }
 
-  get contentAsComponent(): Type<any> {
-    return this.content as Type<any>;
+  get contentAsComponent(): Type<unknown> {
+    return this.content as Type<unknown>;
   }
 }

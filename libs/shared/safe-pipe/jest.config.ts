@@ -1,4 +1,4 @@
-/* eslint-disable */
+ 
 export default {
   displayName: 'shared-safe-pipe',
   preset: '../../../jest.preset.js',

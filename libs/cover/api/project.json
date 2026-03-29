@@ -5,14 +5,16 @@
   "projectType": "library",
   "tags": ["scope:cover", "type:api"],
   "targets": {
-    "lint": {
-      "executor": "@nx/eslint:lint"
-    },
     "test": {
-      "executor": "@nx/jest:jest",
-      "outputs": ["{workspaceRoot}/coverage/libs/cover/api"],
+      "outputs": ["{workspaceRoot}/coverage/libs/cover/api", "{workspaceRoot}\\libs\\coverage\\libs\\cover\\api"],
       "options": {
-        "jestConfig": "libs/cover/api/jest.config.ts"
+        "passWithNoTests": true
+      },
+      "configurations": {
+        "ci": {
+          "ci": true,
+          "coverage": true
+        }
       }
     }
   }

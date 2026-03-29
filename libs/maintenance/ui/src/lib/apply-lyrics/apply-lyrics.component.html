@@ -1,6 +1,6 @@
 @if (tracksLoading() || maTracksLoading() || lyricsLoadingProgress()) {
   <div class="flex flex-col gap-4">
-    <mat-progress-bar class="w-full" [mode]="lyricsLoadingProgress() ? 'determinate' : 'indeterminate'" [value]="lyricsLoadingProgress()"> </mat-progress-bar>
+    <mat-progress-bar class="w-full" [mode]="lyricsLoadingProgress() ? 'determinate' : 'indeterminate'" [value]="lyricsLoadingProgress()" />
     <h3 class="mb-3 ml-3 text-xl text-white">Loading Lyrics</h3>
   </div>
 } @else {
@@ -19,7 +19,7 @@
   />
 
   @if (applyingProgress() || trackTransferringProgress(); as progress) {
-    <mat-progress-bar class="w-full" [value]="progress" mode="determinate"> </mat-progress-bar>
+    <mat-progress-bar class="w-full" [value]="progress" mode="determinate" />
   }
 
   <mat-table [dataSource]="dataSource" [trackBy]="trackByFn">
@@ -60,13 +60,13 @@
     </ng-container>
 
     <ng-container matColumnDef="selected">
-      <mat-header-cell *matHeaderCellDef><mat-checkbox [checked]="true" (change)="onSelectAll($event.checked)"></mat-checkbox></mat-header-cell>
+      <mat-header-cell *matHeaderCellDef><mat-checkbox [checked]="true" (change)="onSelectAll($event.checked)" /></mat-header-cell>
       <mat-cell *matCellDef="let element">
-        <mat-checkbox [checked]="element.selected" (change)="onSelectItem(element.id, $event.checked)"></mat-checkbox>
+        <mat-checkbox [checked]="element.selected" (change)="onSelectItem(element.id, $event.checked)" />
       </mat-cell>
     </ng-container>
 
-    <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
-    <mat-row *matRowDef="let row; columns: displayedColumns"></mat-row>
+    <mat-header-row *matHeaderRowDef="displayedColumns" />
+    <mat-row *matRowDef="let row; columns: displayedColumns" />
   </mat-table>
 }

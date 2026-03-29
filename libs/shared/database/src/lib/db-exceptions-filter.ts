@@ -1,5 +1,5 @@
 import { ArgumentsHost, Catch, ExceptionFilter, HttpStatus, Logger } from '@nestjs/common';
-// eslint-disable-next-line @nx/enforce-module-boundaries
+ 
 import { Prisma } from '@metal-p3/prisma/client';
 
 @Catch(Prisma.PrismaClientValidationError)

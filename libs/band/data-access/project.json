@@ -7,15 +7,16 @@
   "tags": ["scope:band", "type:data-access"],
   "targets": {
     "test": {
-      "executor": "@nx/jest:jest",
-      "outputs": ["{workspaceRoot}/coverage/libs/band/data-access"],
+      "outputs": ["{workspaceRoot}/coverage/libs/band/data-access", "{workspaceRoot}\\coverage\\libs\\band\\data-access"],
       "options": {
-        "jestConfig": "libs/band/data-access/jest.config.ts",
-        "tsConfig": "libs/band/data-access/tsconfig.spec.json"
+        "passWithNoTests": true
+      },
+      "configurations": {
+        "ci": {
+          "ci": true,
+          "coverage": true
+        }
       }
-    },
-    "lint": {
-      "executor": "@nx/eslint:lint"
     }
   }
 }

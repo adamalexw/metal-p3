@@ -29,7 +29,7 @@ import {
   selectMaUrls,
   selectRenamingFolder,
   selectRenamingFolderError,
-  selectRouteNestedParam,
+  selectRouteNestedNumericParam,
   selectSaveAlbumError,
   selectSelectedAlbumId,
   selectTrackRenaming,
@@ -104,10 +104,7 @@ export class AlbumShellComponent implements OnInit {
   gettingBandProps$ = this.store.select(selectGettingBandProps);
   bandProps$ = this.store.select(selectBandProps);
 
-  routeId$ = this.store.select(selectRouteNestedParam('id')).pipe(
-    nonNullable(),
-    map((route) => +route),
-  );
+  routeId$ = this.store.select(selectRouteNestedNumericParam('id')).pipe(nonNullable());
 
   ngOnInit(): void {
     this.setState();
@@ -309,8 +306,13 @@ export class AlbumShellComponent implements OnInit {
   }
 
   private dispatchTracks(album: AlbumWithoutTracks, tracks: TrackBase[]) {
-    const mappedTracks = tracks.map((albumTrack) => this.getTrack(album, albumTrack));
-    this.store.dispatch(TrackActions.saveTracks({ id: album.id, tracks: mappedTracks }));
+    // const mappedTracks = tracks.map((albumTrack) => this.getTrack(album, albumTrack));
+    // this.store.dispatch(TrackActions.saveTracks({ id: album.id, tracks: mappedTracks }));
+
+    tracks.forEach((albumTrack) => {
+      const track = this.getTrack(album, albumTrack);
+      this.store.dispatch(TrackActions.saveTrack({ id: album.id, track }));
+    });
   }
 
   private getTrack(album: AlbumWithoutTracks, albumTrack: Track): Track {

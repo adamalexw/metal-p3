@@ -76,15 +76,16 @@
         "buildTarget": "ui:build"
       }
     },
-    "lint": {
-      "executor": "@nx/eslint:lint"
-    },
     "test": {
-      "executor": "@nx/jest:jest",
-      "outputs": ["{workspaceRoot}/coverage/apps/ui"],
+      "outputs": ["{workspaceRoot}/coverage/apps/ui", "{workspaceRoot}\\coverage\\apps\\ui"],
       "options": {
-        "jestConfig": "apps/ui/jest.config.ts",
-        "tsConfig": "apps/ui/tsconfig.spec.json"
+        "passWithNoTests": true
+      },
+      "configurations": {
+        "ci": {
+          "ci": true,
+          "coverage": true
+        }
       }
     }
   }

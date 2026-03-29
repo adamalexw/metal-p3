@@ -17,9 +17,6 @@
           "devServerTarget": "ui:serve:production"
         }
       }
-    },
-    "lint": {
-      "executor": "@nx/eslint:lint"
     }
   }
 }

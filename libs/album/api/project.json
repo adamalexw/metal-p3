@@ -5,14 +5,16 @@
   "projectType": "library",
   "tags": ["scope:album", "type:api"],
   "targets": {
-    "lint": {
-      "executor": "@nx/eslint:lint"
-    },
     "test": {
-      "executor": "@nx/jest:jest",
-      "outputs": ["{workspaceRoot}/coverage/libs/album/api"],
+      "outputs": ["{workspaceRoot}/coverage/libs/album/api", "{workspaceRoot}\\coverage\\libs\\album\\api"],
       "options": {
-        "jestConfig": "libs/album/api/jest.config.ts"
+        "passWithNoTests": true
+      },
+      "configurations": {
+        "ci": {
+          "ci": true,
+          "coverage": true
+        }
       }
     }
   }

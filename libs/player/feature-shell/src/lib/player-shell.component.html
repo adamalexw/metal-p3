@@ -23,7 +23,7 @@
     </div>
 
     @if ((footerMode$ | async) === false) {
-      <app-playlist-shell [duration]="playlistDuration$ | async" (clearPlaylist)="onClearPlaylist()" (closePlaylist)="onClosePlaylist()" (togglePlaylist)="onTogglePlaylist()"></app-playlist-shell>
+      <app-playlist-shell [duration]="playlistDuration$ | async" (clearPlaylist)="onClearPlaylist()" (closePlaylist)="onClosePlaylist()" (togglePlaylist)="onTogglePlaylist()" />
       <app-playlist
         class="fixed top-0 left-0 z-50 h-screen overflow-auto bg-background lg:static lg:block lg:h-auto lg:max-h-[calc(100vh-384px)] lg:translate-y-0"
         [class.hidden]="(showPlaylist$ | async) === false"

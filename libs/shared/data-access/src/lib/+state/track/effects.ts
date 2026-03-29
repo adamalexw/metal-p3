@@ -6,7 +6,7 @@ import { Track } from '@metal-p3/track/domain';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { concatLatestFrom } from '@ngrx/operators';
 import { Store } from '@ngrx/store';
-import { catchError, EMPTY, map, mergeMap, of } from 'rxjs';
+import { catchError, concatMap, EMPTY, map, mergeMap, of } from 'rxjs';
 import { TrackActions } from './actions';
 import { selectTrack } from './selectors';
 
@@ -33,7 +33,7 @@ export class TrackEffects {
   saveTrack$ = createEffect(() => {
     return this.actions$.pipe(
       ofType(TrackActions.saveTrack),
-      mergeMap(({ id, track }) =>
+      concatMap(({ id, track }) =>
         this.service.saveTrack(track).pipe(
           map(() => TrackActions.saveTrackSuccess({ id, track })),
           catchError((error) => {

@@ -3,45 +3,45 @@
     <mat-form-field class="grow lg:w-80" floatLabel="auto">
       <input type="search" matInput placeholder="Search" formControlName="folder" />
       @if (folderControl.value) {
-        <button [attr.aria-label]="'Clear search'" (click)="onClear()" mat-icon-button matSuffix>
+        <button type="button" type="button" [attr.aria-label]="'Clear search'" (click)="onClear()" mat-icon-button matSuffix>
           <mat-icon>clear</mat-icon>
         </button>
       }
     </mat-form-field>
   </form>
 
-  <button (click)="searchRequest.emit(form.value)" mat-icon-button>
+  <button type="button" (click)="searchRequest.emit(form.value)" mat-icon-button>
     <mat-icon title="refresh">refresh</mat-icon>
   </button>
-  <button (click)="advancedSearch.emit()" mat-icon-button>
+  <button type="button" (click)="advancedSearch.emit()" mat-icon-button>
     <mat-icon title="advanced search">manage_search</mat-icon>
   </button>
-  <button (click)="showPlayer.emit()" mat-icon-button>
+  <button type="button" (click)="showPlayer.emit()" mat-icon-button>
     <mat-icon title="playlists">queue_music</mat-icon>
   </button>
-  <button class="!hidden md:!block" [disabled]="creatingNew()" (click)="createNew.emit()" mat-icon-button>
+  <button type="button" class="!hidden md:!block" [disabled]="creatingNew()" (click)="createNew.emit()" mat-icon-button>
     <mat-icon title="files to folders">create_new_folder</mat-icon>
   </button>
-  <button class="!hidden md:!block" [matMenuTriggerFor]="menu" mat-icon-button>
+  <button type="button" class="!hidden md:!block" [matMenuTriggerFor]="menu" mat-icon-button>
     <mat-icon title="maintenance">engineering</mat-icon>
   </button>
-  <button (click)="connectPhone.emit()" mat-icon-button>
+  <button type="button" (click)="connectPhone.emit()" mat-icon-button>
     <mat-icon title="connect">adb</mat-icon>
   </button>
   <mat-menu #menu="matMenu" class="!hidden md:!block">
-    <button [routerLink]="['maintenance', 'lyrics']" mat-menu-item>
+    <button type="button" [routerLink]="['maintenance', 'lyrics']" mat-menu-item>
       <mat-icon>article</mat-icon>
       <span>Lyrics</span>
     </button>
-    <button [routerLink]="['maintenance', 'folders']" mat-menu-item>
+    <button type="button" [routerLink]="['maintenance', 'folders']" mat-menu-item>
       <mat-icon>folder()</mat-icon>
       <span>Folders</span>
     </button>
-    <button [routerLink]="['maintenance', 'extraFiles']" mat-menu-item>
+    <button type="button" [routerLink]="['maintenance', 'extraFiles']" mat-menu-item>
       <mat-icon>description</mat-icon>
       <span>Extra Files</span>
     </button>
-    <button [routerLink]="['maintenance', 'matcher']" mat-menu-item>
+    <button type="button" [routerLink]="['maintenance', 'matcher']" mat-menu-item>
       <mat-icon>link</mat-icon>
       <span>Album Matcher</span>
     </button>
@@ -49,5 +49,5 @@
 </mat-toolbar>
 
 @if (searching()) {
-  <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+  <mat-progress-bar mode="indeterminate" />
 }

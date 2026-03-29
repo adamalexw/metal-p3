@@ -5,14 +5,16 @@
   "projectType": "library",
   "tags": ["scope:track", "type:api"],
   "targets": {
-    "lint": {
-      "executor": "@nx/eslint:lint"
-    },
     "test": {
-      "executor": "@nx/jest:jest",
-      "outputs": ["{workspaceRoot}/coverage/libs/track/api"],
+      "outputs": ["{workspaceRoot}/coverage/libs/track/api", "{workspaceRoot}\\libs\\coverage\\libs\\track-api"],
       "options": {
-        "jestConfig": "libs/track/api/jest.config.ts"
+        "passWithNoTests": true
+      },
+      "configurations": {
+        "ci": {
+          "ci": true,
+          "coverage": true
+        }
       }
     }
   }

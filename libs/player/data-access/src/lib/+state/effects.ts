@@ -76,8 +76,12 @@ export class PlayerEffects {
       concatLatestFrom(({ id }) => this.store.select(selectItemById(id))),
       tap(([_, item]) => {
         if (item) {
-          typeof item.cover === 'string' ? URL.revokeObjectURL(item.cover) : '';
-          typeof item.url === 'string' ? URL.revokeObjectURL(item.url) : '';
+          if (typeof item.cover === 'string') {
+            URL.revokeObjectURL(item.cover);
+          }
+          if (typeof item.url === 'string') {
+            URL.revokeObjectURL(item.url);
+          }
         }
       }),
       map(([{ id }, _item]) => id),
@@ -115,7 +119,9 @@ export class PlayerEffects {
       filter(([_, blobs]) => blobs.length > 0),
       tap(([_, blobs]) =>
         blobs.forEach((blob) => {
-          typeof blob === 'string' ? URL.revokeObjectURL(blob) : '';
+          if (typeof blob === 'string') {
+            URL.revokeObjectURL(blob);
+          }
         }),
       ),
       map(() => PlayerActions.clearSuccess()),

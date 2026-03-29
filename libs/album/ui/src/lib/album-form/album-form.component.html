@@ -13,7 +13,7 @@
     <mat-label>Genre</mat-label>
     <input matInput formControlName="genre" />
     @if (artistUrl) {
-      <button [attr.aria-label]="'Get country'" (click)="getBandProps(artistUrl)" mat-icon-button matSuffix>
+      <button type="button" [attr.aria-label]="'Get country'" (click)="getBandProps(artistUrl)" mat-icon-button matSuffix>
         <mat-icon>music_note</mat-icon>
       </button>
     }
@@ -23,7 +23,7 @@
     <mat-label>Country</mat-label>
     <input matInput formControlName="country" />
     @if (artistUrl) {
-      <button [attr.aria-label]="'Get country'" (click)="getBandProps(artistUrl)" mat-icon-button matSuffix>
+      <button type="button" [attr.aria-label]="'Get country'" (click)="getBandProps(artistUrl)" mat-icon-button matSuffix>
         <mat-icon>flag</mat-icon>
       </button>
     }
@@ -34,7 +34,7 @@
       <mat-label>Album Url</mat-label>
       <input type="url" matInput formControlName="albumUrl" />
       @if (albumUrl) {
-        <button [attr.aria-label]="'View album url'" (click)="openLink(albumUrl)" mat-icon-button matSuffix>
+        <button type="button" [attr.aria-label]="'View album url'" (click)="openLink(albumUrl)" mat-icon-button matSuffix>
           <mat-icon>link</mat-icon>
         </button>
       }
@@ -44,7 +44,7 @@
       <mat-label>Artist Url</mat-label>
       <input type="url" matInput formControlName="artistUrl" />
       @if (artistUrl) {
-        <button [attr.aria-label]="'View artist url'" (click)="openLink(artistUrl)" mat-icon-button matSuffix>
+        <button type="button" [attr.aria-label]="'View artist url'" (click)="openLink(artistUrl)" mat-icon-button matSuffix>
           <mat-icon>link</mat-icon>
         </button>
       }
@@ -69,7 +69,7 @@
 
     @if (!hasLyrics) {
       <div class="flex items-center">
-        <button type="button" (click)="lyricsPriority.emit()">
+        <button type="button" type="button" (click)="lyricsPriority.emit()">
           <span class="flex items-center gap-2">
             <mat-icon>new_releases</mat-icon>
             <span>Priority</span>

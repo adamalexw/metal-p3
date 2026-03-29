@@ -7,11 +7,11 @@
     }
 
     @case ('template') {
-      <ng-container *ngTemplateOutlet="contentAsTemplate; context: context"></ng-container>
+      <ng-container *ngTemplateOutlet="contentAsTemplate; context: context" />
     }
 
     @case ('component') {
-      <ng-container *ngComponentOutlet="contentAsComponent"></ng-container>
+      <ng-container *ngComponentOutlet="contentAsComponent" />
     }
   }
 </div>

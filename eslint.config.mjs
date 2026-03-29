@@ -1,5 +1,6 @@
 import { FlatCompat } from '@eslint/eslintrc';
 import js from '@eslint/js';
+import ngrxEslintPlugin from '@ngrx/eslint-plugin/v9';
 import nxEslintPlugin from '@nx/eslint-plugin';
 import { dirname } from 'path';
 import { fileURLToPath } from 'url';
@@ -48,8 +49,6 @@ export default [
             varsIgnorePattern: '^_',
           },
         ],
-        '@typescript-eslint/no-extra-semi': 'error',
-        'no-extra-semi': 'off',
       },
     })),
   ...compat
@@ -61,21 +60,28 @@ export default [
       files: ['**/*.js', '**/*.jsx', '**/*.cjs', '**/*.mjs'],
       rules: {
         ...config.rules,
-        '@typescript-eslint/no-extra-semi': 'error',
-        'no-extra-semi': 'off',
       },
     })),
-  ...compat
-    .config({
-      extends: ['plugin:ngrx/recommended'],
-    })
-    .map((config) => ({
-      ...config,
-      files: ['**/*.ts'],
-      rules: {
-        ...config.rules,
-      },
-    })),
+  ...ngrxEslintPlugin.configs.store.map((config) => ({
+    ...config,
+    files: ['**/*.ts'],
+  })),
+  ...ngrxEslintPlugin.configs.effects.map((config) => ({
+    ...config,
+    files: ['**/*.ts'],
+  })),
+  ...ngrxEslintPlugin.configs.operators.map((config) => ({
+    ...config,
+    files: ['**/*.ts'],
+  })),
+  ...ngrxEslintPlugin.configs.signals.map((config) => ({
+    ...config,
+    files: ['**/*.ts'],
+  })),
+  ...ngrxEslintPlugin.configs.componentStore.map((config) => ({
+    ...config,
+    files: ['**/*.ts'],
+  })),
   ...compat
     .config({
       extends: ['plugin:@nx/angular-template'],

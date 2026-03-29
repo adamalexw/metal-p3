@@ -1,15 +1,15 @@
 <app-nav-toolbar>
-  <button [disabled]="matching()" (click)="startMatching.emit()" mat-icon-button>
+  <button type="button" [disabled]="matching()" (click)="startMatching.emit()" mat-icon-button>
     <mat-icon title="all">play_arrow</mat-icon>
   </button>
 
   @if (matching()) {
-    <button (click)="stopMatching.emit()" mat-icon-button>
+    <button type="button" (click)="stopMatching.emit()" mat-icon-button>
       <mat-icon title="stop">stop</mat-icon>
     </button>
   }
 </app-nav-toolbar>
 
 @if (matching()) {
-  <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+  <mat-progress-bar mode="indeterminate" />
 }

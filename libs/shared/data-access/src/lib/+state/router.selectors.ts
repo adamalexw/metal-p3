@@ -20,3 +20,5 @@ export const selectRouteNestedParams = createSelector(selectRouter, (router) => 
 });
 
 export const selectRouteNestedParam = (param: string) => createSelector(selectRouteNestedParams, (params) => params && params[param]);
+
+export const selectRouteNestedNumericParam = (param: string) => createSelector(selectRouteNestedParam(param), (value) => (value != null ? +value : undefined));

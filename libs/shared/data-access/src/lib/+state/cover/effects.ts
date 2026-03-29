@@ -66,7 +66,9 @@ export class CoverEffects {
         filter(([_, covers]) => covers.length > 0),
         tap(([_, covers]) =>
           covers.forEach((cover) => {
-            typeof cover === 'string' ? URL.revokeObjectURL(cover) : '';
+            if (typeof cover === 'string') {
+              URL.revokeObjectURL(cover);
+            }
           }),
         ),
       );

@@ -47,3 +47,7 @@ Thumbs.db
 .github/instructions/nx.instructions.md
 
 /generated/prisma
+
+.claude/worktrees
+.claude/settings.local.json
+.nx/polygraph

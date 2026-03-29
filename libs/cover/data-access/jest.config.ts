@@ -1,4 +1,4 @@
-/* eslint-disable */
+ 
 export default {
   displayName: 'cover-data-access',
 

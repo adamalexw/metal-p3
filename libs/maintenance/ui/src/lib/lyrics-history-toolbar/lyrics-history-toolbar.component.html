@@ -1,29 +1,29 @@
 <app-nav-toolbar>
-  <button [disabled]="getting() || checking()" [matMenuTriggerFor]="priorityMenu" mat-icon-button>
+  <button type="button" [disabled]="getting() || checking()" [matMenuTriggerFor]="priorityMenu" mat-icon-button>
     <mat-icon title="priority">new_releases</mat-icon>
   </button>
 
   <mat-menu #priorityMenu="matMenu">
-    <button (click)="viewPriority.emit()" mat-menu-item>View</button>
-    <button (click)="checkPriority.emit()" mat-menu-item>View & Update</button>
+    <button type="button" (click)="viewPriority.emit()" mat-menu-item>View</button>
+    <button type="button" (click)="checkPriority.emit()" mat-menu-item>View & Update</button>
   </mat-menu>
 
-  <button [disabled]="getting() || checking()" [matMenuTriggerFor]="allMenu" mat-icon-button>
+  <button type="button" [disabled]="getting() || checking()" [matMenuTriggerFor]="allMenu" mat-icon-button>
     <mat-icon title="all">play_arrow</mat-icon>
   </button>
 
   <mat-menu #allMenu="matMenu">
-    <button (click)="viewCheck.emit()" mat-menu-item>View</button>
-    <button (click)="startCheck.emit()" mat-menu-item>View & Update</button>
+    <button type="button" (click)="viewCheck.emit()" mat-menu-item>View</button>
+    <button type="button" (click)="startCheck.emit()" mat-menu-item>View & Update</button>
   </mat-menu>
 
   @if (checking()) {
-    <button (click)="stopCheck.emit()" mat-icon-button>
+    <button type="button" (click)="stopCheck.emit()" mat-icon-button>
       <mat-icon title="stop">stop</mat-icon>
     </button>
   }
 </app-nav-toolbar>
 
 @if (checking()) {
-  <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+  <mat-progress-bar mode="indeterminate" />
 }

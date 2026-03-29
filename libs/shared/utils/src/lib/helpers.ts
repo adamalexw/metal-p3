@@ -47,7 +47,6 @@ export const mapBlobToBase64 = (blob: Blob) => {
   );
 };
 
-// eslint-disable-next-line @typescript-eslint/ban-types
-export const objectKeys = <Obj extends {}>(obj: Obj): (keyof Obj)[] => {
+export const objectKeys = <Obj extends object>(obj: Obj): (keyof Obj)[] => {
   return Object.keys(obj) as (keyof Obj)[];
 };

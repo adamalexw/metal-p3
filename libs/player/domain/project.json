@@ -7,14 +7,16 @@
   "tags": ["scope:player", "type:domain"],
   "targets": {
     "test": {
-      "executor": "@nx/jest:jest",
-      "outputs": ["{workspaceRoot}/coverage/libs/player/domain"],
+      "outputs": ["{workspaceRoot}/coverage/libs/player/domain", "{workspaceRoot}\\coverage\\libs\\player\\domain"],
       "options": {
-        "jestConfig": "libs/player/domain/jest.config.ts"
+        "passWithNoTests": true
+      },
+      "configurations": {
+        "ci": {
+          "ci": true,
+          "coverage": true
+        }
       }
-    },
-    "lint": {
-      "executor": "@nx/eslint:lint"
     }
   }
 }

@@ -1,4 +1,4 @@
-import { RouterTestingModule } from '@angular/router/testing';
+import { provideRouter } from '@angular/router';
 import { AlbumService } from '@metal-p3/album/data-access';
 import { AlbumComponent } from '@metal-p3/album/ui';
 import { CoverService } from '@metal-p3/cover/data-access';
@@ -11,7 +11,7 @@ import {
   selectAlbumsLoaded,
   selectCoverLoading,
   selectCoverRequired,
-  selectRouteId,
+  selectRouteNestedParams,
   selectSaveAlbumError,
   selectSelectedAlbumId,
   selectTracksLoading,
@@ -22,7 +22,6 @@ import { NotificationService } from '@metal-p3/shared/feedback';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { Action } from '@ngrx/store';
 import { MockStore, provideMockStore } from '@ngrx/store/testing';
-import { MockComponent } from 'ng-mocks';
 import { AlbumShellComponent } from './album.component';
 
 describe('AlbumShellComponent', () => {
@@ -53,16 +52,16 @@ describe('AlbumShellComponent', () => {
 
   const createComponent = createComponentFactory({
     component: AlbumShellComponent,
-    imports: [RouterTestingModule],
-    declarations: [MockComponent(AlbumComponent)],
-    providers: [provideMockStore({ initialState })],
-    mocks: [AlbumService, CoverService, NotificationService, PlayerService],
+    providers: [provideRouter([]), provideMockStore({ initialState })],
+    mocks: [AlbumComponent, AlbumService, CoverService, NotificationService, PlayerService],
+    detectChanges: false,
   });
 
   beforeEach(() => {
     spectator = createComponent();
     store = spectator.inject(MockStore);
     dispatcher = jest.spyOn(store, 'dispatch');
+    spectator.detectChanges();
   });
 
   afterEach(() => store?.resetSelectors());
@@ -70,7 +69,7 @@ describe('AlbumShellComponent', () => {
   it('should dispatch AlbumActions.viewAlbum action with route id', () => {
     const routeId = 123;
     selectSelectedAlbumId.setResult(undefined);
-    selectRouteId.setResult(routeId.toString());
+    selectRouteNestedParams.setResult({ id: routeId.toString() });
     selectAlbumsLoaded.setResult(false);
     selectTracksRequired.setResult(false);
     selectCoverRequired.setResult(false);
@@ -104,11 +103,19 @@ describe('AlbumShellComponent', () => {
   });
 
   it('should dispatch AlbumActions.getExtraFiles', () => {
+    // Set selectors before triggering ngOnInit so the take(1) subscription
+    // receives the album on its first emission
     selectAlbum.setResult(album);
+    selectRouteNestedParams.setResult({ id: album.id.toString() });
+    selectSelectedAlbumId.setResult(undefined);
     selectTracksRequired.setResult(false);
     selectCoverRequired.setResult(false);
-
     store.refreshState();
+
+    // Re-create component so ngOnInit fires with the album already available
+    spectator = createComponent({ detectChanges: true });
+    store = spectator.inject(MockStore);
+    dispatcher = jest.spyOn(store, 'dispatch');
 
     expect(dispatcher).toHaveBeenCalledWith(expect.objectContaining(AlbumActions.getExtraFiles({ id: album.id, folder: album.folder })));
   });

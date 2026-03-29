@@ -5,14 +5,16 @@
   "projectType": "library",
   "tags": ["scope:playlist", "type:api"],
   "targets": {
-    "lint": {
-      "executor": "@nx/eslint:lint"
-    },
     "test": {
-      "executor": "@nx/jest:jest",
-      "outputs": ["{workspaceRoot}/coverage/libs/playlist/api"],
+      "outputs": ["{workspaceRoot}/coverage/libs/playlist/api", "{workspaceRoot}/coverage/libs/playlist/api"],
       "options": {
-        "jestConfig": "libs/playlist/api/jest.config.ts"
+        "passWithNoTests": true
+      },
+      "configurations": {
+        "ci": {
+          "ci": true,
+          "coverage": true
+        }
       }
     }
   }

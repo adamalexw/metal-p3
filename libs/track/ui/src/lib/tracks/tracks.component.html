@@ -1,5 +1,5 @@
 @if (tracksLoading()) {
-  <mat-spinner class="m-3"></mat-spinner>
+  <mat-spinner class="m-3" />
 } @else {
   @if (tracksError()) {
     <div class="rounded-md bg-red-700 text-white">
@@ -43,27 +43,27 @@
     <ng-container matColumnDef="actions">
       <th *matHeaderCellDef mat-header-cell>Actions</th>
       <td *matCellDef="let element; let i = index" [formGroup]="element" mat-cell>
-        <button aria-label="Example icon-button with a menu" [matMenuTriggerFor]="menu" mat-icon-button>
+        <button aria-label="Example icon-button with a menu" type="button" [matMenuTriggerFor]="menu" mat-icon-button>
           <mat-icon>more_vert</mat-icon>
         </button>
         <mat-menu #menu="matMenu">
-          <button class="!hidden lg:!flex" (click)="transferTrack.emit(element.get('id')?.value)" mat-menu-item>
+          <button type="button" class="!hidden lg:!flex" (click)="transferTrack.emit(element.get('id')?.value)" mat-menu-item>
             <mat-icon>adb</mat-icon>
             <span>Transfer</span>
           </button>
-          <button (click)="viewLyrics(i, element.get('lyrics')?.value)" mat-menu-item>
+          <button type="button" (click)="viewLyrics(i, element.get('lyrics')?.value)" mat-menu-item>
             <mat-icon>article</mat-icon>
             <span>Lyrics</span>
           </button>
-          <button (click)="onPlayTrack(element.get('id')?.value)" mat-menu-item>
+          <button type="button" (click)="onPlayTrack(element.get('id')?.value)" mat-menu-item>
             <mat-icon>play_arrow</mat-icon>
             <span>Play</span>
           </button>
-          <button (click)="onAddTrackToPlaylist(element.get('id')?.value)" mat-menu-item>
+          <button type="button" (click)="onAddTrackToPlaylist(element.get('id')?.value)" mat-menu-item>
             <mat-icon>playlist_add</mat-icon>
             <span>Add To Playlist</span>
           </button>
-          <button [itemName]="element.get('title').value" (click)="$event.stopPropagation()" (confirmResult)="onDelete($event, element.get('id')?.value)" mat-menu-item appConfirmDelete>
+          <button type="button" [itemName]="element.get('title').value" (click)="$event.stopPropagation()" (confirmResult)="onDelete($event, element.get('id')?.value)" mat-menu-item appConfirmDelete>
             <mat-icon>delete</mat-icon>
             <span>Delete</span>
           </button>

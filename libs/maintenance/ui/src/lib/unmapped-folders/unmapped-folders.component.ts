@@ -15,7 +15,7 @@ export class UnmappedFoldersComponent {
 
   readonly openFolder = output<string>();
   readonly add = output<string>();
-  readonly search = output<string>();
+  readonly searchAlbum = output<string>();
   readonly delete = output<string>();
 
   onAdd(folder: string) {

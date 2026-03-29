@@ -33,18 +33,25 @@ export const maintenanceFeature = createFeature({
   reducer: createReducer(
     initialState,
     on(MaintenanceActions.getLyricsHistory, (state): MaintenanceState => ({ ...state, gettingLyrics: true })),
-    on(MaintenanceActions.getLyricsHistorySuccess, (state, { history }) => ({ ...state, gettingLyrics: false, lyrics: lyricsAdapter.setAll(history, state.lyrics) })),
+    on(MaintenanceActions.getLyricsHistorySuccess, (state, { history }): MaintenanceState => ({ ...state, gettingLyrics: false, lyrics: lyricsAdapter.setAll(history, state.lyrics) })),
     on(MaintenanceActions.checkLyricsHistory, (state): MaintenanceState => ({ ...state, checkingLyrics: true })),
     on(MaintenanceActions.stopLyricsHistoryCheck, (state): MaintenanceState => ({ ...state, checkingLyrics: false })),
-    on(MaintenanceActions.updateLyricsHistory, MaintenanceActions.checkedLyricsHistorySuccess, (state, { update }) => ({ ...state, lyrics: lyricsAdapter.updateOne(update, state.lyrics) })),
-    on(MaintenanceActions.deleteLyricsHistorySuccess, (state, { id }) => ({ ...state, lyrics: lyricsAdapter.removeOne(id, state.lyrics) })),
+    on(
+      MaintenanceActions.updateLyricsHistory,
+      MaintenanceActions.checkedLyricsHistorySuccess,
+      (state, { update }): MaintenanceState => ({ ...state, lyrics: lyricsAdapter.updateOne(update, state.lyrics) }),
+    ),
+    on(MaintenanceActions.deleteLyricsHistorySuccess, (state, { id }): MaintenanceState => ({ ...state, lyrics: lyricsAdapter.removeOne(id, state.lyrics) })),
     on(MaintenanceActions.getUrlMatcher, (state): MaintenanceState => ({ ...state, gettingMetalArchivesMatcher: true })),
-    on(MaintenanceActions.getUrlMatcherSuccess, (state, { albums }) => ({
-      ...state,
-      gettingMetalArchivesMatcher: false,
-      metalArchivesMatcherLoaded: true,
-      metalArchivesMatcher: metalArchivesMatcherAdapter.setAll(albums, state.metalArchivesMatcher),
-    })),
-    on(MaintenanceActions.updateUrlMatcher, (state, { update }) => ({ ...state, metalArchivesMatcher: metalArchivesMatcherAdapter.updateOne(update, state.metalArchivesMatcher) })),
+    on(
+      MaintenanceActions.getUrlMatcherSuccess,
+      (state, { albums }): MaintenanceState => ({
+        ...state,
+        gettingMetalArchivesMatcher: false,
+        metalArchivesMatcherLoaded: true,
+        metalArchivesMatcher: metalArchivesMatcherAdapter.setAll(albums, state.metalArchivesMatcher),
+      }),
+    ),
+    on(MaintenanceActions.updateUrlMatcher, (state, { update }): MaintenanceState => ({ ...state, metalArchivesMatcher: metalArchivesMatcherAdapter.updateOne(update, state.metalArchivesMatcher) })),
   ),
 });

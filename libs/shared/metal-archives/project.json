@@ -5,14 +5,16 @@
   "projectType": "library",
   "tags": ["scope:shared", "type:api"],
   "targets": {
-    "lint": {
-      "executor": "@nx/eslint:lint"
-    },
     "test": {
-      "executor": "@nx/jest:jest",
-      "outputs": ["{workspaceRoot}/coverage/libs/shared/metal-archives"],
+      "outputs": ["{workspaceRoot}/coverage/libs/shared/metal-archives", "{workspaceRoot}\\coverage\\libs\\shared\\metal-archives"],
       "options": {
-        "jestConfig": "libs/shared/metal-archives/jest.config.ts"
+        "passWithNoTests": true
+      },
+      "configurations": {
+        "ci": {
+          "ci": true,
+          "coverage": true
+        }
       }
     }
   }

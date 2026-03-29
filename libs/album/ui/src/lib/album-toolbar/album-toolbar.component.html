@@ -1,23 +1,23 @@
 <app-nav-toolbar [closeFullWidth]="false">
-  <button [disabled]="saving()" (click)="save.emit()" mat-icon-button>
+  <button type="button" [disabled]="saving()" (click)="save.emit()" mat-icon-button>
     <mat-icon title="save">save</mat-icon>
   </button>
-  <button (click)="imageSearch.emit()" mat-icon-button>
+  <button type="button" (click)="imageSearch.emit()" mat-icon-button>
     <mat-icon title="cover search">image_search</mat-icon>
   </button>
-  <button [disabled]="findingUrl()" (click)="findUrl.emit()" mat-icon-button>
+  <button type="button" [disabled]="findingUrl()" (click)="findUrl.emit()" mat-icon-button>
     <mat-icon title="ma search">pageview</mat-icon>
   </button>
-  <button [disabled]="renamingFolder()" (click)="renameFolder.emit()" mat-icon-button>
+  <button type="button" [disabled]="renamingFolder()" (click)="renameFolder.emit()" mat-icon-button>
     <mat-icon title="rename folder">source</mat-icon>
   </button>
-  <button class="!hidden lg:!block" [matBadgeHidden]="!extraFiles()" (click)="openFolder.emit()" mat-icon-button matBadge="!" matBadgeColor="warn">
+  <button type="button" class="!hidden lg:!block" [matBadgeHidden]="!extraFiles()" (click)="openFolder.emit()" mat-icon-button matBadge="!" matBadgeColor="warn">
     <mat-icon title="open folder">folder()</mat-icon>
   </button>
-  <button [disabled]="trackTransferring()" (click)="transfer.emit()" mat-icon-button>
+  <button type="button" [disabled]="trackTransferring()" (click)="transfer.emit()" mat-icon-button>
     <mat-icon title="transfer">adb</mat-icon>
   </button>
-  <button [itemName]="'album'" (confirmResult)="onDelete($event)" mat-icon-button appConfirmDelete>
+  <button type="button" [itemName]="'album'" (confirmResult)="onDelete($event)" mat-icon-button appConfirmDelete>
     <mat-icon title="delete">delete</mat-icon>
   </button>
 

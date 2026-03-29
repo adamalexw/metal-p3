@@ -5,14 +5,16 @@
   "projectType": "library",
   "tags": ["scope:shared", "type:api"],
   "targets": {
-    "lint": {
-      "executor": "@nx/eslint:lint"
-    },
     "test": {
-      "executor": "@nx/jest:jest",
-      "outputs": ["{workspaceRoot}/coverage/libs/shared/file-system"],
+      "outputs": ["{workspaceRoot}/coverage/libs/shared/file-system", "{workspaceRoot}\\coverage\\libs\\shared\\file-system"],
       "options": {
-        "jestConfig": "libs/shared/file-system/jest.config.ts"
+        "passWithNoTests": true
+      },
+      "configurations": {
+        "ci": {
+          "ci": true,
+          "coverage": true
+        }
       }
     }
   }

@@ -1,4 +1,3 @@
-/* eslint-disable */
 export default {
   displayName: 'album-feature-shell',
 
@@ -15,6 +14,6 @@ export default {
   transform: {
     '^.+.(ts|mjs|js|html)$': 'jest-preset-angular',
   },
-  transformIgnorePatterns: ['node_modules/(?!.*.mjs$)'],
+  transformIgnorePatterns: ['node_modules/(?!(.*.mjs$|nanoid))'],
   preset: '../../../jest.preset.js',
 };

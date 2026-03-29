@@ -6,15 +6,16 @@
   "prefix": "app",
   "tags": ["scope:album", "type:data-access"],
   "targets": {
-    "lint": {
-      "executor": "@nx/eslint:lint"
-    },
     "test": {
-      "executor": "@nx/jest:jest",
-      "outputs": ["{workspaceRoot}/coverage/libs/album/data-access"],
+      "outputs": ["{workspaceRoot}/coverage/libs/album/data-access", "{workspaceRoot}\\coverage\\libs\\album\\data-access"],
       "options": {
-        "jestConfig": "libs/album/data-access/jest.config.ts",
-        "tsConfig": "libs/album/data-access/tsconfig.spec.json"
+        "passWithNoTests": true
+      },
+      "configurations": {
+        "ci": {
+          "ci": true,
+          "coverage": true
+        }
       }
     }
   }

@@ -7,15 +7,16 @@
   "tags": ["scope:shared", "type:util"],
   "targets": {
     "test": {
-      "executor": "@nx/jest:jest",
-      "outputs": ["{workspaceRoot}/coverage/libs/shared/error"],
+      "outputs": ["{workspaceRoot}/coverage/libs/shared/error", "{workspaceRoot}\\coverage\\libs\\shared\\error"],
       "options": {
-        "jestConfig": "libs/shared/error/jest.config.ts",
-        "tsConfig": "libs/shared/error/tsconfig.spec.json"
+        "passWithNoTests": true
+      },
+      "configurations": {
+        "ci": {
+          "ci": true,
+          "coverage": true
+        }
       }
-    },
-    "lint": {
-      "executor": "@nx/eslint:lint"
     }
   }
 }

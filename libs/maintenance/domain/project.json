@@ -7,14 +7,16 @@
   "tags": ["scope:maintenance", "type:domain"],
   "targets": {
     "test": {
-      "executor": "@nx/jest:jest",
-      "outputs": ["{workspaceRoot}/coverage/libs/maintenance/domain"],
+      "outputs": ["{workspaceRoot}/coverage/libs/maintenance/domain", "{workspaceRoot}\\coverage\\libs\\maintenance\\domain"],
       "options": {
-        "jestConfig": "libs/maintenance/domain/jest.config.ts"
+        "passWithNoTests": true
+      },
+      "configurations": {
+        "ci": {
+          "ci": true,
+          "coverage": true
+        }
       }
-    },
-    "lint": {
-      "executor": "@nx/eslint:lint"
     }
   }
 }

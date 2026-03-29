@@ -1,11 +1,11 @@
 <mat-toolbar>
   <mat-toolbar-row class="mat-app-background">
-    <button [matMenuTriggerFor]="menu" (click)="onLoadPlaylists()" mat-icon-button>
+    <button type="button" [matMenuTriggerFor]="menu" (click)="onLoadPlaylists()" mat-icon-button>
       <mat-icon title="load">queue_music</mat-icon>
     </button>
     <mat-menu #menu="matMenu" yPosition="above">
       @for (playlist of playlists(); track playlist) {
-        <button (click)="loadPlaylist.emit(playlist.id)" mat-menu-item>{{ playlist.name }}</button>
+        <button type="button" (click)="loadPlaylist.emit(playlist.id)" mat-menu-item>{{ playlist.name }}</button>
       }
     </mat-menu>
 
@@ -13,7 +13,7 @@
       <mat-form-field>
         <input class="w-auto" [(ngModel)]="playlistName" matInput placeholder="playlist name" required />
       </mat-form-field>
-      <button (click)="updatePlaylist.emit(playlistName() || '')" mat-icon-button>
+      <button type="button" (click)="updatePlaylist.emit(playlistName() || '')" mat-icon-button>
         <mat-icon title="save">save</mat-icon>
       </button>
     } @else {
@@ -24,37 +24,37 @@
       }
 
       @if (duration() ?? 0 > 0) {
-        <button [disabled]="saving() && !playlistName()" (click)="onCreate()" mat-icon-button>
+        <button type="button" [disabled]="saving() && !playlistName()" (click)="onCreate()" mat-icon-button>
           <mat-icon title="create">playlist_add</mat-icon>
         </button>
       }
     }
 
     @if (playlistSize() ?? 0 > 1) {
-      <button (click)="shuffle.emit()" mat-icon-button title="shuffle">
+      <button type="button" (click)="shuffle.emit()" mat-icon-button title="shuffle">
         <mat-icon>shuffle</mat-icon>
       </button>
     }
 
     @if (playlistSize() ?? 0 > 0) {
-      <button (click)="clearPlaylist.emit()" mat-icon-button title="clear">
+      <button type="button" (click)="clearPlaylist.emit()" mat-icon-button title="clear">
         <mat-icon title="clear">clear_all</mat-icon>
       </button>
     }
 
     @if (activePlaylist()) {
-      <button [itemName]="'playlist'" (confirmResult)="onDelete($event)" mat-icon-button appConfirmDelete>
+      <button type="button" [itemName]="'playlist'" (confirmResult)="onDelete($event)" mat-icon-button appConfirmDelete>
         <mat-icon title="delete">delete</mat-icon>
       </button>
     }
 
     @if (playlistSize() ?? 0 > 1) {
-      <button class="!hidden lg:!inline-block" [disabled]="transferring()" (click)="transfer.emit()" mat-icon-button>
+      <button type="button" class="!hidden lg:!inline-block" [disabled]="transferring()" (click)="transfer.emit()" mat-icon-button>
         <mat-icon title="transfer">adb</mat-icon>
       </button>
     }
 
-    <button class="lg:!hidden" (click)="togglePlaylist.emit()" mat-icon-button>
+    <button type="button" class="lg:!hidden" (click)="togglePlaylist.emit()" mat-icon-button>
       <mat-icon title="playlist toggle">playlist_play</mat-icon>
     </button>
 

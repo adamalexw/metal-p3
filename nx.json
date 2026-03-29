@@ -120,10 +120,31 @@
   },
   "plugins": [
     {
+      "plugin": "@nx/angular/plugin",
+      "options": {
+        "buildTargetName": "build",
+        "serveTargetName": "serve",
+        "testTargetName": "test",
+        "e2eTargetName": "e2e"
+      }
+    },
+    {
       "plugin": "@nx/webpack/plugin",
       "options": {
         "buildTargetName": "build",
         "serveTargetName": "serve"
+      }
+    },
+    {
+      "plugin": "@nx/eslint/plugin",
+      "options": {
+        "targetName": "lint"
+      }
+    },
+    {
+      "plugin": "@nx/jest/plugin",
+      "options": {
+        "targetName": "test"
       }
     }
   ],
@@ -141,5 +162,6 @@
     ]
   },
   "parallel": 1,
-  "defaultBase": "master"
+  "defaultBase": "master",
+  "analytics": false
 }

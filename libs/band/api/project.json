@@ -5,14 +5,16 @@
   "projectType": "library",
   "tags": [],
   "targets": {
-    "lint": {
-      "executor": "@nx/eslint:lint"
-    },
     "test": {
-      "executor": "@nx/jest:jest",
-      "outputs": ["{workspaceRoot}/coverage/libs/band/api"],
+      "outputs": ["{workspaceRoot}/coverage/libs/band/api", "{workspaceRoot}\\libs\\coverage\\libs\\band-api"],
       "options": {
-        "jestConfig": "libs/band/api/jest.config.ts"
+        "passWithNoTests": true
+      },
+      "configurations": {
+        "ci": {
+          "ci": true,
+          "coverage": true
+        }
       }
     }
   }

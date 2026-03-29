@@ -7,15 +7,16 @@
   "tags": [],
   "targets": {
     "test": {
-      "executor": "@nx/jest:jest",
-      "outputs": ["{workspaceRoot}/coverage/libs/shared/safe-pipe"],
+      "outputs": ["{workspaceRoot}/coverage/libs/shared/safe-pipe", "{workspaceRoot}\\coverage\\libs\\shared\\safe-pipe"],
       "options": {
-        "jestConfig": "libs/shared/safe-pipe/jest.config.ts",
-        "tsConfig": "libs/shared/safe-pipe/tsconfig.spec.json"
+        "passWithNoTests": true
+      },
+      "configurations": {
+        "ci": {
+          "ci": true,
+          "coverage": true
+        }
       }
-    },
-    "lint": {
-      "executor": "@nx/eslint:lint"
     }
   }
 }

@@ -18,7 +18,7 @@
   </nav>
 
   @if (trackSavingProgress() || trackTransferringProgress() || trackRenamingProgress(); as progress) {
-    <mat-progress-bar class="fixed top-0 z-50 w-full lg:block" [value]="progress" mode="determinate"> </mat-progress-bar>
+    <mat-progress-bar class="fixed top-0 z-50 w-full lg:block" [value]="progress" mode="determinate" />
   }
 
   <form [formGroup]="form">
