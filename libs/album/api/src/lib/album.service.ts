@@ -137,6 +137,8 @@ export class AlbumService {
     return this.fileSystemService.hasExtraFiles(this.basePath, folder);
   }
 
+  private readonly pendingFolders = new Set<string>();
+
   private addFileWatcher(basePath: string) {
     const watcher = chokidar.watch(basePath, {
       depth: 0,
@@ -151,17 +153,32 @@ export class AlbumService {
     watcher.on('addDir', (dirPath) => {
       const folder = this.fileSystemService.getFilename(dirPath);
 
+      // Guard synchronously before any async work — prevents duplicate processing
+      // when chokidar fires multiple addDir events for the same directory.
+      if (this.pendingFolders.has(folder)) {
+        return;
+      }
+      this.pendingFolders.add(folder);
+
       // ensure we aren't renaming an existing folder
       this.dbService
         .albums({ take: 1, where: { Folder: folder } })
         .then((album) => {
           if (!album.length) {
-            this.waitForFolderStable(dirPath).then(() => {
-              this.albumGateway.albumAddedMessage(this.fileSystemService.getFilename(dirPath));
-            });
+            this.waitForFolderStable(dirPath)
+              .then(() => {
+                this.albumGateway.albumAddedMessage(this.fileSystemService.getFilename(dirPath));
+              })
+              .catch((error) => Logger.error(error))
+              .finally(() => this.pendingFolders.delete(folder));
+          } else {
+            this.pendingFolders.delete(folder);
           }
         })
-        .catch((error) => Logger.error(error));
+        .catch((error) => {
+          Logger.error(error);
+          this.pendingFolders.delete(folder);
+        });
     });
 
     watcher.on('error', (error) => Logger.error(`Watcher error: ${error}`));
