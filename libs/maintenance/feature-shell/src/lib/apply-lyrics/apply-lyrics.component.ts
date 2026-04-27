@@ -15,6 +15,8 @@ import {
   selectCover,
   selectCoverLoading,
   selectGettingMaTracks,
+  selectLyricsExpected,
+  selectLyricsLoading,
   selectLyricsLoadingProgress,
   selectMaTracks,
   selectRouteParams,
@@ -52,6 +54,8 @@ export class ApplyLyricsShellComponent implements OnInit {
 
   tracksLoading$ = this.store.select(selectTracksLoading);
   gettingMaTracks$ = this.store.select(selectGettingMaTracks);
+  lyricsLoading$ = this.store.select(selectLyricsLoading);
+  lyricsExpected$ = this.store.select(selectLyricsExpected);
   lyricsLoadingProgress$ = this.store.select(selectLyricsLoadingProgress);
 
   tracks$ = this.store.select(selectTracks);

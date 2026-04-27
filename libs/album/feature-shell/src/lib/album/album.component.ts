@@ -15,6 +15,7 @@ import {
   CoverActions,
   TrackActions,
   selectAlbum,
+  selectAlbumById,
   selectAlbumSaving,
   selectBandProps,
   selectCover,
@@ -50,7 +51,7 @@ import { nonNullable, objectDistinctUntilChanged } from '@metal-p3/shared/utils'
 import { Track } from '@metal-p3/track/domain';
 import { Update } from '@ngrx/entity';
 import { Store } from '@ngrx/store';
-import { Observable, combineLatest, distinctUntilChanged, filter, map, take, tap, withLatestFrom } from 'rxjs';
+import { Observable, combineLatest, distinctUntilChanged, filter, map, switchMap, take, tap, withLatestFrom } from 'rxjs';
 
 @Component({
   imports: [AsyncPipe, RouterModule, AlbumComponent],
@@ -117,6 +118,13 @@ export class AlbumShellComponent implements OnInit {
         withLatestFrom(this.store.select(selectSelectedAlbumId)),
         filter(([routeId, selectedId]) => routeId !== selectedId),
         tap(([routeId]) => this.store.dispatch(AlbumActions.viewAlbum({ id: routeId }))),
+        switchMap(([routeId]) =>
+          this.store.select(selectAlbumById(routeId)).pipe(
+            take(1),
+            filter((album) => !album),
+            tap(() => this.store.dispatch(AlbumActions.getAlbum({ id: routeId }))),
+          ),
+        ),
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe();

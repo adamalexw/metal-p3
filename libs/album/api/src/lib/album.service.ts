@@ -373,7 +373,8 @@ export class AlbumService {
 
   createAlbumFromRootFiles(basePath: string): string[] {
     const newAlbums: string[] = [];
-    const mp3s = this.fileSystemService.getFiles(basePath).filter((f) => path.extname(f) === '.mp3');
+    const files = this.fileSystemService.getFiles(basePath);
+    const mp3s = files.filter((f) => path.extname(f).toLowerCase() === '.mp3');
 
     if (mp3s.length) {
       for (let index = 0; index < mp3s.length; index++) {
@@ -391,6 +392,19 @@ export class AlbumService {
           }
 
           this.fileSystemService.rename(mp3, path.join(location, mp3s[index]));
+        }
+      }
+    }
+
+    // Remove any non-.mp3 files left at the root (e.g. cover images, text files)
+    const remaining = this.fileSystemService.getFiles(basePath);
+    for (const file of remaining) {
+      const filePath = path.join(basePath, file);
+      if (!this.fileSystemService.isFolder(filePath) && path.extname(file).toLowerCase() !== '.mp3') {
+        try {
+          this.fileSystemService.deleteFile(filePath);
+        } catch (error) {
+          Logger.error(`Failed to delete root file "${filePath}": ${error}`);
         }
       }
     }

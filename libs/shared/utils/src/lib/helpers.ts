@@ -12,27 +12,14 @@ export function extractUrl(url: string): string | undefined {
 }
 
 export const createToObjectUrl = (image: string): string => {
-  if (image) {
-    try {
-      const byteString = atob(image);
-      const ab = new ArrayBuffer(byteString.length);
-      const ia = new Uint8Array(ab);
-
-      for (let i = 0; i < byteString.length; i++) {
-        ia[i] = byteString.charCodeAt(i);
-      }
-
-      const blob = new Blob([ab], { type: 'image/png' });
-
-      const link = URL.createObjectURL(blob);
-      return link;
-    } catch (error) {
-      console.error('Error creating object URL from image', image, error);
-      return '/assets/blank.png';
-    }
+  if (!image) return '/assets/blank.png';
+  try {
+    const bytes = Uint8Array.from(atob(image), (c) => c.charCodeAt(0));
+    return URL.createObjectURL(new Blob([bytes], { type: 'image/png' }));
+  } catch (error) {
+    console.error('Error creating object URL from image', error);
+    return '/assets/blank.png';
   }
-
-  return '/assets/blank.png';
 };
 
 export const mapBlobToBase64 = (blob: Blob) => {

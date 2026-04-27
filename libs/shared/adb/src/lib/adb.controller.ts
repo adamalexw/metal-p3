@@ -1,4 +1,4 @@
-import * as Adb from '@devicefarmer/adbkit';
+import { Device } from '@devicefarmer/adbkit';
 import { Body, Controller, Get, Post } from '@nestjs/common';
 import { from, Observable } from 'rxjs';
 import { AdbService } from './adb.service';
@@ -18,7 +18,12 @@ export class AdbController {
   }
 
   @Get('devices')
-  devices(): Observable<Adb.Device[]> {
+  devices(): Observable<Device[]> {
     return from(this.adbService.getDevices());
+  }
+
+  @Get('wifi')
+  isWifiConnected(): { connected: boolean } {
+    return { connected: this.adbService.isWifiConnected() };
   }
 }

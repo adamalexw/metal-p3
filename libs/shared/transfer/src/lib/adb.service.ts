@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { API } from '@metal-p3/album/domain';
-import { Observable } from 'rxjs';
+import { map, Observable } from 'rxjs';
 
 @Injectable()
 export class AdbService {
@@ -16,5 +16,9 @@ export class AdbService {
 
   connectPhone(host: string, port: number): Observable<string> {
     return this.http.post<string>(`${this.baseUrl}/connect`, { host, port }, { responseType: 'text' as 'json' });
+  }
+
+  isWifiConnected(): Observable<boolean> {
+    return this.http.get<{ connected: boolean }>(`${this.baseUrl}/wifi`).pipe(map(({ connected }) => connected));
   }
 }

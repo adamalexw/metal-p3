@@ -1,15 +1,37 @@
 const process = require('process');
 const fs = require('fs-extra');
 const path = require('path');
-const { execSync } = require('child_process');
+const { execSync, spawnSync } = require('child_process');
 
 const dest = 'c:\\metal-p3\\api';
 
-// netstat -ano | findStr "3333"
-// taskkill /F /PID <PID>
-//fs.rmSync(dest, { recursive: true, force: true });
+// Kill any process holding port 3333 before copying
+try {
+  const netstat = execSync('netstat -ano', { encoding: 'utf8' });
+  const match = netstat.split('\n').find((line) => line.includes(':3333') && line.includes('LISTENING'));
+  if (match) {
+    const pid = match.trim().split(/\s+/).pop();
+    console.log(`Killing process on port 3333 (PID ${pid})...`);
+    execSync(`taskkill /F /PID ${pid}`, { stdio: 'inherit' });
+  }
+} catch (e) {
+  // No process on port 3333 — safe to continue
+}
 
-fs.copySync('.\\dist\\apps\\api', dest);
+// Use robocopy to overwrite dist files in place — it has native Windows retry/wait logic
+// for locked files and does not require deleting the destination first.
+// /E = copy subdirs, /IS + /IT = overwrite all files regardless of timestamp/size
+// /R:10 /W:5 = retry up to 10 times, wait 5s between retries
+// /NP = no progress output; robocopy exit codes 0-7 are all success states
+console.log('Copying API files...');
+const result = spawnSync('robocopy', ['.\\dist\\apps\\api', dest, '/E', '/IS', '/IT', '/R:10', '/W:5', '/NP'], {
+  stdio: 'inherit',
+  shell: true,
+});
+if (result.status >= 8) {
+  throw new Error(`robocopy failed with exit code ${result.status}`);
+}
+
 fs.copySync('.env', path.join(dest, '.env'));
 fs.copySync('prisma', path.join(dest, 'prisma'));
 fs.copySync('prisma.config.ts', path.join(dest, 'prisma.config.ts'));

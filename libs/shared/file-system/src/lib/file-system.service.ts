@@ -148,22 +148,13 @@ export class FileSystemService {
   }
 
   hasExtraFiles(basePath: string, folder: string): boolean {
-    const files = this.getFiles(join(basePath, folder));
-
-    for (let index = 0; index < files.length; index++) {
-      const file = files[index];
-
-      if (extname(file) !== '.mp3') {
-        if (this.isFolder(join(basePath, folder, file))) {
-          return true;
-        }
-
-        if (file.toLowerCase() !== 'cover.jpg') {
-          return true;
-        }
-      }
-    }
-
-    return false;
+    const coverPattern = /^[cс]over\.jpe?g$/i;
+    const fullPath = join(basePath, folder);
+    if (!existsSync(fullPath)) return false;
+    return this.getFiles(fullPath).some((file) => {
+      if (extname(file).toLowerCase() === '.mp3') return false;
+      if (coverPattern.test(file)) return false;
+      return true;
+    });
   }
 }

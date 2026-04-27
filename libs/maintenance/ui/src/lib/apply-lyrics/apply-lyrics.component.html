@@ -1,4 +1,4 @@
-@if (tracksLoading() || maTracksLoading() || lyricsLoadingProgress()) {
+@if (tracksLoading() || maTracksLoading() || lyricsLoading() || lyricsLoadingProgress()) {
   <div class="flex flex-col gap-4">
     <mat-progress-bar class="w-full" [mode]="lyricsLoadingProgress() ? 'determinate' : 'indeterminate'" [value]="lyricsLoadingProgress()" />
     <h3 class="mb-3 ml-3 text-xl text-white">Loading Lyrics</h3>

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, effect, inject, input, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, input, linkedSignal, output } from '@angular/core';
 import { form, FormField } from '@angular/forms/signals';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
@@ -8,12 +8,13 @@ import { MatInputModule } from '@angular/material/input';
 import { RouterModule } from '@angular/router';
 import { TAKE } from '@metal-p3/album/domain';
 import { SearchRequest } from '@metal-p3/api-interfaces';
+import { PreventDefaultDirective } from '@metal-p3/shared/utils';
 
 type SearchFormModel = {
   folder: string;
   artist: string;
   album: string;
-  year: string;
+  year: number | null;
   genre: string;
   country: string;
   transferred: boolean | null;
@@ -21,7 +22,7 @@ type SearchFormModel = {
 };
 
 @Component({
-  imports: [RouterModule, FormField, MatFormFieldModule, MatCheckboxModule, MatIconModule, MatInputModule, MatButtonModule],
+  imports: [RouterModule, FormField, MatFormFieldModule, MatCheckboxModule, MatIconModule, MatInputModule, MatButtonModule, PreventDefaultDirective],
   selector: 'app-advanced-search-form',
   templateUrl: './advanced-search-form.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -32,51 +33,19 @@ export class AdvancedSearchFormComponent {
   request = input.required<SearchRequest | null | undefined>();
   searchRequest = output<SearchRequest>();
 
-  protected model = signal<SearchFormModel>({
-    folder: '',
-    artist: '',
-    album: '',
-    year: '',
-    genre: '',
-    country: '',
-    transferred: null,
-    hasLyrics: null,
-  });
+  protected readonly model = linkedSignal(() => this.normaliseSearchRequest(this.request()));
+  protected readonly searchForm = form(this.model);
 
-  protected searchForm = form(this.model);
-
-  constructor() {
-    effect(() => {
-      const request = this.request();
-
-      if (request) {
-        this.model.update((current) => ({ ...current, ...request, year: request.year != null ? String(request.year) : '' }));
-      }
-    });
-  }
-
-  onSearch(event: Event) {
-    event.preventDefault();
-    const { year, transferred, hasLyrics, ...strings } = this.model();
-    const request: SearchRequest = {};
-
-    for (const [k, v] of Object.entries(strings)) {
-      if (v) {
-        (request as Record<string, unknown>)[k] = v;
-      }
-    }
-
-    if (year) {
-      request.year = Number(year);
-    }
-
-    if (transferred !== null) {
-      request.transferred = transferred;
-    }
-
-    if (hasLyrics !== null) {
-      request.hasLyrics = hasLyrics;
-    }
+  onSearch() {
+    const { year, transferred, hasLyrics, ...rest } = this.model();
+    const request: SearchRequest = {
+      ...rest,
+      take: this.take,
+      skip: 0,
+      ...(year !== null && { year }),
+      ...(transferred !== null && { transferred }),
+      ...(hasLyrics !== null && { hasLyrics }),
+    };
 
     this.searchRequest.emit(request);
   }
@@ -86,12 +55,25 @@ export class AdvancedSearchFormComponent {
       folder: '',
       artist: '',
       album: '',
-      year: '',
+      year: null,
       genre: '',
       country: '',
       transferred: null,
       hasLyrics: null,
     });
     this.searchRequest.emit({ take: this.take, skip: 0 });
+  }
+
+  private normaliseSearchRequest(request: SearchRequest | null | undefined): SearchFormModel {
+    return {
+      folder: request?.folder || '',
+      artist: request?.artist || '',
+      album: request?.album || '',
+      year: request?.year ?? null,
+      genre: request?.genre || '',
+      country: request?.country || '',
+      transferred: request?.transferred ?? null,
+      hasLyrics: request?.hasLyrics ?? null,
+    };
   }
 }

@@ -79,6 +79,7 @@ export class MetalArchivesService {
       const content = await defaultPage.content();
 
       if (!isJson) {
+        await browser.close();
         return content as T;
       }
 

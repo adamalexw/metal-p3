@@ -21,9 +21,10 @@ import { ApplyLyricsToolbarComponent } from '../apply-lyrics-toolbar/apply-lyric
 export class ApplyLyricsComponent {
   albumId = input.required<number | null>();
   tracks = input<Track[] | null | undefined>([]);
-  tracksLoading = input<boolean | null>(true);
+  tracksLoading = input<boolean | null>(false);
   maTracks = input<MetalArchivesAlbumTrack[] | null | undefined>([]);
-  maTracksLoading = input<boolean | null>(true);
+  maTracksLoading = input<boolean | null>(false);
+  lyricsLoading = input<boolean | null>(false);
   lyricsLoadingProgress = input<number | null>(0);
   applyingProgress = input<number | null>(0);
   applying = input<boolean | null>(false);

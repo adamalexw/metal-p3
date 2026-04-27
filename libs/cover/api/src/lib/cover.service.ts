@@ -5,8 +5,8 @@ import { Injectable, Logger } from '@nestjs/common';
 import * as fs from 'fs';
 import { selectCover } from 'music-metadata';
 import * as path from 'path';
-import { catchError, EMPTY, filter, map, Observable, of } from 'rxjs';
-import * as sharp from 'sharp';
+import { catchError, EMPTY, filter, from, map, Observable } from 'rxjs';
+const sharpFn: typeof import('sharp') = require('sharp');
 
 @Injectable()
 export class CoverService {
@@ -18,7 +18,7 @@ export class CoverService {
     private readonly httpService: HttpService,
   ) {}
 
-  getCover(location: string): Observable<string> {
+  getCover(location: string): Observable<Buffer> {
     if (!location) {
       Logger.warn('getCover called with empty location');
       return EMPTY;
@@ -70,37 +70,34 @@ export class CoverService {
     return EMPTY;
   }
 
-  private getCoverFromAudioFile(location: string): Observable<string> {
+  private getCoverFromAudioFile(location: string): Observable<Buffer> {
     return this.trackService.getMetadata(location).pipe(
       map((metadata) => selectCover(metadata.common.picture)),
-      map((cover) => (cover?.data ? this.toBase64Image(cover.data) : '')),
+      filter((cover): cover is NonNullable<typeof cover> => !!cover?.data),
+      map((cover) => cover.data),
     );
   }
 
-  private getCoverFromImageFile(location: string): Observable<string> {
-    const data = fs.readFileSync(location);
-    return of(data).pipe(map((buffer) => this.toBase64Image(buffer)));
+  private getCoverFromImageFile(location: string): Observable<Buffer> {
+    return from(fs.promises.readFile(location));
   }
 
-  downloadCover(url: string | string[]): Observable<string> {
+  downloadCover(url: string | string[]): Observable<Buffer> {
     if (Array.isArray(url)) {
       url = url[url.length - 1];
     }
 
-    return this.httpService.get(url, { responseType: 'arraybuffer' }).pipe(map((response) => this.toBase64Image(response.data)));
-  }
-
-  private toBase64Image(buffer: Buffer): string {
-    return buffer.toString('base64');
+    return this.httpService.get(url, { responseType: 'arraybuffer' }).pipe(map((response) => Buffer.from(response.data)));
   }
 
   async saveCover(folder: string, cover: string): Promise<void> {
     const location = path.join(folder, this.cover);
-    const buffer = Buffer.from(cover.replace('data:image/png;base64,', ''), 'base64');
+    const base64Data = cover.replace(/^data:image\/[^;]+;base64,/, '');
+    const buffer = Buffer.from(base64Data, 'base64');
     const tempLocation = `${location}.tmp`;
 
     try {
-      await sharp(buffer).resize({ height: 500, width: 500 }).toFile(tempLocation);
+      await sharpFn(buffer).resize({ height: 500, width: 500 }).toFile(tempLocation);
 
       // rename temp file to final location to avoid read/write conflicts
       if (fs.existsSync(location)) {
@@ -133,7 +130,7 @@ export class CoverService {
 
         const tempFile = `${f}.tmp`;
         try {
-          await sharp(f).resize({ height: 500 }).toFile(tempFile);
+          await sharpFn(f).resize({ height: 500 }).toFile(tempFile);
           fs.unlinkSync(f);
           fs.renameSync(tempFile, f);
         } catch (error) {

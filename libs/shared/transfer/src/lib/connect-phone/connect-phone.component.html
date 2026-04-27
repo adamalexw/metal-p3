@@ -1,22 +1,29 @@
-<div class="mb-4 flex flex-col items-center gap-2 md:flex-row" matSnackBarLabel>
+@if (isWifi() === false) {
+  <div class="mb-4 flex items-center gap-1 text-sm text-red-500">
+    <mat-icon>wifi_off</mat-icon>
+    Not connected via WiFi — phone connection may fail.
+  </div>
+}
+
+<div class="mb-4 flex flex-col items-center gap-2 md:flex-row" cdkTrapFocus cdkTrapFocusAutoCapture matSnackBarLabel>
   <mat-form-field>
     <mat-label>Host</mat-label>
-    <input type="text" [(ngModel)]="host" matInput />
+    <input type="text" [formField]="connectForm.host" matInput />
   </mat-form-field>
 
   <mat-form-field>
     <mat-label>Port</mat-label>
-    <input type="number" [(ngModel)]="port" matInput />
+    <input type="number" [formField]="connectForm.port" cdkFocusInitial matInput />
   </mat-form-field>
 
   <mat-form-field>
     <mat-label>Code</mat-label>
-    <input type="text" [(ngModel)]="code" matInput />
+    <input type="text" [formField]="connectForm.code" matInput />
   </mat-form-field>
 </div>
 
 <span matSnackBarActions>
-  @if (code) {
+  @if (connectForm.code().value()) {
     <button type="button" class="mr-2 hidden" (click)="pairPhone()" matButton="filled" matSnackBarAction color="primary">Pair</button>
   } @else {
     <button type="button" class="mr-2" (click)="connectPhone()" matButton="filled" matSnackBarAction color="primary">Connect</button>

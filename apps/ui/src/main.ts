@@ -5,7 +5,7 @@ import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { bootstrapApplication } from '@angular/platform-browser';
 import { provideRouter, withInMemoryScrolling } from '@angular/router';
 import { routes } from '@metal-p3/album';
-import { API, BASE_PATH, TAKE } from '@metal-p3/album/domain';
+import { ALBUM_DRAWER_WIDTH, API, BASE_PATH, TAKE } from '@metal-p3/album/domain';
 import { PlayerEffects, playerFeature } from '@metal-p3/player/data-access';
 import { PlaylistEffects, playlistFeature } from '@metal-p3/playlist/data-access';
 import { AlbumEffects, BandEffects, CoverEffects, TrackEffects, albumsFeature } from '@metal-p3/shared/data-access';
@@ -45,6 +45,7 @@ bootstrapApplication(AppComponent, {
     { provide: API, useValue: 'http://' + window.location.hostname + ':3333/api/' },
     { provide: BASE_PATH, useValue: environment.baseFolderLocation },
     { provide: TAKE, useValue: environment.take },
+    { provide: ALBUM_DRAWER_WIDTH, useValue: 1130 },
     { provide: ErrorHandler, useClass: ErrorsHandler },
     { provide: MAT_FORM_FIELD_DEFAULT_OPTIONS, useValue: { appearance: 'fill', subscriptSizing: 'dynamic' } },
   ],

@@ -2,11 +2,11 @@ import { RenameTrack, TrackDto } from '@metal-p3/api-interfaces';
 import { AdbService } from '@metal-p3/shared/adb';
 import { FileSystemService } from '@metal-p3/shared/file-system';
 import { Injectable } from '@nestjs/common';
-import { createReadStream } from 'fs';
+import { createReadStream, existsSync, readFileSync } from 'fs';
 import { IAudioMetadata, IOptions, parseFile } from 'music-metadata';
 import * as NodeID3 from 'node-id3';
 import { ReadStream } from 'node:fs';
-import { basename, dirname, extname } from 'path';
+import { basename, dirname, extname, join } from 'path';
 import { EMPTY, Observable, catchError, concatAll, from, map, toArray } from 'rxjs';
 
 @Injectable()
@@ -37,7 +37,7 @@ export class TrackService {
   trackDetails(file: string, index: number): Observable<TrackDto> {
     if (extname(file) === '.mp3') {
       return this.getMetadata(file, { skipCovers: true }).pipe(
-        map((metadata) => this.mapTrack(file, this.getTags(file), metadata, index)),
+        map((metadata) => this.mapTrack(file, metadata, index)),
         catchError((error) => {
           console.error(error);
           return EMPTY;
@@ -48,7 +48,7 @@ export class TrackService {
     return EMPTY;
   }
 
-  private mapTrack(fullPath: string, tags: NodeID3.Tags, mm: IAudioMetadata, index: number): TrackDto {
+  private mapTrack(fullPath: string, mm: IAudioMetadata, index: number): TrackDto {
     return {
       id: index + 1,
       fullPath,
@@ -59,13 +59,20 @@ export class TrackService {
       bitrate: mm.format.bitrate,
       duration: mm.format.duration,
       genre: mm.common.genre && mm.common.genre[0],
-      lyrics: tags.unsynchronisedLyrics?.text,
-      title: mm.common.title ?? tags.title ?? '',
+      lyrics: this.extractLyrics(mm),
+      title: mm.common.title ?? '',
       trackNumber: this.getTrackNo(mm.common.track),
       year: mm.common.year,
-      albumUrl: tags.fileUrl,
-      artistUrl: tags.artistUrl ? tags.artistUrl[0] : undefined,
     };
+  }
+
+  private extractLyrics(mm: IAudioMetadata): string | undefined {
+    if (mm.common.lyrics?.length) {
+      return mm.common.lyrics[0];
+    }
+    // Fall back to raw native USLT frame when common.lyrics mapping fails
+    const native = mm.native['ID3v2.4'] ?? mm.native['ID3v2.3'];
+    return native?.find((t) => t.id === 'USLT')?.value?.text;
   }
 
   private getTrackNo(track: { no: number | null; of: number | null }): string {
@@ -85,7 +92,7 @@ export class TrackService {
     }
 
     if (track.albumUrl) {
-      baseTags = { ...baseTags, fileUrl: track.albumUrl };
+      baseTags = { ...baseTags, comment: { language: 'eng', text: track.albumUrl } };
     }
 
     if (track.lyrics) {
@@ -112,7 +119,21 @@ export class TrackService {
 
   async saveTracks(tracks: TrackDto[]): Promise<boolean> {
     const firstWithCover = tracks.find((t) => t.cover);
-    const coverImage = firstWithCover?.cover ? this.buildCoverImage(firstWithCover.cover) : undefined;
+    let coverImage: NodeID3.Tags['image'] | undefined;
+
+    if (firstWithCover?.cover) {
+      coverImage = this.buildCoverImage(firstWithCover.cover);
+    } else if (tracks[0]?.folder) {
+      const coverPath = join(tracks[0].folder, 'Cover.jpg');
+      if (existsSync(coverPath)) {
+        coverImage = {
+          mime: 'image/jpeg',
+          type: { id: 3, name: 'front cover' },
+          description: 'front cover',
+          imageBuffer: readFileSync(coverPath),
+        };
+      }
+    }
 
     for (const track of tracks) {
       await this.saveTrack(track, coverImage);
@@ -122,14 +143,17 @@ export class TrackService {
   }
 
   private buildCoverImage(cover: string): NodeID3.Tags['image'] {
+    const mimeMatch = cover.match(/^data:(image\/[^;]+);base64,/);
+    const mime = (mimeMatch?.[1] ?? 'image/jpeg') as 'image/jpeg' | 'image/png';
+    const base64Data = cover.replace(/^data:image\/[^;]+;base64,/, '');
     return {
-      mime: 'image/png',
+      mime,
       type: {
         id: 3,
         name: 'front cover',
       },
       description: 'front cover',
-      imageBuffer: Buffer.from(cover.replace('data:image/png;base64,', ''), 'base64'),
+      imageBuffer: Buffer.from(base64Data, 'base64'),
     };
   }
 

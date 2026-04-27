@@ -1,9 +1,10 @@
+import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 import { CdkVirtualScrollViewport, ScrollingModule, ViewportRuler } from '@angular/cdk/scrolling';
 import { AsyncPipe, Location } from '@angular/common';
 import { ChangeDetectionStrategy, Component, DOCUMENT, OnInit, inject, output, viewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { AlbumService } from '@metal-p3/album/data-access';
-import { TAKE } from '@metal-p3/album/domain';
+import { ALBUM_DRAWER_WIDTH, TAKE } from '@metal-p3/album/domain';
 import { ListItemComponent, ListToolbarComponent } from '@metal-p3/album/ui';
 import { SearchRequest } from '@metal-p3/api-interfaces';
 import { PlayerShellComponent } from '@metal-p3/player';
@@ -11,6 +12,7 @@ import { PlayerActions, PlayerService, selectShowPlayer } from '@metal-p3/player
 import {
   Album,
   AlbumActions,
+  CoverActions,
   TrackActions,
   selectAlbums,
   selectAlbumsLoadError,
@@ -28,7 +30,7 @@ import { ConnectPhoneService } from '@metal-p3/shared/transfer';
 import { nonNullable, toChunks } from '@metal-p3/shared/utils';
 import { Track } from '@metal-p3/track/domain';
 import { Store } from '@ngrx/store';
-import { Observable, combineLatest, delay, filter, map, startWith, take, tap } from 'rxjs';
+import { BehaviorSubject, Observable, combineLatest, debounceTime, delay, filter, map, startWith, take, tap } from 'rxjs';
 import { AddAlbumDirective } from './add-album.directive';
 
 @Component({
@@ -49,6 +51,8 @@ export class ListComponent implements OnInit {
   private readonly location = inject(Location);
   private readonly document = inject(DOCUMENT);
   private readonly take = inject(TAKE);
+  private readonly albumDrawerWidth = inject(ALBUM_DRAWER_WIDTH);
+  private readonly breakpointObserver = inject(BreakpointObserver);
 
   albumsLoading$ = this.store.select(selectAlbumsLoading);
   albumsLoaded$ = this.store.select(selectAlbumsLoaded);
@@ -61,15 +65,18 @@ export class ListComponent implements OnInit {
   sideNavOpen$ = this.store.select(selectSideNavOpen);
 
   viewportWidth$ = this.viewportRuler.change().pipe(
+    debounceTime(150),
     startWith(this.viewportRuler.getViewportSize().width),
     map(() => this.viewportRuler.getViewportSize().width),
   );
 
-  albumsView$ = combineLatest([this.albums$, this.viewportWidth$, this.store.select(selectSideNavOpen)]).pipe(
-    map(([albums, width, open]) => {
-      // if the side nav is open we remove it's width
-      const listWidth = open ? width - 1130 : width;
-      const chunks = Math.floor(listWidth / 275);
+  private readonly isHandset$ = this.breakpointObserver.observe([Breakpoints.Handset]).pipe(map(({ matches }) => matches));
+
+  albumsView$ = combineLatest([this.albums$, this.viewportWidth$, this.store.select(selectSideNavOpen), this.isHandset$]).pipe(
+    map(([albums, width, open, isHandset]) => {
+      // if the side nav is open we remove it's width (desktop/side mode only; on mobile the sidenav overlays)
+      const listWidth = open && !isHandset ? width - this.albumDrawerWidth : width;
+      const chunks = Math.max(1, Math.floor(listWidth / 275));
 
       return toChunks(albums, chunks);
     }),
@@ -78,6 +85,7 @@ export class ListComponent implements OnInit {
   readonly openAlbum = output<number>();
 
   private fetchedPage = 0;
+  private readonly scrollIndex$ = new BehaviorSubject<number>(0);
   private readonly scrollViewport = viewChild.required(CdkVirtualScrollViewport);
 
   ngOnInit(): void {
@@ -91,6 +99,13 @@ export class ListComponent implements OnInit {
     this.service
       .albumAdded()
       .pipe(tap((folder) => this.onAlbumAdded([folder])))
+      .subscribe();
+
+    combineLatest([this.albumsView$, this.scrollIndex$])
+      .pipe(
+        debounceTime(100),
+        tap(([albums]) => this.loadVisibleCovers(albums)),
+      )
       .subscribe();
 
     combineLatest([
@@ -109,6 +124,12 @@ export class ListComponent implements OnInit {
         }),
       )
       .subscribe((height) => this.document.documentElement.style.setProperty('--list-height', height.toString() + 'px'));
+  }
+
+  private loadVisibleCovers(albums: Album[][]): void {
+    const { start, end } = this.scrollViewport().getRenderedRange();
+    const rendered = albums.slice(start, end).flat();
+    rendered.filter((a) => !a.cover && !a.coverLoading).forEach((a) => this.store.dispatch(CoverActions.get({ id: a.id, folder: a.folder })));
   }
 
   onDeleteAlbum(id: number) {
@@ -189,6 +210,8 @@ export class ListComponent implements OnInit {
   }
 
   scrollIndexChange(page: number, request: SearchRequest, force: boolean) {
+    this.scrollIndex$.next(page);
+
     if (!force && this.scrollViewport().getRenderedRange().end !== this.scrollViewport().getDataLength()) {
       return;
     }
