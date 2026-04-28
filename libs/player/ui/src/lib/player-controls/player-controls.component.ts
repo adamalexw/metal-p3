@@ -1,4 +1,4 @@
-import { NgClass, NgTemplateOutlet } from '@angular/common';
+import { NgTemplateOutlet } from '@angular/common';
 import { ChangeDetectionStrategy, Component, ViewEncapsulation, input, output } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSliderModule } from '@angular/material/slider';
@@ -8,7 +8,7 @@ import { TimePipe } from '@metal-p3/track/util';
 import { VolumeComponent } from '../volume/volume.component';
 
 @Component({
-  imports: [NgClass, NgTemplateOutlet, VolumeComponent, TimePipe, MatToolbarModule, MatSliderModule, MatIconModule],
+  imports: [NgTemplateOutlet, VolumeComponent, TimePipe, MatToolbarModule, MatSliderModule, MatIconModule],
   selector: 'app-player-controls',
   templateUrl: './player-controls.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,

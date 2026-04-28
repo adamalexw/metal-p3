@@ -6,7 +6,7 @@ import * as fs from 'fs';
 import { selectCover } from 'music-metadata';
 import * as path from 'path';
 import { catchError, EMPTY, filter, from, map, Observable } from 'rxjs';
-const sharpFn: typeof import('sharp') = require('sharp');
+import sharpFn from 'sharp';
 
 @Injectable()
 export class CoverService {

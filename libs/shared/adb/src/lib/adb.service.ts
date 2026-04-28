@@ -65,13 +65,9 @@ export class AdbService {
           const transfer = await deviceClient.push(file, dest);
           await new Promise<void>((resolve, reject) => {
             transfer.on('end', () => {
-              console.log(`[${device.id}] Push complete`);
-
               const command = `am broadcast -a android.intent.action.MEDIA_SCANNER_SCAN_FILE -d "file://${dest}"`;
               deviceClient
                 .shell(command)
-                .then((stream) => Adb.util.readAll(stream))
-                .then((output) => console.log('[%s] %s', device.id, output.toString().trim()))
                 .then(() => resolve())
                 .catch(reject);
             });

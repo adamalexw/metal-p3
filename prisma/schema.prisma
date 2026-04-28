@@ -10,7 +10,7 @@ datasource db {
 model Album {
   AlbumId             Int             @id(map: "PK_Album") @default(autoincrement())
   BandId              Int?
-  Folder              String?         @db.VarChar(256)
+  Folder              String          @db.VarChar(256)
   Name                String?         @db.VarChar(256)
   Year                Int?
   MetalArchiveUrl     String?         @db.VarChar(2083)
@@ -27,7 +27,7 @@ model Album {
 
 model Band {
   BandId          Int             @id(map: "PK_Band") @default(autoincrement())
-  Name            String?         @db.VarChar(256)
+  Name            String          @db.VarChar(256)
   Genre           String?         @db.VarChar(256)
   Country         String?         @db.VarChar(256)
   MetalArchiveUrl String?         @db.VarChar(2083)
@@ -35,14 +35,6 @@ model Band {
   Album           Album[]
   NewAlbum        NewAlbum[]
   NewAlbumError   NewAlbumError[]
-}
-
-model iPhoneTracks {
-  iPhoneTrackId Int       @id(map: "PK_iPhoneTracks") @default(autoincrement())
-  Band          String?   @db.VarChar(256)
-  Album         String?   @db.VarChar(256)
-  Track         String?   @db.VarChar(256)
-  DateAdded     DateTime? @db.DateTime
 }
 
 model LyricsError {

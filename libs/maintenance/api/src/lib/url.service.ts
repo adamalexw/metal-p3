@@ -1,7 +1,6 @@
 import { MetalArchivesSearchResponse } from '@metal-p3/api-interfaces';
 import { UrlMatcher } from '@metal-p3/maintenance/domain';
-import { Album } from '@metal-p3/prisma/client';
-import { DbService } from '@metal-p3/shared/database';
+import { DbService, MissingUrlResult } from '@metal-p3/shared/database';
 import { MetalArchivesService } from '@metal-p3/shared/metal-archives';
 import { extractUrl } from '@metal-p3/shared/utils';
 import { Injectable, Logger } from '@nestjs/common';
@@ -19,7 +18,7 @@ export class UrlService {
   ) {}
 
   getMissingUrls(): Observable<UrlMatcher[]> {
-    return from(this.dbService.missingUrls()).pipe(map((albums) => albums.map((album) => this.albumToMatcherDto(album))));
+    return from(this.dbService.missingUrls()).pipe(map((albums) => (albums.length ? albums.map((album) => this.albumToMatcherDto(album)) : [])));
   }
 
   matcherMissingAlbums(): Observable<UrlMatcher[]> {
@@ -30,12 +29,12 @@ export class UrlService {
     );
   }
 
-  private albumToMatcherDto(album: Partial<Album>): UrlMatcher {
+  private albumToMatcherDto(album: MissingUrlResult): UrlMatcher {
     return {
       id: album.AlbumId,
-      bandId: album['Band'].BandId,
-      band: album['Band'].Name,
-      artistUrl: album['Band'].MetalArchiveUrl,
+      bandId: album.Band.BandId,
+      band: album.Band.Name,
+      artistUrl: album.Band.MetalArchiveUrl,
       album: album.Name,
     };
   }

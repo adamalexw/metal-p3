@@ -1,6 +1,7 @@
 import { Album, Band, LyricsHistory, Playlist, PlaylistItem, Prisma } from '@metal-p3/prisma/client';
 import { Injectable, UseFilters } from '@nestjs/common';
 import { DbExceptionsFilter } from './db-exceptions-filter';
+import type { AlbumWithBand, MissingUrlResult } from './model';
 import { PrismaService } from './prisma.service';
 
 @UseFilters(new DbExceptionsFilter())
@@ -8,7 +9,13 @@ import { PrismaService } from './prisma.service';
 export class DbService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async albums(params: { skip?: number; take?: number; cursor?: Prisma.AlbumWhereUniqueInput; where?: Prisma.AlbumWhereInput; orderBy?: Prisma.AlbumOrderByWithRelationInput }): Promise<Album[]> {
+  async albums(params: {
+    skip?: number;
+    take?: number;
+    cursor?: Prisma.AlbumWhereUniqueInput;
+    where?: Prisma.AlbumWhereInput;
+    orderBy?: Prisma.AlbumOrderByWithRelationInput;
+  }): Promise<AlbumWithBand[]> {
     const { skip, take, cursor, where, orderBy } = params;
 
     return this.prisma.album.findMany({
@@ -23,7 +30,7 @@ export class DbService {
     });
   }
 
-  async album(albumWhereUniqueInput: Prisma.AlbumWhereUniqueInput): Promise<Album | null> {
+  async album(albumWhereUniqueInput: Prisma.AlbumWhereUniqueInput): Promise<AlbumWithBand | null> {
     return this.prisma.album.findUnique({
       where: albumWhereUniqueInput,
       include: {
@@ -32,7 +39,7 @@ export class DbService {
     });
   }
 
-  async createAlbum(data: Prisma.AlbumCreateInput): Promise<Album> {
+  async createAlbum(data: Prisma.AlbumCreateInput): Promise<AlbumWithBand> {
     return this.prisma.album.create({
       data,
       include: {
@@ -188,11 +195,13 @@ export class DbService {
     return this.prisma.album.findMany({ select: { AlbumId: true, Folder: true } });
   }
 
-  async missingUrls(): Promise<Partial<Album>[]> {
-    return this.prisma.album.findMany({
+  async missingUrls(): Promise<MissingUrlResult[]> {
+    const results = await this.prisma.album.findMany({
       select: { AlbumId: true, Name: true, Band: { select: { BandId: true, Name: true, MetalArchiveUrl: true } } },
-      where: { IgnoreMetalArchives: null, MetalArchiveUrl: null, Lyrics: false },
+      where: { IgnoreMetalArchives: null, MetalArchiveUrl: null, Lyrics: false, Name: { not: null }, Band: { Name: { not: null } } },
       orderBy: { Folder: 'asc' },
     });
+
+    return results as MissingUrlResult[];
   }
 }

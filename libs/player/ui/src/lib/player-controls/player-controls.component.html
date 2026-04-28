@@ -18,7 +18,7 @@
     </mat-toolbar-row>
   }
   <mat-toolbar-row class="-mr-16 !h-16 gap-2 lg:mr-0">
-    <div class="flex h-full items-center" [ngClass]="{ 'w-full justify-center gap-2': !footerMode() }">
+    <div class="flex h-full items-center" [class.w-full]="!footerMode()" [class.justify-center]="!footerMode()" [class.gap-2]="!footerMode()">
       <ng-container *ngTemplateOutlet="controlsTemplate" />
     </div>
     @if (footerMode()) {
@@ -52,20 +52,20 @@
 </mat-toolbar>
 
 <ng-template #controlsTemplate>
-  <button type="button" class="leading-none" [ngClass]="{ 'scale-150': !footerMode(), 'lg:scale-100': !footerMode() }" (click)="onPrevious()" mat-icon-button>
+  <button type="button" class="leading-none" [class.scale-300]="!footerMode()" [class.lg:scale-100]="!footerMode()" (click)="onPrevious()" mat-icon-button>
     <mat-icon mat-list-icon>skip_previous</mat-icon>
   </button>
   @if (!currentItem()?.playing) {
-    <button type="button" class="leading-none" [ngClass]="{ 'scale-150': !footerMode(), 'lg:scale-100': !footerMode() }" (click)="playItem.emit()" mat-icon-button>
+    <button type="button" class="leading-none" [class.scale-300]="!footerMode()" [class.lg:scale-100]="!footerMode()" (click)="playItem.emit()" mat-icon-button>
       <mat-icon mat-list-icon>play_arrow</mat-icon>
     </button>
   }
   @if (currentItem()?.playing) {
-    <button type="button" class="leading-none" [ngClass]="{ 'scale-150': !footerMode(), 'lg:scale-100': !footerMode() }" (click)="pauseItem.emit()" mat-icon-button>
+    <button type="button" class="leading-none" [class.scale-300]="!footerMode()" [class.lg:scale-100]="!footerMode()" (click)="pauseItem.emit()" mat-icon-button>
       <mat-icon mat-list-icon>pause</mat-icon>
     </button>
   }
-  <button type="button" class="leading-none" [ngClass]="{ 'scale-150': !footerMode(), 'lg:scale-100': !footerMode() }" [disabled]="isLastItemPlaying()" (click)="next.emit()" mat-icon-button>
+  <button type="button" class="leading-none" [class.scale-300]="!footerMode()" [class.lg:scale-100]="!footerMode()" [disabled]="isLastItemPlaying()" (click)="next.emit()" mat-icon-button>
     <mat-icon mat-list-icon>skip_next</mat-icon>
   </button>
 </ng-template>

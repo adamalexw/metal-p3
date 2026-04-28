@@ -148,7 +148,7 @@ export class FileSystemService {
   }
 
   hasExtraFiles(basePath: string, folder: string): boolean {
-    const coverPattern = /^[cс]over\.jpe?g$/i;
+    const coverPattern = /^cover\.jpe?g$/i;
     const fullPath = join(basePath, folder);
     if (!existsSync(fullPath)) return false;
     return this.getFiles(fullPath).some((file) => {

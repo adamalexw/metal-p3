@@ -1,7 +1,8 @@
 import { AlbumDto, RenameFolder, SearchRequest } from '@metal-p3/api-interfaces';
 import { Album, Band, Prisma } from '@metal-p3/prisma/client';
-import { DbService } from '@metal-p3/shared/database';
+import { AlbumWithBand, DbService } from '@metal-p3/shared/database';
 import { FileSystemService } from '@metal-p3/shared/file-system';
+import { nonNullable } from '@metal-p3/shared/utils';
 import { TrackService } from '@metal-p3/track/api';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import chokidar from 'chokidar';
@@ -27,8 +28,8 @@ export class AlbumService {
   }
 
   getAlbums(request: SearchRequest): Observable<AlbumDto[]> {
-    let where: Prisma.AlbumWhereInput;
-    let bandWhere: Prisma.BandWhereInput;
+    let where: Prisma.AlbumWhereInput = {};
+    let bandWhere: Prisma.BandWhereInput = {};
 
     if (request.folder) {
       // when adding a new folder
@@ -111,8 +112,16 @@ export class AlbumService {
     return from(this.dbService.album({ AlbumId: id })).pipe(map((album) => this.mapAlbumToAlbumDto(album)));
   }
 
-  private mapAlbumToAlbumDto(album: Album): AlbumDto {
-    const band = album['Band'] as Band;
+  private mapAlbumToAlbumDto(album: AlbumWithBand | null): AlbumDto {
+    if (!album) {
+      throw new Error(`Album not found`);
+    }
+
+    const band = album.Band;
+
+    if (!band) {
+      throw new Error(`Album with id ${album.AlbumId} is missing associated band`);
+    }
 
     return {
       id: album.AlbumId,
@@ -262,24 +271,22 @@ export class AlbumService {
       map(() => {
         this.fileSystemService.moveFilesToTheRoot(folder, folder);
 
-        const files = this.fileSystemService.getFiles(folder);
+        const mp3 = this.fileSystemService.getFiles(folder).find((f) => path.extname(f) === '.mp3');
 
-        for (let index = 0; index < files.length; index++) {
-          const file = files[index];
-          if (path.extname(file) == '.mp3') {
-            const tags = this.trackService.getTags(path.join(folder, file));
-
-            if (tags.artist) {
-              return tags;
-            }
-
-            const folderName = this.fileSystemService.getFilename(folder);
-            const folderSplit = folderName.split('-');
-
-            return { ...tags, artist: folderSplit[0].trim(), album: folderSplit?.[1]?.trim() };
-          }
+        if (!mp3) {
+          return null;
         }
+
+        const tags = this.trackService.getTags(path.join(folder, mp3));
+
+        if (tags.artist) {
+          return tags;
+        }
+
+        const folderSplit = this.fileSystemService.getFilename(folder).split('-');
+        return { ...tags, artist: folderSplit[0].trim(), album: folderSplit?.[1]?.trim() };
       }),
+      nonNullable(),
       concatMap((tags) => combineLatest([of(tags), from(this.dbService.bands({ Name: tags.artist }))])),
       concatMap(([tags, bands]) => combineLatest([of(tags), iif(() => !!bands.length, of(bands[0]), from(this.dbService.createBand({ Name: tags.artist })))])),
       map(([tags, band]) => this.mapTagsToAlbum(path.basename(folder), tags, band)),
@@ -298,7 +305,7 @@ export class AlbumService {
     const input: Prisma.AlbumCreateInput = {
       Folder: folder,
       Name: tags.album,
-      Year: Number.isInteger(Number(tags.year)) && Number(tags.year) > 0 ? +tags.year : new Date().getFullYear(),
+      Year: Number.isInteger(Number(tags.year)) && Number(tags.year) > 0 ? Number(tags.year) : new Date().getFullYear(),
       Transferred: false,
       Lyrics: lyrics,
       LyricsDate: lyrics ? new Date() : null,
@@ -338,7 +345,7 @@ export class AlbumService {
       IgnoreMetalArchives: albumDto.ignore,
       Name: albumDto.album,
       Transferred: albumDto.transferred,
-      Year: +albumDto.year,
+      Year: Number(albumDto.year),
     };
   }
 
