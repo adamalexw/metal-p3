@@ -9,7 +9,7 @@ const execFileAsync = promisify(execFile);
 
 @Injectable()
 export class AdbService {
-  private readonly adbPath = 'C://platform-tools//adb.exe';
+  private readonly adbPath = process.env['ADB_PATH'] ?? 'C://platform-tools//adb.exe';
   private readonly client = Adb.createClient({ bin: this.adbPath, port: 5037 });
 
   constructor(private readonly fileSystemService: FileSystemService) {}

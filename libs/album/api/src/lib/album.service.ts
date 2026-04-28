@@ -9,7 +9,7 @@ import chokidar from 'chokidar';
 import * as fs from 'fs';
 import * as NodeID3 from 'node-id3';
 import * as path from 'path';
-import { Observable, catchError, combineLatest, concatMap, from, iif, map, mergeMap, of, tap } from 'rxjs';
+import { Observable, catchError, combineLatest, concatMap, from, iif, map, of } from 'rxjs';
 import { AlbumGateway } from './album-gateway.service';
 
 @Injectable()
@@ -19,6 +19,8 @@ export class AlbumService {
     private readonly fileSystemService: FileSystemService,
     private readonly trackService: TrackService,
     private readonly albumGateway: AlbumGateway,
+    // TODO: Replace string injection tokens with typed InjectionToken constants to avoid magic strings
+    //   e.g. export const BASE_PATH = new InjectionToken<string>('BASE_PATH');
     @Inject('BASE_PATH') private readonly basePath: string,
     @Inject('TAKE') private readonly take: number,
   ) {
@@ -108,8 +110,8 @@ export class AlbumService {
     );
   }
 
-  getAlbum(id: number): Observable<AlbumDto> {
-    return from(this.dbService.album({ AlbumId: id })).pipe(map((album) => this.mapAlbumToAlbumDto(album)));
+  async getAlbum(id: number): Promise<AlbumDto> {
+    return this.mapAlbumToAlbumDto(await this.dbService.album({ AlbumId: id }));
   }
 
   private mapAlbumToAlbumDto(album: AlbumWithBand | null): AlbumDto {
@@ -128,16 +130,16 @@ export class AlbumService {
       fullPath: path.join(this.basePath, album.Folder),
       folder: album.Folder,
       bandId: band.BandId,
-      artist: band.Name,
-      album: album.Name,
-      year: album.Year,
-      genre: band.Genre,
-      country: band.Country,
-      albumUrl: album.MetalArchiveUrl,
-      artistUrl: band.MetalArchiveUrl,
+      artist: band.Name ?? undefined,
+      album: album.Name ?? undefined,
+      year: album.Year ?? undefined,
+      genre: band.Genre ?? undefined,
+      country: band.Country ?? undefined,
+      albumUrl: album.MetalArchiveUrl ?? undefined,
+      artistUrl: band.MetalArchiveUrl ?? undefined,
       ignore: album.IgnoreMetalArchives ?? false,
-      transferred: album.Transferred,
-      hasLyrics: album.Lyrics,
+      transferred: album.Transferred ?? undefined,
+      hasLyrics: album.Lyrics ?? undefined,
       dateCreated: album.Created.toISOString(),
     };
   }
@@ -151,8 +153,12 @@ export class AlbumService {
   private addFileWatcher(basePath: string) {
     const watcher = chokidar.watch(basePath, {
       depth: 0,
-      ignored: (path) => {
-        return !fs.existsSync(path) || !this.fileSystemService.isFolder(path);
+      ignored: (p) => {
+        try {
+          return !fs.lstatSync(p).isDirectory();
+        } catch {
+          return true;
+        }
       },
       ignoreInitial: true,
     });
@@ -284,11 +290,11 @@ export class AlbumService {
         }
 
         const folderSplit = this.fileSystemService.getFilename(folder).split('-');
-        return { ...tags, artist: folderSplit[0].trim(), album: folderSplit?.[1]?.trim() };
+        return { ...tags, artist: folderSplit[0].trim(), album: folderSplit?.[1]?.trim() ?? '' };
       }),
       nonNullable(),
       concatMap((tags) => combineLatest([of(tags), from(this.dbService.bands({ Name: tags.artist }))])),
-      concatMap(([tags, bands]) => combineLatest([of(tags), iif(() => !!bands.length, of(bands[0]), from(this.dbService.createBand({ Name: tags.artist })))])),
+      concatMap(([tags, bands]) => combineLatest([of(tags), iif(() => !!bands.length, of(bands[0]), from(this.dbService.createBand({ Name: tags.artist ?? '' })))])),
       map(([tags, band]) => this.mapTagsToAlbum(path.basename(folder), tags, band)),
       concatMap((data) => from(this.dbService.createAlbum(data))),
       map((newAlbum) => this.mapAlbumToAlbumDto(newAlbum)),
@@ -315,26 +321,22 @@ export class AlbumService {
     return input;
   }
 
-  saveAlbum(album: AlbumDto): Observable<Album> {
-    return from(this.dbService.updateAlbum({ where: { AlbumId: album.id }, data: this.mapAlbumDtoToAlbum(album) }));
+  async saveAlbum(album: AlbumDto): Promise<Album> {
+    return this.dbService.updateAlbum({ where: { AlbumId: album.id }, data: this.mapAlbumDtoToAlbum(album) });
   }
 
-  setHasLyrics(id: number, hasLyrics: boolean): Observable<Album> {
-    from(this.dbService.getLyricsHistory(id))
-      .pipe(
-        concatMap((history) => (history ? from(this.dbService.deleteLyricsHistory({ where: { LyricsHistoryId: history.LyricsHistoryId } })) : of(null))),
-        catchError((error) => {
-          Logger.error(`Failed to clean up lyrics history for album ${id}: ${error}`);
-          return of(null);
-        }),
-      )
-      .subscribe();
+  async setHasLyrics(id: number, hasLyrics: boolean): Promise<Album> {
+    // fire-and-forget: clean up lyrics history without blocking the response
+    void this.dbService
+      .getLyricsHistory(id)
+      .then((history) => (history ? this.dbService.deleteLyricsHistory({ where: { LyricsHistoryId: history.LyricsHistoryId } }) : null))
+      .catch((error) => Logger.error(`Failed to clean up lyrics history for album ${id}: ${error}`));
 
-    return from(this.dbService.updateAlbum({ where: { AlbumId: id }, data: { Lyrics: hasLyrics } }));
+    return this.dbService.updateAlbum({ where: { AlbumId: id }, data: { Lyrics: hasLyrics } });
   }
 
-  setTransferred(id: number, transferred: boolean): Observable<Album> {
-    return from(this.dbService.updateAlbum({ where: { AlbumId: +id }, data: { Transferred: !!transferred, TransferredDate: new Date() } }));
+  async setTransferred(id: number, transferred: boolean): Promise<Album> {
+    return this.dbService.updateAlbum({ where: { AlbumId: +id }, data: { Transferred: !!transferred, TransferredDate: new Date() } });
   }
 
   private mapAlbumDtoToAlbum(albumDto: AlbumDto): Partial<Album> {
@@ -419,21 +421,19 @@ export class AlbumService {
     return newAlbums;
   }
 
-  deleteAlbum(id: number): Observable<boolean> {
-    return this.getAlbum(id).pipe(
-      tap((album) => {
-        try {
-          this.fileSystemService.deleteFolder(album.fullPath);
-        } catch (error) {
-          Logger.error(error);
-        }
-      }),
-      mergeMap(() => from(this.dbService.deleteAlbum(id))),
-      map(() => true),
-      catchError((error) => {
+  async deleteAlbum(id: number): Promise<boolean> {
+    try {
+      const album = await this.getAlbum(id);
+      try {
+        this.fileSystemService.deleteFolder(album.fullPath);
+      } catch (error) {
         Logger.error(error);
-        return of(false);
-      }),
-    );
+      }
+      await this.dbService.deleteAlbum(id);
+      return true;
+    } catch (error) {
+      Logger.error(error);
+      return false;
+    }
   }
 }

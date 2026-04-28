@@ -34,7 +34,7 @@ export class UrlService {
       id: album.AlbumId,
       bandId: album.Band.BandId,
       band: album.Band.Name,
-      artistUrl: album.Band.MetalArchiveUrl,
+      artistUrl: album.Band.MetalArchiveUrl ?? undefined,
       album: album.Name,
     };
   }

@@ -5,7 +5,7 @@ import { Server } from 'socket.io';
 
 @WebSocketGateway()
 export class MaintenanceGateway {
-  @WebSocketServer() server: Server;
+  @WebSocketServer() server!: Server;
 
   lyricsHistoryMessage(lyricsHistory: LyricsHistoryDto) {
     this.server.emit(LYRICS_HISTORY_UPDATE, lyricsHistory);

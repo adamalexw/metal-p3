@@ -68,11 +68,11 @@ export class AlbumService {
   }
 
   renameFolder(id: number, src: string, dest: string): Observable<RenameFolder> {
-    return this.http.get<RenameFolder>(`${this.baseUrl}/rename?id=${id}&src=${encodeURIComponent(src)}&dest=${encodeURIComponent(dest)}`);
+    return this.http.patch<RenameFolder>(`${this.baseUrl}/rename`, { id, src, dest });
   }
 
   openFolder(folder: string): Observable<void> {
-    return this.http.get<void>(`${this.baseUrl}/openFolder?folder=${encodeURIComponent(folder)}`);
+    return this.http.post<void>(`${this.baseUrl}/openFolder`, { folder });
   }
 
   createAlbumFromRootFiles(): Observable<string[]> {
@@ -86,6 +86,4 @@ export class AlbumService {
   deleteAlbum(id: number) {
     return this.http.delete(`${this.baseUrl}?id=${id}`);
   }
-
-  c;
 }

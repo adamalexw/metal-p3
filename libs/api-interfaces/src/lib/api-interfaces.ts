@@ -14,11 +14,11 @@ export interface SearchRequest {
 }
 
 export interface AlbumBase extends MetalArchivesUrl {
-  artist?: string | null;
-  album?: string | null;
-  year?: number | null;
-  genre?: string | null;
-  country?: string | null;
+  artist?: string;
+  album?: string;
+  year?: number;
+  genre?: string;
+  country?: string;
   cover?: string;
 }
 
@@ -27,8 +27,8 @@ export interface AlbumDto extends AlbumBase {
   fullPath: string;
   folder: string;
   bandId: number;
-  transferred?: boolean | null;
-  hasLyrics?: boolean | null;
+  transferred?: boolean;
+  hasLyrics?: boolean;
   dateCreated: string;
   extraFiles?: boolean;
 }
@@ -56,8 +56,8 @@ export interface BandDto extends BandProps {
 }
 
 export interface BandProps {
-  genre?: string | null;
-  country?: string | null;
+  genre?: string;
+  country?: string;
 }
 
 export interface MetalArchivesSearchResponse {
@@ -81,9 +81,9 @@ export interface MetalArchivesSearchResponseItem {
 }
 
 export interface MetalArchivesUrl {
-  artistUrl?: string | null;
-  albumUrl?: string | null;
-  ignore?: boolean | null;
+  artistUrl?: string;
+  albumUrl?: string;
+  ignore?: boolean;
 }
 
 export interface MetalArchivesAlbumTrack {

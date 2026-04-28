@@ -8,12 +8,12 @@ export class BandController {
   constructor(private readonly bandService: BandService) {}
 
   @Get('search')
-  bands(@Query('criteria') criteria?: string): Observable<BandDto[]> {
+  bands(@Query('criteria') criteria?: string): Promise<BandDto[]> {
     return this.bandService.getBands({ criteria });
   }
 
   @Get()
-  album(@Query('id') id: number): Observable<BandDto> {
+  album(@Query('id') id: number): Promise<BandDto> {
     return this.bandService.getBand(id);
   }
 

@@ -38,7 +38,7 @@ export class LyricsController {
   }
 
   @Delete()
-  deleteHistory(@Query('id') id: number): Observable<boolean | Error> {
+  deleteHistory(@Query('id') id: number): Observable<boolean> {
     return this.lyricsService.deleteHistory(+id);
   }
 

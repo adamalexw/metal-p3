@@ -6,7 +6,7 @@ import { Server, Socket } from 'socket.io';
 export class AlbumGateway {
   newAlbums: string[] = [];
 
-  @WebSocketServer() server: Server;
+  @WebSocketServer() server!: Server;
 
   albumAddedMessage(album: string) {
     this.server.emit(ALBUM_ADDED, album);

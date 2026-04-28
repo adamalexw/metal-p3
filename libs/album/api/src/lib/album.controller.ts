@@ -36,17 +36,17 @@ export class AlbumController {
   }
 
   @Patch()
-  patch(@Body() album: AlbumDto): Observable<Album> {
+  patch(@Body() album: AlbumDto): Promise<Album> {
     return this.albumService.saveAlbum(album);
   }
 
   @Patch('setHasLyrics')
-  setHasLyrics(@Query('id') id: number, @Query('hasLyrics') hasLyrics: boolean): Observable<Album> {
+  setHasLyrics(@Query('id') id: number, @Query('hasLyrics') hasLyrics: boolean): Promise<Album> {
     return this.albumService.setHasLyrics(+id, !!hasLyrics);
   }
 
   @Patch('setTransferred')
-  setTransferred(@Query('id') id: number, @Query('transferred') transferred: boolean): Observable<Album> {
+  setTransferred(@Query('id') id: number, @Query('transferred') transferred: boolean): Promise<Album> {
     return this.albumService.setTransferred(+id, !!transferred);
   }
 
@@ -70,15 +70,15 @@ export class AlbumController {
     return this.metalArchivesService.getLyrics(trackId);
   }
 
-  @Get('openFolder')
+  @Post('openFolder')
   @HttpCode(HttpStatus.ACCEPTED)
-  openFolder(@Query('folder') folder: string): void {
+  openFolder(@Body('folder') folder: string): void {
     return this.fileSystemService.openFolder(folder);
   }
 
-  @Get('rename')
-  rename(@Query('id') id: number, @Query('src') src: string, @Query('dest') dest: string): Promise<RenameFolder> {
-    return this.albumService.renameFolder(id, src, dest);
+  @Patch('rename')
+  rename(@Body() body: { id: number; src: string; dest: string }): Promise<RenameFolder> {
+    return this.albumService.renameFolder(body.id, body.src, body.dest);
   }
 
   @Get('createAlbumFromRootFiles')
@@ -87,12 +87,12 @@ export class AlbumController {
   }
 
   @Get(':id')
-  album(@Param('id') id: number): Observable<AlbumDto> {
+  album(@Param('id') id: number): Promise<AlbumDto> {
     return this.albumService.getAlbum(+id);
   }
 
   @Delete()
-  deleteAlbum(@Query('id') id: number): Observable<boolean | Error> {
+  deleteAlbum(@Query('id') id: number): Promise<boolean> {
     return this.albumService.deleteAlbum(+id);
   }
 }

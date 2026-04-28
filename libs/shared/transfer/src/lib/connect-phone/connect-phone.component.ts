@@ -42,7 +42,7 @@ export class ConnectPhoneComponent implements OnInit {
 
   pairPhone() {
     const { host, port, code } = this.model();
-    this.adbService.pairPhone(host, port, code).subscribe({
+    this.adbService.pairPhone(host, port ?? 0, code).subscribe({
       next: () => this.model.update((m) => ({ ...m, code: '' })),
       error: (err) => this.notificationService.showError(`Failed to pair phone: ${err}`, 'Pair Phone'),
     });
@@ -50,7 +50,7 @@ export class ConnectPhoneComponent implements OnInit {
 
   connectPhone() {
     const { host, port } = this.model();
-    this.adbService.connectPhone(host, port).subscribe({
+    this.adbService.connectPhone(host, port ?? 0).subscribe({
       next: () => this.snackBarRef.dismissWithAction(),
       error: (err) => this.notificationService.showError(`Failed to connect phone: ${err}`, 'Connect Phone'),
     });

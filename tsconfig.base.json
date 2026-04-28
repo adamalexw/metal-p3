@@ -14,6 +14,7 @@
     "skipLibCheck": true,
     "skipDefaultLibCheck": true,
     "esModuleInterop": true,
+    "strict": true,
     "baseUrl": ".",
     "paths": {
       "@metal-p3/album": ["libs/album/feature-shell/src/index.ts"],

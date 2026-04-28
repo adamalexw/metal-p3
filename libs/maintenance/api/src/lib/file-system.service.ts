@@ -14,6 +14,7 @@ export class FileSystemMaintenanceService {
     private readonly dbService: DbService,
     private readonly fileSystemService: FileSystemService,
     private readonly maintenanceGateway: MaintenanceGateway,
+    // TODO: Replace string injection token with a typed InjectionToken constant to avoid magic strings
     @Inject('BASE_PATH') private readonly basePath: string,
   ) {}
 
@@ -24,7 +25,7 @@ export class FileSystemMaintenanceService {
 
         return difference(
           fsFolders,
-          folders.map((f) => f.Folder),
+          folders.map((f) => f.Folder).filter((f): f is string => f !== undefined),
         );
       }),
     );
@@ -36,7 +37,7 @@ export class FileSystemMaintenanceService {
         const fsFolders = this.fileSystemService.getFolders(this.basePath);
 
         return difference(
-          folders.map((f) => f.Folder),
+          folders.map((f) => f.Folder).filter((f): f is string => f !== undefined),
           fsFolders,
         );
       }),

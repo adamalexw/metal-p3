@@ -2,8 +2,8 @@ import { BandDto, BandProps } from '@metal-p3/api-interfaces';
 import { Band, Prisma } from '@metal-p3/prisma/client';
 import { DbService } from '@metal-p3/shared/database';
 import { MetalArchivesService } from '@metal-p3/shared/metal-archives';
-import { Injectable } from '@nestjs/common';
-import { from, map, Observable } from 'rxjs';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { Observable } from 'rxjs';
 
 @Injectable()
 export class BandService {
@@ -12,8 +12,8 @@ export class BandService {
     private readonly metalArchivesService: MetalArchivesService,
   ) {}
 
-  getBands(request: { criteria?: string }): Observable<BandDto[]> {
-    let where: Prisma.BandWhereInput;
+  async getBands(request: { criteria?: string }): Promise<BandDto[]> {
+    let where: Prisma.BandWhereInput = {};
 
     if (request.criteria) {
       where = {
@@ -21,19 +21,22 @@ export class BandService {
       };
     }
 
-    return from(this.dbService.bands(where)).pipe(map((band) => band.map((album) => this.mapBandToBandDto(album))));
+    const bands = await this.dbService.bands(where);
+    return bands.map((band) => this.mapBandToBandDto(band));
   }
 
-  getBand(id: number): Observable<BandDto> {
-    return from(this.dbService.band({ BandId: +id })).pipe(map((band) => this.mapBandToBandDto(band)));
+  async getBand(id: number): Promise<BandDto> {
+    const band = await this.dbService.band({ BandId: id });
+    if (!band) throw new NotFoundException(`Band ${id} not found`);
+    return this.mapBandToBandDto(band);
   }
 
   private mapBandToBandDto(band: Band): BandDto {
     return {
       id: band.BandId,
       name: band.Name,
-      genre: band.Genre,
-      country: band.Country,
+      genre: band.Genre ?? undefined,
+      country: band.Country ?? undefined,
       metalArchiveUrl: band.MetalArchiveUrl,
     };
   }

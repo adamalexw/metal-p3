@@ -87,10 +87,6 @@ export class TrackService {
       genre: track.genre,
     };
 
-    if (track.artistUrl) {
-      baseTags = { ...baseTags, artistUrl: [track.artistUrl] };
-    }
-
     if (track.albumUrl) {
       baseTags = { ...baseTags, comment: { language: 'eng', text: track.albumUrl } };
     }

@@ -1,23 +1,25 @@
 import { PlaylistDto, PlaylistItemDto } from '@metal-p3/playlist/domain';
-import { Playlist, PlaylistItem, Prisma } from '@metal-p3/prisma/client';
-import { DbService } from '@metal-p3/shared/database';
-import { Injectable, Logger } from '@nestjs/common';
-import { catchError, from, map, Observable, of } from 'rxjs';
+import { PlaylistItem, Prisma } from '@metal-p3/prisma/client';
+import { DbService, PlaylistWithItems } from '@metal-p3/shared/database';
+import { Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
 
 @Injectable()
 export class PlaylistService {
   constructor(private readonly dbService: DbService) {}
 
-  getPlaylists(): Observable<PlaylistDto[]> {
-    return from(this.dbService.getPlaylists()).pipe(map((playlists) => playlists.map((playlist) => this.playlistToDto(playlist))));
+  async getPlaylists(): Promise<PlaylistDto[]> {
+    const playlists = await this.dbService.getPlaylists();
+    return playlists.map((playlist) => this.playlistToDto(playlist));
   }
 
-  getPlaylist(playlistId: number): Observable<PlaylistDto> {
-    return from(this.dbService.getPlaylist(playlistId)).pipe(map((playlist) => this.playlistToDto(playlist)));
+  async getPlaylist(playlistId: number): Promise<PlaylistDto> {
+    const playlist = await this.dbService.getPlaylist(playlistId);
+    if (!playlist) throw new NotFoundException(`Playlist ${playlistId} not found`);
+    return this.playlistToDto(playlist);
   }
 
-  private playlistToDto(playlist: Playlist): PlaylistDto {
-    const items: PlaylistItem[] = playlist['PlaylistItem'];
+  private playlistToDto(playlist: PlaylistWithItems): PlaylistDto {
+    const items: PlaylistItem[] = playlist.PlaylistItem;
 
     return {
       id: playlist.PlaylistId,
@@ -49,14 +51,14 @@ export class PlaylistService {
     return playlistItemInput;
   }
 
-  createPlaylist(playlist: PlaylistDto): Observable<PlaylistDto> {
-    return from(this.dbService.createPlaylist({ PlaylistName: playlist.name, PlaylistItem: this.getPlaylistItemInput(playlist.items) })).pipe(
-      map((playlist: Playlist) => this.playlistToDto(playlist)),
-      catchError((error) => {
-        Logger.error(error);
-        return of(error);
-      }),
-    );
+  async createPlaylist(playlist: PlaylistDto): Promise<PlaylistDto> {
+    try {
+      const result = await this.dbService.createPlaylist({ PlaylistName: playlist.name, PlaylistItem: this.getPlaylistItemInput(playlist.items) });
+      return this.playlistToDto(result);
+    } catch (error) {
+      Logger.error(error);
+      throw new InternalServerErrorException((error as Error).message);
+    }
   }
 
   private getPlaylistUpdateInput(items: PlaylistItemDto[]): Prisma.PlaylistItemUpdateManyWithoutPlaylistNestedInput {
@@ -75,33 +77,33 @@ export class PlaylistService {
     return playlistUpdateInput;
   }
 
-  updatePlaylist(playlist: PlaylistDto): Observable<PlaylistDto> {
-    return from(this.dbService.updatePlaylist({ where: { PlaylistId: playlist.id }, data: { PlaylistName: playlist.name, PlaylistItem: this.getPlaylistUpdateInput(playlist.items) } })).pipe(
-      map((playlist: Playlist) => this.playlistToDto(playlist)),
-      catchError((error) => {
-        Logger.error(error);
-        return of(error);
-      }),
-    );
+  async updatePlaylist(playlist: PlaylistDto): Promise<PlaylistDto> {
+    try {
+      const result = await this.dbService.updatePlaylist({ where: { PlaylistId: playlist.id }, data: { PlaylistName: playlist.name, PlaylistItem: this.getPlaylistUpdateInput(playlist.items) } });
+      return this.playlistToDto(result);
+    } catch (error) {
+      Logger.error(error);
+      throw new InternalServerErrorException((error as Error).message);
+    }
   }
 
-  removeItem(itemId: number): Observable<boolean | Error> {
-    return from(this.dbService.removePlaylistItem({ where: { PlaylistItemId: itemId } })).pipe(
-      map(() => true),
-      catchError((error) => {
-        Logger.error(error);
-        return of(error);
-      }),
-    );
+  async removeItem(itemId: number): Promise<boolean> {
+    try {
+      await this.dbService.removePlaylistItem({ where: { PlaylistItemId: itemId } });
+      return true;
+    } catch (error) {
+      Logger.error(error);
+      throw new InternalServerErrorException((error as Error).message);
+    }
   }
 
-  deletePlaylist(playlistId: number): Observable<boolean | Error> {
-    return from(this.dbService.deletePlaylist({ where: { PlaylistId: playlistId } })).pipe(
-      map(() => true),
-      catchError((error) => {
-        Logger.error(error);
-        return of(error);
-      }),
-    );
+  async deletePlaylist(playlistId: number): Promise<boolean> {
+    try {
+      await this.dbService.deletePlaylist({ where: { PlaylistId: playlistId } });
+      return true;
+    } catch (error) {
+      Logger.error(error);
+      throw new InternalServerErrorException((error as Error).message);
+    }
   }
 }

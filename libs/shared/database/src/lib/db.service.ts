@@ -1,7 +1,7 @@
 import { Album, Band, LyricsHistory, Playlist, PlaylistItem, Prisma } from '@metal-p3/prisma/client';
 import { Injectable, UseFilters } from '@nestjs/common';
 import { DbExceptionsFilter } from './db-exceptions-filter';
-import type { AlbumWithBand, MissingUrlResult } from './model';
+import type { AlbumWithBand, AlbumWithLyricsHistory, LyricsHistoryWithAlbum, MissingUrlResult, PlaylistWithItems } from './model';
 import { PrismaService } from './prisma.service';
 
 @UseFilters(new DbExceptionsFilter())
@@ -84,7 +84,7 @@ export class DbService {
     });
   }
 
-  async lyricsHistory(): Promise<Album[]> {
+  async lyricsHistory(): Promise<AlbumWithLyricsHistory[]> {
     return this.prisma.album.findMany({
       where: {
         MetalArchiveUrl: {
@@ -99,7 +99,7 @@ export class DbService {
     });
   }
 
-  async lyricsPriority(): Promise<LyricsHistory[]> {
+  async lyricsPriority(): Promise<LyricsHistoryWithAlbum[]> {
     return this.prisma.lyricsHistory.findMany({
       where: {
         Priority: true,
@@ -146,24 +146,24 @@ export class DbService {
     });
   }
 
-  async getPlaylists(): Promise<Playlist[]> {
+  async getPlaylists(): Promise<PlaylistWithItems[]> {
     return this.prisma.playlist.findMany({ include: { PlaylistItem: true } });
   }
 
-  async getPlaylist(playlistId: number): Promise<Playlist | null> {
-    return this.prisma.playlist.findFirst({ where: { PlaylistId: playlistId } });
+  async getPlaylist(playlistId: number): Promise<PlaylistWithItems | null> {
+    return this.prisma.playlist.findFirst({ where: { PlaylistId: playlistId }, include: { PlaylistItem: true } });
   }
 
-  async createPlaylist(data: Prisma.PlaylistCreateInput): Promise<Playlist> {
+  async createPlaylist(data: Prisma.PlaylistCreateInput): Promise<PlaylistWithItems> {
     return this.prisma.playlist.create({
       data,
       include: {
         PlaylistItem: true,
       },
-    });
+    }) as Promise<PlaylistWithItems>;
   }
 
-  async updatePlaylist(params: { where: Prisma.PlaylistWhereUniqueInput; data: Prisma.PlaylistUpdateInput }): Promise<Playlist> {
+  async updatePlaylist(params: { where: Prisma.PlaylistWhereUniqueInput; data: Prisma.PlaylistUpdateInput }): Promise<PlaylistWithItems> {
     const { where, data } = params;
 
     return this.prisma.playlist.update({
@@ -172,7 +172,7 @@ export class DbService {
       include: {
         PlaylistItem: true,
       },
-    });
+    }) as Promise<PlaylistWithItems>;
   }
 
   async removePlaylistItem(params: { where: Prisma.PlaylistItemWhereUniqueInput }): Promise<PlaylistItem> {
@@ -198,10 +198,10 @@ export class DbService {
   async missingUrls(): Promise<MissingUrlResult[]> {
     const results = await this.prisma.album.findMany({
       select: { AlbumId: true, Name: true, Band: { select: { BandId: true, Name: true, MetalArchiveUrl: true } } },
-      where: { IgnoreMetalArchives: null, MetalArchiveUrl: null, Lyrics: false, Name: { not: null }, Band: { Name: { not: null } } },
+      where: { IgnoreMetalArchives: null, MetalArchiveUrl: null, Lyrics: false, Name: { not: undefined }, Band: { Name: { not: undefined } } },
       orderBy: { Folder: 'asc' },
     });
 
-    return results as MissingUrlResult[];
+    return results as unknown as MissingUrlResult[];
   }
 }

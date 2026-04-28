@@ -1,6 +1,7 @@
 import { RenameTrack, TrackDto } from '@metal-p3/api-interfaces';
 import { FileSystemService } from '@metal-p3/shared/file-system';
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Patch, Query, Res } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Patch, Post, Query, Res } from '@nestjs/common';
+import { Response } from 'express';
 import { Observable } from 'rxjs';
 import { TrackService } from './track.service';
 
@@ -36,9 +37,9 @@ export class TrackController {
     return this.trackService.renameTrack(track);
   }
 
-  @Get('openFolder')
+  @Post('openFolder')
   @HttpCode(HttpStatus.ACCEPTED)
-  openFolder(@Query('folder') folder: string): void {
+  openFolder(@Body('folder') folder: string): void {
     return this.fileSystemService.openFolder(folder);
   }
 
@@ -48,7 +49,7 @@ export class TrackController {
   }
 
   @Get('playTrack')
-  playTrack(@Query('file') file: string, @Res() res) {
+  playTrack(@Query('file') file: string, @Res() res: Response) {
     const stats = this.fileSystemService.getFileStats(file);
     res.writeHead(200, {
       'Content-Type': 'audio/mpeg',

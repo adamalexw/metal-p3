@@ -5,6 +5,7 @@ import * as bodyParser from 'body-parser';
 import 'dotenv/config';
 import { AllExceptionsFilter } from './app/all-exceptions-handler';
 import { AppModule } from './app/app.module';
+//import { LoggingInterceptor } from './app/logging.interceptor';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
@@ -14,12 +15,13 @@ async function bootstrap() {
   const globalPrefix = 'api';
   app.setGlobalPrefix(globalPrefix);
 
-  const port = process.env.PORT;
+  const port = process.env['PORT'] ?? 3000;
 
   app.use(bodyParser.json({ limit: '50mb' }));
   app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 
   app.useGlobalFilters(new AllExceptionsFilter());
+  //app.useGlobalInterceptors(new LoggingInterceptor());
 
   await app.listen(port, () => {
     Logger.log('Listening at http://localhost:' + port + '/' + globalPrefix);

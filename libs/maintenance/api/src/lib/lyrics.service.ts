@@ -1,10 +1,10 @@
 import { MetalArchivesAlbumTrack } from '@metal-p3/api-interfaces';
 import { LyricsHistoryDto } from '@metal-p3/maintenance/domain';
-import { Album, LyricsHistory, Prisma } from '@metal-p3/prisma/client';
-import { DbService } from '@metal-p3/shared/database';
+import { LyricsHistory, Prisma } from '@metal-p3/prisma/client';
+import { AlbumWithLyricsHistory, DbService, LyricsHistoryWithAlbum } from '@metal-p3/shared/database';
 import { MetalArchivesService } from '@metal-p3/shared/metal-archives';
-import { Injectable, Logger } from '@nestjs/common';
-import { catchError, concatMap, finalize, from, map, Observable, of, Subject, takeUntil, tap, toArray } from 'rxjs';
+import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
+import { catchError, concatMap, finalize, from, map, Observable, of, Subject, takeUntil, tap, throwError, toArray } from 'rxjs';
 import { MaintenanceGateway } from './maintenance-gateway.service';
 
 @Injectable()
@@ -18,26 +18,24 @@ export class LyricsService {
   ) {}
 
   getHistory(): Observable<LyricsHistoryDto[]> {
-    return from(this.dbService.lyricsHistory()).pipe(
-      map((album) => album.map((album) => this.lyricsHistoryToDto(album, album['LyricsHistory'] && album['LyricsHistory'].length && album['LyricsHistory'][0]))),
-    );
+    return from(this.dbService.lyricsHistory()).pipe(map((albums) => albums.map((album) => this.lyricsHistoryToDto(album, album.LyricsHistory?.[0]))));
   }
 
   getPriority(): Observable<LyricsHistoryDto[]> {
-    return from(this.dbService.lyricsPriority()).pipe(map((history) => history.map((history) => this.lyricsHistoryToDto(history['Album'], history))));
+    return from(this.dbService.lyricsPriority()).pipe(map((histories) => histories.map((history) => this.lyricsHistoryToDto(history.Album, history))));
   }
 
-  private lyricsHistoryToDto(album: Album, history: LyricsHistory | undefined): LyricsHistoryDto {
+  private lyricsHistoryToDto(album: AlbumWithLyricsHistory | LyricsHistoryWithAlbum['Album'], history: LyricsHistory | undefined): LyricsHistoryDto {
     return {
-      id: history?.LyricsHistoryId || album.AlbumId,
+      id: history?.LyricsHistoryId ?? album.AlbumId,
       albumId: album.AlbumId,
-      numTracks: history?.NumTracks || 0,
-      numLyrics: history?.NumLyrics || 0,
-      numLyricsHistory: history?.NumLyricsHistory || 0,
-      checked: history.Checked,
+      numTracks: history?.NumTracks ?? 0,
+      numLyrics: history?.NumLyrics ?? 0,
+      numLyricsHistory: history?.NumLyricsHistory ?? 0,
+      checked: history?.Checked ?? undefined,
       folder: album.Folder,
-      year: album.Year,
-      url: album.MetalArchiveUrl,
+      year: album.Year ?? undefined,
+      url: album.MetalArchiveUrl ?? '',
     };
   }
 
@@ -56,12 +54,14 @@ export class LyricsService {
           ? from(this.dbService.updateLyricsHistory({ where: { LyricsHistoryId: history.LyricsHistoryId }, data: { Priority: true } }))
           : from(this.dbService.createLyricsHistory({ Priority: true, Album: this.getAlbumInput(albumId) })),
       ),
-      map((history) => this.lyricsHistoryToDto(history['Album'], history)),
+      map((history) => this.lyricsHistoryToDto((history as LyricsHistoryWithAlbum).Album, history)),
     );
   }
 
   setChecked(id: number, checked: boolean): Observable<LyricsHistoryDto> {
-    return from(this.dbService.updateLyricsHistory({ where: { LyricsHistoryId: id }, data: { Checked: checked } })).pipe(map((history) => this.lyricsHistoryToDto(history['Album'], history)));
+    return from(this.dbService.updateLyricsHistory({ where: { LyricsHistoryId: id }, data: { Checked: checked } })).pipe(
+      map((history) => this.lyricsHistoryToDto((history as LyricsHistoryWithAlbum).Album, history)),
+    );
   }
 
   checkPriority(): Observable<LyricsHistoryDto[]> {
@@ -136,12 +136,12 @@ export class LyricsService {
     return history;
   }
 
-  deleteHistory(id: number): Observable<boolean | Error> {
+  deleteHistory(id: number): Observable<boolean> {
     return from(this.dbService.deleteLyricsHistory({ where: { LyricsHistoryId: id } })).pipe(
       map(() => true),
       catchError((error) => {
         Logger.error(error);
-        return of(error);
+        return throwError(() => new InternalServerErrorException(error.message));
       }),
     );
   }
