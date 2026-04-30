@@ -1,6 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { TrackDto } from '@metal-p3/api-interfaces';
 import { PlaylistItem } from '@metal-p3/player/domain';
+import { AlbumActions } from '@metal-p3/shared/data-access';
 import { Track } from '@metal-p3/track/domain';
 import { Store } from '@ngrx/store';
 import { nanoid } from 'nanoid';
@@ -27,6 +28,7 @@ export class PlayerService {
         withLatestFrom(this.store.select(selectPlaylistItemSize)),
         map(([tracks, size]) => tracks?.map((track, index) => this.mapTrackToPlaylistItem(track, albumId, index + size))),
         tap((tracks) => this.addTracks(tracks)),
+        tap(() => this.store.dispatch(AlbumActions.setPlayed({ id: albumId, played: true }))),
       )
       .subscribe();
   }

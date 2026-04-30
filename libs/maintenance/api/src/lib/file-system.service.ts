@@ -1,9 +1,10 @@
+import { BASE_PATH_TOKEN } from '@metal-p3/api-interfaces';
 import { DbService } from '@metal-p3/shared/database';
 import { FileSystemService } from '@metal-p3/shared/file-system';
 import { Inject, Injectable } from '@nestjs/common';
 import { difference } from 'lodash';
 import { join } from 'path';
-import { Observable, Subject, finalize, from, map, of, takeUntil, tap } from 'rxjs';
+import { asyncScheduler, filter, finalize, from, map, Observable, observeOn, Subject, takeUntil, tap } from 'rxjs';
 import { MaintenanceGateway } from './maintenance-gateway.service';
 
 @Injectable()
@@ -14,8 +15,7 @@ export class FileSystemMaintenanceService {
     private readonly dbService: DbService,
     private readonly fileSystemService: FileSystemService,
     private readonly maintenanceGateway: MaintenanceGateway,
-    // TODO: Replace string injection token with a typed InjectionToken constant to avoid magic strings
-    @Inject('BASE_PATH') private readonly basePath: string,
+    @Inject(BASE_PATH_TOKEN) private readonly basePath: string,
   ) {}
 
   getUnmappedFolders(): Observable<string[]> {
@@ -51,17 +51,14 @@ export class FileSystemMaintenanceService {
   extraFiles() {
     this.notifier = new Subject();
 
-    of(this.fileSystemService.getFolders(this.basePath))
+    const folders = this.fileSystemService.getFolders(this.basePath);
+
+    from(folders)
       .pipe(
+        observeOn(asyncScheduler),
         takeUntil(this.notifier),
-        tap((folders) => {
-          for (let index = 0; index < folders.length; index++) {
-            const folder = folders[index];
-            if (this.fileSystemService.hasExtraFiles(this.basePath, folder)) {
-              this.maintenanceGateway.extraFiles(folder);
-            }
-          }
-        }),
+        filter((folder) => this.fileSystemService.hasExtraFiles(this.basePath, folder)),
+        tap((folder) => this.maintenanceGateway.extraFiles(folder)),
         finalize(() => this.maintenanceGateway.extraFilesComplete()),
       )
       .subscribe();

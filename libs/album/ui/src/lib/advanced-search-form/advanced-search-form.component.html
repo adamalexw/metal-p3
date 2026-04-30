@@ -34,6 +34,7 @@
   <div class="flex flex-row items-center gap-6">
     <mat-checkbox [indeterminate]="searchForm.transferred().value() === null" [formField]="searchForm.transferred"> Transferred </mat-checkbox>
     <mat-checkbox [indeterminate]="searchForm.hasLyrics().value() === null" [formField]="searchForm.hasLyrics"> Lyrics </mat-checkbox>
+    <mat-checkbox [indeterminate]="searchForm.played().value() === null" [formField]="searchForm.played"> Played </mat-checkbox>
   </div>
 
   <div class="flex flex-row items-center gap-4">

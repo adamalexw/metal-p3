@@ -12,6 +12,7 @@ export interface AlbumDetailsForm {
   year: FormControl<number>;
   genre: FormControl<string | undefined>;
   country: FormControl<string | undefined>;
+  played: FormControl<boolean | undefined>;
   artistUrl: FormControl<string | undefined>;
   albumUrl: FormControl<string | undefined>;
   ignore: FormControl<boolean>;

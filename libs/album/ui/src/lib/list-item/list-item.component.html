@@ -1,8 +1,13 @@
 <mat-card class="hover:bg-background hover:shadow-2xl" appearance="raised">
-  <mat-card-header class="py-2">
-    <mat-card-title
-      ><p class="line-clamp-1">{{ album().artist }}</p></mat-card-title
-    >
+  <mat-card-header class="py-2 **:w-full">
+    <mat-card-title>
+      <div class="flex items-center">
+        <p class="line-clamp-1 grow">{{ album().artist }}</p>
+        @if (album().played) {
+          <mat-icon>playlist_play</mat-icon>
+        }
+      </div>
+    </mat-card-title>
     <mat-card-subtitle (click)="openAlbum.emit(album().id)"
       ><p class="line-clamp-1 cursor-pointer">{{ album().album }}</p></mat-card-subtitle
     >
@@ -22,7 +27,7 @@
 
   <mat-card-footer class="flex h-12 w-full items-center px-4">
     <div class="grow truncate">{{ album().year }} - {{ album().genre }}</div>
-    <button type="button" class="!p-0" [matMenuTriggerFor]="menu" mat-icon-button>
+    <button type="button" class="p-0!" [matMenuTriggerFor]="menu" mat-icon-button>
       <mat-icon>more_vert</mat-icon>
     </button>
 

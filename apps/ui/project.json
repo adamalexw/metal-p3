@@ -61,7 +61,8 @@
       "executor": "@angular/build:dev-server",
       "options": {
         "proxyConfig": "apps/ui/proxy.conf.json",
-        "buildTarget": "ui:build"
+        "buildTarget": "ui:build",
+        "ssl": true
       },
       "configurations": {
         "production": {

@@ -13,7 +13,7 @@
     "lint": "nx workspace-lint && ng lint",
     "e2e": "ng e2e",
     "api": "nx serve api",
-    "updateDbSchema": "prisma db pull && prisma generate",
+    "updateDbSchema": "npx prisma db pull && npx prisma generate",
     "deploy:api": "npx nx build api --configuration=production && node ./tools/deployment/deploy-api.js",
     "deploy:ui": "set NODE_ENV=production && npx nx build ui --configuration=production && node ./tools/deployment/deploy-ui.js",
     "affected:apps": "nx affected:apps",

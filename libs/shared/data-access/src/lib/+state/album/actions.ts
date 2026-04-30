@@ -38,6 +38,7 @@ export const AlbumActions = createActionGroup({
     'Save Album Error': props<{ update: Update<Album> }>(),
     'Set Has Lyrics': props<{ id: number; hasLyrics: boolean }>(),
     'Set Transferred': props<{ id: number; transferred: boolean }>(),
+    'Set Played': props<{ id: number; played: boolean }>(),
     'Get Extra Files': props<{ id: number; folder: string }>(),
     'Set Extra Files': props<{ update: Update<Album> }>(),
     'Find Metal Archives Url': props<{ id: number; artist: string; album: string }>(),

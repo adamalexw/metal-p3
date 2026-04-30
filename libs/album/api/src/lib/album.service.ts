@@ -1,4 +1,4 @@
-import { AlbumDto, RenameFolder, SearchRequest } from '@metal-p3/api-interfaces';
+import { AlbumDto, BASE_PATH_TOKEN, RenameFolder, SearchRequest, TAKE_TOKEN } from '@metal-p3/api-interfaces';
 import { Album, Band, Prisma } from '@metal-p3/prisma/client';
 import { AlbumWithBand, DbService } from '@metal-p3/shared/database';
 import { FileSystemService } from '@metal-p3/shared/file-system';
@@ -19,10 +19,8 @@ export class AlbumService {
     private readonly fileSystemService: FileSystemService,
     private readonly trackService: TrackService,
     private readonly albumGateway: AlbumGateway,
-    // TODO: Replace string injection tokens with typed InjectionToken constants to avoid magic strings
-    //   e.g. export const BASE_PATH = new InjectionToken<string>('BASE_PATH');
-    @Inject('BASE_PATH') private readonly basePath: string,
-    @Inject('TAKE') private readonly take: number,
+    @Inject(BASE_PATH_TOKEN) private readonly basePath: string,
+    @Inject(TAKE_TOKEN) private readonly take: number,
   ) {
     if (basePath) {
       this.addFileWatcher(basePath);
@@ -94,6 +92,13 @@ export class AlbumService {
       };
     }
 
+    if (request.played) {
+      where = {
+        ...where,
+        Played: Boolean(request.played),
+      };
+    }
+
     if (bandWhere) {
       where = {
         ...where,
@@ -140,6 +145,7 @@ export class AlbumService {
       ignore: album.IgnoreMetalArchives ?? false,
       transferred: album.Transferred ?? undefined,
       hasLyrics: album.Lyrics ?? undefined,
+      played: album.Played ?? undefined,
       dateCreated: album.Created.toISOString(),
     };
   }
@@ -336,7 +342,11 @@ export class AlbumService {
   }
 
   async setTransferred(id: number, transferred: boolean): Promise<Album> {
-    return this.dbService.updateAlbum({ where: { AlbumId: +id }, data: { Transferred: !!transferred, TransferredDate: new Date() } });
+    return this.dbService.updateAlbum({ where: { AlbumId: +id }, data: { Transferred: !!transferred, TransferredDate: new Date(), Played: true } });
+  }
+
+  async setPlayed(id: number, played: boolean): Promise<Album> {
+    return this.dbService.updateAlbum({ where: { AlbumId: +id }, data: { Played: played } });
   }
 
   private mapAlbumDtoToAlbum(albumDto: AlbumDto): Partial<Album> {
@@ -348,6 +358,7 @@ export class AlbumService {
       Name: albumDto.album,
       Transferred: albumDto.transferred,
       Year: Number(albumDto.year),
+      Played: albumDto.played,
     };
   }
 

@@ -42,6 +42,7 @@ export const AlbumDtoToAlbum = (dto: AlbumDto): Partial<Album> => {
     genre: dto.genre,
     hasLyrics: dto.hasLyrics,
     transferred: dto.transferred,
+    played: dto.played,
     year: dto.year,
     dateCreated: dto.dateCreated,
   };

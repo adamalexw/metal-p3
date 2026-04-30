@@ -19,6 +19,7 @@ type SearchFormModel = {
   country: string;
   transferred: boolean | null;
   hasLyrics: boolean | null;
+  played: boolean | null;
 };
 
 @Component({
@@ -37,7 +38,7 @@ export class AdvancedSearchFormComponent {
   protected readonly searchForm = form(this.model);
 
   onSearch() {
-    const { year, transferred, hasLyrics, ...rest } = this.model();
+    const { year, transferred, hasLyrics, played, ...rest } = this.model();
     const request: SearchRequest = {
       ...rest,
       take: this.take,
@@ -45,6 +46,7 @@ export class AdvancedSearchFormComponent {
       ...(year !== null && { year }),
       ...(transferred !== null && { transferred }),
       ...(hasLyrics !== null && { hasLyrics }),
+      ...(played !== null && { played }),
     };
 
     this.searchRequest.emit(request);
@@ -60,6 +62,7 @@ export class AdvancedSearchFormComponent {
       country: '',
       transferred: null,
       hasLyrics: null,
+      played: null,
     });
     this.searchRequest.emit({ take: this.take, skip: 0 });
   }
@@ -74,6 +77,7 @@ export class AdvancedSearchFormComponent {
       country: request?.country || '',
       transferred: request?.transferred ?? null,
       hasLyrics: request?.hasLyrics ?? null,
+      played: request?.played ?? null,
     };
   }
 }

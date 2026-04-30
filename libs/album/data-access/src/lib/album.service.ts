@@ -51,6 +51,10 @@ export class AlbumService {
     return this.http.patch<void>(`${this.baseUrl}/setTransferred?id=${id}&transferred=${transferred}`, {});
   }
 
+  setPlayed(id: number, played: boolean): Observable<void> {
+    return this.http.patch<void>(`${this.baseUrl}/setPlayed?id=${id}&played=${played}`, {});
+  }
+
   findMaUrl(artist: string, album: string): Observable<MetalArchivesSearchResponse> {
     return this.http.get<MetalArchivesSearchResponse>(`${this.baseUrl}/findMaUrl?artist=${encodeURIComponent(artist)}&album=${encodeURIComponent(album)}`);
   }

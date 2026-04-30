@@ -1,5 +1,5 @@
 import { AsyncPipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, OnInit, inject, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, OnInit, afterNextRender, inject, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Title } from '@angular/platform-browser';
 import { CoverComponent } from '@metal-p3/cover/ui';
@@ -19,11 +19,12 @@ import { PlaylistItem } from '@metal-p3/player/domain';
 import { PlayerControlsComponent } from '@metal-p3/player/ui';
 import { PlaylistShellComponent } from '@metal-p3/playlist';
 import { PlaylistComponent } from '@metal-p3/playlist/ui';
+import { selectAlbumFolder } from '@metal-p3/shared/data-access';
 import { NotificationService } from '@metal-p3/shared/feedback';
 import { nonNullable } from '@metal-p3/shared/utils';
 import { TrackService } from '@metal-p3/track/data-access';
 import { Store } from '@ngrx/store';
-import { EMPTY, Observable, catchError, concatMap, distinctUntilKeyChanged, filter, fromEvent, iif, map, of, shareReplay, take, tap, withLatestFrom } from 'rxjs';
+import { EMPTY, Observable, catchError, combineLatest, concatMap, distinctUntilChanged, distinctUntilKeyChanged, filter, fromEvent, iif, map, of, shareReplay, take, tap, withLatestFrom } from 'rxjs';
 
 @Component({
   imports: [AsyncPipe, CoverComponent, PlayerControlsComponent, PlaylistShellComponent, PlaylistComponent],
@@ -65,27 +66,42 @@ export class PlayerShellComponent implements OnInit {
 
   showPlaylist$ = this.store.select(selectShowPlaylist);
 
+  private readonly defaultTitle = this.title.getTitle();
+
   constructor() {
-    this.activeItem$
+    combineLatest([this.activeItem$, this.store.select(selectAlbumFolder)])
       .pipe(
-        filter((item) => !!item?.playing),
-        nonNullable(),
-        tap(({ artist, title }) => this.title.setTitle(`${artist} - ${title}`)),
-        distinctUntilKeyChanged('id'), // if we are reordering tracks we want to keep the current item playing
-        concatMap((item) => iif(() => !!item?.url, of(item?.url), this.getBlobUrl(item?.id || '', item?.fullPath || ''))),
-        tap((url) => {
-          if (url) {
-            this.audioElement.src = url;
-          }
+        map(([item, folder]) => {
+          if (item?.playing || item?.paused) return `${item.artist} - ${item.title}`;
+          return folder ?? this.defaultTitle;
         }),
+        distinctUntilChanged(),
+        tap((t) => this.title.setTitle(t)),
         takeUntilDestroyed(),
-        catchError((error) => {
-          console.error(error);
-          this.notificationService.showError(`Error playing track ${JSON.stringify(error)}`, 'Close');
-          return EMPTY;
-        }),
       )
       .subscribe();
+
+    afterNextRender(() => {
+      this.activeItem$
+        .pipe(
+          filter((item) => !!item?.playing),
+          nonNullable(),
+          distinctUntilKeyChanged('id'), // if we are reordering tracks we want to keep the current item playing
+          concatMap((item) => iif(() => !!item?.url, of(item?.url), this.getBlobUrl(item?.id || '', item?.fullPath || ''))),
+          tap((url) => {
+            if (url) {
+              this.audioElement.src = url;
+            }
+          }),
+          takeUntilDestroyed(this.destroyRef),
+          catchError((error) => {
+            console.error(error);
+            this.notificationService.showError(`Error playing track ${JSON.stringify(error)}`, 'Close');
+            return EMPTY;
+          }),
+        )
+        .subscribe();
+    });
   }
 
   ngOnInit(): void {
@@ -196,7 +212,6 @@ export class PlayerShellComponent implements OnInit {
   onClosePlaylist() {
     this.onClearPlaylist();
     this.store.dispatch(PlayerActions.close());
-    this.title.setTitle('M(etal)p3');
   }
 
   onTogglePlaylist() {

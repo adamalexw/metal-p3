@@ -4,6 +4,7 @@ export interface SearchRequest {
   artist?: string;
   album?: string;
   year?: number;
+  played?: boolean;
   genre?: string;
   country?: string;
   transferred?: boolean;
@@ -29,6 +30,7 @@ export interface AlbumDto extends AlbumBase {
   bandId: number;
   transferred?: boolean;
   hasLyrics?: boolean;
+  played?: boolean;
   dateCreated: string;
   extraFiles?: boolean;
 }
@@ -113,3 +115,6 @@ export const EXTRA_FILES = 'extraFiles';
 export const EXTRA_FILES_COMPLETE = 'extraFilesComplete';
 export const URL_MATCHER = 'urlMatcher';
 export const URL_MATCHER_COMPLETE = 'urlMatcherComplete';
+
+export const BASE_PATH_TOKEN = 'BASE_PATH';
+export const TAKE_TOKEN = 'TAKE';

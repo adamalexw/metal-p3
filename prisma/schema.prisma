@@ -20,6 +20,7 @@ model Album {
   Transferred         Boolean?
   TransferredDate     DateTime?       @db.DateTime
   Created             DateTime        @default(now(), map: "DF_Album_Created") @db.DateTime
+  Played              Boolean?
   Band                Band?           @relation(fields: [BandId], references: [BandId], onDelete: Cascade, map: "FK_Album_Band")
   LyricsError         LyricsError[]
   LyricsHistory       LyricsHistory[]

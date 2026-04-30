@@ -5,7 +5,7 @@ import { AlbumService } from '@metal-p3/album/data-access';
 import { BASE_PATH } from '@metal-p3/album/domain';
 import { FileSystemMaintenanceService } from '@metal-p3/maintenance/data-access';
 import { ExtraFilesComponent, ExtraFilesToolbarComponent } from '@metal-p3/maintenance/ui';
-import { BehaviorSubject, concatMap, finalize, tap } from 'rxjs';
+import { BehaviorSubject, concatMap, tap } from 'rxjs';
 
 @Component({
   imports: [AsyncPipe, ExtraFilesToolbarComponent, ExtraFilesComponent],
@@ -55,9 +55,9 @@ export class ExtraFilesShellComponent implements OnInit {
     this.service
       .extraFilesComplete()
       .pipe(
+        tap(() => this.running$$.next(false)),
         concatMap(() => this.service.cancelExtraFiles()),
         takeUntilDestroyed(this.destroyRef),
-        finalize(() => this.running$$.next(false)),
       )
       .subscribe();
   }

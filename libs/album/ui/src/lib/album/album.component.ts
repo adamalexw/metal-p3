@@ -203,6 +203,7 @@ export class AlbumComponent {
       artistUrl: this.fb.control(undefined),
       albumUrl: this.fb.control(undefined),
       ignore: this.fb.control(false),
+      played: this.fb.control(false),
       transferred: this.fb.control(undefined),
       hasLyrics: this.fb.control(undefined),
       dateCreated: this.fb.control(''),
@@ -255,26 +256,6 @@ export class AlbumComponent {
         this.notificationService.showError(renamingFolderError, 'Rename Folder');
       }
     });
-  }
-
-  private setMaUrls(urls: MetalArchivesUrl) {
-    this.artistUrl.setValue(urls.artistUrl);
-    this.albumUrl.setValue(urls.albumUrl);
-  }
-
-  private setBandProps(props: BandProps) {
-    this.genre.setValue(props.genre);
-    this.country.setValue(props.country);
-  }
-
-  private getTracks(): TrackBase[] {
-    const tracks = this.form.controls.tracks.value;
-
-    if (tracks) {
-      return tracks as TrackBase[];
-    }
-
-    return [];
   }
 
   onSave(): void {
@@ -352,9 +333,45 @@ export class AlbumComponent {
       const transferTracks = tracks.map((track) => ({ id: this.albumId(), trackId: track.id }));
       this.transferAlbum.emit(transferTracks);
     }
+
+    this.form.controls.details.controls.transferred.setValue(true);
   }
 
   onTransferTrack(trackId: number) {
     this.transferTrack.emit({ id: this.albumId(), trackId });
+  }
+
+  onPlayAlbum(albumId: number) {
+    this.playAlbum.emit(albumId);
+    this.setPlayed();
+  }
+
+  onAddAlbumToPlaylist(albumId: number) {
+    this.addAlbumToPlaylist.emit(albumId);
+    this.setPlayed();
+  }
+
+  private setPlayed() {
+    this.form.controls.details.controls.played.setValue(true);
+  }
+
+  private setMaUrls(urls: MetalArchivesUrl) {
+    this.artistUrl.setValue(urls.artistUrl);
+    this.albumUrl.setValue(urls.albumUrl);
+  }
+
+  private setBandProps(props: BandProps) {
+    this.genre.setValue(props.genre);
+    this.country.setValue(props.country);
+  }
+
+  private getTracks(): TrackBase[] {
+    const tracks = this.form.controls.tracks.value;
+
+    if (tracks) {
+      return tracks as TrackBase[];
+    }
+
+    return [];
   }
 }

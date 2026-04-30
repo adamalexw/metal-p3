@@ -1,3 +1,4 @@
+import { BASE_PATH_TOKEN, TAKE_TOKEN } from '@metal-p3/api-interfaces';
 import { SharedDatabaseModule } from '@metal-p3/shared/database';
 import { SharedFileSystemModule } from '@metal-p3/shared/file-system';
 import { SharedMetalArchivesModule } from '@metal-p3/shared/metal-archives';
@@ -14,14 +15,15 @@ import { AlbumService } from './album.service';
   exports: [AlbumService],
 })
 export class AlbumModule {
-  static forRoot(basePath: string, take: number): DynamicModule {
+  static forRoot(basePath: string, take: number, adbPath: string): DynamicModule {
     return {
       module: AlbumModule,
+      imports: [TrackModule.forRoot(adbPath), SharedDatabaseModule, SharedFileSystemModule, SharedMetalArchivesModule],
       providers: [
-        { provide: 'BASE_PATH', useValue: basePath },
-        { provide: 'TAKE', useValue: take },
+        { provide: BASE_PATH_TOKEN, useValue: basePath },
+        { provide: TAKE_TOKEN, useValue: take },
       ],
-      exports: [{ provide: 'BASE_PATH', useValue: basePath }],
+      exports: [{ provide: BASE_PATH_TOKEN, useValue: basePath }],
     };
   }
 }

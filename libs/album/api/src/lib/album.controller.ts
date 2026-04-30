@@ -50,6 +50,11 @@ export class AlbumController {
     return this.albumService.setTransferred(+id, !!transferred);
   }
 
+  @Patch('setPlayed')
+  setPlayed(@Query('id') id: number, @Query('played') played: boolean): Promise<Album> {
+    return this.albumService.setPlayed(+id, played === true || (played as unknown as string) === 'true');
+  }
+
   @Post()
   post(@Body() body: { folder: string }): Observable<AlbumDto> {
     return this.albumService.addAlbum(body.folder);

@@ -24,7 +24,7 @@
   <form [formGroup]="form">
     <section class="flex flex-col lg:flex-row">
       <app-cover
-        class="w-full lg:max-w-[500px] lg:min-w-[500px]"
+        class="w-full lg:max-w-125 lg:min-w-125"
         [loading]="coverLoading()"
         [cover]="album.cover"
         [coverError]="album.coverError"
@@ -46,8 +46,8 @@
         (maTracks)="onMaTracks()"
         (lyrics)="onLyrics()"
         (refreshTracks)="refreshTracks.emit({ id: album.id, folder: album.folder })"
-        (playAlbum)="playAlbum.emit(albumId())"
-        (addAlbumToPlaylist)="addAlbumToPlaylist.emit(albumId())"
+        (playAlbum)="onPlayAlbum(albumId())"
+        (addAlbumToPlaylist)="onAddAlbumToPlaylist(albumId())"
       />
 
       <app-tracks

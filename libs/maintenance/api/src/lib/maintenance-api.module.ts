@@ -1,3 +1,4 @@
+import { BASE_PATH_TOKEN } from '@metal-p3/api-interfaces';
 import { SharedDatabaseModule } from '@metal-p3/shared/database';
 import { SharedFileSystemModule } from '@metal-p3/shared/file-system';
 import { SharedMetalArchivesModule } from '@metal-p3/shared/metal-archives';
@@ -20,8 +21,8 @@ export class MaintenanceApiModule {
   static forRoot(basePath: string): DynamicModule {
     return {
       module: MaintenanceApiModule,
-      providers: [{ provide: 'BASE_PATH', useValue: basePath }],
-      exports: [{ provide: 'BASE_PATH', useValue: basePath }],
+      providers: [{ provide: BASE_PATH_TOKEN, useValue: basePath }],
+      exports: [{ provide: BASE_PATH_TOKEN, useValue: basePath }],
     };
   }
 }

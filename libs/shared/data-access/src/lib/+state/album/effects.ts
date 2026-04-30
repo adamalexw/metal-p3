@@ -157,7 +157,7 @@ export class AlbumEffects {
       ofType(AlbumActions.setTransferred),
       mergeMap(({ id, transferred }) =>
         this.service.setTransferred(id, transferred).pipe(
-          map(() => AlbumActions.updateAlbum({ update: { id, changes: { transferred } } })),
+          map(() => AlbumActions.updateAlbum({ update: { id, changes: { transferred, played: true } } })),
           catchError((error) => {
             console.error(error);
             return EMPTY;
@@ -259,6 +259,21 @@ export class AlbumEffects {
           catchError((error) => {
             this.notificationService.showError(`${this.errorService.getError(error)}`, 'Delete Album');
             return of(AlbumActions.deleteAlbumError({ id, error }));
+          }),
+        ),
+      ),
+    );
+  });
+
+  setPlayed$ = createEffect(() => {
+    return this.actions$.pipe(
+      ofType(AlbumActions.setPlayed),
+      mergeMap(({ id, played }) =>
+        this.service.setPlayed(id, played).pipe(
+          map(() => AlbumActions.updateAlbum({ update: { id, changes: { played } } })),
+          catchError((error) => {
+            console.error(error);
+            return EMPTY;
           }),
         ),
       ),
