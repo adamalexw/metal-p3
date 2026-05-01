@@ -24,7 +24,7 @@ import { NotificationService } from '@metal-p3/shared/feedback';
 import { nonNullable } from '@metal-p3/shared/utils';
 import { TrackService } from '@metal-p3/track/data-access';
 import { Store } from '@ngrx/store';
-import { EMPTY, Observable, catchError, combineLatest, concatMap, distinctUntilChanged, distinctUntilKeyChanged, filter, fromEvent, iif, map, of, shareReplay, take, tap, withLatestFrom } from 'rxjs';
+import { EMPTY, Observable, catchError, combineLatest, concatMap, distinctUntilChanged, distinctUntilKeyChanged, filter, fromEvent, map, of, shareReplay, take, tap, withLatestFrom } from 'rxjs';
 
 @Component({
   imports: [AsyncPipe, CoverComponent, PlayerControlsComponent, PlaylistShellComponent, PlaylistComponent],
@@ -87,7 +87,7 @@ export class PlayerShellComponent implements OnInit {
           filter((item) => !!item?.playing),
           nonNullable(),
           distinctUntilKeyChanged('id'), // if we are reordering tracks we want to keep the current item playing
-          concatMap((item) => iif(() => !!item?.url, of(item?.url), this.getBlobUrl(item?.id || '', item?.fullPath || ''))),
+          concatMap((item) => (item?.url ? of(item.url) : this.getBlobUrl(item?.id || '', item?.fullPath || ''))),
           tap((url) => {
             if (url) {
               this.audioElement.src = url;

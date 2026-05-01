@@ -5,8 +5,10 @@ import { Injectable, Logger } from '@nestjs/common';
 import * as fs from 'fs';
 import { selectCover } from 'music-metadata';
 import * as path from 'path';
-import { catchError, EMPTY, filter, from, map, Observable } from 'rxjs';
+import { catchError, EMPTY, filter, from, map, Observable, switchMap } from 'rxjs';
 import sharpFn from 'sharp';
+
+const coverPattern = /^Cover\.jpg$/i;
 
 @Injectable()
 export class CoverService {
@@ -87,7 +89,51 @@ export class CoverService {
       url = url[url.length - 1];
     }
 
-    return this.httpService.get(url, { responseType: 'arraybuffer' }).pipe(map((response) => Buffer.from(response.data)));
+    const resolvedUrl = this.resolveImageUrl(url);
+
+    if (!this.isDirectImageUrl(resolvedUrl)) {
+      return this.extractOgImageUrl(resolvedUrl).pipe(
+        map((imageUrl) => {
+          if (!imageUrl) throw new Error(`Could not extract og:image from page: ${resolvedUrl}`);
+          return imageUrl;
+        }),
+        switchMap((imageUrl) => this.httpService.get(imageUrl, { responseType: 'arraybuffer' }).pipe(map((response) => Buffer.from(response.data)))),
+      );
+    }
+
+    return this.httpService.get(resolvedUrl, { responseType: 'arraybuffer' }).pipe(map((response) => Buffer.from(response.data)));
+  }
+
+  private resolveImageUrl(url: string): string {
+    try {
+      const parsed = new URL(url);
+      // Google redirect: google.com/url?url=ACTUAL or /imgres?imgurl=ACTUAL
+      if (parsed.hostname.endsWith('google.com')) {
+        const imgUrl = parsed.searchParams.get('imgurl') ?? parsed.searchParams.get('url');
+        if (imgUrl) return imgUrl;
+      }
+    } catch {
+      // not a valid URL — return as-is
+    }
+    return url;
+  }
+
+  private isDirectImageUrl(url: string): boolean {
+    try {
+      const { pathname } = new URL(url);
+      return /\.(jpe?g|png|gif|webp|bmp|tiff?)(\?.*)?$/i.test(pathname);
+    } catch {
+      return false;
+    }
+  }
+
+  private extractOgImageUrl(pageUrl: string): Observable<string | null> {
+    return this.httpService.get<string>(pageUrl, { responseType: 'text' }).pipe(
+      map((response) => {
+        const match = response.data.match(/<meta\s+property="og:image"\s+content="([^"]+)"/);
+        return match ? match[1] : null;
+      }),
+    );
   }
 
   async saveCover(folder: string, cover: string): Promise<void> {
@@ -96,13 +142,30 @@ export class CoverService {
     const buffer = Buffer.from(base64Data, 'base64');
     const tempLocation = `${location}.tmp`;
 
+    // Delete any cover variants with non-ASCII characters in the name (e.g. Сover.jpg with Cyrillic С)
+    try {
+      const coverExt = /\.jpe?g$/i;
+      const files = fs.readdirSync(folder);
+      for (const file of files) {
+        if (coverPattern.test(file)) continue; // already an exact ASCII cover — skip
+        // eslint-disable-next-line no-control-regex
+        const hasNonAscii = /[^\x00-\x7F]/.test(file);
+        if (hasNonAscii && coverExt.test(file)) {
+          const filePath = path.join(folder, file);
+          try {
+            fs.unlinkSync(filePath);
+          } catch (e) {
+            Logger.warn(`Failed to delete cover variant "${filePath}": ${e}`);
+          }
+        }
+      }
+    } catch (error) {
+      Logger.warn(`Failed to scan for cover variants in "${folder}": ${error}`);
+    }
+
     try {
       await sharpFn(buffer).resize({ height: 500, width: 500 }).toFile(tempLocation);
 
-      // rename temp file to final location to avoid read/write conflicts
-      if (fs.existsSync(location)) {
-        fs.unlinkSync(location);
-      }
       fs.renameSync(tempLocation, location);
     } catch (error) {
       // clean up temp file if it exists

@@ -9,7 +9,7 @@ import { MatListModule } from '@angular/material/list';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { RouterModule } from '@angular/router';
 import { AlbumDetailsForm, AlbumForm } from '@metal-p3/album/domain';
-import { AlbumDto, BandProps, MetalArchivesAlbumTrack, MetalArchivesUrl, TrackBase } from '@metal-p3/api-interfaces';
+import { BandProps, MetalArchivesAlbumTrack, MetalArchivesUrl, TrackBase } from '@metal-p3/api-interfaces';
 import { CoverComponent } from '@metal-p3/cover/ui';
 import { Album, AlbumWithoutTracks } from '@metal-p3/shared/data-access';
 import { NotificationService } from '@metal-p3/shared/feedback';
@@ -259,7 +259,9 @@ export class AlbumComponent {
   }
 
   onSave(): void {
-    const { folder, fullPath } = this.album() as AlbumDto;
+    const currentAlbum = this.album();
+    if (!currentAlbum) return;
+    const { folder, fullPath } = currentAlbum;
     const album = this.details.getRawValue();
 
     this.save.emit({
@@ -335,6 +337,7 @@ export class AlbumComponent {
     }
 
     this.form.controls.details.controls.transferred.setValue(true);
+    this.setPlayed();
   }
 
   onTransferTrack(trackId: number) {
@@ -366,12 +369,6 @@ export class AlbumComponent {
   }
 
   private getTracks(): TrackBase[] {
-    const tracks = this.form.controls.tracks.value;
-
-    if (tracks) {
-      return tracks as TrackBase[];
-    }
-
-    return [];
+    return this.form.controls.tracks.getRawValue();
   }
 }

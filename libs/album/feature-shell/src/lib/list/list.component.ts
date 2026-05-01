@@ -6,7 +6,7 @@ import { Router } from '@angular/router';
 import { AlbumService } from '@metal-p3/album/data-access';
 import { ALBUM_DRAWER_WIDTH, TAKE } from '@metal-p3/album/domain';
 import { ListItemComponent, ListToolbarComponent } from '@metal-p3/album/ui';
-import { SearchRequest } from '@metal-p3/api-interfaces';
+import { AlbumDto, SearchRequest } from '@metal-p3/api-interfaces';
 import { PlayerShellComponent } from '@metal-p3/player';
 import { PlayerActions, PlayerService, selectShowPlayer } from '@metal-p3/player/data-access';
 import {
@@ -30,7 +30,7 @@ import { ConnectPhoneService } from '@metal-p3/shared/transfer';
 import { nonNullable, toChunks } from '@metal-p3/shared/utils';
 import { Track } from '@metal-p3/track/domain';
 import { Store } from '@ngrx/store';
-import { BehaviorSubject, Observable, combineLatest, debounceTime, delay, filter, map, startWith, take, tap } from 'rxjs';
+import { BehaviorSubject, Observable, combineLatest, debounceTime, delay, filter, from, map, mergeMap, startWith, take, tap } from 'rxjs';
 import { AddAlbumDirective } from './add-album.directive';
 
 @Component({
@@ -98,7 +98,7 @@ export class ListComponent implements OnInit {
 
     this.service
       .albumAdded()
-      .pipe(tap((folder) => this.onAlbumAdded([folder])))
+      .pipe(tap((album) => this.onAlbumAdded(album)))
       .subscribe();
 
     combineLatest([this.albumsView$, this.scrollIndex$])
@@ -129,7 +129,7 @@ export class ListComponent implements OnInit {
   private loadVisibleCovers(albums: Album[][]): void {
     const { start, end } = this.scrollViewport().getRenderedRange();
     const rendered = albums.slice(start, end).flat();
-    rendered.filter((a) => !a.cover && !a.coverLoading).forEach((a) => this.store.dispatch(CoverActions.get({ id: a.id, folder: a.folder })));
+    rendered.filter((a) => !a.cover && !a.coverLoading && !a.coverError).forEach((a) => this.store.dispatch(CoverActions.get({ id: a.id, folder: a.folder })));
   }
 
   onDeleteAlbum(id: number) {
@@ -141,7 +141,10 @@ export class ListComponent implements OnInit {
 
     tracks$
       .pipe(
-        tap((tracks) => tracks?.forEach((track) => this.store.dispatch(TrackActions.transferTrack({ id, trackId: track.id })))),
+        tap((tracks) => {
+          tracks?.forEach((track) => this.store.dispatch(TrackActions.transferTrack({ id, trackId: track.id })));
+          this.store.dispatch(AlbumActions.setTransferred({ id, transferred: true }));
+        }),
         take(1),
       )
       .subscribe();
@@ -165,7 +168,7 @@ export class ListComponent implements OnInit {
       )
       .subscribe();
 
-    return this.store.select(selectTracksById(id)).pipe(filter((tracks) => !!tracks));
+    return this.store.select(selectTracksById(id)).pipe(filter((tracks) => !!tracks?.length));
   }
 
   trackByVirtualFn(index: number): number {
@@ -188,8 +191,18 @@ export class ListComponent implements OnInit {
     this.sideNavOpen$.pipe(take(1), filter(Boolean), delay(100)).subscribe(() => this.location.back());
   }
 
-  onAlbumAdded(folders: string[]) {
-    folders.forEach((folder) => this.store.dispatch(AlbumActions.addNewAlbum({ folder })));
+  onAlbumAdded(albumDto: AlbumDto) {
+    const album: Album = { ...albumDto, tracks: { ids: [], entities: {} }, maTracks: { ids: [], entities: {} } };
+    this.store.dispatch(AlbumActions.addAlbum({ album }));
+  }
+
+  onFoldersDropped(folders: string[]) {
+    from(folders)
+      .pipe(
+        mergeMap((folder) => this.service.addNewAlbum(folder)),
+        tap((albumDto) => this.onAlbumAdded(albumDto)),
+      )
+      .subscribe();
   }
 
   onShowPlayer() {

@@ -12,9 +12,9 @@ import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { Update } from '@ngrx/entity';
 import { concatLatestFrom } from '@ngrx/operators';
 import { Store } from '@ngrx/store';
-import { catchError, concatMap, EMPTY, filter, iif, map, mergeMap, of, switchMap, tap, throwError } from 'rxjs';
+import { catchError, concatMap, EMPTY, filter, map, mergeMap, of, switchMap, tap, throwError } from 'rxjs';
 import { BandActions } from '../band/actions';
-import { Album, AlbumDtoToAlbum } from '../model';
+import { Album } from '../model';
 import { selectTracks } from '../selectors';
 import { TrackActions } from '../track/actions';
 import { AlbumActions } from './actions';
@@ -34,15 +34,13 @@ export class AlbumEffects {
     return this.actions$.pipe(
       ofType(AlbumActions.loadAlbums, AlbumActions.cancelPreviousSearch),
       switchMap(({ request }) =>
-        iif(
-          () => !!request.cancel,
-          of(AlbumActions.cancelPreviousSearchSuccess()),
-          this.service.getAlbums(request).pipe(
-            map((albums) => albums as Album[]),
-            map((albums) => (!request.skip ? AlbumActions.loadAlbumsSuccess({ albums }) : AlbumActions.loadAlbumsPageSuccess({ albums }))),
-            catchError((error) => of(AlbumActions.loadAlbumsError({ loadError: error }))),
-          ),
-        ),
+        request.cancel
+          ? of(AlbumActions.cancelPreviousSearchSuccess())
+          : this.service.getAlbums(request).pipe(
+              map((albums) => albums.map((albumDto): Album => ({ ...albumDto, tracks: { ids: [], entities: {} }, maTracks: { ids: [], entities: {} } }))),
+              map((albums) => (!request.skip ? AlbumActions.loadAlbumsSuccess({ albums }) : AlbumActions.loadAlbumsPageSuccess({ albums }))),
+              catchError((error) => of(AlbumActions.loadAlbumsError({ loadError: error }))),
+            ),
       ),
     );
   });
@@ -52,7 +50,7 @@ export class AlbumEffects {
       ofType(AlbumActions.getAlbum),
       mergeMap(({ id }) =>
         this.service.getAlbum(id).pipe(
-          map((album) => AlbumDtoToAlbum(album) as Album),
+          map((albumDto): Album => ({ ...albumDto, tracks: { ids: [], entities: {} }, maTracks: { ids: [], entities: {} } })),
           map((album) => AlbumActions.addAlbum({ album })),
           catchError((error) => of(AlbumActions.getAlbumError({ update: { id, changes: { getError: this.errorService.getError(error) } } }))),
         ),
@@ -67,7 +65,7 @@ export class AlbumEffects {
         this.service.addNewAlbum(`${this.basePath}/${folder}`).pipe(
           nonNullable(),
           tap((album) => this.notificationService.showInfo(album.folder, 'New Album')),
-          map((album) => AlbumDtoToAlbum(album) as Album),
+          map((albumDto): Album => ({ ...albumDto, tracks: { ids: [], entities: {} }, maTracks: { ids: [], entities: {} } })),
           concatMap((album) =>
             this.coverService.getCover(`${this.basePath}/${album.folder}`).pipe(
               map((cover) => ({ ...album, cover })),

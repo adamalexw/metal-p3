@@ -2,7 +2,7 @@ import { inject, Injectable } from '@angular/core';
 import { ErrorService } from '@metal-p3/shared/error';
 import { NotificationService } from '@metal-p3/shared/feedback';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
-import { catchError, concatMap, concatMapTo, EMPTY, iif, map, of, tap } from 'rxjs';
+import { catchError, concatMap, concatMapTo, EMPTY, map, of, tap } from 'rxjs';
 import { LyricsMaintenanceService } from '../lyrics.service';
 import { UrlMaintenanceService } from '../url.service';
 import { MaintenanceActions } from './actions';
@@ -33,7 +33,7 @@ export class MaintenanceEffects {
   getLyricsHistory$ = createEffect(() => {
     return this.actions$.pipe(
       ofType(MaintenanceActions.getLyricsHistory),
-      concatMap(({ priority }) => iif(() => priority, this.lyricsService.getPriority(), this.lyricsService.getHistory())),
+      concatMap(({ priority }) => (priority ? this.lyricsService.getPriority() : this.lyricsService.getHistory())),
       map((history) => MaintenanceActions.getLyricsHistorySuccess({ history })),
       catchError((error) => of(MaintenanceActions.getLyricsHistoryError({ error: this.errorService.getError(error) }))),
     );
@@ -42,7 +42,7 @@ export class MaintenanceEffects {
   checkLyricsHistory$ = createEffect(() => {
     return this.actions$.pipe(
       ofType(MaintenanceActions.checkLyricsHistory),
-      concatMap(({ priority }) => iif(() => priority, this.lyricsService.checkPriority(), this.lyricsService.checkHistory())),
+      concatMap(({ priority }) => (priority ? this.lyricsService.checkPriority() : this.lyricsService.checkHistory())),
       map(() => MaintenanceActions.checkLyricsHistorySuccess()),
       catchError((error) => of(MaintenanceActions.checkLyricsHistoryError({ error: this.errorService.getError(error) }))),
     );

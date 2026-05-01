@@ -149,11 +149,15 @@ export class FileSystemService {
 
   hasExtraFiles(basePath: string, folder: string): boolean {
     const coverPattern = /^cover\.jpe?g$/i;
+    const coverExt = /\.jpe?g$/i;
     const fullPath = join(basePath, folder);
     if (!existsSync(fullPath)) return false;
     return this.getFiles(fullPath).some((file) => {
       if (extname(file).toLowerCase() === '.mp3') return false;
       if (coverPattern.test(file)) return false;
+      // Treat non-ASCII jpeg filenames (e.g. Сover.jpg with Cyrillic С) as cover variants, not extra files
+      // eslint-disable-next-line no-control-regex
+      if (/[^\x00-\x7F]/.test(file) && coverExt.test(file)) return false;
       return true;
     });
   }

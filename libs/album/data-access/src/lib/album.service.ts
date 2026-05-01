@@ -83,7 +83,7 @@ export class AlbumService {
     return this.http.get<string[]>(`${this.baseUrl}/createAlbumFromRootFiles?folder=${encodeURIComponent(this.basePath)}`);
   }
 
-  albumAdded(): Observable<string> {
+  albumAdded(): Observable<AlbumDto> {
     return this.socket.fromEvent(ALBUM_ADDED);
   }
 

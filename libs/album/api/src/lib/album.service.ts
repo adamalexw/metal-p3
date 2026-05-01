@@ -1,7 +1,8 @@
-import { AlbumDto, BASE_PATH_TOKEN, RenameFolder, SearchRequest, TAKE_TOKEN } from '@metal-p3/api-interfaces';
+import { AlbumDto, BASE_PATH_TOKEN, MetalArchivesSearchResponse, RenameFolder, SearchRequest, TAKE_TOKEN } from '@metal-p3/api-interfaces';
 import { Album, Band, Prisma } from '@metal-p3/prisma/client';
 import { AlbumWithBand, DbService } from '@metal-p3/shared/database';
 import { FileSystemService } from '@metal-p3/shared/file-system';
+import { MetalArchivesService } from '@metal-p3/shared/metal-archives';
 import { nonNullable } from '@metal-p3/shared/utils';
 import { TrackService } from '@metal-p3/track/api';
 import { Inject, Injectable, Logger } from '@nestjs/common';
@@ -9,7 +10,7 @@ import chokidar from 'chokidar';
 import * as fs from 'fs';
 import * as NodeID3 from 'node-id3';
 import * as path from 'path';
-import { Observable, catchError, combineLatest, concatMap, from, iif, map, of } from 'rxjs';
+import { Observable, catchError, combineLatest, concatMap, from, map, of } from 'rxjs';
 import { AlbumGateway } from './album-gateway.service';
 
 @Injectable()
@@ -18,6 +19,7 @@ export class AlbumService {
     private readonly dbService: DbService,
     private readonly fileSystemService: FileSystemService,
     private readonly trackService: TrackService,
+    private readonly metalArchivesService: MetalArchivesService,
     private readonly albumGateway: AlbumGateway,
     @Inject(BASE_PATH_TOKEN) private readonly basePath: string,
     @Inject(TAKE_TOKEN) private readonly take: number,
@@ -188,7 +190,11 @@ export class AlbumService {
           if (!album.length) {
             this.waitForFolderStable(dirPath)
               .then(() => {
-                this.albumGateway.albumAddedMessage(this.fileSystemService.getFilename(dirPath));
+                this.addAlbum(dirPath).subscribe({
+                  next: (albumDto) => this.albumGateway.albumAddedMessage(albumDto),
+                  error: (error) => Logger.error(`Failed to add album from watcher: ${error}`),
+                  complete: () => this.pendingFolders.delete(folder),
+                });
               })
               .catch((error) => Logger.error(error))
               .finally(() => this.pendingFolders.delete(folder));
@@ -274,7 +280,7 @@ export class AlbumService {
   addAlbum(folder: string): Observable<AlbumDto> {
     const dirName = this.fileSystemService.getFilename(folder);
 
-    return this.getAlbums({ take: 1, folder: dirName, exactMatch: true }).pipe(
+    const album$ = this.getAlbums({ take: 1, folder: dirName, exactMatch: true }).pipe(
       map((album) => {
         if (album.length) {
           throw new Error('folder already exists');
@@ -300,10 +306,112 @@ export class AlbumService {
       }),
       nonNullable(),
       concatMap((tags) => combineLatest([of(tags), from(this.dbService.bands({ Name: tags.artist }))])),
-      concatMap(([tags, bands]) => combineLatest([of(tags), iif(() => !!bands.length, of(bands[0]), from(this.dbService.createBand({ Name: tags.artist ?? '' })))])),
+      concatMap(([tags, bands]) => combineLatest([of(tags), bands.length ? of(bands[0]) : from(this.dbService.createBand({ Name: tags.artist ?? '' }))])),
       map(([tags, band]) => this.mapTagsToAlbum(path.basename(folder), tags, band)),
       concatMap((data) => from(this.dbService.createAlbum(data))),
       map((newAlbum) => this.mapAlbumToAlbumDto(newAlbum)),
+    );
+
+    return album$.pipe(
+      concatMap((albumDto) => this.renameFolderAndTracks(albumDto)),
+      concatMap((albumDto) => this.findMetalArchivesUrls(albumDto)),
+    );
+  }
+
+  private renameFolderAndTracks(albumDto: AlbumDto): Observable<AlbumDto> {
+    if (!albumDto.artist || !albumDto.album) {
+      return of(albumDto);
+    }
+
+    const dest = `${albumDto.artist} - ${albumDto.album}`;
+    const expectedFolder = this.fileSystemService.filenameValidator(dest);
+
+    if (albumDto.folder === expectedFolder) {
+      return this.renameAlbumTracks(albumDto);
+    }
+
+    return from(this.renameFolder(albumDto.id, albumDto.fullPath, dest)).pipe(
+      map(({ fullPath, folder }) => ({ ...albumDto, fullPath, folder })),
+      catchError((error) => {
+        Logger.error(`Failed to rename folder for album ${albumDto.id}: ${error}`);
+        return of(albumDto);
+      }),
+      concatMap((updated) => this.renameAlbumTracks(updated)),
+    );
+  }
+
+  private renameAlbumTracks(albumDto: AlbumDto): Observable<AlbumDto> {
+    let files: string[];
+
+    try {
+      files = this.fileSystemService
+        .getFiles(albumDto.fullPath)
+        .filter((f) => path.extname(f) === '.mp3')
+        .map((f) => path.join(albumDto.fullPath, f));
+    } catch (error) {
+      Logger.error(`Failed to list files for track rename in "${albumDto.fullPath}": ${error}`);
+      return of(albumDto);
+    }
+
+    if (!files.length) {
+      return of(albumDto);
+    }
+
+    return this.trackService.getTracks(files).pipe(
+      map((tracks) => {
+        for (const track of tracks) {
+          try {
+            this.trackService.renameTrack(track);
+          } catch (error) {
+            Logger.error(`Failed to rename track "${track.fullPath}": ${error}`);
+          }
+        }
+        return albumDto;
+      }),
+      catchError((error) => {
+        Logger.error(`Failed to rename tracks for album ${albumDto.id}: ${error}`);
+        return of(albumDto);
+      }),
+    );
+  }
+
+  private findMetalArchivesUrls(albumDto: AlbumDto): Observable<AlbumDto> {
+    if (!albumDto.artist || !albumDto.album || albumDto.artistUrl || albumDto.albumUrl) {
+      return of(albumDto);
+    }
+
+    return this.metalArchivesService.findUrl(albumDto.artist, albumDto.album).pipe(
+      concatMap((response: MetalArchivesSearchResponse) => {
+        if (response.iTotalRecords === 1 && response.results.length === 1) {
+          return this.saveMetalArchivesUrls(albumDto, response.results[0].artistUrl, response.results[0].albumUrl);
+        }
+
+        if (response.iTotalRecords > 1) {
+          const fullLengths = response.results.filter((r) => r.releaseType === 'Full-length');
+
+          if (fullLengths.length === 1) {
+            return this.saveMetalArchivesUrls(albumDto, fullLengths[0].artistUrl, fullLengths[0].albumUrl);
+          }
+        }
+
+        return of(albumDto);
+      }),
+      catchError((error) => {
+        Logger.error(`Failed to find Metal Archives URL for album ${albumDto.id}: ${error}`);
+        return of(albumDto);
+      }),
+    );
+  }
+
+  private saveMetalArchivesUrls(albumDto: AlbumDto, artistUrl: string, albumUrl: string): Observable<AlbumDto> {
+    return from(this.dbService.updateAlbum({ where: { AlbumId: albumDto.id }, data: { MetalArchiveUrl: albumUrl } })).pipe(
+      concatMap(() => {
+        if (artistUrl && albumDto.bandId) {
+          return from(this.dbService.updateBand({ where: { BandId: albumDto.bandId }, data: { MetalArchiveUrl: artistUrl } }));
+        }
+        return of(undefined);
+      }),
+      map(() => ({ ...albumDto, artistUrl, albumUrl })),
     );
   }
 

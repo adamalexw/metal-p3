@@ -14,7 +14,7 @@ export class CoverService {
   private readonly baseUrl = `${this.api}cover`;
 
   getCover(location: string): Observable<string> {
-    return this.http.get(`${this.baseUrl}?location=${encodeURIComponent(location)}`, { responseType: 'blob' }).pipe(map((blob) => (blob.size > 0 ? URL.createObjectURL(blob) : '/assets/blank.png')));
+    return this.http.get(`${this.baseUrl}?location=${encodeURIComponent(location)}`, { responseType: 'blob' }).pipe(map((blob) => (blob?.size > 0 ? URL.createObjectURL(blob) : '/assets/blank.png')));
   }
 
   downloadCover(url: string): Observable<string> {

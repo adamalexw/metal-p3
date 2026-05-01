@@ -32,3 +32,6 @@ export const selectPlaylistBlobs = createSelector(selectPlaylistCovers, selectPl
 export const selectShowPlaylist = createSelector(selectPlaylistState, (state) => state.showPlaylist);
 
 export const selectItemById = (id: string) => createSelector(selectPlaylist, (playlist) => playlist.find((item) => item.id === id));
+
+export const selectCoverByFolder = (folder: string) =>
+  createSelector(selectPlaylist, (playlist) => playlist.find((item) => item.folder === folder && typeof item.cover === 'string' && item.cover.startsWith('blob:'))?.cover ?? null);

@@ -6,7 +6,7 @@ import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { Update } from '@ngrx/entity';
 import { concatLatestFrom } from '@ngrx/operators';
 import { Store } from '@ngrx/store';
-import { catchError, concat, filter, forkJoin, iif, map, mergeMap, Observable, of, switchMap, tap } from 'rxjs';
+import { catchError, concat, filter, forkJoin, map, mergeMap, Observable, of, switchMap, tap } from 'rxjs';
 import { AlbumActions } from '../actions';
 import { Album } from '../model';
 import { CoverActions } from './actions';
@@ -42,7 +42,7 @@ export class CoverEffects {
   getMany$ = createEffect(() => {
     return this.actions$.pipe(
       ofType(CoverActions.getMany, CoverActions.cancelPreviousGetMany),
-      switchMap(({ request }) => iif(() => !!request.cancel, of(CoverActions.clearAll()), this.covers$(request.requests).pipe(map((update) => CoverActions.getManySuccess({ update }))))),
+      switchMap(({ request }) => (request.cancel ? of(CoverActions.clearAll()) : this.covers$(request.requests).pipe(map((update) => CoverActions.getManySuccess({ update }))))),
     );
   });
 

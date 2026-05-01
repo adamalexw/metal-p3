@@ -81,7 +81,14 @@ export class PlayerService {
   private addTracks(tracks: PlaylistItem[] | undefined) {
     if (tracks) {
       this.store.dispatch(PlayerActions.addItems({ tracks }));
-      tracks.forEach((track) => this.store.dispatch(PlayerActions.getCover({ id: track.id, folder: track.folder || '' })));
+      const seenFolders = new Set<string>();
+      tracks.forEach((track) => {
+        const key = track.folder || track.id;
+        if (!seenFolders.has(key)) {
+          seenFolders.add(key);
+          this.store.dispatch(PlayerActions.getCover({ id: track.id, folder: track.folder || '' }));
+        }
+      });
     }
   }
 }

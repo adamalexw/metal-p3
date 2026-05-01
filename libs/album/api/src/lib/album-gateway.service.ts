@@ -1,19 +1,12 @@
-import { ALBUM_ADDED } from '@metal-p3/api-interfaces';
-import { SubscribeMessage, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
-import { Server, Socket } from 'socket.io';
+import { ALBUM_ADDED, AlbumDto } from '@metal-p3/api-interfaces';
+import { WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
+import { Server } from 'socket.io';
 
 @WebSocketGateway()
 export class AlbumGateway {
-  newAlbums: string[] = [];
-
   @WebSocketServer() server!: Server;
 
-  albumAddedMessage(album: string) {
+  albumAddedMessage(album: AlbumDto) {
     this.server.emit(ALBUM_ADDED, album);
-  }
-
-  @SubscribeMessage('albumAddedComplete')
-  albumAddedComplete(client: Socket, album: string) {
-    this.newAlbums = this.newAlbums.filter((a) => a !== album);
   }
 }

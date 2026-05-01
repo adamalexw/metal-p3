@@ -2,7 +2,6 @@ import { inject, Injectable } from '@angular/core';
 import { BASE_PATH } from '@metal-p3/album/domain';
 import { ErrorService } from '@metal-p3/shared/error';
 import { TrackService } from '@metal-p3/track/data-access';
-import { Track } from '@metal-p3/track/domain';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { concatLatestFrom } from '@ngrx/operators';
 import { Store } from '@ngrx/store';
@@ -103,15 +102,16 @@ export class TrackEffects {
     return this.actions$.pipe(
       ofType(TrackActions.transferTrack),
       concatLatestFrom(({ id, trackId }) => this.store.select(selectTrack(id, trackId))),
-      mergeMap(([{ id }, track]) =>
-        this.service.transferTrack(track?.fullPath || '').pipe(
-          map(() => TrackActions.transferTrackSuccess({ id, track: { ...(track as Track), trackTransferring: false } })),
+      mergeMap(([{ id }, track]) => {
+        if (!track) return EMPTY;
+        return this.service.transferTrack(track.fullPath).pipe(
+          map(() => TrackActions.transferTrackSuccess({ id, track: { ...track, trackTransferring: false } })),
           catchError((error) => {
             console.error(error);
-            return of(TrackActions.transferTrackError({ id, track: { ...(track as Track), trackTransferring: false } }));
+            return of(TrackActions.transferTrackError({ id, track: { ...track, trackTransferring: false } }));
           }),
-        ),
-      ),
+        );
+      }),
     );
   });
 

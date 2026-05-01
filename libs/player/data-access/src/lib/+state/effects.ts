@@ -7,7 +7,7 @@ import { concatLatestFrom } from '@ngrx/operators';
 import { Store } from '@ngrx/store';
 import { catchError, filter, map, mergeMap, of, tap } from 'rxjs';
 import { PlayerActions } from './actions';
-import { selectActiveItemIndex, selectActivePlaylistItem, selectItemById, selectPlaylist, selectPlaylistBlobs } from './selectors';
+import { selectActiveItemIndex, selectActivePlaylistItem, selectCoverByFolder, selectItemById, selectPlaylist, selectPlaylistBlobs } from './selectors';
 
 @Injectable()
 export class PlayerEffects {
@@ -92,12 +92,32 @@ export class PlayerEffects {
   getCover$ = createEffect(() => {
     return this.actions$.pipe(
       ofType(PlayerActions.getCover),
-      mergeMap(({ id, folder }) =>
-        this.coverService.getCover(folder).pipe(
+      concatLatestFrom(({ folder }) => this.store.select(selectCoverByFolder(folder))),
+      mergeMap(([{ id, folder }, existingCover]) => {
+        if (existingCover) {
+          return of(PlayerActions.getCoverSuccess({ update: { id, changes: { cover: existingCover } } }));
+        }
+        return this.coverService.getCover(folder).pipe(
           map((cover) => PlayerActions.getCoverSuccess({ update: { id, changes: { cover } } })),
           catchError((error) => of(PlayerActions.getCoverError({ update: { id, changes: { cover: this.errorService.getError(error) } } }))),
-        ),
-      ),
+        );
+      }),
+    );
+  });
+
+  propagateCover$ = createEffect(() => {
+    return this.actions$.pipe(
+      ofType(PlayerActions.getCoverSuccess),
+      concatLatestFrom(() => this.store.select(selectPlaylist)),
+      map(([{ update }, playlist]) => {
+        const source = playlist.find((i) => i.id === update.id);
+        if (!source?.folder || !update.changes.cover) return PlayerActions.noop();
+
+        const others = playlist.filter((i) => i.id !== update.id && i.folder === source.folder && !i.cover);
+        if (!others.length) return PlayerActions.noop();
+
+        return PlayerActions.updateItems({ updates: others.map((i) => ({ id: i.id, changes: { cover: update.changes.cover } })) });
+      }),
     );
   });
 
