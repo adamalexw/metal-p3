@@ -22,6 +22,11 @@ export const extractTracks = (html: string): MetalArchivesAlbumTrack[] => {
   const root = parse(html);
 
   const lyricsTable = root.querySelector('.table_lyrics');
+
+  if (!lyricsTable) {
+    return tracks;
+  }
+
   const rows = lyricsTable.querySelectorAll('tr');
 
   if (rows.length) {
@@ -70,11 +75,16 @@ export const extractBandProps = (html: string): BandProps => {
   const root = parse(html);
 
   const statsTable = root.querySelector('#band_stats');
+
+  if (!statsTable) {
+    return props;
+  }
+
   const row1 = statsTable.querySelector('dl.float_left');
   const row2 = statsTable.querySelector('dl.float_right');
 
-  props.country = row1.querySelector('dd > a').textContent;
-  props.genre = row2.querySelector('dd').textContent.replace(/\//g, ' - ');
+  props.country = row1?.querySelector('dd > a')?.textContent ?? '';
+  props.genre = row2?.querySelector('dd')?.textContent?.replace(/\//g, ' - ') ?? '';
 
   return props;
 };

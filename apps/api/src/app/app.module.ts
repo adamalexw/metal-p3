@@ -3,6 +3,7 @@ import { BandModule } from '@metal-p3/band/api';
 import { CoverModule } from '@metal-p3/cover/api';
 import { MaintenanceApiModule } from '@metal-p3/maintenance/api';
 import { PlaylistApiModule } from '@metal-p3/playlist/api';
+import { SharedAdbModule } from '@metal-p3/shared/adb';
 import { SharedFileSystemModule } from '@metal-p3/shared/file-system';
 import { TrackModule } from '@metal-p3/track/api';
 import { Module } from '@nestjs/common';
@@ -10,10 +11,11 @@ import { environment } from '../environments/environment.prod';
 
 @Module({
   imports: [
-    AlbumModule.forRoot(environment.basePath, environment.take, environment.adbPath),
+    SharedAdbModule.forRoot(environment.adbPath),
+    AlbumModule.forRoot(environment.basePath, environment.take),
     BandModule,
     CoverModule,
-    TrackModule.forRoot(environment.adbPath),
+    TrackModule.forRoot(),
     SharedFileSystemModule.forRoot(environment.basePath),
     MaintenanceApiModule.forRoot(environment.basePath),
     PlaylistApiModule,

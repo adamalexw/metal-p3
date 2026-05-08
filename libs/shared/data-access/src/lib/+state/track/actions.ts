@@ -25,6 +25,7 @@ export const TrackActions = createActionGroup({
     'Update Tracks Success': props<{ id: number; updates: Update<Track>[] }>(),
     'Get Metal Archives Tracks': props<{ id: number; url: string }>(),
     'Get Metal Archives Tracks Success': props<{ id: number; maTracks: MetalArchivesAlbumTrack[] }>(),
+    'Get Metal Archives Tracks Error': props<{ id: number }>(),
     'Get Lyrics': props<{ id: number; trackId: string }>(),
     'Get Lyrics Success': props<{ id: number; trackId: string; lyrics: string }>(),
     'Get Lyrics Error': props<{ id: number; trackId: string; error: string }>(),

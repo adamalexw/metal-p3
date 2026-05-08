@@ -1,7 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { BandService } from '@metal-p3/band/data-access';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
-import { catchError, EMPTY, map, mergeMap } from 'rxjs';
+import { catchError, EMPTY, map, mergeMap, of } from 'rxjs';
 import { BandActions } from './actions';
 
 @Injectable()
@@ -32,7 +32,7 @@ export class BandEffects {
           map((band) => BandActions.getPropsSuccess({ update: { id, changes: { bandProps: band, gettingBandProps: false } } })),
           catchError((error) => {
             console.error(error);
-            return EMPTY;
+            return of(BandActions.getPropsError({ id }));
           }),
         ),
       ),

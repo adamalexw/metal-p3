@@ -262,6 +262,7 @@ export const albumsFeature = createFeature({
           state,
         ),
     ),
+    on(TrackActions.getMetalArchivesTracksError, (state, { id }): AlbumState => albumAdapter.updateOne({ id, changes: { gettingMaTracks: false } }, state)),
     on(
       TrackActions.renameTrack,
       (state, { id, track }): AlbumState =>
@@ -410,5 +411,6 @@ export const albumsFeature = createFeature({
     on(BandActions.getPropsSuccess, (state, { update }): AlbumState => {
       return albumAdapter.updateOne(update, state);
     }),
+    on(BandActions.getPropsError, (state, { id }): AlbumState => albumAdapter.updateOne({ id, changes: { gettingBandProps: false } }, state)),
   ),
 });

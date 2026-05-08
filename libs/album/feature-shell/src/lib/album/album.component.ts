@@ -303,12 +303,14 @@ export class AlbumShellComponent implements OnInit {
 
   private getMaTracks(id: number, url: string): Observable<MetalArchivesAlbumTrack[] | undefined> {
     return this.maTracks$.pipe(
-      tap((maTracks) => {
-        if (!maTracks) {
+      withLatestFrom(this.gettingMaTracks$),
+      tap(([maTracks, gettingMaTracks]) => {
+        if (!maTracks?.length && !gettingMaTracks) {
           this.store.dispatch(TrackActions.getMetalArchivesTracks({ id, url }));
         }
       }),
-      filter((maTracks) => !!maTracks),
+      map(([maTracks]) => maTracks),
+      filter((maTracks) => !!maTracks?.length),
       take(1),
     );
   }

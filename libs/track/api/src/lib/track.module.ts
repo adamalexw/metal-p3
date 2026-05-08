@@ -1,20 +1,19 @@
-import { SharedAdbModule } from '@metal-p3/shared/adb';
 import { SharedFileSystemModule } from '@metal-p3/shared/file-system';
 import { DynamicModule, Module } from '@nestjs/common';
 import { TrackController } from './track.controller';
 import { TrackService } from './track.service';
 
 @Module({
-  imports: [SharedFileSystemModule, SharedAdbModule],
+  imports: [SharedFileSystemModule],
   controllers: [TrackController],
   providers: [TrackService],
   exports: [TrackService],
 })
 export class TrackModule {
-  static forRoot(adbPath: string): DynamicModule {
+  static forRoot(): DynamicModule {
     return {
       module: TrackModule,
-      imports: [SharedFileSystemModule, SharedAdbModule.forRoot(adbPath)],
+      imports: [SharedFileSystemModule],
     };
   }
 }

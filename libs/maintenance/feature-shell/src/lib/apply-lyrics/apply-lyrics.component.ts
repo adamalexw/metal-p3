@@ -97,7 +97,7 @@ export class ApplyLyricsShellComponent implements OnInit {
 
     combineLatest([album$, this.tracks$])
       .pipe(
-        filter(([album, tracks]) => !album.tracksLoading && !tracks),
+        filter(([album, tracks]) => !album.tracksLoading && (!tracks || tracks.length === 0)),
         map(([album]) => ({ id: album.id, folder: album.folder })),
         tap(({ id, folder }) => this.store.dispatch(TrackActions.getTracks({ id, folder }))),
         take(1),
@@ -107,7 +107,7 @@ export class ApplyLyricsShellComponent implements OnInit {
 
     combineLatest([album$, this.maTracks$])
       .pipe(
-        filter(([album, maTracks]) => !!album.albumUrl && !album.gettingMaTracks && !maTracks),
+        filter(([album, maTracks]) => !!album.albumUrl && !album.gettingMaTracks && (!maTracks || maTracks.length === 0)),
         map(([album]) => ({ id: album.id, url: album.albumUrl || '' })),
         tap(({ id, url }) => this.store.dispatch(TrackActions.getMetalArchivesTracks({ id, url }))),
         take(1),
@@ -117,7 +117,7 @@ export class ApplyLyricsShellComponent implements OnInit {
 
     this.maTracks$
       .pipe(
-        filter((maTracks) => !!maTracks),
+        filter((maTracks) => !!maTracks?.length),
         withLatestFrom(this.albumId$),
         tap(([maTracks, id]) => {
           maTracks

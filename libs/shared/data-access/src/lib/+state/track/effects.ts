@@ -67,7 +67,7 @@ export class TrackEffects {
           map((maTracks) => TrackActions.getMetalArchivesTracksSuccess({ id, maTracks })),
           catchError((error) => {
             console.error(error);
-            return EMPTY;
+            return of(TrackActions.getMetalArchivesTracksError({ id }));
           }),
         ),
       ),

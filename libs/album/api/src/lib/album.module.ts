@@ -9,16 +9,16 @@ import { AlbumController } from './album.controller';
 import { AlbumService } from './album.service';
 
 @Module({
-  imports: [TrackModule, SharedDatabaseModule, SharedFileSystemModule, SharedMetalArchivesModule],
+  imports: [SharedDatabaseModule, SharedFileSystemModule, SharedMetalArchivesModule],
   controllers: [AlbumController],
   providers: [AlbumService, AlbumGateway],
   exports: [AlbumService],
 })
 export class AlbumModule {
-  static forRoot(basePath: string, take: number, adbPath: string): DynamicModule {
+  static forRoot(basePath: string, take: number): DynamicModule {
     return {
       module: AlbumModule,
-      imports: [TrackModule.forRoot(adbPath), SharedDatabaseModule, SharedFileSystemModule, SharedMetalArchivesModule],
+      imports: [TrackModule.forRoot(), SharedDatabaseModule, SharedFileSystemModule, SharedMetalArchivesModule],
       providers: [
         { provide: BASE_PATH_TOKEN, useValue: basePath },
         { provide: TAKE_TOKEN, useValue: take },

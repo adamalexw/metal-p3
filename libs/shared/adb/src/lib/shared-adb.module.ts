@@ -12,9 +12,12 @@ import { AdbService } from './adb.service';
 export class SharedAdbModule {
   static forRoot(adbPath: string): DynamicModule {
     return {
+      global: true,
       module: SharedAdbModule,
-      providers: [{ provide: 'ADB_PATH', useValue: adbPath }],
-      exports: [{ provide: 'ADB_PATH', useValue: adbPath }],
+      imports: [SharedFileSystemModule],
+      controllers: [AdbController],
+      providers: [{ provide: 'ADB_PATH', useValue: adbPath }, AdbService],
+      exports: [AdbService, 'ADB_PATH'],
     };
   }
 }

@@ -23,7 +23,7 @@ export class PlayerService {
   addAlbumToPlaylist(albumId: number, tracks$: Observable<TrackDto[] | undefined>) {
     tracks$
       .pipe(
-        filter((tracks) => !!tracks),
+        filter((tracks) => !!tracks?.length),
         take(1),
         withLatestFrom(this.store.select(selectPlaylistItemSize)),
         map(([tracks, size]) => tracks?.map((track, index) => this.mapTrackToPlaylistItem(track, albumId, index + size))),

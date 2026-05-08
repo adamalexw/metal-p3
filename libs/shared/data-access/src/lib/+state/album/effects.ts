@@ -223,7 +223,7 @@ export class AlbumEffects {
       ofType(AlbumActions.renameFolderSuccess),
       map(({ update }) => ({ id: update.id, fullPath: update.changes.fullPath })),
       concatLatestFrom(() => this.store.select(selectTracks)),
-      filter(([_, tracks]) => !!tracks),
+      filter(([_, tracks]) => !!tracks?.length),
       map(([{ id, fullPath }, tracks]) => {
         const updates = (tracks || []).map((track) => ({ id: track.id, changes: { folder: fullPath, fullPath: `${fullPath}/${track.file}` } })) as Update<Track>[];
 
