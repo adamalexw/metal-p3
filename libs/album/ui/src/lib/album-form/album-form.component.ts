@@ -10,10 +10,23 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { RouterModule } from '@angular/router';
 import { AlbumDetailsForm } from '@metal-p3/album/domain';
 import { TitleCaseDirective } from '@metal-p3/shared/title-case';
+import { CountryFlagPipe } from '@metal-p3/shared/utils';
 import { WA_WINDOW } from '@ng-web-apis/common';
 
 @Component({
-  imports: [FormsModule, MatButtonModule, MatCheckboxModule, MatFormFieldModule, MatIconModule, MatInputModule, MatProgressBarModule, ReactiveFormsModule, RouterModule, TitleCaseDirective],
+  imports: [
+    CountryFlagPipe,
+    FormsModule,
+    MatButtonModule,
+    MatCheckboxModule,
+    MatFormFieldModule,
+    MatIconModule,
+    MatInputModule,
+    MatProgressBarModule,
+    ReactiveFormsModule,
+    RouterModule,
+    TitleCaseDirective,
+  ],
   selector: 'app-album-form',
   templateUrl: './album-form.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -35,6 +48,10 @@ export class AlbumFormComponent implements OnInit {
 
   get hasLyrics(): boolean {
     return this.form.controls.hasLyrics.value ?? false;
+  }
+
+  get country(): string | undefined {
+    return this.form.controls.country.value;
   }
 
   protected form!: FormGroup<AlbumDetailsForm>;

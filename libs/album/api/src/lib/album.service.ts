@@ -3,14 +3,13 @@ import { Album, Band, Prisma } from '@metal-p3/prisma/client';
 import { AlbumWithBand, DbService } from '@metal-p3/shared/database';
 import { FileSystemService } from '@metal-p3/shared/file-system';
 import { MetalArchivesService } from '@metal-p3/shared/metal-archives';
-import { nonNullable } from '@metal-p3/shared/utils';
 import { TrackService } from '@metal-p3/track/api';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import chokidar from 'chokidar';
 import * as fs from 'fs';
 import * as NodeID3 from 'node-id3';
 import * as path from 'path';
-import { Observable, catchError, combineLatest, concatMap, from, map, of } from 'rxjs';
+import { Observable, catchError, concatMap, from, map, of } from 'rxjs';
 import { AlbumGateway } from './album-gateway.service';
 
 @Injectable()
@@ -94,11 +93,19 @@ export class AlbumService {
       };
     }
 
-    if (request.played) {
-      where = {
-        ...where,
-        Played: Boolean(request.played),
-      };
+    if (request.played != null) {
+      const playedBool = request.played === true;
+      if (playedBool) {
+        where = {
+          ...where,
+          Played: true,
+        };
+      } else {
+        where = {
+          ...where,
+          OR: [{ Played: false }, { Played: null }],
+        };
+      }
     }
 
     if (bandWhere) {
@@ -280,23 +287,36 @@ export class AlbumService {
   addAlbum(folder: string): Observable<AlbumDto> {
     const dirName = this.fileSystemService.getFilename(folder);
 
-    const album$ = this.getAlbums({ take: 1, folder: dirName, exactMatch: true }).pipe(
-      map((album) => {
-        if (album.length) {
+    // Step 1: Read ID3 tags and resolve (or create) the band record.
+    // Step 2: Search Metal Archives for URLs, then persist the album.
+    // Step 3: Rename the folder and individual track files to a canonical format.
+    return this.prepareTagsAndBand(folder, dirName).pipe(
+      concatMap(({ tags, band }) => this.searchAndCreateAlbum(folder, tags, band)),
+      concatMap((albumDto) => this.renameFolderAndTracks(albumDto)),
+    );
+  }
+
+  private prepareTagsAndBand(folder: string, dirName: string): Observable<{ tags: NodeID3.Tags; band: Band }> {
+    return this.getAlbums({ take: 1, folder: dirName, exactMatch: true }).pipe(
+      // Guard against duplicate folder entries in the database.
+      map((albums) => {
+        if (albums.length) {
           throw new Error('folder already exists');
         }
       }),
       map(() => {
+        // Flatten any sub-folders so all files are accessible at the root level.
         this.fileSystemService.moveFilesToTheRoot(folder, folder);
 
         const mp3 = this.fileSystemService.getFiles(folder).find((f) => path.extname(f) === '.mp3');
 
         if (!mp3) {
-          return null;
+          throw new Error('no mp3 files found in folder');
         }
 
         const tags = this.trackService.getTags(path.join(folder, mp3));
 
+        // Fall back to parsing artist/album from the folder name ("Artist - Album") when tags are missing.
         if (tags.artist) {
           return tags;
         }
@@ -304,17 +324,78 @@ export class AlbumService {
         const folderSplit = this.fileSystemService.getFilename(folder).split('-');
         return { ...tags, artist: folderSplit[0].trim(), album: folderSplit?.[1]?.trim() ?? '' };
       }),
-      nonNullable(),
-      concatMap((tags) => combineLatest([of(tags), from(this.dbService.bands({ Name: tags.artist }))])),
-      concatMap(([tags, bands]) => combineLatest([of(tags), bands.length ? of(bands[0]) : from(this.dbService.createBand({ Name: tags.artist ?? '' }))])),
-      map(([tags, band]) => this.mapTagsToAlbum(path.basename(folder), tags, band)),
-      concatMap((data) => from(this.dbService.createAlbum(data))),
-      map((newAlbum) => this.mapAlbumToAlbumDto(newAlbum)),
+      concatMap((tags) =>
+        // Look up an existing band record, or create a new one if none exists.
+        from(this.dbService.bands({ Name: tags.artist })).pipe(
+          concatMap((bands) => (bands.length ? of(bands[0]) : from(this.dbService.createBand({ Name: tags.artist ?? '' })))),
+          map((band) => ({ tags, band })),
+        ),
+      ),
     );
+  }
 
-    return album$.pipe(
-      concatMap((albumDto) => this.renameFolderAndTracks(albumDto)),
-      concatMap((albumDto) => this.findMetalArchivesUrls(albumDto)),
+  private searchAndCreateAlbum(folder: string, tags: NodeID3.Tags, band: Band): Observable<AlbumDto> {
+    const artist = tags.artist;
+    const album = tags.album;
+
+    // Search Metal Archives for matching artist/album URLs. Errors are non-fatal —
+    // the album is still created without URLs if the search fails.
+    const maSearch$ =
+      artist && album
+        ? this.metalArchivesService.findUrl(artist, album).pipe(
+            map((response: MetalArchivesSearchResponse) => this.extractMetalArchivesUrls(response)),
+            catchError((error) => {
+              Logger.error(`Failed to find Metal Archives URL: ${error}`);
+              return of<{ artistUrl?: string; albumUrl?: string }>({});
+            }),
+          )
+        : of<{ artistUrl?: string; albumUrl?: string }>({});
+
+    return maSearch$.pipe(
+      concatMap(({ artistUrl, albumUrl }) => {
+        // Persist the album with the album URL included in the initial write,
+        // avoiding a separate updateAlbum call later.
+        const data = this.mapTagsToAlbum(path.basename(folder), tags, band, albumUrl);
+        return from(this.dbService.createAlbum(data)).pipe(
+          map((newAlbum) => this.mapAlbumToAlbumDto(newAlbum)),
+          concatMap((albumDto) => {
+            // Update the band record if we have a new artist URL, or if country/genre are missing.
+            if (artistUrl && band.BandId && (!band.MetalArchiveUrl || !band.Country || !band.Genre)) {
+              // Only fetch band props from Metal Archives when country or genre are absent.
+              const needsBandProps = !band.Country || !band.Genre;
+              const bandProps$ =
+                needsBandProps && artistUrl
+                  ? this.metalArchivesService.getBandProps(artistUrl).pipe(
+                      catchError((error) => {
+                        Logger.error(`Failed to fetch band props: ${error}`);
+                        return of<{ genre?: string; country?: string }>({});
+                      }),
+                    )
+                  : of<{ genre?: string; country?: string }>({});
+
+              return bandProps$.pipe(
+                concatMap(({ genre, country }) => {
+                  // Only set fields that are currently empty — never overwrite existing values.
+                  const bandUpdate: Prisma.BandUpdateInput = {
+                    ...(!band.MetalArchiveUrl && { MetalArchiveUrl: artistUrl }),
+                    ...(!band.Country && country && { Country: country }),
+                    ...(!band.Genre && genre && { Genre: genre }),
+                  };
+                  return from(this.dbService.updateBand({ where: { BandId: band.BandId }, data: bandUpdate })).pipe(
+                    map((updatedBand) => ({
+                      ...albumDto,
+                      artistUrl,
+                      country: updatedBand.Country ?? albumDto.country,
+                      genre: updatedBand.Genre ?? albumDto.genre,
+                    })),
+                  );
+                }),
+              );
+            }
+            return of(albumDto);
+          }),
+        );
+      }),
     );
   }
 
@@ -326,10 +407,12 @@ export class AlbumService {
     const dest = `${albumDto.artist} - ${albumDto.album}`;
     const expectedFolder = this.fileSystemService.filenameValidator(dest);
 
+    // Skip the filesystem rename if the folder already matches the canonical name.
     if (albumDto.folder === expectedFolder) {
       return this.renameAlbumTracks(albumDto);
     }
 
+    // Rename the folder on disk and update the database, then rename the tracks inside.
     return from(this.renameFolder(albumDto.id, albumDto.fullPath, dest)).pipe(
       map(({ fullPath, folder }) => ({ ...albumDto, fullPath, folder })),
       catchError((error) => {
@@ -357,6 +440,8 @@ export class AlbumService {
       return of(albumDto);
     }
 
+    // Read tags for all tracks, then rename each file to its canonical name.
+    // Individual rename failures are logged and skipped rather than aborting the whole batch.
     return this.trackService.getTracks(files).pipe(
       map((tracks) => {
         for (const track of tracks) {
@@ -375,54 +460,29 @@ export class AlbumService {
     );
   }
 
-  private findMetalArchivesUrls(albumDto: AlbumDto): Observable<AlbumDto> {
-    if (!albumDto.artist || !albumDto.album || albumDto.artistUrl || albumDto.albumUrl) {
-      return of(albumDto);
+  private extractMetalArchivesUrls(response: MetalArchivesSearchResponse): { artistUrl?: string; albumUrl?: string } {
+    if (response.iTotalRecords === 1 && response.results.length === 1) {
+      return { artistUrl: response.results[0].artistUrl, albumUrl: response.results[0].albumUrl };
     }
 
-    return this.metalArchivesService.findUrl(albumDto.artist, albumDto.album).pipe(
-      concatMap((response: MetalArchivesSearchResponse) => {
-        if (response.iTotalRecords === 1 && response.results.length === 1) {
-          return this.saveMetalArchivesUrls(albumDto, response.results[0].artistUrl, response.results[0].albumUrl);
-        }
+    if (response.iTotalRecords > 1) {
+      const fullLengths = response.results.filter((r) => r.releaseType === 'Full-length');
+      if (fullLengths.length === 1) {
+        return { artistUrl: fullLengths[0].artistUrl, albumUrl: fullLengths[0].albumUrl };
+      }
+    }
 
-        if (response.iTotalRecords > 1) {
-          const fullLengths = response.results.filter((r) => r.releaseType === 'Full-length');
-
-          if (fullLengths.length === 1) {
-            return this.saveMetalArchivesUrls(albumDto, fullLengths[0].artistUrl, fullLengths[0].albumUrl);
-          }
-        }
-
-        return of(albumDto);
-      }),
-      catchError((error) => {
-        Logger.error(`Failed to find Metal Archives URL for album ${albumDto.id}: ${error}`);
-        return of(albumDto);
-      }),
-    );
+    return {};
   }
 
-  private saveMetalArchivesUrls(albumDto: AlbumDto, artistUrl: string, albumUrl: string): Observable<AlbumDto> {
-    return from(this.dbService.updateAlbum({ where: { AlbumId: albumDto.id }, data: { MetalArchiveUrl: albumUrl } })).pipe(
-      concatMap(() => {
-        if (artistUrl && albumDto.bandId) {
-          return from(this.dbService.updateBand({ where: { BandId: albumDto.bandId }, data: { MetalArchiveUrl: artistUrl } }));
-        }
-        return of(undefined);
-      }),
-      map(() => ({ ...albumDto, artistUrl, albumUrl })),
-    );
-  }
-
-  private mapTagsToAlbum(folder: string, tags: NodeID3.Tags, band: Band): Prisma.AlbumCreateInput {
+  private mapTagsToAlbum(folder: string, tags: NodeID3.Tags, band: Band, albumUrl?: string): Prisma.AlbumCreateInput {
     const bandInput: Prisma.BandCreateNestedOneWithoutAlbumInput = {
       connect: { BandId: band.BandId },
     };
 
     const lyrics = !!tags.unsynchronisedLyrics?.text;
 
-    const input: Prisma.AlbumCreateInput = {
+    return {
       Folder: folder,
       Name: tags.album,
       Year: Number.isInteger(Number(tags.year)) && Number(tags.year) > 0 ? Number(tags.year) : new Date().getFullYear(),
@@ -430,9 +490,8 @@ export class AlbumService {
       Lyrics: lyrics,
       LyricsDate: lyrics ? new Date() : null,
       Band: bandInput,
+      ...(albumUrl && { MetalArchiveUrl: albumUrl }),
     };
-
-    return input;
   }
 
   async saveAlbum(album: AlbumDto): Promise<Album> {

@@ -1,16 +1,22 @@
 <mat-card class="hover:bg-background hover:shadow-2xl" appearance="raised">
   <mat-card-header class="py-2 **:w-full">
     <mat-card-title>
-      <div class="flex items-center">
+      <div class="flex items-center gap-1">
         <p class="line-clamp-1 grow">{{ album().artist }}</p>
         @if (album().played) {
           <mat-icon>playlist_play</mat-icon>
         }
       </div>
     </mat-card-title>
-    <mat-card-subtitle (click)="openAlbum.emit(album().id)"
-      ><p class="line-clamp-1 cursor-pointer">{{ album().album }}</p></mat-card-subtitle
-    >
+    <mat-card-subtitle (click)="openAlbum.emit(album().id)">
+      <div class="flex items-center gap-1">
+        <p class="line-clamp-1 grow">{{ album().album }}</p>
+        @let flagCode = album().country | countryFlag;
+        @if (flagCode) {
+          <span [class]="'fi fi-' + flagCode" [title]="album().country!"></span>
+        }
+      </div>
+    </mat-card-subtitle>
   </mat-card-header>
 
   <mat-card-content>

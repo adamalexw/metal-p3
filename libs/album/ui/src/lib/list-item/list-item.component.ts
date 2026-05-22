@@ -6,9 +6,10 @@ import { MatMenuModule } from '@angular/material/menu';
 import { CoverComponent } from '@metal-p3/cover/ui';
 import { Album } from '@metal-p3/shared/data-access';
 import { ConfirmDeleteDirective } from '@metal-p3/shared/feedback';
+import { CountryFlagPipe } from '@metal-p3/shared/utils';
 
 @Component({
-  imports: [ConfirmDeleteDirective, CoverComponent, MatCardModule, MatButtonModule, MatIconModule, MatMenuModule],
+  imports: [ConfirmDeleteDirective, CoverComponent, CountryFlagPipe, MatCardModule, MatButtonModule, MatIconModule, MatMenuModule],
   selector: 'app-list-item',
   templateUrl: './list-item.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
