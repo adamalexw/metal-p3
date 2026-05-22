@@ -32,7 +32,7 @@
         (coverUrl)="coverUrl.emit({ id: album.id, url: $event })"
       />
 
-      <app-album-form class="mt-1 mb-0 block w-full lg:mx-2" (findBandProps)="getBandProps($event)" (lyricsPriority)="lyricsPriority.emit(albumId())" />
+      <app-album-form class="mt-1 mb-0 block w-full lg:mx-2" (findBandProps)="getBandProps($event)" (identifyBand)="onIdentifyBand()" (lyricsPriority)="lyricsPriority.emit(albumId())" />
     </section>
 
     <section>

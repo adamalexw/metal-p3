@@ -1,7 +1,9 @@
-import { ChangeDetectionStrategy, Component, computed, effect, inject, input, output, untracked } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, computed, effect, inject, input, output, untracked } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormGroup, FormsModule, NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
@@ -9,7 +11,7 @@ import { MatListModule } from '@angular/material/list';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { RouterModule } from '@angular/router';
 import { AlbumDetailsForm, AlbumForm } from '@metal-p3/album/domain';
-import { BandProps, MetalArchivesAlbumTrack, MetalArchivesUrl, TrackBase } from '@metal-p3/api-interfaces';
+import { BandDto, BandProps, MetalArchivesAlbumTrack, MetalArchivesUrl, TrackBase } from '@metal-p3/api-interfaces';
 import { CoverComponent } from '@metal-p3/cover/ui';
 import { Album, AlbumWithoutTracks } from '@metal-p3/shared/data-access';
 import { NotificationService } from '@metal-p3/shared/feedback';
@@ -18,6 +20,7 @@ import { TracksComponent, TracksToolbarComponent } from '@metal-p3/track/ui';
 import { WA_WINDOW } from '@ng-web-apis/common';
 import { AlbumFormComponent } from '../album-form/album-form.component';
 import { AlbumToolbarComponent } from '../album-toolbar/album-toolbar.component';
+import { BandIdentifyComponent } from './band-identify.component';
 
 @Component({
   imports: [
@@ -27,6 +30,7 @@ import { AlbumToolbarComponent } from '../album-toolbar/album-toolbar.component'
     FormsModule,
     MatButtonModule,
     MatCheckboxModule,
+    MatDialogModule,
     MatFormFieldModule,
     MatIconModule,
     MatInputModule,
@@ -48,6 +52,10 @@ export class AlbumComponent {
   private readonly fb = inject(NonNullableFormBuilder);
   private readonly windowRef = inject(WA_WINDOW);
   private readonly notificationService = inject(NotificationService);
+  private readonly dialog = inject(MatDialog);
+  private readonly destroyRef = inject(DestroyRef);
+
+  private selectedBandId: number | undefined;
 
   album = input.required<Album | null>();
   albumSaving = input<boolean | null>(false);
@@ -270,7 +278,7 @@ export class AlbumComponent {
         id: this.albumId(),
         folder,
         fullPath,
-        bandId: this.album()?.bandId ?? 0,
+        bandId: this.selectedBandId ?? this.album()?.bandId ?? 0,
         cover: this.cover() ?? '',
       },
       tracks: this.getTracks(),
@@ -327,6 +335,26 @@ export class AlbumComponent {
 
   getBandProps(url: string) {
     this.findBandProps.emit({ id: this.albumId(), url });
+  }
+
+  onIdentifyBand(): void {
+    const artistName = this.details.controls.artist.value;
+    if (!artistName) return;
+
+    this.dialog
+      .open<BandIdentifyComponent, { name: string }, BandDto>(BandIdentifyComponent, {
+        width: '600px',
+        data: { name: artistName },
+      })
+      .afterClosed()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((band) => {
+        if (band) {
+          this.selectedBandId = band.id;
+          this.details.controls.country.setValue(band.country);
+          this.details.controls.genre.setValue(band.genre);
+        }
+      });
   }
 
   onTransferAlbum() {

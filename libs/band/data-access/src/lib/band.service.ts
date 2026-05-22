@@ -13,6 +13,10 @@ export class BandService {
 
   private readonly baseUrl = `${this.api}band`;
 
+  getBands(criteria: string): Observable<BandDto[]> {
+    return this.http.get<BandDto[]>(`${this.baseUrl}/search?criteria=${encodeURIComponent(criteria)}`);
+  }
+
   saveBand(band: BandDto): Observable<never> {
     return this.http.patch<never>(this.baseUrl, band);
   }

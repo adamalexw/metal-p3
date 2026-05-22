@@ -1,0 +1,29 @@
+<h2 mat-dialog-title>Identify Band — {{ data.name }}</h2>
+
+<mat-dialog-content>
+  @if (loading()) {
+    <mat-progress-bar mode="indeterminate" aria-label="Loading bands" />
+  }
+
+  <mat-action-list>
+    @for (band of bands(); track band.id) {
+      <mat-list-item (click)="select(band)">
+        <span matListItemTitle>{{ band.name }}</span>
+        <span matListItemLine>{{ band.genre }} · {{ band.country }}</span>
+        @if (band.metalArchiveUrl) {
+          <a matListItemMeta [href]="band.metalArchiveUrl" target="_blank" rel="noopener" (click)="$event.stopPropagation()" aria-label="View on Metal Archives">
+            <mat-icon>link</mat-icon>
+          </a>
+        }
+      </mat-list-item>
+    } @empty {
+      @if (!loading()) {
+        <p class="py-4 text-center">No bands found.</p>
+      }
+    }
+  </mat-action-list>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button type="button" mat-button mat-dialog-close>Cancel</button>
+</mat-dialog-actions>

@@ -37,6 +37,7 @@ export class AlbumFormComponent implements OnInit {
 
   readonly lyricsPriority = output<void>();
   readonly findBandProps = output<string>();
+  readonly identifyBand = output<void>();
 
   get albumUrl(): string | undefined {
     return this.form.controls.albumUrl.value;
