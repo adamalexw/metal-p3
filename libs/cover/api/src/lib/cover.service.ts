@@ -164,6 +164,12 @@ export class CoverService {
     }
 
     try {
+      this.fileSystemService.setReadAndWritePermission(folder);
+
+      if (fs.existsSync(location)) {
+        this.fileSystemService.setReadAndWritePermission(location);
+      }
+
       await sharpFn(buffer).resize({ height: 500, width: 500 }).toFile(tempLocation);
 
       fs.renameSync(tempLocation, location);

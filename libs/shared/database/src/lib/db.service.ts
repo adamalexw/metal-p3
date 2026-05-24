@@ -1,7 +1,7 @@
 import { Album, Band, LyricsHistory, Playlist, PlaylistItem, Prisma } from '@metal-p3/prisma/client';
 import { Injectable, UseFilters } from '@nestjs/common';
 import { DbExceptionsFilter } from './db-exceptions-filter';
-import type { AlbumWithBand, AlbumWithLyricsHistory, LyricsHistoryWithAlbum, MissingUrlResult, PlaylistWithItems } from './model';
+import type { AlbumWithBand, AlbumWithLyricsHistory, BandWithAlbumCount, LyricsHistoryWithAlbum, MissingUrlResult, PlaylistWithItems } from './model';
 import { PrismaService } from './prisma.service';
 
 @UseFilters(new DbExceptionsFilter())
@@ -60,9 +60,10 @@ export class DbService {
     return this.prisma.album.delete({ where: { AlbumId: id } });
   }
 
-  async bands(where: Prisma.BandWhereInput): Promise<Band[]> {
+  async bands(where: Prisma.BandWhereInput): Promise<BandWithAlbumCount[]> {
     return this.prisma.band.findMany({
       where,
+      include: { _count: { select: { Album: true } } },
     });
   }
 
@@ -82,6 +83,14 @@ export class DbService {
       data,
       where,
     });
+  }
+
+  async deleteBand(id: number): Promise<void> {
+    await this.prisma.band.delete({ where: { BandId: id } });
+  }
+
+  async bandAlbumCount(id: number): Promise<number> {
+    return this.prisma.album.count({ where: { BandId: id } });
   }
 
   async lyricsHistory(): Promise<AlbumWithLyricsHistory[]> {

@@ -30,6 +30,8 @@
       <span class="flex items-center px-2" matSuffix>
         <span [class]="'fi fi-' + flagCode" [title]="country!"></span>
       </span>
+    } @else if (country?.toLowerCase() === 'international') {
+      <mat-icon class="text-sm" matSuffix title="International">language</mat-icon>
     } @else if (artistUrl) {
       <button type="button" [attr.aria-label]="'Get country'" (click)="getBandProps(artistUrl)" mat-icon-button matSuffix>
         <mat-icon>flag</mat-icon>

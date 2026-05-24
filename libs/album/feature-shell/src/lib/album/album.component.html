@@ -22,7 +22,7 @@
   [gettingBandProps]="gettingBandProps$ | async"
   [bandProps]="bandProps$ | async"
   (coverUrl)="onDownloadCover($event.id, $event.url)"
-  (save)="onSave($event.album, $event.tracks)"
+  (save)="onSave($event.album, $event.tracks, $event.previousBandId)"
   (findUrl)="onFindUrl($event.id, $event.artist, $event.album)"
   (getMaTracks)="onMaTracks($event.id, $event.url)"
   (lyrics)="onLyrics($event.id, $event.url)"

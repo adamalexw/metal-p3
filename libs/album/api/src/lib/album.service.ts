@@ -526,6 +526,7 @@ export class AlbumService {
       Transferred: albumDto.transferred,
       Year: Number(albumDto.year),
       Played: albumDto.played,
+      BandId: albumDto.bandId || null,
     };
   }
 

@@ -2,28 +2,49 @@
 
 <mat-dialog-content>
   @if (loading()) {
-    <mat-progress-bar mode="indeterminate" aria-label="Loading bands" />
+    <mat-progress-bar aria-label="Loading bands" mode="indeterminate" />
   }
 
-  <mat-action-list>
+  <div class="flex flex-col">
     @for (band of bands(); track band.id) {
-      <mat-list-item (click)="select(band)">
-        <span matListItemTitle>{{ band.name }}</span>
-        <span matListItemLine>{{ band.genre }} · {{ band.country }}</span>
-        @if (band.metalArchiveUrl) {
-          <a matListItemMeta [href]="band.metalArchiveUrl" target="_blank" rel="noopener" (click)="$event.stopPropagation()" aria-label="View on Metal Archives">
-            <mat-icon>link</mat-icon>
-          </a>
-        }
-      </mat-list-item>
+      <div class="flex cursor-pointer items-center gap-4 rounded px-2 py-3 hover:bg-black/5" (click)="select(band)">
+        <div class="flex flex-1 flex-col">
+          <span class="font-medium">{{ band.name }}</span>
+          <span class="flex items-center gap-1 text-sm text-gray-500">
+            {{ band.genre }} · {{ band.country }}
+            @if (band.country?.toLowerCase() === 'international') {
+              <mat-icon class="text-sm" fontSet="material-icons" title="International">language</mat-icon>
+            }
+          </span>
+        </div>
+        <div class="flex items-center gap-2 text-sm text-gray-500">
+          <span>{{ band.albumCount ?? 0 }} {{ (band.albumCount ?? 0) === 1 ? 'album' : 'albums' }}</span>
+          @if (band.metalArchiveUrl) {
+            <a aria-label="View on Metal Archives" class="flex items-center" [href]="band.metalArchiveUrl" (click)="$event.stopPropagation()" target="_blank" rel="noopener">
+              <mat-icon>link</mat-icon>
+            </a>
+          }
+          @if (band.id === data.bandId) {
+            <mat-icon color="primary">check</mat-icon>
+          }
+        </div>
+      </div>
     } @empty {
       @if (!loading()) {
         <p class="py-4 text-center">No bands found.</p>
       }
     }
-  </mat-action-list>
+  </div>
 </mat-dialog-content>
 
 <mat-dialog-actions align="end">
   <button type="button" mat-button mat-dialog-close>Cancel</button>
+  <button type="button" [disabled]="creating()" (click)="createNew()" mat-stroked-button matTooltip="Create a new band with this name">
+    @if (creating()) {
+      <mat-icon>hourglass_empty</mat-icon>
+    } @else {
+      <mat-icon>add</mat-icon>
+    }
+    Create New Band
+  </button>
 </mat-dialog-actions>

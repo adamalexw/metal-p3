@@ -11,5 +11,6 @@ export const BandActions = createActionGroup({
     'Get Props': props<{ id: number; url: string }>(),
     'Get Props Success': props<{ update: Update<Album> }>(),
     'Get Props Error': props<{ id: number }>(),
+    'Delete If Orphaned': props<{ id: number }>(),
   },
 });

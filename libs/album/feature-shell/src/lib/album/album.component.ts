@@ -167,8 +167,8 @@ export class AlbumShellComponent implements OnInit {
     this.store.dispatch(CoverActions.download({ id, url }));
   }
 
-  onSave(album: AlbumWithoutTracks, tracks: TrackBase[]) {
-    this.store.dispatch(AlbumActions.saveAlbum({ album }));
+  onSave(album: AlbumWithoutTracks, tracks: TrackBase[], previousBandId?: number) {
+    this.store.dispatch(AlbumActions.saveAlbum({ album, previousBandId }));
 
     if (album.cover) {
       this.coverService

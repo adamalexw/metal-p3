@@ -1,5 +1,5 @@
 import { BandDto, BandProps } from '@metal-p3/api-interfaces';
-import { Body, Controller, Get, HttpCode, HttpStatus, Patch, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Patch, Post, Query } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { BandService } from './band.service';
 
@@ -22,9 +22,21 @@ export class BandController {
     return this.bandService.getBandProps(url);
   }
 
+  @Post()
+  @HttpCode(HttpStatus.CREATED)
+  create(@Body('name') name: string): Promise<BandDto> {
+    return this.bandService.createBand(name);
+  }
+
   @Patch()
   @HttpCode(HttpStatus.ACCEPTED)
   patch(@Body() band: BandDto): Promise<void> {
     return this.bandService.saveBand(band);
+  }
+
+  @Delete()
+  @HttpCode(HttpStatus.OK)
+  deleteIfOrphaned(@Query('id') id: number): Promise<boolean> {
+    return this.bandService.deleteIfOrphaned(+id);
   }
 }

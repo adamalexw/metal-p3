@@ -55,6 +55,7 @@ export interface BandDto extends BandProps {
   id: number;
   name: string;
   metalArchiveUrl?: string | null;
+  albumCount?: number;
 }
 
 export interface BandProps {

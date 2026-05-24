@@ -21,6 +21,7 @@ import { WA_WINDOW } from '@ng-web-apis/common';
 import { AlbumFormComponent } from '../album-form/album-form.component';
 import { AlbumToolbarComponent } from '../album-toolbar/album-toolbar.component';
 import { BandIdentifyComponent } from './band-identify.component';
+import { take } from 'rxjs';
 
 @Component({
   imports: [
@@ -53,9 +54,6 @@ export class AlbumComponent {
   private readonly windowRef = inject(WA_WINDOW);
   private readonly notificationService = inject(NotificationService);
   private readonly dialog = inject(MatDialog);
-  private readonly destroyRef = inject(DestroyRef);
-
-  private selectedBandId: number | undefined;
 
   album = input.required<Album | null>();
   albumSaving = input<boolean | null>(false);
@@ -83,6 +81,7 @@ export class AlbumComponent {
   readonly save = output<{
     album: AlbumWithoutTracks;
     tracks: TrackBase[];
+    previousBandId?: number;
   }>();
 
   readonly coverUrl = output<{
@@ -266,11 +265,13 @@ export class AlbumComponent {
     });
   }
 
-  onSave(): void {
+  onSave(bandId?: number): void {
     const currentAlbum = this.album();
     if (!currentAlbum) return;
     const { folder, fullPath } = currentAlbum;
     const album = this.details.getRawValue();
+
+    const previousBandId = bandId !== undefined && bandId !== currentAlbum.bandId ? currentAlbum.bandId : undefined;
 
     this.save.emit({
       album: {
@@ -278,10 +279,11 @@ export class AlbumComponent {
         id: this.albumId(),
         folder,
         fullPath,
-        bandId: this.selectedBandId ?? this.album()?.bandId ?? 0,
+        bandId: bandId ?? currentAlbum.bandId ?? 0,
         cover: this.cover() ?? '',
       },
       tracks: this.getTracks(),
+      previousBandId,
     });
   }
 
@@ -342,17 +344,17 @@ export class AlbumComponent {
     if (!artistName) return;
 
     this.dialog
-      .open<BandIdentifyComponent, { name: string }, BandDto>(BandIdentifyComponent, {
+      .open<BandIdentifyComponent, { name: string; bandId: number | undefined }, BandDto>(BandIdentifyComponent, {
         width: '600px',
-        data: { name: artistName },
+        data: { name: artistName, bandId: this.album()?.bandId },
       })
       .afterClosed()
-      .pipe(takeUntilDestroyed(this.destroyRef))
+      .pipe(take(1))
       .subscribe((band) => {
         if (band) {
-          this.selectedBandId = band.id;
           this.details.controls.country.setValue(band.country);
           this.details.controls.genre.setValue(band.genre);
+          this.onSave(band.id);
         }
       });
   }

@@ -11,7 +11,7 @@ import { WA_WINDOW } from '@ng-web-apis/common';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { Update } from '@ngrx/entity';
 import { concatLatestFrom } from '@ngrx/operators';
-import { Store } from '@ngrx/store';
+import { Action, Store } from '@ngrx/store';
 import { catchError, concatMap, EMPTY, filter, map, mergeMap, of, switchMap, tap, throwError } from 'rxjs';
 import { BandActions } from '../band/actions';
 import { Album } from '../model';
@@ -103,13 +103,21 @@ export class AlbumEffects {
   saveAlbum$ = createEffect(() => {
     return this.actions$.pipe(
       ofType(AlbumActions.saveAlbum),
-      mergeMap(({ album }) =>
+      mergeMap(({ album, previousBandId }) =>
         this.service.saveAlbum(album).pipe(
           map(() => {
             const { cover: _, ...rest } = album;
             return rest;
           }),
-          map((album) => AlbumActions.saveAlbumSuccess({ update: { id: album.id, changes: { ...album, saving: false, saveError: undefined } } })),
+          mergeMap((savedAlbum) => {
+            const actions: Action[] = [
+              AlbumActions.saveAlbumSuccess({ update: { id: savedAlbum.id, changes: { ...savedAlbum, saving: false, saveError: undefined } } }),
+            ];
+            if (previousBandId && previousBandId !== (savedAlbum.bandId || 0)) {
+              actions.push(BandActions.deleteIfOrphaned({ id: previousBandId }));
+            }
+            return of(...actions);
+          }),
           catchError((error) => of(AlbumActions.saveAlbumError({ update: { id: album.id, changes: { saving: false, saveError: this.errorService.getError(error) } } }))),
         ),
       ),

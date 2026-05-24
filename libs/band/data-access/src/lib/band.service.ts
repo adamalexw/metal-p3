@@ -17,8 +17,16 @@ export class BandService {
     return this.http.get<BandDto[]>(`${this.baseUrl}/search?criteria=${encodeURIComponent(criteria)}`);
   }
 
+  createBand(name: string): Observable<BandDto> {
+    return this.http.post<BandDto>(this.baseUrl, { name });
+  }
+
   saveBand(band: BandDto): Observable<never> {
     return this.http.patch<never>(this.baseUrl, band);
+  }
+
+  deleteIfOrphaned(id: number): Observable<boolean> {
+    return this.http.delete<boolean>(`${this.baseUrl}?id=${id}`);
   }
 
   getBandProps(url: string): Observable<BandProps> {

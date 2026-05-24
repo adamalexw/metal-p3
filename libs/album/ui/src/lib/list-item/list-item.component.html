@@ -14,6 +14,8 @@
         @let flagCode = album().country | countryFlag;
         @if (flagCode) {
           <span [class]="'fi fi-' + flagCode" [title]="album().country!"></span>
+        } @else if (album().country?.toLowerCase() === 'international') {
+          <mat-icon class="text-sm" title="International">language</mat-icon>
         }
       </div>
     </mat-card-subtitle>

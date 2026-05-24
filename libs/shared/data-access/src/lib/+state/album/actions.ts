@@ -33,7 +33,7 @@ export const AlbumActions = createActionGroup({
     'Rename Folder': props<{ id: number; src: string; artist: string; album: string }>(),
     'Rename Folder Success': props<{ update: Update<Album> }>(),
     'Rename Folder Error': props<{ update: Update<Album> }>(),
-    'Save Album': props<{ album: AlbumWithoutTracks }>(),
+    'Save Album': props<{ album: AlbumWithoutTracks; previousBandId?: number }>(),
     'Save Album Success': props<{ update: Update<Album> }>(),
     'Save Album Error': props<{ update: Update<Album> }>(),
     'Set Has Lyrics': props<{ id: number; hasLyrics: boolean }>(),
