@@ -1,0 +1,10 @@
+{
+  "plugins": [
+    [
+      "expo-router",
+      {
+        "root": "./apps/mobile/app"
+      }
+    ]
+  ]
+}

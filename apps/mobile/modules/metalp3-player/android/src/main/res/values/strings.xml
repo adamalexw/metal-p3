@@ -1,0 +1,6 @@
+<resources>
+  <string name="metalp3_widget_label">Metal P3 Player</string>
+  <string name="metalp3_widget_description">Album art and transport controls</string>
+  <string name="metalp3_widget_idle">Nothing playing</string>
+  <string name="metalp3_widget_tap_to_open">Tap to open</string>
+</resources>
