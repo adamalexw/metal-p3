@@ -7,6 +7,8 @@ import { MetalP3Media } from '../../modules/metalp3-media';
 import { MetalP3Player } from '../../modules/metalp3-player';
 import { formatAlbumDuration } from '../../src/lib/group-tracks-by-album';
 import { findAlbumGroup } from '../../src/lib/library-cache';
+import { toQueueItem } from '../../src/lib/to-queue-item';
+import AddToPlaylistSheet from '../../src/components/AddToPlaylistSheet';
 import type { Track } from '../../modules/metalp3-media/src/MetalP3Media.types';
 
 export default function AlbumDetailScreen() {
@@ -16,6 +18,7 @@ export default function AlbumDetailScreen() {
   const group = findAlbumGroup(albumKey);
   const insets = useSafeAreaInsets();
   const [artUri, setArtUri] = useState<string | null>(null);
+  const [longPressedTrackId, setLongPressedTrackId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!group) return;
@@ -106,6 +109,7 @@ export default function AlbumDetailScreen() {
           <Pressable
             style={styles.row}
             onPress={() => void playFrom(index)}
+            onLongPress={() => setLongPressedTrackId(item.id)}
             testID={`album-track-${item.id}`}
           >
             <Text style={styles.trackNumber}>{formatTrackNumber(item, index)}</Text>
@@ -117,6 +121,12 @@ export default function AlbumDetailScreen() {
             <Text style={styles.trackDuration}>{formatTrackDuration(item.durationMs)}</Text>
           </Pressable>
         )}
+      />
+
+      <AddToPlaylistSheet
+        visible={longPressedTrackId !== null}
+        trackId={longPressedTrackId}
+        onClose={() => setLongPressedTrackId(null)}
       />
     </View>
   );
@@ -132,18 +142,6 @@ function formatTrackDuration(ms: number): string {
   const m = Math.floor(totalSeconds / 60);
   const s = totalSeconds % 60;
   return `${m}:${String(s).padStart(2, '0')}`;
-}
-
-function toQueueItem(t: Track) {
-  return {
-    id: t.id,
-    uri: t.uri,
-    title: t.title,
-    artist: t.artist,
-    album: t.album,
-    albumArtist: t.albumArtist,
-    durationMs: t.durationMs,
-  };
 }
 
 const styles = StyleSheet.create({

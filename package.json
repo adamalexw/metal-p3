@@ -66,6 +66,7 @@
     "@nx/angular": "22.7.0",
     "@prisma/adapter-mssql": "^7.8.0",
     "@prisma/client": "^7.8.0",
+    "@react-native-async-storage/async-storage": "2.2.0",
     "@react-navigation/drawer": "^7.10.3",
     "@tailwindcss/postcss": "^4.0.15",
     "autoprefixer": "^10.2.5",
