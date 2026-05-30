@@ -21,6 +21,26 @@ jest.mock('expo-blur', () => {
   return { BlurView: View };
 });
 
+jest.mock('react-native-gesture-handler', () => {
+  const React = require('react');
+  const { View } = require('react-native');
+  const Swipeable = React.forwardRef(
+    (
+      props: { renderRightActions?: () => React.ReactNode; children?: React.ReactNode; testID?: string },
+      ref: React.Ref<unknown>,
+    ) => {
+      React.useImperativeHandle(ref, () => ({ close: () => undefined }));
+      return React.createElement(
+        View,
+        { testID: props.testID },
+        props.children,
+        props.renderRightActions ? props.renderRightActions() : null,
+      );
+    },
+  );
+  return { Swipeable };
+});
+
 jest.mock('../theme/useArtworkTheme', () => ({
   useArtworkTheme: () => ({
     background: '#101010',
@@ -56,6 +76,7 @@ const mockMedia = {
   getTrackAsync: jest.fn().mockResolvedValue(null),
   getArtworkAsync: jest.fn().mockResolvedValue(null),
   getLyricsAsync: jest.fn().mockResolvedValue(null),
+  deleteTracksAsync: jest.fn(),
 };
 
 jest.mock('expo-modules-core', () => ({
@@ -150,6 +171,9 @@ const playingTrack2State: PlaybackState = {
 function noop(): void {
   /* intentional no-op */
 }
+
+// Force android platform so the swipe-to-delete and bridge guards are active.
+require('react-native').Platform.OS = 'android';
 
 const { setLibraryTracks, clearLibraryCache } = require('../lib/library-cache');
 const AlbumDetailScreen = require('../../app/album/[key]').default;
@@ -268,6 +292,41 @@ describe('AlbumDetailScreen', () => {
 
     await waitFor(() => {
       expect(mockPush).toHaveBeenCalledWith('/player');
+    });
+  });
+
+  it('tapping the swipe Delete action opens the confirm sheet, and confirming calls deleteTracksAsync with that row\'s URI', async () => {
+    mockMedia.deleteTracksAsync.mockResolvedValueOnce({ deletedUris: ['a://1'], failedUris: [] });
+
+    const { findByTestId, getByTestId, queryByTestId } = render(<AlbumDetailScreen />);
+    await findByTestId('album-track-track-1');
+
+    // Tap the revealed swipe Delete action — opens the confirm sheet.
+    fireEvent.press(getByTestId('album-track-delete-action-track-1'));
+    await findByTestId('confirm-delete-sheet');
+
+    fireEvent.press(getByTestId('confirm-delete-confirm'));
+
+    await waitFor(() => {
+      expect(mockMedia.deleteTracksAsync).toHaveBeenCalledWith(['a://1']);
+    });
+    await waitFor(() => {
+      expect(queryByTestId('confirm-delete-sheet')).toBeNull();
+    });
+  });
+
+  it('cancelling the confirm sheet does not call deleteTracksAsync', async () => {
+    const { findByTestId, getByTestId, queryByTestId } = render(<AlbumDetailScreen />);
+    await findByTestId('album-track-track-1');
+
+    fireEvent.press(getByTestId('album-track-delete-action-track-1'));
+    await findByTestId('confirm-delete-sheet');
+
+    fireEvent.press(getByTestId('confirm-delete-cancel'));
+
+    expect(mockMedia.deleteTracksAsync).not.toHaveBeenCalled();
+    await waitFor(() => {
+      expect(queryByTestId('confirm-delete-sheet')).toBeNull();
     });
   });
 });

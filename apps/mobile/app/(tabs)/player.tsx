@@ -327,14 +327,14 @@ const styles = StyleSheet.create({
   darken: { backgroundColor: 'rgba(0,0,0,0.3)' },
   webBackdropOverlay: { backgroundColor: 'rgba(0,0,0,0.3)' },
 
-  content: { flex: 1, paddingHorizontal: 24, justifyContent: 'space-between' },
+  content: { flex: 1, paddingHorizontal: 24 },
 
-  artWrap: { alignItems: 'center', marginTop: 8 },
+  artWrap: { flex: 1, alignItems: 'center', justifyContent: 'flex-end', marginTop: 8 },
   art: {
     maxWidth: '100%',
     borderRadius: 18,
     overflow: 'hidden',
-    marginBottom: 24,
+    marginBottom: 16,
     shadowColor: '#000',
     shadowOpacity: 0.5,
     shadowRadius: 18,

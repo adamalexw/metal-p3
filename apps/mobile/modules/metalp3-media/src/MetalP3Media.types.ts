@@ -56,3 +56,8 @@ export interface PermissionStatus {
   granted: boolean;
   permission: string;
 }
+
+export interface DeleteTracksResult {
+  deletedUris: string[];
+  failedUris: string[];
+}

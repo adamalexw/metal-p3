@@ -2,17 +2,49 @@ import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Playlist, getPlaylists, loadPlaylists, subscribe } from '../../../src/lib/playlist-store';
+import ConfirmDeleteSheet from '../../../src/components/ConfirmDeleteSheet';
+import ContextMenuSheet from '../../../src/components/ContextMenuSheet';
+import {
+  Playlist,
+  deletePlaylist,
+  getPlaylists,
+  loadPlaylists,
+  subscribe,
+} from '../../../src/lib/playlist-store';
 
 export default function PlaylistsListScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const [playlists, setPlaylists] = useState<Playlist[]>(() => getPlaylists());
+  const [contextPlaylist, setContextPlaylist] = useState<Playlist | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<Playlist | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     void loadPlaylists().then((p) => setPlaylists([...p]));
     return subscribe(() => setPlaylists([...getPlaylists()]));
   }, []);
+
+  const confirmDelete = async () => {
+    if (!pendingDelete || busy) return;
+    setBusy(true);
+    setError(null);
+    try {
+      await deletePlaylist(pendingDelete.id);
+      setPendingDelete(null);
+      setBusy(false);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+      setBusy(false);
+    }
+  };
+
+  const cancelDelete = () => {
+    if (busy) return;
+    setPendingDelete(null);
+    setError(null);
+  };
 
   return (
     <View style={styles.container}>
@@ -29,6 +61,7 @@ export default function PlaylistsListScreen() {
           <Pressable
             style={styles.row}
             onPress={() => router.push(`/playlists/${encodeURIComponent(item.id)}` as never)}
+            onLongPress={() => setContextPlaylist(item)}
             testID={`playlist-row-${item.id}`}
           >
             <Text style={styles.name} numberOfLines={1}>{item.name}</Text>
@@ -37,6 +70,41 @@ export default function PlaylistsListScreen() {
             </Text>
           </Pressable>
         )}
+      />
+
+      <ContextMenuSheet
+        visible={contextPlaylist !== null}
+        title={contextPlaylist?.name}
+        onClose={() => setContextPlaylist(null)}
+        testID={contextPlaylist ? `playlist-row-context-menu-${contextPlaylist.id}` : undefined}
+        items={
+          contextPlaylist
+            ? [
+                {
+                  key: 'delete',
+                  label: 'Delete playlist',
+                  destructive: true,
+                  onPress: () => setPendingDelete(contextPlaylist),
+                  testID: `playlist-context-delete-${contextPlaylist.id}`,
+                },
+              ]
+            : []
+        }
+      />
+
+      <ConfirmDeleteSheet
+        visible={pendingDelete !== null}
+        title="Delete playlist?"
+        message={
+          pendingDelete
+            ? `"${pendingDelete.name}" will be removed. The tracks in it will not be deleted.`
+            : ''
+        }
+        confirmLabel="Delete"
+        busy={busy}
+        error={error}
+        onConfirm={() => void confirmDelete()}
+        onCancel={cancelDelete}
       />
     </View>
   );

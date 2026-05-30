@@ -1,16 +1,19 @@
 import { BlurView } from 'expo-blur';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { Play, Shuffle } from 'lucide-react-native';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { FlatList, Image, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Swipeable } from 'react-native-gesture-handler';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MetalP3Media } from '../../modules/metalp3-media';
 import { MetalP3Player } from '../../modules/metalp3-player';
 import { MINI_PLAYER_HEIGHT } from '../../src/components/MiniPlayer';
 import { formatAlbumDuration } from '../../src/lib/group-tracks-by-album';
-import { findAlbumGroup } from '../../src/lib/library-cache';
+import { findAlbumGroup, subscribe as subscribeLibrary } from '../../src/lib/library-cache';
 import { toQueueItem } from '../../src/lib/to-queue-item';
 import AddToPlaylistSheet from '../../src/components/AddToPlaylistSheet';
+import ConfirmDeleteSheet from '../../src/components/ConfirmDeleteSheet';
+import { deleteTracksAndPropagate } from '../../src/lib/delete-tracks';
 import { useNowPlayingState } from '../../src/lib/useNowPlayingState';
 import { useArtworkTheme } from '../../src/theme/useArtworkTheme';
 import type { Track } from '../../modules/metalp3-media/src/MetalP3Media.types';
@@ -20,6 +23,7 @@ export default function AlbumDetailScreen() {
   const router = useRouter();
   const rawKey = typeof params.key === 'string' ? params.key : '';
   const albumKey = decodeURIComponent(rawKey);
+  const [, forceTick] = useState(0);
   const group = findAlbumGroup(albumKey);
   const insets = useSafeAreaInsets();
   const nowPlaying = useNowPlayingState();
@@ -28,6 +32,18 @@ export default function AlbumDetailScreen() {
   const miniPlayerPad = nowPlaying?.current ? MINI_PLAYER_HEIGHT + 16 : 0;
   const [artUri, setArtUri] = useState<string | null>(null);
   const [longPressedTrackId, setLongPressedTrackId] = useState<string | null>(null);
+  const [pendingDeleteTrack, setPendingDeleteTrack] = useState<Track | null>(null);
+  const [deleteBusy, setDeleteBusy] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const swipeableRefs = useRef(new Map<string, Swipeable>());
+
+  useEffect(() => subscribeLibrary(() => forceTick((n) => n + 1)), []);
+
+  useEffect(() => {
+    if (!group && rawKey) {
+      router.back();
+    }
+  }, [group, rawKey, router]);
 
   useEffect(() => {
     if (!group) return;
@@ -80,6 +96,41 @@ export default function AlbumDetailScreen() {
       return;
     }
     router.push('/player' as never);
+  };
+
+  const requestDeleteTrack = (track: Track) => {
+    if (Platform.OS !== 'android') return;
+    setDeleteError(null);
+    setPendingDeleteTrack(track);
+  };
+
+  const confirmDeleteTrack = async () => {
+    if (!pendingDeleteTrack || deleteBusy) return;
+    setDeleteBusy(true);
+    setDeleteError(null);
+    try {
+      const outcome = await deleteTracksAndPropagate([pendingDeleteTrack]);
+      if (outcome.deletedIds.length === 0) {
+        setDeleteError('Delete was cancelled or failed.');
+        setDeleteBusy(false);
+        return;
+      }
+      setPendingDeleteTrack(null);
+      setDeleteBusy(false);
+    } catch (err) {
+      setDeleteError(err instanceof Error ? err.message : String(err));
+      setDeleteBusy(false);
+    }
+  };
+
+  const cancelDeleteTrack = () => {
+    if (deleteBusy) return;
+    const id = pendingDeleteTrack?.id;
+    setPendingDeleteTrack(null);
+    setDeleteError(null);
+    if (id) {
+      swipeableRefs.current.get(id)?.close();
+    }
   };
 
   return (
@@ -185,7 +236,8 @@ export default function AlbumDetailScreen() {
         }
         renderItem={({ item, index }) => {
           const isPlaying = playingTrackId !== null && playingTrackId === item.id;
-          return (
+          const canDelete = Platform.OS === 'android';
+          const row = (
             <Pressable
               style={styles.row}
               onPress={() => void playFrom(index)}
@@ -213,6 +265,31 @@ export default function AlbumDetailScreen() {
               <Text style={styles.trackDuration}>{formatTrackDuration(item.durationMs)}</Text>
             </Pressable>
           );
+          if (!canDelete) return row;
+          return (
+            <Swipeable
+              ref={(ref) => {
+                if (ref) swipeableRefs.current.set(item.id, ref);
+                else swipeableRefs.current.delete(item.id);
+              }}
+              testID={`album-track-swipe-${item.id}`}
+              renderRightActions={() => (
+                <Pressable
+                  style={styles.deleteAction}
+                  onPress={() => requestDeleteTrack(item)}
+                  testID={`album-track-delete-action-${item.id}`}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Delete ${item.title ?? 'track'}`}
+                >
+                  <Text style={styles.deleteActionLabel}>Delete</Text>
+                </Pressable>
+              )}
+              rightThreshold={48}
+              overshootRight={false}
+            >
+              {row}
+            </Swipeable>
+          );
         }}
       />
 
@@ -220,6 +297,21 @@ export default function AlbumDetailScreen() {
         visible={longPressedTrackId !== null}
         trackId={longPressedTrackId}
         onClose={() => setLongPressedTrackId(null)}
+      />
+
+      <ConfirmDeleteSheet
+        visible={pendingDeleteTrack !== null}
+        title="Delete track?"
+        message={
+          pendingDeleteTrack
+            ? `"${pendingDeleteTrack.title ?? 'This track'}" will be permanently removed from your device.`
+            : ''
+        }
+        confirmLabel="Delete"
+        busy={deleteBusy}
+        error={deleteError}
+        onConfirm={() => void confirmDeleteTrack()}
+        onCancel={cancelDeleteTrack}
       />
     </View>
   );
@@ -270,4 +362,12 @@ const styles = StyleSheet.create({
   trackTitle: { color: '#fff', fontSize: 15 },
   trackDuration: { color: '#bbb', fontSize: 13, fontVariant: ['tabular-nums'] },
   missing: { color: '#ff6b6b', textAlign: 'center', marginTop: 48, paddingHorizontal: 24 },
+  deleteAction: {
+    backgroundColor: '#ff3b30',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+    minWidth: 96,
+  },
+  deleteActionLabel: { color: '#fff', fontSize: 14, fontWeight: '700', letterSpacing: 0.4 },
 });
