@@ -16,12 +16,11 @@ export default function MiniPlayer() {
   const insets = useSafeAreaInsets();
   const state = useNowPlayingState();
   const current = state?.current ?? null;
+  const isPlaying = state?.isPlaying ?? false;
   const theme = useArtworkTheme(current?.uri ?? null);
 
-  if (!current) return null;
+  if (!current || !isPlaying) return null;
   if (pathname?.endsWith('/player')) return null;
-
-  const isPlaying = state?.isPlaying ?? false;
   const artistLine = current.artist ?? current.albumArtist ?? '';
 
   const openPlayer = () => router.push('/(tabs)/player' as never);

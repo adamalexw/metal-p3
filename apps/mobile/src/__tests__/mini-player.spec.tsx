@@ -56,6 +56,7 @@ const idleState: PlaybackState = {
   repeatMode: 'off',
   shuffle: false,
   current: null,
+  queue: [],
 };
 
 const baseTrack = {
@@ -80,6 +81,7 @@ const playingState: PlaybackState = {
   repeatMode: 'off',
   shuffle: false,
   current: { ...baseTrack },
+  queue: [],
 };
 
 const pausedState: PlaybackState = { ...playingState, isPlaying: false };
@@ -125,13 +127,14 @@ describe('MiniPlayer', () => {
     expect(artist.props.children).toBe('Mastodon');
   });
 
-  it('calls play when currently paused', async () => {
+  it('renders nothing when a track is current but paused', async () => {
     mockPlayer.getStateAsync.mockResolvedValue(pausedState);
-    const { findByTestId } = render(<MiniPlayer />);
+    const { queryByTestId } = render(<MiniPlayer />);
 
-    fireEvent.press(await findByTestId('mini-player-play'));
-    expect(mockPlayer.playAsync).toHaveBeenCalledTimes(1);
-    expect(mockPlayer.pauseAsync).not.toHaveBeenCalled();
+    await waitFor(() => {
+      expect(mockPlayer.getStateAsync).toHaveBeenCalled();
+    });
+    expect(queryByTestId('mini-player')).toBeNull();
   });
 
   it('calls pause when currently playing', async () => {

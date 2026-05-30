@@ -121,6 +121,7 @@ const idleState: PlaybackState = {
   repeatMode: 'off',
   shuffle: false,
   current: null,
+  queue: [],
 };
 
 const playingTrack2State: PlaybackState = {
@@ -143,6 +144,7 @@ const playingTrack2State: PlaybackState = {
     albumArtist: 'Mastodon',
     artworkUri: null,
   },
+  queue: [],
 };
 
 function noop(): void {
@@ -162,7 +164,7 @@ describe('AlbumDetailScreen', () => {
     mockPlayer.addListener.mockReturnValue({ remove: jest.fn() });
   });
 
-  it('tapping a track row enqueues the album, plays, then navigates to /(tabs)/player', async () => {
+  it('tapping a track row enqueues the album, plays, then navigates to /player', async () => {
     const { findByTestId } = render(<AlbumDetailScreen />);
     const row = await findByTestId('album-track-track-2');
 
@@ -184,7 +186,7 @@ describe('AlbumDetailScreen', () => {
     expect(setQueueArgs[0]).toHaveLength(2);
 
     await waitFor(() => {
-      expect(mockPush).toHaveBeenCalledWith('/(tabs)/player');
+      expect(mockPush).toHaveBeenCalledWith('/player');
     });
   });
 
@@ -219,5 +221,53 @@ describe('AlbumDetailScreen', () => {
     await findByTestId('album-track-track-1');
     expect(queryByTestId('album-track-playing-indicator-track-1')).toBeNull();
     expect(queryByTestId('album-track-playing-indicator-track-2')).toBeNull();
+  });
+
+  it('Play button disables shuffle, queues from index 0, plays, then navigates', async () => {
+    const { findByTestId } = render(<AlbumDetailScreen />);
+    fireEvent.press(await findByTestId('album-detail-play'));
+
+    await waitFor(() => {
+      expect(mockPlayer.setQueueAsync).toHaveBeenCalledTimes(1);
+    });
+    expect(mockPlayer.setShuffleAsync).toHaveBeenCalledWith(false);
+    expect(mockPlayer.playAsync).toHaveBeenCalledTimes(1);
+
+    const setShuffleOrder = mockPlayer.setShuffleAsync.mock.invocationCallOrder[0];
+    const setQueueOrder = mockPlayer.setQueueAsync.mock.invocationCallOrder[0];
+    const playOrder = mockPlayer.playAsync.mock.invocationCallOrder[0];
+    expect(setShuffleOrder).toBeLessThan(setQueueOrder);
+    expect(setQueueOrder).toBeLessThan(playOrder);
+
+    const setQueueArgs = mockPlayer.setQueueAsync.mock.calls[0];
+    expect(setQueueArgs[1]).toBe(0);
+    expect(setQueueArgs[2]).toBe(0);
+    expect(Array.isArray(setQueueArgs[0])).toBe(true);
+    expect(setQueueArgs[0]).toHaveLength(2);
+
+    await waitFor(() => {
+      expect(mockPush).toHaveBeenCalledWith('/player');
+    });
+  });
+
+  it('Shuffle button enables shuffle, queues, plays, then navigates', async () => {
+    const { findByTestId } = render(<AlbumDetailScreen />);
+    fireEvent.press(await findByTestId('album-detail-shuffle'));
+
+    await waitFor(() => {
+      expect(mockPlayer.setQueueAsync).toHaveBeenCalledTimes(1);
+    });
+    expect(mockPlayer.setShuffleAsync).toHaveBeenCalledWith(true);
+    expect(mockPlayer.playAsync).toHaveBeenCalledTimes(1);
+
+    const setShuffleOrder = mockPlayer.setShuffleAsync.mock.invocationCallOrder[0];
+    const setQueueOrder = mockPlayer.setQueueAsync.mock.invocationCallOrder[0];
+    const playOrder = mockPlayer.playAsync.mock.invocationCallOrder[0];
+    expect(setShuffleOrder).toBeLessThan(setQueueOrder);
+    expect(setQueueOrder).toBeLessThan(playOrder);
+
+    await waitFor(() => {
+      expect(mockPush).toHaveBeenCalledWith('/player');
+    });
   });
 });

@@ -1,5 +1,6 @@
 import { BlurView } from 'expo-blur';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
+import { Play, Shuffle } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
 import { FlatList, Image, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -59,13 +60,26 @@ export default function AlbumDetailScreen() {
 
   const playFrom = async (index: number) => {
     try {
+      await MetalP3Player.setShuffle(false);
       await MetalP3Player.setQueueAsync(group.tracks.map(toQueueItem), index, 0);
       await MetalP3Player.play();
     } catch (err) {
       console.warn('AlbumDetailScreen: failed to start playback', err);
       return;
     }
-    router.push('/(tabs)/player' as never);
+    router.push('/player' as never);
+  };
+
+  const playShuffled = async () => {
+    try {
+      await MetalP3Player.setShuffle(true);
+      await MetalP3Player.setQueueAsync(group.tracks.map(toQueueItem), 0, 0);
+      await MetalP3Player.play();
+    } catch (err) {
+      console.warn('AlbumDetailScreen: failed to start shuffle playback', err);
+      return;
+    }
+    router.push('/player' as never);
   };
 
   return (
@@ -74,9 +88,10 @@ export default function AlbumDetailScreen() {
         options={{
           title: group.albumName,
           headerShown: true,
-          headerStyle: { backgroundColor: '#000' },
-          headerTintColor: '#fff',
-          headerTransparent: false,
+          headerStyle: { backgroundColor: 'transparent' },
+          headerTintColor: theme.foreground,
+          headerTitleStyle: { color: theme.foreground },
+          headerTransparent: true,
         }}
       />
 
@@ -97,7 +112,7 @@ export default function AlbumDetailScreen() {
         keyExtractor={(t) => t.id}
         contentContainerStyle={{ paddingBottom: insets.bottom + 24 + miniPlayerPad }}
         ListHeaderComponent={
-          <View style={styles.header}>
+          <View style={[styles.header, { paddingTop: insets.top + 56 }]}>
             <View style={styles.artwork} testID="album-detail-artwork">
               {artUri ? (
                 <Image source={{ uri: artUri }} style={styles.artImage} resizeMode="cover" />
@@ -105,18 +120,67 @@ export default function AlbumDetailScreen() {
                 <View style={styles.artPlaceholder} />
               )}
             </View>
-            <Text style={styles.albumName} numberOfLines={2} testID="album-detail-name">
+            <Text
+              style={[styles.albumName, { color: theme.foreground }]}
+              numberOfLines={2}
+              testID="album-detail-name"
+            >
               {group.albumName}
             </Text>
-            <Text style={styles.bandName} numberOfLines={1} testID="album-detail-band">
+            <Text
+              style={[styles.bandName, { color: theme.foreground }]}
+              numberOfLines={1}
+              testID="album-detail-band"
+            >
               {group.bandName}
             </Text>
             {group.genre ? (
-              <Text style={styles.genre} numberOfLines={1} testID="album-detail-genre">
+              <Text
+                style={[styles.genre, { color: theme.mutedForeground }]}
+                numberOfLines={1}
+                testID="album-detail-genre"
+              >
                 {group.genre}
               </Text>
             ) : null}
-            <Text style={styles.meta}>{meta}</Text>
+            <Text style={[styles.meta, { color: theme.mutedForeground }]}>{meta}</Text>
+            <View style={styles.actions}>
+              <Pressable
+                style={[styles.actionBtn, styles.actionPrimary, { backgroundColor: theme.accent }]}
+                onPress={() => void playFrom(0)}
+                testID="album-detail-play"
+                accessibilityRole="button"
+                accessibilityLabel="Play album"
+              >
+                <Play
+                  size={20}
+                  color={theme.accentForeground}
+                  fill={theme.accentForeground}
+                  strokeWidth={2.5}
+                  strokeLinecap="square"
+                />
+                <Text style={[styles.actionLabel, { color: theme.accentForeground }]}>Play</Text>
+              </Pressable>
+              <Pressable
+                style={[
+                  styles.actionBtn,
+                  styles.actionSecondary,
+                  { backgroundColor: theme.surface, borderColor: theme.foreground },
+                ]}
+                onPress={() => void playShuffled()}
+                testID="album-detail-shuffle"
+                accessibilityRole="button"
+                accessibilityLabel="Shuffle album"
+              >
+                <Shuffle
+                  size={20}
+                  color={theme.foreground}
+                  strokeWidth={2.5}
+                  strokeLinecap="square"
+                />
+                <Text style={[styles.actionLabel, { color: theme.foreground }]}>Shuffle</Text>
+              </Pressable>
+            </View>
           </View>
         }
         renderItem={({ item, index }) => {
@@ -177,14 +241,28 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#000' },
   darken: { backgroundColor: 'rgba(0,0,0,0.3)' },
   webBackdropOverlay: { backgroundColor: 'rgba(0,0,0,0.3)' },
-  header: { paddingHorizontal: 16, paddingTop: 16, paddingBottom: 24, alignItems: 'center' },
+  header: { paddingHorizontal: 16, paddingBottom: 24, alignItems: 'center' },
   artwork: { width: 220, height: 220, borderRadius: 8, overflow: 'hidden', backgroundColor: '#222', marginBottom: 16 },
   artImage: { width: '100%', height: '100%' },
   artPlaceholder: { width: '100%', height: '100%', backgroundColor: '#222' },
-  albumName: { color: '#fff', fontSize: 22, fontWeight: '700', textAlign: 'center' },
-  bandName: { color: '#ddd', fontSize: 16, marginTop: 4, textAlign: 'center' },
-  genre: { color: '#bbb', fontSize: 13, marginTop: 4, textAlign: 'center' },
-  meta: { color: '#bbb', fontSize: 13, marginTop: 6, textAlign: 'center' },
+  albumName: { fontSize: 22, fontWeight: '700', textAlign: 'center' },
+  bandName: { fontSize: 16, marginTop: 4, textAlign: 'center' },
+  genre: { fontSize: 13, marginTop: 4, textAlign: 'center' },
+  meta: { fontSize: 13, marginTop: 6, textAlign: 'center' },
+  actions: { flexDirection: 'row', gap: 12, marginTop: 16 },
+  actionBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 999,
+    minWidth: 130,
+  },
+  actionPrimary: {},
+  actionSecondary: { borderWidth: 1.5 },
+  actionLabel: { fontSize: 14, fontWeight: '700', letterSpacing: 0.4 },
   row: { flexDirection: 'row', alignItems: 'center', paddingVertical: 12, paddingHorizontal: 16, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: 'rgba(255,255,255,0.08)' },
   trackNumber: { color: '#bbb', fontSize: 14, width: 32, fontVariant: ['tabular-nums'] },
   trackNumberPlaying: { fontSize: 14, fontWeight: '700', textAlign: 'left' },
