@@ -7,10 +7,9 @@ import { formatAlbumDuration } from '../lib/group-tracks-by-album';
 interface AlbumTileProps {
   group: AlbumGroup;
   onPress: () => void;
-  fullWidth?: boolean;
 }
 
-export default function AlbumTile({ group, onPress, fullWidth = false }: AlbumTileProps) {
+export default function AlbumTile({ group, onPress }: AlbumTileProps) {
   const [artUri, setArtUri] = useState<string | null>(null);
 
   useEffect(() => {
@@ -32,13 +31,13 @@ export default function AlbumTile({ group, onPress, fullWidth = false }: AlbumTi
 
   return (
     <Pressable
-      style={[styles.tile, fullWidth && styles.tileFullWidth]}
+      style={styles.tile}
       onPress={onPress}
       testID={`album-tile-${group.key}`}
       accessibilityRole="button"
       accessibilityLabel={`${group.albumName} by ${group.bandName}, ${meta}`}
     >
-      <View style={[styles.artwork, fullWidth && styles.artworkFullWidth]}>
+      <View style={styles.artwork}>
         {artUri ? (
           <Image source={{ uri: artUri }} style={styles.artImage} resizeMode="cover" />
         ) : (
@@ -65,9 +64,7 @@ export default function AlbumTile({ group, onPress, fullWidth = false }: AlbumTi
 
 const styles = StyleSheet.create({
   tile: { flex: 1, marginHorizontal: 4, marginBottom: 16 },
-  tileFullWidth: { flex: 0, alignSelf: 'stretch', marginHorizontal: 4 },
   artwork: { width: '100%', aspectRatio: 1, borderRadius: 6, overflow: 'hidden', backgroundColor: '#222' },
-  artworkFullWidth: { aspectRatio: 1 },
   artImage: { width: '100%', height: '100%' },
   artPlaceholder: { width: '100%', height: '100%', backgroundColor: '#222' },
   albumName: { color: '#fff', fontSize: 14, fontWeight: '600', marginTop: 8 },

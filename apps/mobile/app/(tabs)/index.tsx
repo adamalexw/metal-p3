@@ -101,7 +101,10 @@ export default function LibraryScreen() {
                   <AlbumTile group={item.right} onPress={() => openAlbum(item.right)} />
                 </>
               ) : (
-                <AlbumTile group={item.item} onPress={() => openAlbum(item.item)} fullWidth />
+                <>
+                  <AlbumTile group={item.item} onPress={() => openAlbum(item.item)} />
+                  <View style={styles.tileSpacer} />
+                </>
               )}
             </Animated.View>
           )}
@@ -120,4 +123,5 @@ const styles = StyleSheet.create({
   list: { flex: 1 },
   listContent: { paddingTop: 8 },
   row: { flexDirection: 'row' },
+  tileSpacer: { flex: 1, marginHorizontal: 4 },
 });
