@@ -87,8 +87,15 @@ export class TrackService {
       genre: track.genre,
     };
 
+    const userDefinedText: NonNullable<NodeID3.Tags['userDefinedText']> = [];
+    if (track.country) {
+      userDefinedText.push({ description: 'COUNTRY', value: track.country });
+    }
     if (track.albumUrl) {
-      baseTags = { ...baseTags, comment: { language: 'eng', text: track.albumUrl } };
+      userDefinedText.push({ description: 'METAL_ARCHIVES_URL', value: track.albumUrl });
+    }
+    if (userDefinedText.length) {
+      baseTags = { ...baseTags, userDefinedText };
     }
 
     if (track.lyrics) {
