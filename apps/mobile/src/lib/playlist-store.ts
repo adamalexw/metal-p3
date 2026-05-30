@@ -133,6 +133,34 @@ export async function addTrackToPlaylist(playlistId: string, trackId: string): P
   notify();
 }
 
+export async function deletePlaylist(playlistId: string): Promise<void> {
+  const idx = playlists.findIndex((p) => p.id === playlistId);
+  if (idx === -1) return;
+  playlists = [...playlists.slice(0, idx), ...playlists.slice(idx + 1)];
+  if (activePlaylistId === playlistId) {
+    activePlaylistId = null;
+  }
+  await persist();
+  notify();
+}
+
+export async function removeTrackIdsFromAllPlaylists(trackIds: string[]): Promise<void> {
+  if (trackIds.length === 0) return;
+  const removeSet = new Set(trackIds);
+  let mutated = false;
+  const now = Date.now();
+  const next = playlists.map((p) => {
+    const filtered = p.trackIds.filter((id) => !removeSet.has(id));
+    if (filtered.length === p.trackIds.length) return p;
+    mutated = true;
+    return { ...p, trackIds: filtered, updatedAt: now };
+  });
+  if (!mutated) return;
+  playlists = next;
+  await persist();
+  notify();
+}
+
 export function setActivePlaylistId(id: string | null): void {
   activePlaylistId = id;
 }

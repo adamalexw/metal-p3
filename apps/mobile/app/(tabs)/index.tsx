@@ -1,13 +1,16 @@
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, FlatList, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MetalP3Media } from '../../modules/metalp3-media';
 import AlbumTile from '../../src/components/AlbumTile';
+import ConfirmDeleteSheet from '../../src/components/ConfirmDeleteSheet';
+import ContextMenuSheet from '../../src/components/ContextMenuSheet';
 import { MINI_PLAYER_HEIGHT } from '../../src/components/MiniPlayer';
+import { deleteTracksAndPropagate } from '../../src/lib/delete-tracks';
 import type { AlbumGroup } from '../../src/lib/group-tracks-by-album';
-import { setLibraryTracks } from '../../src/lib/library-cache';
+import { setLibraryTracks, subscribe as subscribeLibrary, getAlbumGroups } from '../../src/lib/library-cache';
 import { useNowPlayingState } from '../../src/lib/useNowPlayingState';
 
 type AlbumRow =
@@ -40,6 +43,10 @@ export default function LibraryScreen() {
   const [status, setStatus] = useState<Status>('idle');
   const [albums, setAlbums] = useState<AlbumGroup[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [contextAlbum, setContextAlbum] = useState<AlbumGroup | null>(null);
+  const [pendingDeleteAlbum, setPendingDeleteAlbum] = useState<AlbumGroup | null>(null);
+  const [deleteBusy, setDeleteBusy] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setStatus('checking');
@@ -66,12 +73,44 @@ export default function LibraryScreen() {
     void load();
   }, [load]);
 
+  useEffect(() => subscribeLibrary(() => setAlbums(getAlbumGroups())), []);
+
   const openAlbum = useCallback(
     (group: AlbumGroup) => {
       router.push(`/album/${encodeURIComponent(group.key)}` as never);
     },
     [router],
   );
+
+  const handleLongPressAlbum = useCallback((group: AlbumGroup) => {
+    if (Platform.OS !== 'android') return;
+    setContextAlbum(group);
+  }, []);
+
+  const confirmDeleteAlbum = async () => {
+    if (!pendingDeleteAlbum || deleteBusy) return;
+    setDeleteBusy(true);
+    setDeleteError(null);
+    try {
+      const outcome = await deleteTracksAndPropagate(pendingDeleteAlbum.tracks);
+      if (outcome.deletedIds.length === 0) {
+        setDeleteError('Delete was cancelled or failed.');
+        setDeleteBusy(false);
+        return;
+      }
+      setPendingDeleteAlbum(null);
+      setDeleteBusy(false);
+    } catch (err) {
+      setDeleteError(err instanceof Error ? err.message : String(err));
+      setDeleteBusy(false);
+    }
+  };
+
+  const cancelDeleteAlbum = () => {
+    if (deleteBusy) return;
+    setPendingDeleteAlbum(null);
+    setDeleteError(null);
+  };
 
   const rows = useMemo(() => buildRows(albums), [albums]);
 
@@ -97,12 +136,24 @@ export default function LibraryScreen() {
             <Animated.View entering={FadeInDown.duration(280).delay(Math.min(index * 35, 600))} style={styles.row}>
               {item.kind === 'pair' ? (
                 <>
-                  <AlbumTile group={item.left} onPress={() => openAlbum(item.left)} />
-                  <AlbumTile group={item.right} onPress={() => openAlbum(item.right)} />
+                  <AlbumTile
+                    group={item.left}
+                    onPress={() => openAlbum(item.left)}
+                    onLongPress={() => handleLongPressAlbum(item.left)}
+                  />
+                  <AlbumTile
+                    group={item.right}
+                    onPress={() => openAlbum(item.right)}
+                    onLongPress={() => handleLongPressAlbum(item.right)}
+                  />
                 </>
               ) : (
                 <>
-                  <AlbumTile group={item.item} onPress={() => openAlbum(item.item)} />
+                  <AlbumTile
+                    group={item.item}
+                    onPress={() => openAlbum(item.item)}
+                    onLongPress={() => handleLongPressAlbum(item.item)}
+                  />
                   <View style={styles.tileSpacer} />
                 </>
               )}
@@ -110,6 +161,43 @@ export default function LibraryScreen() {
           )}
         />
       ) : null}
+
+      <ContextMenuSheet
+        visible={contextAlbum !== null}
+        title={contextAlbum?.albumName}
+        onClose={() => setContextAlbum(null)}
+        testID={contextAlbum ? `album-tile-context-menu-${contextAlbum.key}` : undefined}
+        items={
+          contextAlbum
+            ? [
+                {
+                  key: 'delete',
+                  label: 'Delete album',
+                  destructive: true,
+                  onPress: () => setPendingDeleteAlbum(contextAlbum),
+                  testID: `album-context-delete-${contextAlbum.key}`,
+                },
+              ]
+            : []
+        }
+      />
+
+      <ConfirmDeleteSheet
+        visible={pendingDeleteAlbum !== null}
+        title="Delete album?"
+        message={
+          pendingDeleteAlbum
+            ? `All ${pendingDeleteAlbum.trackCount} ${
+                pendingDeleteAlbum.trackCount === 1 ? 'track' : 'tracks'
+              } in "${pendingDeleteAlbum.albumName}" will be permanently removed from your device.`
+            : ''
+        }
+        confirmLabel="Delete"
+        busy={deleteBusy}
+        error={deleteError}
+        onConfirm={() => void confirmDeleteAlbum()}
+        onCancel={cancelDeleteAlbum}
+      />
     </View>
   );
 }

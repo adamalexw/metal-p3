@@ -1,5 +1,8 @@
 import { BlurView } from 'expo-blur';
+import { useNavigation } from 'expo-router';
 import {
+  Captions,
+  ListMusic,
   type LucideIcon,
   Pause,
   Play,
@@ -10,11 +13,12 @@ import {
   SkipForward,
   Skull,
 } from 'lucide-react-native';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Dimensions, Image, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MetalP3Player, type RepeatMode } from '../../modules/metalp3-player';
 import { PlayerProgressBar } from '../../src/components/PlayerProgressBar';
+import QueueSheet from '../../src/components/QueueSheet';
 import { useLyrics } from '../../src/lib/useLyrics';
 import { useNowPlayingState } from '../../src/lib/useNowPlayingState';
 import { useArtworkTheme } from '../../src/theme/useArtworkTheme';
@@ -23,8 +27,10 @@ const ICON_STROKE = 2.5;
 
 export default function PlayerScreen() {
   const insets = useSafeAreaInsets();
+  const navigation = useNavigation();
   const state = useNowPlayingState();
   const [showLyrics, setShowLyrics] = useState(false);
+  const [queueOpen, setQueueOpen] = useState(false);
 
   const current = state?.current;
   const isPlaying = state?.isPlaying ?? false;
@@ -38,6 +44,60 @@ export default function PlayerScreen() {
     () => [current?.artist, current?.album].filter(Boolean).join(' — '),
     [current?.artist, current?.album],
   );
+
+  const headerTitle = useMemo(() => {
+    const artist = current?.artist ?? current?.albumArtist ?? '';
+    const title = current?.title ?? '';
+    if (artist && title) return `${artist} — ${title}`;
+    if (title) return title;
+    return 'Now Playing';
+  }, [current?.artist, current?.albumArtist, current?.title]);
+
+  useEffect(() => {
+    navigation.setOptions({
+      title: headerTitle,
+      headerTransparent: true,
+      headerStyle: { backgroundColor: 'transparent' },
+      headerTintColor: theme.foreground,
+      headerTitleStyle: { color: theme.foreground },
+      headerRight: () => (
+        <View style={styles.headerRight}>
+          <Pressable
+            onPress={() => setQueueOpen(true)}
+            style={styles.headerIconBtn}
+            hitSlop={8}
+            testID="player-queue-toggle"
+            accessibilityRole="button"
+            accessibilityLabel="Show queue"
+          >
+            <ListMusic
+              size={24}
+              color={theme.foreground}
+              strokeWidth={ICON_STROKE}
+              strokeLinecap="square"
+            />
+          </Pressable>
+          {hasLyrics ? (
+            <Pressable
+              onPress={() => setShowLyrics((v) => !v)}
+              style={styles.headerIconBtn}
+              hitSlop={8}
+              testID="player-lyrics-toggle"
+              accessibilityRole="button"
+              accessibilityLabel={showLyrics ? 'Hide lyrics' : 'Show lyrics'}
+            >
+              <Captions
+                size={24}
+                color={showLyrics ? theme.accent : theme.foreground}
+                strokeWidth={ICON_STROKE}
+                strokeLinecap="square"
+              />
+            </Pressable>
+          ) : null}
+        </View>
+      ),
+    });
+  }, [navigation, headerTitle, theme.foreground, theme.accent, hasLyrics, showLyrics]);
 
   const artSize = useMemo(() => {
     const w = Dimensions.get('window').width - 48;
@@ -173,30 +233,16 @@ export default function PlayerScreen() {
             />
           </View>
 
-          {hasLyrics ? (
-            <Pressable
-              style={[
-                styles.lyricsToggle,
-                {
-                  backgroundColor: showLyrics ? theme.accent : 'transparent',
-                  borderColor: theme.accent,
-                },
-              ]}
-              onPress={() => setShowLyrics((v) => !v)}
-              testID="player-lyrics-toggle"
-            >
-              <Text
-                style={[
-                  styles.lyricsToggleLabel,
-                  withShadow(showLyrics ? theme.accentForeground : theme.accent),
-                ]}
-              >
-                {showLyrics ? 'Hide lyrics' : 'Lyrics'}
-              </Text>
-            </Pressable>
-          ) : null}
         </View>
       </View>
+
+      <QueueSheet
+        visible={queueOpen}
+        onClose={() => setQueueOpen(false)}
+        queue={state?.queue ?? []}
+        currentIndex={state?.currentIndex ?? -1}
+        theme={theme}
+      />
     </View>
   );
 }
@@ -281,14 +327,14 @@ const styles = StyleSheet.create({
   darken: { backgroundColor: 'rgba(0,0,0,0.3)' },
   webBackdropOverlay: { backgroundColor: 'rgba(0,0,0,0.3)' },
 
-  content: { flex: 1, paddingHorizontal: 24, justifyContent: 'space-between' },
+  content: { flex: 1, paddingHorizontal: 24 },
 
-  artWrap: { alignItems: 'center', marginTop: 8 },
+  artWrap: { flex: 1, alignItems: 'center', justifyContent: 'flex-end', marginTop: 8 },
   art: {
     maxWidth: '100%',
     borderRadius: 18,
     overflow: 'hidden',
-    marginBottom: 24,
+    marginBottom: 16,
     shadowColor: '#000',
     shadowOpacity: 0.5,
     shadowRadius: 18,
@@ -322,12 +368,6 @@ const styles = StyleSheet.create({
     elevation: 10,
   },
 
-  lyricsToggle: {
-    marginTop: 18,
-    paddingVertical: 8,
-    paddingHorizontal: 18,
-    borderRadius: 999,
-    borderWidth: 1.5,
-  },
-  lyricsToggleLabel: { fontSize: 13, fontWeight: '700', letterSpacing: 0.4 },
+  headerRight: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingRight: 4 },
+  headerIconBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
 });

@@ -7,9 +7,10 @@ import { formatAlbumDuration } from '../lib/group-tracks-by-album';
 interface AlbumTileProps {
   group: AlbumGroup;
   onPress: () => void;
+  onLongPress?: () => void;
 }
 
-export default function AlbumTile({ group, onPress }: AlbumTileProps) {
+export default function AlbumTile({ group, onPress, onLongPress }: AlbumTileProps) {
   const [artUri, setArtUri] = useState<string | null>(null);
 
   useEffect(() => {
@@ -33,6 +34,7 @@ export default function AlbumTile({ group, onPress }: AlbumTileProps) {
     <Pressable
       style={styles.tile}
       onPress={onPress}
+      onLongPress={onLongPress}
       testID={`album-tile-${group.key}`}
       accessibilityRole="button"
       accessibilityLabel={`${group.albumName} by ${group.bandName}, ${meta}`}

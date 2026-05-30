@@ -71,6 +71,10 @@ class MetalP3PlayerModule : Module() {
       withController { it.shuffleModeEnabled = on }
     }
 
+    AsyncFunction("moveQueueItemAsync") { fromIndex: Int, toIndex: Int ->
+      withController { it.moveMediaItem(fromIndex, toIndex) }
+    }
+
     AsyncFunction("getStateAsync") {
       runOnMainBlocking { snapshotState() }
     }
@@ -127,8 +131,22 @@ class MetalP3PlayerModule : Module() {
       "repeatMode" to "off",
       "shuffle" to false,
       "current" to null,
+      "queue" to emptyList<Map<String, Any?>>(),
     )
     val md = c.mediaMetadata
+    val queue = (0 until c.mediaItemCount).map { i ->
+      val item = c.getMediaItemAt(i)
+      val itemMd = item.mediaMetadata
+      mapOf(
+        "id" to item.mediaId,
+        "uri" to item.localConfiguration?.uri?.toString(),
+        "title" to itemMd.title?.toString(),
+        "artist" to itemMd.artist?.toString(),
+        "album" to itemMd.albumTitle?.toString(),
+        "albumArtist" to itemMd.albumArtist?.toString(),
+        "artworkUri" to itemMd.artworkUri?.toString(),
+      )
+    }
     return mapOf(
       "ready" to true,
       "isPlaying" to c.isPlaying,
@@ -153,6 +171,7 @@ class MetalP3PlayerModule : Module() {
         "albumArtist" to md.albumArtist?.toString(),
         "artworkUri" to md.artworkUri?.toString(),
       ),
+      "queue" to queue,
     )
   }
 

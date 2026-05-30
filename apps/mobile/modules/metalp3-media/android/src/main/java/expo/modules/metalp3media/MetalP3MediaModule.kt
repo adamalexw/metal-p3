@@ -1,6 +1,7 @@
 package expo.modules.metalp3media
 
 import android.Manifest
+import android.app.Activity
 import android.content.ContentUris
 import android.content.pm.PackageManager
 import android.database.Cursor
@@ -11,11 +12,18 @@ import android.provider.MediaStore
 import android.util.Base64
 import androidx.core.content.ContextCompat
 import androidx.core.database.getStringOrNull
+import expo.modules.kotlin.Promise
 import expo.modules.kotlin.exception.CodedException
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 
 class MetalP3MediaModule : Module() {
+
+  private data class PendingDelete(val uris: List<String>, val promise: Promise)
+
+  private val pendingDeletes = mutableMapOf<Int, PendingDelete>()
+  private var nextDeleteRequestCode = 0x4D44 // 'MD'
+
   override fun definition() = ModuleDefinition {
     Name("MetalP3Media")
 
@@ -54,6 +62,84 @@ class MetalP3MediaModule : Module() {
       requirePermission()
       readLyrics(uri)
     }
+
+    AsyncFunction("deleteTracksAsync") { uris: List<String>, promise: Promise ->
+      deleteTracks(uris, promise)
+    }
+
+    OnActivityResult { _, payload ->
+      val pending = pendingDeletes.remove(payload.requestCode) ?: return@OnActivityResult
+      if (payload.resultCode == Activity.RESULT_OK) {
+        pending.promise.resolve(
+          mapOf(
+            "deletedUris" to pending.uris,
+            "failedUris" to emptyList<String>(),
+          ),
+        )
+      } else {
+        pending.promise.resolve(
+          mapOf(
+            "deletedUris" to emptyList<String>(),
+            "failedUris" to pending.uris,
+          ),
+        )
+      }
+    }
+  }
+
+  private fun deleteTracks(uris: List<String>, promise: Promise) {
+    if (uris.isEmpty()) {
+      promise.resolve(mapOf("deletedUris" to emptyList<String>(), "failedUris" to emptyList<String>()))
+      return
+    }
+    if (!hasAudioPermission()) {
+      promise.reject(CodedException("E_DELETE_PERMISSION", "Audio permission not granted", null))
+      return
+    }
+
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+      val activity = appContext.currentActivity
+      if (activity == null) {
+        promise.reject(CodedException("E_DELETE_NO_ACTIVITY", "No current activity to host delete dialog", null))
+        return
+      }
+      val parsed = uris.mapNotNull { runCatching { Uri.parse(it) }.getOrNull() }
+      if (parsed.isEmpty()) {
+        promise.resolve(mapOf("deletedUris" to emptyList<String>(), "failedUris" to uris))
+        return
+      }
+      try {
+        val pendingIntent = MediaStore.createDeleteRequest(ctx.contentResolver, parsed)
+        val requestCode = nextDeleteRequestCode++
+        pendingDeletes[requestCode] = PendingDelete(uris, promise)
+        activity.startIntentSenderForResult(
+          pendingIntent.intentSender,
+          requestCode,
+          null,
+          0,
+          0,
+          0,
+          null,
+        )
+      } catch (t: Throwable) {
+        promise.reject(CodedException("E_DELETE_FAILED", t.message ?: "Failed to start delete request", t))
+      }
+      return
+    }
+
+    // API < 30: best-effort direct delete via ContentResolver.
+    val deleted = mutableListOf<String>()
+    val failed = mutableListOf<String>()
+    for (uriString in uris) {
+      try {
+        val uri = Uri.parse(uriString)
+        val rows = ctx.contentResolver.delete(uri, null, null)
+        if (rows > 0) deleted += uriString else failed += uriString
+      } catch (_: Throwable) {
+        failed += uriString
+      }
+    }
+    promise.resolve(mapOf("deletedUris" to deleted, "failedUris" to failed))
   }
 
   private val ctx get() = appContext.reactContext

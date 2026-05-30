@@ -33,4 +33,5 @@ export interface PlaybackState {
   repeatMode: RepeatMode;
   shuffle: boolean;
   current: NowPlaying | null;
+  queue: QueueItem[];
 }

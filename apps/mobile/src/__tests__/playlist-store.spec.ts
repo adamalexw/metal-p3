@@ -27,10 +27,14 @@ import {
   _resetForTests,
   addTrackToPlaylist,
   createPlaylist,
+  deletePlaylist,
   DuplicatePlaylistNameError,
+  getActivePlaylistId,
   getPlaylist,
   getPlaylists,
   loadPlaylists,
+  removeTrackIdsFromAllPlaylists,
+  setActivePlaylistId,
   subscribe,
 } from '../lib/playlist-store';
 
@@ -119,5 +123,49 @@ describe('playlist-store', () => {
     unsubscribe();
     await addTrackToPlaylist(pl.id, 't2');
     expect(listener).toHaveBeenCalledTimes(2);
+  });
+
+  it('deletePlaylist removes the playlist, persists, and clears activePlaylistId when it matched', async () => {
+    await loadPlaylists();
+    const a = await createPlaylist('Keep');
+    const b = await createPlaylist('Drop');
+    setActivePlaylistId(b.id);
+
+    await deletePlaylist(b.id);
+
+    expect(getPlaylists()).toHaveLength(1);
+    expect(getPlaylist(b.id)).toBeUndefined();
+    expect(getPlaylist(a.id)).toBeDefined();
+    expect(getActivePlaylistId()).toBeNull();
+
+    const persisted = JSON.parse(mocked.__store.get(PLAYLIST_STORAGE_KEY) ?? '[]');
+    expect(persisted).toHaveLength(1);
+    expect(persisted[0].id).toBe(a.id);
+  });
+
+  it('deletePlaylist on a non-matching active id leaves activePlaylistId untouched', async () => {
+    await loadPlaylists();
+    const a = await createPlaylist('Stays');
+    const b = await createPlaylist('Goes');
+    setActivePlaylistId(a.id);
+
+    await deletePlaylist(b.id);
+
+    expect(getActivePlaylistId()).toBe(a.id);
+  });
+
+  it('removeTrackIdsFromAllPlaylists strips the given ids from every playlist', async () => {
+    await loadPlaylists();
+    const a = await createPlaylist('A');
+    const b = await createPlaylist('B');
+    await addTrackToPlaylist(a.id, 't1');
+    await addTrackToPlaylist(a.id, 't2');
+    await addTrackToPlaylist(b.id, 't2');
+    await addTrackToPlaylist(b.id, 't3');
+
+    await removeTrackIdsFromAllPlaylists(['t2']);
+
+    expect(getPlaylist(a.id)?.trackIds).toEqual(['t1']);
+    expect(getPlaylist(b.id)?.trackIds).toEqual(['t3']);
   });
 });

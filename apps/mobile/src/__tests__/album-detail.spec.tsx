@@ -21,6 +21,26 @@ jest.mock('expo-blur', () => {
   return { BlurView: View };
 });
 
+jest.mock('react-native-gesture-handler', () => {
+  const React = require('react');
+  const { View } = require('react-native');
+  const Swipeable = React.forwardRef(
+    (
+      props: { renderRightActions?: () => React.ReactNode; children?: React.ReactNode; testID?: string },
+      ref: React.Ref<unknown>,
+    ) => {
+      React.useImperativeHandle(ref, () => ({ close: () => undefined }));
+      return React.createElement(
+        View,
+        { testID: props.testID },
+        props.children,
+        props.renderRightActions ? props.renderRightActions() : null,
+      );
+    },
+  );
+  return { Swipeable };
+});
+
 jest.mock('../theme/useArtworkTheme', () => ({
   useArtworkTheme: () => ({
     background: '#101010',
@@ -56,6 +76,7 @@ const mockMedia = {
   getTrackAsync: jest.fn().mockResolvedValue(null),
   getArtworkAsync: jest.fn().mockResolvedValue(null),
   getLyricsAsync: jest.fn().mockResolvedValue(null),
+  deleteTracksAsync: jest.fn(),
 };
 
 jest.mock('expo-modules-core', () => ({
@@ -121,6 +142,7 @@ const idleState: PlaybackState = {
   repeatMode: 'off',
   shuffle: false,
   current: null,
+  queue: [],
 };
 
 const playingTrack2State: PlaybackState = {
@@ -143,11 +165,15 @@ const playingTrack2State: PlaybackState = {
     albumArtist: 'Mastodon',
     artworkUri: null,
   },
+  queue: [],
 };
 
 function noop(): void {
   /* intentional no-op */
 }
+
+// Force android platform so the swipe-to-delete and bridge guards are active.
+require('react-native').Platform.OS = 'android';
 
 const { setLibraryTracks, clearLibraryCache } = require('../lib/library-cache');
 const AlbumDetailScreen = require('../../app/album/[key]').default;
@@ -162,7 +188,7 @@ describe('AlbumDetailScreen', () => {
     mockPlayer.addListener.mockReturnValue({ remove: jest.fn() });
   });
 
-  it('tapping a track row enqueues the album, plays, then navigates to /(tabs)/player', async () => {
+  it('tapping a track row enqueues the album, plays, then navigates to /player', async () => {
     const { findByTestId } = render(<AlbumDetailScreen />);
     const row = await findByTestId('album-track-track-2');
 
@@ -184,7 +210,7 @@ describe('AlbumDetailScreen', () => {
     expect(setQueueArgs[0]).toHaveLength(2);
 
     await waitFor(() => {
-      expect(mockPush).toHaveBeenCalledWith('/(tabs)/player');
+      expect(mockPush).toHaveBeenCalledWith('/player');
     });
   });
 
@@ -219,5 +245,88 @@ describe('AlbumDetailScreen', () => {
     await findByTestId('album-track-track-1');
     expect(queryByTestId('album-track-playing-indicator-track-1')).toBeNull();
     expect(queryByTestId('album-track-playing-indicator-track-2')).toBeNull();
+  });
+
+  it('Play button disables shuffle, queues from index 0, plays, then navigates', async () => {
+    const { findByTestId } = render(<AlbumDetailScreen />);
+    fireEvent.press(await findByTestId('album-detail-play'));
+
+    await waitFor(() => {
+      expect(mockPlayer.setQueueAsync).toHaveBeenCalledTimes(1);
+    });
+    expect(mockPlayer.setShuffleAsync).toHaveBeenCalledWith(false);
+    expect(mockPlayer.playAsync).toHaveBeenCalledTimes(1);
+
+    const setShuffleOrder = mockPlayer.setShuffleAsync.mock.invocationCallOrder[0];
+    const setQueueOrder = mockPlayer.setQueueAsync.mock.invocationCallOrder[0];
+    const playOrder = mockPlayer.playAsync.mock.invocationCallOrder[0];
+    expect(setShuffleOrder).toBeLessThan(setQueueOrder);
+    expect(setQueueOrder).toBeLessThan(playOrder);
+
+    const setQueueArgs = mockPlayer.setQueueAsync.mock.calls[0];
+    expect(setQueueArgs[1]).toBe(0);
+    expect(setQueueArgs[2]).toBe(0);
+    expect(Array.isArray(setQueueArgs[0])).toBe(true);
+    expect(setQueueArgs[0]).toHaveLength(2);
+
+    await waitFor(() => {
+      expect(mockPush).toHaveBeenCalledWith('/player');
+    });
+  });
+
+  it('Shuffle button enables shuffle, queues, plays, then navigates', async () => {
+    const { findByTestId } = render(<AlbumDetailScreen />);
+    fireEvent.press(await findByTestId('album-detail-shuffle'));
+
+    await waitFor(() => {
+      expect(mockPlayer.setQueueAsync).toHaveBeenCalledTimes(1);
+    });
+    expect(mockPlayer.setShuffleAsync).toHaveBeenCalledWith(true);
+    expect(mockPlayer.playAsync).toHaveBeenCalledTimes(1);
+
+    const setShuffleOrder = mockPlayer.setShuffleAsync.mock.invocationCallOrder[0];
+    const setQueueOrder = mockPlayer.setQueueAsync.mock.invocationCallOrder[0];
+    const playOrder = mockPlayer.playAsync.mock.invocationCallOrder[0];
+    expect(setShuffleOrder).toBeLessThan(setQueueOrder);
+    expect(setQueueOrder).toBeLessThan(playOrder);
+
+    await waitFor(() => {
+      expect(mockPush).toHaveBeenCalledWith('/player');
+    });
+  });
+
+  it('tapping the swipe Delete action opens the confirm sheet, and confirming calls deleteTracksAsync with that row\'s URI', async () => {
+    mockMedia.deleteTracksAsync.mockResolvedValueOnce({ deletedUris: ['a://1'], failedUris: [] });
+
+    const { findByTestId, getByTestId, queryByTestId } = render(<AlbumDetailScreen />);
+    await findByTestId('album-track-track-1');
+
+    // Tap the revealed swipe Delete action — opens the confirm sheet.
+    fireEvent.press(getByTestId('album-track-delete-action-track-1'));
+    await findByTestId('confirm-delete-sheet');
+
+    fireEvent.press(getByTestId('confirm-delete-confirm'));
+
+    await waitFor(() => {
+      expect(mockMedia.deleteTracksAsync).toHaveBeenCalledWith(['a://1']);
+    });
+    await waitFor(() => {
+      expect(queryByTestId('confirm-delete-sheet')).toBeNull();
+    });
+  });
+
+  it('cancelling the confirm sheet does not call deleteTracksAsync', async () => {
+    const { findByTestId, getByTestId, queryByTestId } = render(<AlbumDetailScreen />);
+    await findByTestId('album-track-track-1');
+
+    fireEvent.press(getByTestId('album-track-delete-action-track-1'));
+    await findByTestId('confirm-delete-sheet');
+
+    fireEvent.press(getByTestId('confirm-delete-cancel'));
+
+    expect(mockMedia.deleteTracksAsync).not.toHaveBeenCalled();
+    await waitFor(() => {
+      expect(queryByTestId('confirm-delete-sheet')).toBeNull();
+    });
   });
 });
