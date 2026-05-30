@@ -65,11 +65,11 @@ export default function AlbumDetailScreen() {
 
       {artUri ? (
         <View style={StyleSheet.absoluteFill} pointerEvents="none" testID="album-detail-backdrop">
-          <Image source={{ uri: artUri }} style={StyleSheet.absoluteFill} resizeMode="cover" blurRadius={Platform.OS === 'android' ? 25 : 0} />
+          <Image source={{ uri: artUri }} style={StyleSheet.absoluteFill} resizeMode="cover" blurRadius={Platform.OS === 'android' ? 10 : 0} />
           {Platform.OS === 'web' ? (
             <View style={[StyleSheet.absoluteFill, styles.webBackdropOverlay]} />
           ) : (
-            <BlurView intensity={80} tint="dark" style={StyleSheet.absoluteFill} />
+            <BlurView intensity={35} tint="dark" style={StyleSheet.absoluteFill} />
           )}
           <View style={[StyleSheet.absoluteFill, styles.darken]} />
         </View>
@@ -148,8 +148,8 @@ function toQueueItem(t: Track) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#000' },
-  darken: { backgroundColor: 'rgba(0,0,0,0.55)' },
-  webBackdropOverlay: { backgroundColor: 'rgba(0,0,0,0.55)' },
+  darken: { backgroundColor: 'rgba(0,0,0,0.3)' },
+  webBackdropOverlay: { backgroundColor: 'rgba(0,0,0,0.3)' },
   header: { paddingHorizontal: 16, paddingTop: 16, paddingBottom: 24, alignItems: 'center' },
   artwork: { width: 220, height: 220, borderRadius: 8, overflow: 'hidden', backgroundColor: '#222', marginBottom: 16 },
   artImage: { width: '100%', height: '100%' },
