@@ -5,10 +5,12 @@ import { FlatList, Image, Platform, Pressable, StyleSheet, Text, View } from 're
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MetalP3Media } from '../../modules/metalp3-media';
 import { MetalP3Player } from '../../modules/metalp3-player';
+import { MINI_PLAYER_HEIGHT } from '../../src/components/MiniPlayer';
 import { formatAlbumDuration } from '../../src/lib/group-tracks-by-album';
 import { findAlbumGroup } from '../../src/lib/library-cache';
 import { toQueueItem } from '../../src/lib/to-queue-item';
 import AddToPlaylistSheet from '../../src/components/AddToPlaylistSheet';
+import { useNowPlayingState } from '../../src/lib/useNowPlayingState';
 import type { Track } from '../../modules/metalp3-media/src/MetalP3Media.types';
 
 export default function AlbumDetailScreen() {
@@ -17,6 +19,8 @@ export default function AlbumDetailScreen() {
   const albumKey = decodeURIComponent(rawKey);
   const group = findAlbumGroup(albumKey);
   const insets = useSafeAreaInsets();
+  const nowPlaying = useNowPlayingState();
+  const miniPlayerPad = nowPlaying?.current ? MINI_PLAYER_HEIGHT + 16 : 0;
   const [artUri, setArtUri] = useState<string | null>(null);
   const [longPressedTrackId, setLongPressedTrackId] = useState<string | null>(null);
 
@@ -81,7 +85,7 @@ export default function AlbumDetailScreen() {
       <FlatList
         data={group.tracks}
         keyExtractor={(t) => t.id}
-        contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}
+        contentContainerStyle={{ paddingBottom: insets.bottom + 24 + miniPlayerPad }}
         ListHeaderComponent={
           <View style={styles.header}>
             <View style={styles.artwork} testID="album-detail-artwork">

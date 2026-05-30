@@ -1,25 +1,16 @@
 import { BlurView } from 'expo-blur';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Image, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { MetalP3Player, type PlaybackState, type RepeatMode } from '../../modules/metalp3-player';
+import { MetalP3Player, type RepeatMode } from '../../modules/metalp3-player';
 import { useLyrics } from '../../src/lib/useLyrics';
+import { useNowPlayingState } from '../../src/lib/useNowPlayingState';
 import { useArtworkTheme } from '../../src/theme/useArtworkTheme';
 
 export default function PlayerScreen() {
   const insets = useSafeAreaInsets();
-  const [state, setState] = useState<PlaybackState | null>(null);
+  const state = useNowPlayingState();
   const [showLyrics, setShowLyrics] = useState(false);
-
-  useEffect(() => {
-    let mounted = true;
-    void MetalP3Player.getStateAsync().then((s) => mounted && setState(s));
-    const sub = MetalP3Player.addStateListener((s) => mounted && setState(s));
-    return () => {
-      mounted = false;
-      sub.remove();
-    };
-  }, []);
 
   const current = state?.current;
   const isPlaying = state?.isPlaying ?? false;

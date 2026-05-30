@@ -5,8 +5,10 @@ import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MetalP3Media } from '../../modules/metalp3-media';
 import AlbumTile from '../../src/components/AlbumTile';
+import { MINI_PLAYER_HEIGHT } from '../../src/components/MiniPlayer';
 import type { AlbumGroup } from '../../src/lib/group-tracks-by-album';
 import { setLibraryTracks } from '../../src/lib/library-cache';
+import { useNowPlayingState } from '../../src/lib/useNowPlayingState';
 
 type AlbumRow =
   | { kind: 'pair'; key: string; left: AlbumGroup; right: AlbumGroup }
@@ -33,6 +35,8 @@ type Status = 'idle' | 'checking' | 'denied' | 'loading' | 'ready' | 'error';
 export default function LibraryScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const nowPlaying = useNowPlayingState();
+  const miniPlayerPad = nowPlaying?.current ? MINI_PLAYER_HEIGHT + 16 : 0;
   const [status, setStatus] = useState<Status>('idle');
   const [albums, setAlbums] = useState<AlbumGroup[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -88,7 +92,7 @@ export default function LibraryScreen() {
           style={styles.list}
           data={rows}
           keyExtractor={(r) => r.key}
-          contentContainerStyle={[styles.listContent, { paddingBottom: insets.bottom + 24 }]}
+          contentContainerStyle={[styles.listContent, { paddingBottom: insets.bottom + 24 + miniPlayerPad }]}
           renderItem={({ item, index }) => (
             <Animated.View entering={FadeInDown.duration(300).delay((index % 8) * 40)} style={styles.row}>
               {item.kind === 'pair' ? (
