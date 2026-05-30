@@ -1,9 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
   FlatList,
-  KeyboardAvoidingView,
   Modal,
-  Platform,
   Pressable,
   StyleSheet,
   Text,
@@ -106,11 +104,7 @@ export default function AddToPlaylistSheet({ visible, trackId, onClose }: AddToP
       testID="add-to-playlist-sheet"
     >
       <Pressable style={tw`flex-1 bg-black/60`} onPress={onClose}>
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          style={tw`flex-1 justify-end`}
-          pointerEvents="box-none"
-        >
+        <View style={tw`flex-1 justify-end`} pointerEvents="box-none">
           <Pressable
             style={tw`bg-[#111] rounded-t-2xl px-4 pt-4 pb-6 max-h-[70%]`}
             onPress={() => undefined}
@@ -201,7 +195,7 @@ export default function AddToPlaylistSheet({ visible, trackId, onClose }: AddToP
               </>
             )}
           </Pressable>
-        </KeyboardAvoidingView>
+        </View>
       </Pressable>
     </Modal>
   );

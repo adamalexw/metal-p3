@@ -48,7 +48,8 @@
     "expo-blur": "*",
     "@react-native-async-storage/async-storage": "*",
     "lucide-react-native": "*",
-    "twrnc": "*"
+    "twrnc": "*",
+    "@react-navigation/elements": "*"
   },
   "devDependencies": {}
 }

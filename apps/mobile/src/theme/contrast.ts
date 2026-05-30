@@ -59,6 +59,26 @@ export function clampLuminanceDown(color: Rgb, targetLuminance: number): Rgb {
 }
 
 /**
+ * Lighten `color` toward white until its contrast against `bg` meets `minRatio`.
+ * Preserves hue (instead of falling back to plain white). Returns white if even
+ * full mixing can't reach the target.
+ */
+export function lightenForContrast(color: Rgb, bg: Rgb, minRatio: number): Rgb {
+  const white = { r: 255, g: 255, b: 255 };
+  if (contrastRatio(color, bg) >= minRatio) return color;
+  let lo = 0;
+  let hi = 1;
+  let current = color;
+  for (let i = 0; i < 12; i++) {
+    const t = (lo + hi) / 2;
+    current = mix(color, white, t);
+    if (contrastRatio(current, bg) >= minRatio) hi = t;
+    else lo = t;
+  }
+  return contrastRatio(current, bg) >= minRatio ? current : white;
+}
+
+/**
  * Return whichever of black or white gives the larger contrast against `bg`.
  * Used as the safe fallback for foreground text on an arbitrary background.
  */

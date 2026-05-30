@@ -1,5 +1,5 @@
 import { BlurView } from 'expo-blur';
-import { useNavigation } from 'expo-router';
+import { useNavigation, useRouter } from 'expo-router';
 import {
   Captions,
   ListMusic,
@@ -14,11 +14,12 @@ import {
   Skull,
 } from 'lucide-react-native';
 import { useEffect, useMemo, useState } from 'react';
-import { Dimensions, Image, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Dimensions, Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MetalP3Player, type RepeatMode } from '../../modules/metalp3-player';
 import { PlayerProgressBar } from '../../src/components/PlayerProgressBar';
 import QueueSheet from '../../src/components/QueueSheet';
+import { findAlbumGroup, getLibraryTracks, subscribe as subscribeLibrary } from '../../src/lib/library-cache';
 import { useLyrics } from '../../src/lib/useLyrics';
 import { useNowPlayingState } from '../../src/lib/useNowPlayingState';
 import { tw } from '../../src/lib/tw';
@@ -29,9 +30,13 @@ const ICON_STROKE = 2.5;
 export default function PlayerScreen() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
+  const router = useRouter();
   const state = useNowPlayingState();
   const [showLyrics, setShowLyrics] = useState(false);
   const [queueOpen, setQueueOpen] = useState(false);
+  const [libraryTick, setLibraryTick] = useState(0);
+
+  useEffect(() => subscribeLibrary(() => setLibraryTick((n) => n + 1)), []);
 
   const current = state?.current;
   const isPlaying = state?.isPlaying ?? false;
@@ -46,21 +51,87 @@ export default function PlayerScreen() {
     [current?.artist, current?.album],
   );
 
-  const headerTitle = useMemo(() => {
-    const artist = current?.artist ?? current?.albumArtist ?? '';
-    const title = current?.title ?? '';
-    if (artist && title) return `${artist} — ${title}`;
-    if (title) return title;
-    return 'Now Playing';
-  }, [current?.artist, current?.albumArtist, current?.title]);
+  const albumKey = useMemo(() => {
+    const band = (current?.albumArtist ?? current?.artist ?? '').toLowerCase().trim();
+    const album = (current?.album ?? '').toLowerCase().trim();
+    if (!band || !album) return null;
+    return `${band}|${album}`;
+  }, [current?.albumArtist, current?.artist, current?.album]);
+
+  const genre = useMemo(() => {
+    if (albumKey) {
+      const group = findAlbumGroup(albumKey);
+      if (group?.genre) return group.genre;
+    }
+    const id = current?.id;
+    const uri = current?.uri;
+    const tracks = getLibraryTracks();
+    const track =
+      (id ? tracks.find((t) => t.id === id) : null) ??
+      (uri ? tracks.find((t) => t.uri === uri) : null);
+    return track?.genre ?? null;
+    // libraryTick: re-runs when the external library cache populates/changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [albumKey, current?.id, current?.uri, libraryTick]);
+
+  const headerSubtitle = useMemo(() => {
+    const band = current?.artist ?? current?.albumArtist ?? '';
+    const album = current?.album ?? '';
+    return [band, album].filter(Boolean).join(' — ');
+  }, [current?.artist, current?.albumArtist, current?.album]);
+
+  const headerTitleText = current?.title ?? 'Now Playing';
+
+  const openAlbum = () => {
+    if (!albumKey) return;
+    router.push(`/album/${encodeURIComponent(albumKey)}` as never);
+  };
 
   useEffect(() => {
     navigation.setOptions({
-      title: headerTitle,
+      headerShown: true,
       headerTransparent: true,
       headerStyle: { backgroundColor: 'transparent' },
       headerTintColor: theme.foreground,
-      headerTitleStyle: { color: theme.foreground },
+      headerTitleAlign: 'left',
+      headerTitleContainerStyle: {
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+      },
+      headerTitle: () => (
+        <View
+          style={tw`flex-1 items-center justify-center`}
+          pointerEvents="box-none"
+          testID="player-header-title"
+        >
+          <Pressable
+            onPress={openAlbum}
+            disabled={!albumKey}
+            style={tw`items-center max-w-full`}
+            accessibilityRole="button"
+            accessibilityLabel="Open album"
+            testID="player-header-album-link"
+          >
+            <Text
+              style={[tw`text-base font-semibold text-center`, { color: theme.foreground }]}
+              numberOfLines={1}
+              ellipsizeMode="tail"
+            >
+              {headerTitleText}
+            </Text>
+            {headerSubtitle ? (
+              <Text
+                style={[tw`text-xs text-center`, { color: theme.mutedForeground }]}
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
+                {headerSubtitle}
+              </Text>
+            ) : null}
+          </Pressable>
+        </View>
+      ),
       headerRight: () => (
         <View style={tw`flex-row items-center gap-1 pr-1`}>
           <Pressable
@@ -98,7 +169,18 @@ export default function PlayerScreen() {
         </View>
       ),
     });
-  }, [navigation, headerTitle, theme.foreground, theme.accent, hasLyrics, showLyrics]);
+  }, [
+    navigation,
+    headerTitleText,
+    headerSubtitle,
+    albumKey,
+    router,
+    theme.foreground,
+    theme.mutedForeground,
+    theme.accent,
+    hasLyrics,
+    showLyrics,
+  ]);
 
   const artSize = useMemo(() => {
     const w = Dimensions.get('window').width - 48;
@@ -120,38 +202,31 @@ export default function PlayerScreen() {
             source={{ uri: theme.artworkDataUri }}
             style={StyleSheet.absoluteFill}
             resizeMode="cover"
-            blurRadius={Platform.OS === 'android' ? 10 : 0}
+            blurRadius={10}
           />
-          {Platform.OS === 'web' ? (
-            <View style={[StyleSheet.absoluteFill, tw`bg-black/30`]} />
-          ) : (
-            <BlurView intensity={35} tint="dark" style={StyleSheet.absoluteFill} />
-          )}
+          <BlurView intensity={35} tint="dark" style={StyleSheet.absoluteFill} />
           <View style={[StyleSheet.absoluteFill, tw`bg-black/30`]} />
         </View>
       ) : null}
 
       <View
-        style={[tw`flex-1 px-6`, { paddingTop: insets.top + 16, paddingBottom: insets.bottom + 24 }]}
+        pointerEvents="box-none"
+        style={[
+          tw`flex-1 px-6`,
+          {
+            paddingTop: insets.top + 56 + 16,
+            paddingBottom: insets.bottom + 24,
+          },
+        ]}
       >
         {showLyrics && hasLyrics ? (
-          <View style={tw`flex-1 items-stretch pt-2`} testID="player-lyrics">
-            <Text
-              style={[tw`text-[22px] font-extrabold text-center`, withShadow(theme.foreground)]}
-              numberOfLines={2}
-            >
-              {current?.title ?? 'Nothing playing'}
-            </Text>
-            {subtitle ? (
-              <Text
-                style={[tw`mt-1.5 text-sm text-center`, withShadow(theme.mutedForeground)]}
-                numberOfLines={1}
-              >
-                {subtitle}
-              </Text>
-            ) : null}
+          <View
+            pointerEvents="box-none"
+            style={tw`flex-1 items-stretch`}
+            testID="player-lyrics"
+          >
             <ScrollView
-              style={tw`flex-1 mt-4`}
+              style={tw`flex-1`}
               contentContainerStyle={tw`pb-6`}
               showsVerticalScrollIndicator={false}
             >
@@ -167,10 +242,10 @@ export default function PlayerScreen() {
             </ScrollView>
           </View>
         ) : (
-          <View style={tw`flex-1 items-center justify-end mt-2`}>
+          <View pointerEvents="box-none" style={tw`flex-1 items-center`}>
             <View
               style={[
-                tw`max-w-full rounded-[18px] overflow-hidden mb-4`,
+                tw`max-w-full rounded-[18px] overflow-hidden`,
                 {
                   width: artSize,
                   height: artSize,
@@ -205,21 +280,31 @@ export default function PlayerScreen() {
                 </View>
               )}
             </View>
-            <Text
-              style={[tw`text-2xl font-extrabold text-center`, withShadow(theme.foreground)]}
-              numberOfLines={2}
-              testID="player-title"
-            >
-              {current?.title ?? 'Nothing playing'}
-            </Text>
-            {subtitle ? (
+            <View style={tw`flex-1 items-center justify-center self-stretch px-2`}>
               <Text
-                style={[tw`mt-1.5 text-sm text-center`, withShadow(theme.mutedForeground)]}
-                numberOfLines={1}
+                style={[tw`text-2xl font-extrabold text-center`, withShadow(theme.foreground)]}
+                numberOfLines={2}
+                testID="player-title"
               >
-                {subtitle}
+                {current?.title ?? 'Nothing playing'}
               </Text>
-            ) : null}
+              {subtitle ? (
+                <Text
+                  style={[tw`mt-2 text-lg font-semibold text-center`, withShadow(theme.mutedForeground)]}
+                  numberOfLines={1}
+                >
+                  {subtitle}
+                </Text>
+              ) : null}
+              {genre ? (
+                <Text
+                  style={[tw`mt-1.5 text-sm text-center`, withShadow(theme.mutedForeground)]}
+                  numberOfLines={1}
+                >
+                  {genre}
+                </Text>
+              ) : null}
+            </View>
           </View>
         )}
 
@@ -227,6 +312,7 @@ export default function PlayerScreen() {
           <PlayerProgressBar
             positionMs={state?.positionMs ?? 0}
             durationMs={state?.durationMs ?? 0}
+            isPlaying={isPlaying}
             accent={theme.accent}
             mutedForeground={theme.mutedForeground}
             onSeek={(ms) => {
@@ -339,8 +425,8 @@ function IconBtn({
     >
       <Icon
         size={32}
-        color={theme.foreground}
-        fill={filled ? theme.foreground : 'transparent'}
+        color={theme.accent}
+        fill={filled ? theme.accent : 'transparent'}
         strokeWidth={ICON_STROKE}
         strokeLinecap="square"
       />
@@ -357,7 +443,7 @@ function ToggleBtn({
   theme: BtnTheme;
   testID?: string;
 }) {
-  const color = active ? theme.accent : theme.mutedForeground;
+  const color = active ? theme.accent : withAlpha(theme.accent, 0.45);
   return (
     <Pressable
       style={tw`w-14 h-14 items-center justify-center rounded-full`}
@@ -372,6 +458,14 @@ function ToggleBtn({
       />
     </Pressable>
   );
+}
+
+function withAlpha(hex: string, alpha: number): string {
+  const m = /^#([0-9a-f]{6})$/i.exec(hex);
+  if (!m) return hex;
+  const a = Math.max(0, Math.min(1, alpha));
+  const aHex = Math.round(a * 255).toString(16).padStart(2, '0');
+  return `#${m[1]}${aHex}`;
 }
 
 function withShadow(color: string) {

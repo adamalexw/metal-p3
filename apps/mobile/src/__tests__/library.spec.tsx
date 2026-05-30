@@ -48,6 +48,7 @@ const mockMedia = {
 
 const mockPlayer = {
   setQueueAsync: jest.fn().mockResolvedValue(undefined),
+  addToQueueAsync: jest.fn().mockResolvedValue(undefined),
   playAsync: jest.fn().mockResolvedValue(undefined),
   pauseAsync: jest.fn().mockResolvedValue(undefined),
   stopAsync: jest.fn().mockResolvedValue(undefined),
@@ -103,15 +104,16 @@ const tracks = [
 
 mockMedia.scanAudioAsync.mockResolvedValue(tracks);
 
-// Force android so the album context menu is enabled.
-require('react-native').Platform.OS = 'android';
-
 const LibraryScreen = require('../../app/(tabs)/index').default;
 
 describe('LibraryScreen', () => {
   beforeEach(() => {
     mockPush.mockClear();
     mockMedia.deleteTracksAsync.mockReset();
+    mockPlayer.setQueueAsync.mockClear();
+    mockPlayer.addToQueueAsync.mockClear();
+    mockPlayer.playAsync.mockClear();
+    mockPlayer.setShuffleAsync.mockClear();
   });
 
   it('renders one tile per album when scanned tracks share an album', async () => {
@@ -151,5 +153,52 @@ describe('LibraryScreen', () => {
     });
     const args = mockMedia.deleteTracksAsync.mock.calls[0][0] as string[];
     expect(args.sort()).toEqual(['a://1', 'a://2']);
+  });
+
+  it('Play album from the context menu queues the album, disables shuffle, and navigates to the player', async () => {
+    const { findByText, getByTestId } = render(<LibraryScreen />);
+    await findByText('Leviathan');
+
+    const albumKey = 'mastodon|leviathan';
+    fireEvent(getByTestId(`album-tile-${albumKey}`), 'longPress');
+    fireEvent.press(getByTestId(`album-context-play-${albumKey}`));
+
+    await waitFor(() => {
+      expect(mockPlayer.setQueueAsync).toHaveBeenCalledTimes(1);
+      expect(mockPlayer.playAsync).toHaveBeenCalledTimes(1);
+    });
+    expect(mockPlayer.setShuffleAsync).toHaveBeenCalledWith(false);
+    expect(mockPush).toHaveBeenCalledWith('/player');
+  });
+
+  it('Play album on shuffle from the context menu enables shuffle before playing', async () => {
+    const { findByText, getByTestId } = render(<LibraryScreen />);
+    await findByText('Leviathan');
+
+    const albumKey = 'mastodon|leviathan';
+    fireEvent(getByTestId(`album-tile-${albumKey}`), 'longPress');
+    fireEvent.press(getByTestId(`album-context-shuffle-${albumKey}`));
+
+    await waitFor(() => {
+      expect(mockPlayer.setShuffleAsync).toHaveBeenCalledWith(true);
+      expect(mockPlayer.setQueueAsync).toHaveBeenCalledTimes(1);
+      expect(mockPlayer.playAsync).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  it('Add to queue from the context menu appends the album without restarting playback', async () => {
+    const { findByText, getByTestId } = render(<LibraryScreen />);
+    await findByText('Leviathan');
+
+    const albumKey = 'mastodon|leviathan';
+    fireEvent(getByTestId(`album-tile-${albumKey}`), 'longPress');
+    fireEvent.press(getByTestId(`album-context-add-to-queue-${albumKey}`));
+
+    await waitFor(() => {
+      expect(mockPlayer.addToQueueAsync).toHaveBeenCalledTimes(1);
+    });
+    expect(mockPlayer.setQueueAsync).not.toHaveBeenCalled();
+    expect(mockPlayer.playAsync).not.toHaveBeenCalled();
+    expect(mockPush).not.toHaveBeenCalled();
   });
 });

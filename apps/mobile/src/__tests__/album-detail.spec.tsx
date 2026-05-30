@@ -172,8 +172,6 @@ function noop(): void {
   /* intentional no-op */
 }
 
-// Force android platform so the swipe-to-delete and bridge guards are active.
-require('react-native').Platform.OS = 'android';
 
 const { setLibraryTracks, clearLibraryCache } = require('../lib/library-cache');
 const AlbumDetailScreen = require('../../app/album/[key]').default;

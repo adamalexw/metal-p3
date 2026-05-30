@@ -1,4 +1,5 @@
 import { useRouter } from 'expo-router';
+import { Trash2 } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
 import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -87,6 +88,7 @@ export default function PlaylistsListScreen() {
                 {
                   key: 'delete',
                   label: 'Delete playlist',
+                  icon: Trash2,
                   destructive: true,
                   onPress: () => setPendingDelete(contextPlaylist),
                   testID: `playlist-context-delete-${contextPlaylist.id}`,

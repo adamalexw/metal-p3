@@ -1,4 +1,4 @@
-import { KeyboardAvoidingView, Modal, Platform, Pressable, Text, View } from 'react-native';
+import { Modal, Pressable, Text, View } from 'react-native';
 import { tw } from '../lib/tw';
 
 interface ConfirmDeleteSheetProps {
@@ -31,11 +31,7 @@ export default function ConfirmDeleteSheet({
       testID="confirm-delete-sheet"
     >
       <Pressable style={tw`flex-1 bg-black/60`} onPress={busy ? undefined : onCancel}>
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          style={tw`flex-1 justify-end`}
-          pointerEvents="box-none"
-        >
+        <View style={tw`flex-1 justify-end`} pointerEvents="box-none">
           <Pressable
             style={tw`bg-[#111] rounded-t-2xl px-4 pt-4 pb-6`}
             onPress={() => undefined}
@@ -66,7 +62,7 @@ export default function ConfirmDeleteSheet({
               </Pressable>
             </View>
           </Pressable>
-        </KeyboardAvoidingView>
+        </View>
       </Pressable>
     </Modal>
   );

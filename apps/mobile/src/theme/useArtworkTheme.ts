@@ -5,13 +5,26 @@ import { MetalP3Media } from '../../modules/metalp3-media';
 import {
   bestMonoFor,
   clampLuminanceDown,
-  contrastRatio,
   ensureContrast,
+  lightenForContrast,
   luminance,
   parseHex,
   toHex,
   type Rgb,
 } from './contrast';
+
+function saturation({ r, g, b }: Rgb): number {
+  const max = Math.max(r, g, b) / 255;
+  const min = Math.min(r, g, b) / 255;
+  if (max === 0) return 0;
+  return (max - min) / max;
+}
+
+function pickMostSaturated(candidates: Array<Rgb | null>): Rgb | null {
+  const valid = candidates.filter((c): c is Rgb => c !== null && saturation(c) > 0.12);
+  if (valid.length === 0) return null;
+  return valid.reduce((best, c) => (saturation(c) > saturation(best) ? c : best));
+}
 import { DEFAULT_THEME, type ArtworkTheme } from './types';
 
 const ARTWORK_CACHE = new Map<string, string | null>();
@@ -36,6 +49,7 @@ function paletteToTheme(p: AndroidImageColors, artworkDataUri: string): ArtworkT
   const lightVibrant = parseHex(p.lightVibrant);
   const lightMuted = parseHex(p.lightMuted);
   const vibrant = parseHex(p.vibrant);
+  const muted = parseHex(p.muted);
 
   const candidates = [darkVibrant, darkMuted, dominant].filter(Boolean) as Rgb[];
   const seed = candidates.sort((a, b) => luminance(a) - luminance(b))[0] ?? { r: 16, g: 16, b: 16 };
@@ -51,8 +65,10 @@ function paletteToTheme(p: AndroidImageColors, artworkDataUri: string): ArtworkT
     3.0,
   );
 
-  const accentSeed = vibrant ?? lightVibrant ?? fgSeed;
-  const accent = contrastRatio(accentSeed, background) >= 3 ? accentSeed : ensureContrast(accentSeed, background, 3);
+  const accentSeed =
+    pickMostSaturated([vibrant, lightVibrant, darkVibrant, lightMuted, muted, darkMuted, dominant])
+    ?? fgSeed;
+  const accent = lightenForContrast(accentSeed, background, 3);
   const accentForeground = bestMonoFor(accent);
 
   return {

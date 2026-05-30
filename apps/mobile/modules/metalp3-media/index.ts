@@ -1,5 +1,5 @@
 import { requireNativeModule } from 'expo-modules-core';
-import { PermissionsAndroid, Platform } from 'react-native';
+import { PermissionsAndroid } from 'react-native';
 import type {
   Artwork,
   DeleteTracksResult,
@@ -26,9 +26,6 @@ interface NativeModule {
 const native = requireNativeModule<NativeModule>('MetalP3Media');
 
 async function requestPermissionsAsync(): Promise<PermissionStatus> {
-  if (Platform.OS !== 'android') {
-    return { granted: false, permission: '' };
-  }
   const perm = native.audioPermission as
     | typeof PermissionsAndroid.PERMISSIONS.READ_MEDIA_AUDIO
     | typeof PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE;
@@ -43,13 +40,6 @@ async function requestPermissionsAsync(): Promise<PermissionStatus> {
   return { granted: result === PermissionsAndroid.RESULTS.GRANTED, permission: perm };
 }
 
-async function deleteTracksAsync(uris: string[]): Promise<DeleteTracksResult> {
-  if (Platform.OS !== 'android') {
-    throw new Error('deleteTracksAsync is only supported on Android.');
-  }
-  return native.deleteTracksAsync(uris);
-}
-
 export const MetalP3Media = {
   audioPermission: native.audioPermission,
   getPermissionsAsync: () => native.getPermissionsAsync(),
@@ -59,7 +49,7 @@ export const MetalP3Media = {
   getTrackAsync: (uri: string) => native.getTrackAsync(uri),
   getArtworkAsync: (uri: string) => native.getArtworkAsync(uri),
   getLyricsAsync: (uri: string) => native.getLyricsAsync(uri),
-  deleteTracksAsync,
+  deleteTracksAsync: (uris: string[]) => native.deleteTracksAsync(uris),
 };
 
 export default MetalP3Media;

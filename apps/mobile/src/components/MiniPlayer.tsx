@@ -18,9 +18,11 @@ export default function MiniPlayer() {
   const state = useNowPlayingState();
   const current = state?.current ?? null;
   const isPlaying = state?.isPlaying ?? false;
+  const queue = state?.queue ?? [];
   const theme = useArtworkTheme(current?.uri ?? null);
 
-  if (!current || !isPlaying) return null;
+  if (queue.length === 0) return null;
+  if (!current) return null;
   if (pathname?.endsWith('/player')) return null;
   const artistLine = current.artist ?? current.albumArtist ?? '';
 
@@ -110,8 +112,8 @@ export default function MiniPlayer() {
           >
             <SkipBack
               size={22}
-              color={theme.foreground}
-              fill={theme.foreground}
+              color={theme.accent}
+              fill={theme.accent}
               strokeWidth={ICON_STROKE}
               strokeLinecap="square"
             />
@@ -152,8 +154,8 @@ export default function MiniPlayer() {
           >
             <SkipForward
               size={22}
-              color={theme.foreground}
-              fill={theme.foreground}
+              color={theme.accent}
+              fill={theme.accent}
               strokeWidth={ICON_STROKE}
               strokeLinecap="square"
             />

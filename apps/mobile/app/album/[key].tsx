@@ -2,7 +2,7 @@ import { BlurView } from 'expo-blur';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { Play, Shuffle } from 'lucide-react-native';
 import { useEffect, useRef, useState } from 'react';
-import { FlatList, Image, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { FlatList, Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Swipeable } from 'react-native-gesture-handler';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MetalP3Media } from '../../modules/metalp3-media';
@@ -10,6 +10,7 @@ import { MetalP3Player } from '../../modules/metalp3-player';
 import { MINI_PLAYER_HEIGHT } from '../../src/components/MiniPlayer';
 import { formatAlbumDuration } from '../../src/lib/group-tracks-by-album';
 import { findAlbumGroup, subscribe as subscribeLibrary } from '../../src/lib/library-cache';
+import { shuffled } from '../../src/lib/shuffle';
 import { toQueueItem } from '../../src/lib/to-queue-item';
 import AddToPlaylistSheet from '../../src/components/AddToPlaylistSheet';
 import ConfirmDeleteSheet from '../../src/components/ConfirmDeleteSheet';
@@ -90,7 +91,7 @@ export default function AlbumDetailScreen() {
   const playShuffled = async () => {
     try {
       await MetalP3Player.setShuffle(true);
-      await MetalP3Player.setQueueAsync(group.tracks.map(toQueueItem), 0, 0);
+      await MetalP3Player.setQueueAsync(shuffled(group.tracks).map(toQueueItem), 0, 0);
       await MetalP3Player.play();
     } catch (err) {
       console.warn('AlbumDetailScreen: failed to start shuffle playback', err);
@@ -100,7 +101,6 @@ export default function AlbumDetailScreen() {
   };
 
   const requestDeleteTrack = (track: Track) => {
-    if (Platform.OS !== 'android') return;
     setDeleteError(null);
     setPendingDeleteTrack(track);
   };
@@ -149,12 +149,8 @@ export default function AlbumDetailScreen() {
 
       {artUri ? (
         <View style={StyleSheet.absoluteFill} pointerEvents="none" testID="album-detail-backdrop">
-          <Image source={{ uri: artUri }} style={StyleSheet.absoluteFill} resizeMode="cover" blurRadius={Platform.OS === 'android' ? 10 : 0} />
-          {Platform.OS === 'web' ? (
-            <View style={[StyleSheet.absoluteFill, tw`bg-black/30`]} />
-          ) : (
-            <BlurView intensity={35} tint="dark" style={StyleSheet.absoluteFill} />
-          )}
+          <Image source={{ uri: artUri }} style={StyleSheet.absoluteFill} resizeMode="cover" blurRadius={10} />
+          <BlurView intensity={35} tint="dark" style={StyleSheet.absoluteFill} />
           <View style={[StyleSheet.absoluteFill, tw`bg-black/30`]} />
         </View>
       ) : null}
@@ -231,7 +227,7 @@ export default function AlbumDetailScreen() {
                   {
                     borderWidth: 1.5,
                     backgroundColor: theme.surface,
-                    borderColor: theme.foreground,
+                    borderColor: theme.accent,
                   },
                 ]}
                 onPress={() => void playShuffled()}
@@ -241,11 +237,11 @@ export default function AlbumDetailScreen() {
               >
                 <Shuffle
                   size={20}
-                  color={theme.foreground}
+                  color={theme.accent}
                   strokeWidth={2.5}
                   strokeLinecap="square"
                 />
-                <Text style={[tw`text-sm font-bold tracking-[0.4px]`, { color: theme.foreground }]}>
+                <Text style={[tw`text-sm font-bold tracking-[0.4px]`, { color: theme.accent }]}>
                   Shuffle
                 </Text>
               </Pressable>
@@ -254,7 +250,6 @@ export default function AlbumDetailScreen() {
         }
         renderItem={({ item, index }) => {
           const isPlaying = playingTrackId !== null && playingTrackId === item.id;
-          const canDelete = Platform.OS === 'android';
           const row = (
             <Pressable
               style={[
@@ -295,7 +290,6 @@ export default function AlbumDetailScreen() {
               </Text>
             </Pressable>
           );
-          if (!canDelete) return row;
           return (
             <Swipeable
               ref={(ref) => {

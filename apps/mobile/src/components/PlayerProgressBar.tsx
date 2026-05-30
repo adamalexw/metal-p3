@@ -1,5 +1,7 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
+  Animated,
+  Easing,
   type GestureResponderEvent,
   type LayoutChangeEvent,
   Text,
@@ -10,6 +12,7 @@ import { tw } from '../lib/tw';
 interface Props {
   positionMs: number;
   durationMs: number;
+  isPlaying?: boolean;
   accent: string;
   mutedForeground: string;
   onSeek: (positionMs: number) => void;
@@ -23,6 +26,7 @@ const HIT_HEIGHT = THUMB_SIZE + 16;
 export function PlayerProgressBar({
   positionMs,
   durationMs,
+  isPlaying = true,
   accent,
   mutedForeground,
   onSeek,
@@ -30,6 +34,7 @@ export function PlayerProgressBar({
 }: Props) {
   const [width, setWidth] = useState(0);
   const [scrubMs, setScrubMs] = useState<number | null>(null);
+  const [tickedMs, setTickedMs] = useState(positionMs);
   const widthRef = useRef(0);
   const durationRef = useRef(0);
   const scrubRef = useRef<number | null>(null);
@@ -37,9 +42,49 @@ export function PlayerProgressBar({
   durationRef.current = durationMs;
   scrubRef.current = scrubMs;
 
+  useEffect(() => {
+    if (scrubMs != null) return;
+    if (!isPlaying || durationMs <= 0) {
+      setTickedMs(positionMs);
+      return;
+    }
+    const startedAt = Date.now();
+    const baseMs = positionMs;
+    setTickedMs(baseMs);
+    const id = setInterval(() => {
+      const elapsed = Date.now() - startedAt;
+      setTickedMs(Math.min(baseMs + elapsed, durationMs));
+    }, 250);
+    return () => clearInterval(id);
+  }, [positionMs, durationMs, isPlaying, scrubMs]);
+
   const enabled = durationMs > 0;
-  const displayMs = scrubMs ?? Math.min(positionMs, durationMs);
+  const livePositionMs = scrubMs ?? Math.min(tickedMs, durationMs);
+  const displayMs = livePositionMs;
   const ratio = enabled ? clamp01(displayMs / durationMs) : 0;
+
+  const elapsedSec = Math.max(0, Math.floor(displayMs / 1000));
+  const tickAnim = useRef(new Animated.Value(1)).current;
+  const lastSecRef = useRef(elapsedSec);
+  useEffect(() => {
+    if (lastSecRef.current === elapsedSec) return;
+    lastSecRef.current = elapsedSec;
+    if (scrubMs != null) return;
+    Animated.sequence([
+      Animated.timing(tickAnim, {
+        toValue: 1.08,
+        duration: 90,
+        easing: Easing.out(Easing.quad),
+        useNativeDriver: true,
+      }),
+      Animated.timing(tickAnim, {
+        toValue: 1,
+        duration: 160,
+        easing: Easing.inOut(Easing.quad),
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [elapsedSec, scrubMs, tickAnim]);
 
   const onLayout = useCallback((e: LayoutChangeEvent) => {
     setWidth(e.nativeEvent.layout.width);
@@ -123,9 +168,18 @@ export function PlayerProgressBar({
         ) : null}
       </View>
       <View style={tw`flex-row justify-between mt-0.5`}>
-        <Text style={[tw`text-xs`, { color: mutedForeground, fontVariant: ['tabular-nums'] }]}>
+        <Animated.Text
+          style={[
+            tw`text-xs`,
+            {
+              color: mutedForeground,
+              fontVariant: ['tabular-nums'],
+              transform: [{ scale: tickAnim }],
+            },
+          ]}
+        >
           {fmt(displayMs)}
-        </Text>
+        </Animated.Text>
         <Text style={[tw`text-xs`, { color: mutedForeground, fontVariant: ['tabular-nums'] }]}>
           {fmt(durationMs)}
         </Text>

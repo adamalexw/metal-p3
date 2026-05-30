@@ -51,12 +51,28 @@ class MetalP3PlayerModule : Module() {
       }
     }
 
+    AsyncFunction("addToQueueAsync") { items: List<Map<String, Any?>> ->
+      val mediaItems = items.map(::toMediaItem)
+      withController { c ->
+        c.addMediaItems(mediaItems)
+        if (c.playbackState == Player.STATE_IDLE) c.prepare()
+      }
+    }
+
     AsyncFunction("playAsync") { withController { it.play() } }
     AsyncFunction("pauseAsync") { withController { it.pause() } }
     AsyncFunction("stopAsync") { withController { it.stop() } }
     AsyncFunction("seekToAsync") { positionMs: Long -> withController { it.seekTo(positionMs) } }
     AsyncFunction("skipToNextAsync") { withController { it.seekToNextMediaItem() } }
     AsyncFunction("skipToPreviousAsync") { withController { it.seekToPreviousMediaItem() } }
+    AsyncFunction("skipToIndexAsync") { index: Int ->
+      withController {
+        if (index in 0 until it.mediaItemCount) {
+          it.seekTo(index, 0L)
+          if (!it.isPlaying) it.play()
+        }
+      }
+    }
 
     AsyncFunction("setRepeatModeAsync") { mode: String ->
       val repeat = when (mode) {

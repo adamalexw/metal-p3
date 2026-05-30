@@ -1,9 +1,11 @@
 import { useRouter } from 'expo-router';
+import { ListPlus, Play, Shuffle, Trash2 } from 'lucide-react-native';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, FlatList, Platform, Pressable, Text, View } from 'react-native';
+import { ActivityIndicator, FlatList, Pressable, Text, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MetalP3Media } from '../../modules/metalp3-media';
+import { MetalP3Player } from '../../modules/metalp3-player';
 import AlbumTile from '../../src/components/AlbumTile';
 import ConfirmDeleteSheet from '../../src/components/ConfirmDeleteSheet';
 import ContextMenuSheet from '../../src/components/ContextMenuSheet';
@@ -11,6 +13,8 @@ import { MINI_PLAYER_HEIGHT } from '../../src/components/MiniPlayer';
 import { deleteTracksAndPropagate } from '../../src/lib/delete-tracks';
 import type { AlbumGroup } from '../../src/lib/group-tracks-by-album';
 import { setLibraryTracks, subscribe as subscribeLibrary, getAlbumGroups } from '../../src/lib/library-cache';
+import { shuffled } from '../../src/lib/shuffle';
+import { toQueueItem } from '../../src/lib/to-queue-item';
 import { tw } from '../../src/lib/tw';
 import { useNowPlayingState } from '../../src/lib/useNowPlayingState';
 
@@ -84,8 +88,45 @@ export default function LibraryScreen() {
   );
 
   const handleLongPressAlbum = useCallback((group: AlbumGroup) => {
-    if (Platform.OS !== 'android') return;
     setContextAlbum(group);
+  }, []);
+
+  const playAlbum = useCallback(
+    async (group: AlbumGroup) => {
+      try {
+        await MetalP3Player.setShuffle(false);
+        await MetalP3Player.setQueueAsync(group.tracks.map(toQueueItem), 0, 0);
+        await MetalP3Player.play();
+      } catch (err) {
+        console.warn('LibraryScreen: failed to start playback', err);
+        return;
+      }
+      router.push('/player' as never);
+    },
+    [router],
+  );
+
+  const shuffleAlbum = useCallback(
+    async (group: AlbumGroup) => {
+      try {
+        await MetalP3Player.setShuffle(true);
+        await MetalP3Player.setQueueAsync(shuffled(group.tracks).map(toQueueItem), 0, 0);
+        await MetalP3Player.play();
+      } catch (err) {
+        console.warn('LibraryScreen: failed to start shuffle playback', err);
+        return;
+      }
+      router.push('/player' as never);
+    },
+    [router],
+  );
+
+  const addAlbumToQueue = useCallback(async (group: AlbumGroup) => {
+    try {
+      await MetalP3Player.addToQueueAsync(group.tracks.map(toQueueItem));
+    } catch (err) {
+      console.warn('LibraryScreen: failed to add album to queue', err);
+    }
   }, []);
 
   const confirmDeleteAlbum = async () => {
@@ -180,8 +221,30 @@ export default function LibraryScreen() {
           contextAlbum
             ? [
                 {
+                  key: 'play',
+                  label: 'Play album',
+                  icon: Play,
+                  onPress: () => void playAlbum(contextAlbum),
+                  testID: `album-context-play-${contextAlbum.key}`,
+                },
+                {
+                  key: 'shuffle',
+                  label: 'Play album on shuffle',
+                  icon: Shuffle,
+                  onPress: () => void shuffleAlbum(contextAlbum),
+                  testID: `album-context-shuffle-${contextAlbum.key}`,
+                },
+                {
+                  key: 'add-to-queue',
+                  label: 'Add to queue',
+                  icon: ListPlus,
+                  onPress: () => void addAlbumToQueue(contextAlbum),
+                  testID: `album-context-add-to-queue-${contextAlbum.key}`,
+                },
+                {
                   key: 'delete',
                   label: 'Delete album',
+                  icon: Trash2,
                   destructive: true,
                   onPress: () => setPendingDeleteAlbum(contextAlbum),
                   testID: `album-context-delete-${contextAlbum.key}`,
