@@ -4,6 +4,7 @@ import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MetalP3Player } from '../../modules/metalp3-player';
 import { useNowPlayingState } from '../lib/useNowPlayingState';
+import { tw } from '../lib/tw';
 import { useArtworkTheme } from '../theme/useArtworkTheme';
 
 export const MINI_PLAYER_HEIGHT = 72;
@@ -31,31 +32,42 @@ export default function MiniPlayer() {
   return (
     <View
       pointerEvents="box-none"
-      style={[styles.host, { bottom: insets.bottom + 8 }]}
+      style={[tw`absolute left-3 right-3 h-[${MINI_PLAYER_HEIGHT}px]`, { bottom: insets.bottom + 8 }]}
       testID="mini-player-host"
     >
       <View
         style={[
-          styles.container,
+          tw`flex-1 flex-row items-center rounded-[14px] overflow-hidden`,
           {
+            borderWidth: StyleSheet.hairlineWidth,
             backgroundColor: withAlpha(theme.surface, 0.92),
             borderColor: withAlpha(theme.foreground, 0.08),
+            shadowColor: '#000',
+            shadowOpacity: 0.4,
+            shadowRadius: 12,
+            shadowOffset: { width: 0, height: 4 },
+            elevation: 8,
           },
         ]}
         testID="mini-player"
       >
         <Pressable
-          style={styles.body}
+          style={tw`flex-1 flex-row items-center px-2 py-2 min-h-[${MINI_PLAYER_HEIGHT}px]`}
           onPress={openPlayer}
           testID="mini-player-body"
           accessibilityRole="button"
           accessibilityLabel="Open now playing"
         >
-          <View style={[styles.art, { backgroundColor: theme.surface }]}>
+          <View
+            style={[
+              tw`w-14 h-14 rounded-lg overflow-hidden items-center justify-center`,
+              { backgroundColor: theme.surface },
+            ]}
+          >
             {theme.artworkDataUri ? (
               <Image
                 source={{ uri: theme.artworkDataUri }}
-                style={styles.artImage}
+                style={tw`w-full h-full`}
                 resizeMode="cover"
               />
             ) : (
@@ -67,9 +79,9 @@ export default function MiniPlayer() {
               />
             )}
           </View>
-          <View style={styles.textWrap}>
+          <View style={tw`flex-1 px-3 justify-center`}>
             <Text
-              style={[styles.title, { color: theme.foreground }]}
+              style={[tw`text-sm font-bold`, { color: theme.foreground }]}
               numberOfLines={1}
               testID="mini-player-title"
             >
@@ -77,7 +89,7 @@ export default function MiniPlayer() {
             </Text>
             {artistLine ? (
               <Text
-                style={[styles.artist, { color: theme.mutedForeground }]}
+                style={[tw`text-xs mt-0.5`, { color: theme.mutedForeground }]}
                 numberOfLines={1}
                 testID="mini-player-artist"
               >
@@ -87,9 +99,9 @@ export default function MiniPlayer() {
           </View>
         </Pressable>
 
-        <View style={styles.controls}>
+        <View style={tw`flex-row items-center px-2 gap-1`}>
           <Pressable
-            style={styles.iconBtn}
+            style={tw`w-11 h-11 items-center justify-center rounded-full`}
             onPress={skipPrev}
             testID="mini-player-prev"
             accessibilityRole="button"
@@ -105,7 +117,7 @@ export default function MiniPlayer() {
             />
           </Pressable>
           <Pressable
-            style={[styles.playBtn, { backgroundColor: theme.accent }]}
+            style={[tw`w-12 h-12 items-center justify-center rounded-full`, { backgroundColor: theme.accent }]}
             onPress={togglePlay}
             testID="mini-player-play"
             accessibilityRole="button"
@@ -131,7 +143,7 @@ export default function MiniPlayer() {
             )}
           </Pressable>
           <Pressable
-            style={styles.iconBtn}
+            style={tw`w-11 h-11 items-center justify-center rounded-full`}
             onPress={skipNext}
             testID="mini-player-next"
             accessibilityRole="button"
@@ -159,66 +171,3 @@ function withAlpha(hex: string, alpha: number): string {
   const aHex = Math.round(a * 255).toString(16).padStart(2, '0');
   return `#${m[1]}${aHex}`;
 }
-
-const styles = StyleSheet.create({
-  host: {
-    position: 'absolute',
-    left: 12,
-    right: 12,
-    height: MINI_PLAYER_HEIGHT,
-  },
-  container: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderRadius: 14,
-    borderWidth: StyleSheet.hairlineWidth,
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOpacity: 0.4,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 8,
-  },
-  body: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingLeft: 8,
-    paddingRight: 8,
-    paddingVertical: 8,
-    minHeight: MINI_PLAYER_HEIGHT,
-  },
-  art: {
-    width: 56,
-    height: 56,
-    borderRadius: 8,
-    overflow: 'hidden',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  artImage: { width: '100%', height: '100%' },
-  textWrap: { flex: 1, paddingHorizontal: 12, justifyContent: 'center' },
-  title: { fontSize: 14, fontWeight: '700' },
-  artist: { fontSize: 12, marginTop: 2 },
-  controls: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 8,
-    gap: 4,
-  },
-  iconBtn: {
-    width: 44,
-    height: 44,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 22,
-  },
-  playBtn: {
-    width: 48,
-    height: 48,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 24,
-  },
-});

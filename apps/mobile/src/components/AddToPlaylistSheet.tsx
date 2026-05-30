@@ -19,6 +19,7 @@ import {
   loadPlaylists,
   subscribe,
 } from '../lib/playlist-store';
+import { tw } from '../lib/tw';
 
 interface AddToPlaylistSheetProps {
   visible: boolean;
@@ -91,6 +92,11 @@ export default function AddToPlaylistSheet({ visible, trackId, onClose }: AddToP
     }
   };
 
+  const rowStyle = [
+    tw`flex-row items-center justify-between py-[14px] px-2 border-b border-white/[0.08]`,
+    { borderBottomWidth: StyleSheet.hairlineWidth },
+  ];
+
   return (
     <Modal
       visible={visible}
@@ -99,14 +105,17 @@ export default function AddToPlaylistSheet({ visible, trackId, onClose }: AddToP
       onRequestClose={onClose}
       testID="add-to-playlist-sheet"
     >
-      <Pressable style={styles.backdrop} onPress={onClose}>
+      <Pressable style={tw`flex-1 bg-black/60`} onPress={onClose}>
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          style={styles.flex}
+          style={tw`flex-1 justify-end`}
           pointerEvents="box-none"
         >
-          <Pressable style={styles.sheet} onPress={() => undefined}>
-            <Text style={styles.title}>Add to playlist</Text>
+          <Pressable
+            style={tw`bg-[#111] rounded-t-2xl px-4 pt-4 pb-6 max-h-[70%]`}
+            onPress={() => undefined}
+          >
+            <Text style={tw`text-white text-lg font-bold mb-3`}>Add to playlist</Text>
 
             {mode === 'list' ? (
               <>
@@ -114,30 +123,34 @@ export default function AddToPlaylistSheet({ visible, trackId, onClose }: AddToP
                   data={playlists}
                   keyExtractor={(p) => p.id}
                   ListEmptyComponent={
-                    <Text style={styles.empty}>No playlists yet. Create one below.</Text>
+                    <Text style={tw`text-[#888] text-center py-6`}>
+                      No playlists yet. Create one below.
+                    </Text>
                   }
                   renderItem={({ item }) => (
                     <Pressable
-                      style={styles.row}
+                      style={rowStyle}
                       onPress={() => void handlePick(item.id)}
                       testID={`add-to-playlist-row-${item.id}`}
                     >
-                      <Text style={styles.rowName} numberOfLines={1}>{item.name}</Text>
-                      <Text style={styles.rowMeta}>
+                      <Text style={tw`text-white text-[15px] flex-1 pr-2`} numberOfLines={1}>
+                        {item.name}
+                      </Text>
+                      <Text style={tw`text-[#888] text-xs`}>
                         {item.trackIds.length} {item.trackIds.length === 1 ? 'track' : 'tracks'}
                       </Text>
                     </Pressable>
                   )}
-                  style={styles.list}
+                  style={tw`max-h-80`}
                 />
                 <Pressable
-                  style={[styles.row, styles.newRow]}
+                  style={tw`flex-row items-center justify-between py-[14px] px-2 mt-1`}
                   onPress={() => setMode('create')}
                   testID="add-to-playlist-new"
                 >
-                  <Text style={styles.newRowLabel}>+ New playlist…</Text>
+                  <Text style={tw`text-[#1f6feb] text-[15px] font-semibold`}>+ New playlist…</Text>
                 </Pressable>
-                {error ? <Text style={styles.error}>{error}</Text> : null}
+                {error ? <Text style={tw`text-[#ff6b6b] mt-1 mb-2`}>{error}</Text> : null}
               </>
             ) : (
               <>
@@ -149,37 +162,40 @@ export default function AddToPlaylistSheet({ visible, trackId, onClose }: AddToP
                   }}
                   placeholder="Playlist name"
                   placeholderTextColor="#666"
-                  style={styles.input}
+                  style={tw`bg-[#222] text-white text-base py-3 px-3.5 rounded-lg mb-3`}
                   autoFocus
                   testID="add-to-playlist-input"
                   returnKeyType="done"
                   onSubmitEditing={() => void handleCreate()}
                 />
                 {duplicate && trimmedName.length > 0 ? (
-                  <Text style={styles.error} testID="add-to-playlist-duplicate">
+                  <Text style={tw`text-[#ff6b6b] mt-1 mb-2`} testID="add-to-playlist-duplicate">
                     A playlist named &ldquo;{trimmedName}&rdquo; already exists.
                   </Text>
                 ) : error ? (
-                  <Text style={styles.error}>{error}</Text>
+                  <Text style={tw`text-[#ff6b6b] mt-1 mb-2`}>{error}</Text>
                 ) : null}
-                <View style={styles.buttonRow}>
+                <View style={tw`flex-row justify-end gap-2`}>
                   <Pressable
-                    style={styles.cancelButton}
+                    style={tw`py-2.5 px-4 rounded-lg`}
                     onPress={() => {
                       setMode('list');
                       setNewName('');
                       setError(null);
                     }}
                   >
-                    <Text style={styles.cancelButtonLabel}>Cancel</Text>
+                    <Text style={tw`text-[#aaa] text-[15px] font-semibold`}>Cancel</Text>
                   </Pressable>
                   <Pressable
-                    style={[styles.createButton, (!canCreate || duplicate) && styles.buttonDisabled]}
+                    style={tw.style(
+                      'py-2.5 px-4 rounded-lg bg-[#1f6feb]',
+                      (!canCreate || duplicate) && 'opacity-40',
+                    )}
                     disabled={!canCreate || duplicate}
                     onPress={() => void handleCreate()}
                     testID="add-to-playlist-create"
                   >
-                    <Text style={styles.createButtonLabel}>Create</Text>
+                    <Text style={tw`text-white text-[15px] font-bold`}>Create</Text>
                   </Pressable>
                 </View>
               </>
@@ -190,54 +206,3 @@ export default function AddToPlaylistSheet({ visible, trackId, onClose }: AddToP
     </Modal>
   );
 }
-
-const styles = StyleSheet.create({
-  flex: { flex: 1, justifyContent: 'flex-end' },
-  backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)' },
-  sheet: {
-    backgroundColor: '#111',
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 24,
-    maxHeight: '70%',
-  },
-  title: { color: '#fff', fontSize: 18, fontWeight: '700', marginBottom: 12 },
-  list: { maxHeight: 320 },
-  empty: { color: '#888', textAlign: 'center', paddingVertical: 24 },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 14,
-    paddingHorizontal: 8,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: 'rgba(255,255,255,0.08)',
-  },
-  rowName: { color: '#fff', fontSize: 15, flex: 1, paddingRight: 8 },
-  rowMeta: { color: '#888', fontSize: 12 },
-  newRow: { borderBottomWidth: 0, marginTop: 4 },
-  newRowLabel: { color: '#1f6feb', fontSize: 15, fontWeight: '600' },
-  input: {
-    backgroundColor: '#222',
-    color: '#fff',
-    fontSize: 16,
-    paddingVertical: 12,
-    paddingHorizontal: 14,
-    borderRadius: 8,
-    marginBottom: 12,
-  },
-  error: { color: '#ff6b6b', marginTop: 4, marginBottom: 8 },
-  buttonRow: { flexDirection: 'row', justifyContent: 'flex-end', gap: 8 },
-  cancelButton: { paddingVertical: 10, paddingHorizontal: 16, borderRadius: 8 },
-  cancelButtonLabel: { color: '#aaa', fontSize: 15, fontWeight: '600' },
-  createButton: {
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-    backgroundColor: '#1f6feb',
-  },
-  createButtonLabel: { color: '#fff', fontSize: 15, fontWeight: '700' },
-  buttonDisabled: { opacity: 0.4 },
-});

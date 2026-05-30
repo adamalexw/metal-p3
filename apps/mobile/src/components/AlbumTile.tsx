@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Image, Pressable, Text, View } from 'react-native';
 import { MetalP3Media } from '../../modules/metalp3-media';
 import type { AlbumGroup } from '../lib/group-tracks-by-album';
 import { formatAlbumDuration } from '../lib/group-tracks-by-album';
+import { tw } from '../lib/tw';
 
 interface AlbumTileProps {
   group: AlbumGroup;
@@ -32,44 +33,34 @@ export default function AlbumTile({ group, onPress, onLongPress }: AlbumTileProp
 
   return (
     <Pressable
-      style={styles.tile}
+      style={tw`flex-1 mx-1 mb-4`}
       onPress={onPress}
       onLongPress={onLongPress}
       testID={`album-tile-${group.key}`}
       accessibilityRole="button"
       accessibilityLabel={`${group.albumName} by ${group.bandName}, ${meta}`}
     >
-      <View style={styles.artwork}>
+      <View style={tw`w-full aspect-square rounded-md overflow-hidden bg-[#222]`}>
         {artUri ? (
-          <Image source={{ uri: artUri }} style={styles.artImage} resizeMode="cover" />
+          <Image source={{ uri: artUri }} style={tw`w-full h-full`} resizeMode="cover" />
         ) : (
-          <View style={styles.artPlaceholder} />
+          <View style={tw`w-full h-full bg-[#222]`} />
         )}
       </View>
-      <Text style={styles.albumName} numberOfLines={1}>
+      <Text style={tw`text-white text-sm font-semibold mt-2`} numberOfLines={1}>
         {group.albumName}
       </Text>
-      <Text style={styles.bandName} numberOfLines={1}>
+      <Text style={tw`text-[#aaa] text-[13px] mt-0.5`} numberOfLines={1}>
         {group.bandName}
       </Text>
       {group.genre ? (
-        <Text style={styles.meta} numberOfLines={1}>
+        <Text style={tw`text-[#888] text-xs mt-0.5`} numberOfLines={1}>
           {group.genre}
         </Text>
       ) : null}
-      <Text style={styles.meta} numberOfLines={1}>
+      <Text style={tw`text-[#888] text-xs mt-0.5`} numberOfLines={1}>
         {meta}
       </Text>
     </Pressable>
   );
 }
-
-const styles = StyleSheet.create({
-  tile: { flex: 1, marginHorizontal: 4, marginBottom: 16 },
-  artwork: { width: '100%', aspectRatio: 1, borderRadius: 6, overflow: 'hidden', backgroundColor: '#222' },
-  artImage: { width: '100%', height: '100%' },
-  artPlaceholder: { width: '100%', height: '100%', backgroundColor: '#222' },
-  albumName: { color: '#fff', fontSize: 14, fontWeight: '600', marginTop: 8 },
-  bandName: { color: '#aaa', fontSize: 13, marginTop: 2 },
-  meta: { color: '#888', fontSize: 12, marginTop: 2 },
-});

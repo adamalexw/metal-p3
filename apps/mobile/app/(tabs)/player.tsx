@@ -21,6 +21,7 @@ import { PlayerProgressBar } from '../../src/components/PlayerProgressBar';
 import QueueSheet from '../../src/components/QueueSheet';
 import { useLyrics } from '../../src/lib/useLyrics';
 import { useNowPlayingState } from '../../src/lib/useNowPlayingState';
+import { tw } from '../../src/lib/tw';
 import { useArtworkTheme } from '../../src/theme/useArtworkTheme';
 
 const ICON_STROKE = 2.5;
@@ -61,10 +62,10 @@ export default function PlayerScreen() {
       headerTintColor: theme.foreground,
       headerTitleStyle: { color: theme.foreground },
       headerRight: () => (
-        <View style={styles.headerRight}>
+        <View style={tw`flex-row items-center gap-1 pr-1`}>
           <Pressable
             onPress={() => setQueueOpen(true)}
-            style={styles.headerIconBtn}
+            style={tw`w-10 h-10 items-center justify-center`}
             hitSlop={8}
             testID="player-queue-toggle"
             accessibilityRole="button"
@@ -80,7 +81,7 @@ export default function PlayerScreen() {
           {hasLyrics ? (
             <Pressable
               onPress={() => setShowLyrics((v) => !v)}
-              style={styles.headerIconBtn}
+              style={tw`w-10 h-10 items-center justify-center`}
               hitSlop={8}
               testID="player-lyrics-toggle"
               accessibilityRole="button"
@@ -112,7 +113,7 @@ export default function PlayerScreen() {
   const toggleShuffle = () => void MetalP3Player.setShuffle(!shuffle);
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.background }]}>
+    <View style={[tw`flex-1`, { backgroundColor: theme.background }]}>
       {theme.artworkDataUri ? (
         <View style={StyleSheet.absoluteFill} pointerEvents="none" testID="player-backdrop">
           <Image
@@ -122,40 +123,79 @@ export default function PlayerScreen() {
             blurRadius={Platform.OS === 'android' ? 10 : 0}
           />
           {Platform.OS === 'web' ? (
-            <View style={[StyleSheet.absoluteFill, styles.webBackdropOverlay]} />
+            <View style={[StyleSheet.absoluteFill, tw`bg-black/30`]} />
           ) : (
             <BlurView intensity={35} tint="dark" style={StyleSheet.absoluteFill} />
           )}
-          <View style={[StyleSheet.absoluteFill, styles.darken]} />
+          <View style={[StyleSheet.absoluteFill, tw`bg-black/30`]} />
         </View>
       ) : null}
 
-      <View style={[styles.content, { paddingTop: insets.top + 16, paddingBottom: insets.bottom + 24 }]}>
+      <View
+        style={[tw`flex-1 px-6`, { paddingTop: insets.top + 16, paddingBottom: insets.bottom + 24 }]}
+      >
         {showLyrics && hasLyrics ? (
-          <View style={styles.lyricsWrap} testID="player-lyrics">
-            <Text style={[styles.title, styles.titleLyrics, withShadow(theme.foreground)]} numberOfLines={2}>
+          <View style={tw`flex-1 items-stretch pt-2`} testID="player-lyrics">
+            <Text
+              style={[tw`text-[22px] font-extrabold text-center`, withShadow(theme.foreground)]}
+              numberOfLines={2}
+            >
               {current?.title ?? 'Nothing playing'}
             </Text>
             {subtitle ? (
-              <Text style={[styles.subtitle, withShadow(theme.mutedForeground)]} numberOfLines={1}>
+              <Text
+                style={[tw`mt-1.5 text-sm text-center`, withShadow(theme.mutedForeground)]}
+                numberOfLines={1}
+              >
                 {subtitle}
               </Text>
             ) : null}
             <ScrollView
-              style={styles.lyricsScroll}
-              contentContainerStyle={styles.lyricsContent}
+              style={tw`flex-1 mt-4`}
+              contentContainerStyle={tw`pb-6`}
               showsVerticalScrollIndicator={false}
             >
-              <Text style={[styles.lyricsText, withShadow(theme.accent)]}>{lyrics.text}</Text>
+              <Text
+                style={[
+                  tw`text-lg font-semibold text-center`,
+                  { lineHeight: 28 },
+                  withShadow(theme.accent),
+                ]}
+              >
+                {lyrics.text}
+              </Text>
             </ScrollView>
           </View>
         ) : (
-          <View style={styles.artWrap}>
-            <View style={[styles.art, { width: artSize, height: artSize }]} testID="player-art">
+          <View style={tw`flex-1 items-center justify-end mt-2`}>
+            <View
+              style={[
+                tw`max-w-full rounded-[18px] overflow-hidden mb-4`,
+                {
+                  width: artSize,
+                  height: artSize,
+                  shadowColor: '#000',
+                  shadowOpacity: 0.5,
+                  shadowRadius: 18,
+                  shadowOffset: { width: 0, height: 8 },
+                  elevation: 12,
+                },
+              ]}
+              testID="player-art"
+            >
               {theme.artworkDataUri ? (
-                <Image source={{ uri: theme.artworkDataUri }} style={styles.artImage} resizeMode="cover" />
+                <Image
+                  source={{ uri: theme.artworkDataUri }}
+                  style={tw`w-full h-full`}
+                  resizeMode="cover"
+                />
               ) : (
-                <View style={[styles.artPlaceholder, { backgroundColor: theme.surface }]}>
+                <View
+                  style={[
+                    tw`w-full h-full items-center justify-center`,
+                    { backgroundColor: theme.surface },
+                  ]}
+                >
                   <Skull
                     size={140}
                     color={theme.mutedForeground}
@@ -166,21 +206,24 @@ export default function PlayerScreen() {
               )}
             </View>
             <Text
-              style={[styles.title, withShadow(theme.foreground)]}
+              style={[tw`text-2xl font-extrabold text-center`, withShadow(theme.foreground)]}
               numberOfLines={2}
               testID="player-title"
             >
               {current?.title ?? 'Nothing playing'}
             </Text>
             {subtitle ? (
-              <Text style={[styles.subtitle, withShadow(theme.mutedForeground)]} numberOfLines={1}>
+              <Text
+                style={[tw`mt-1.5 text-sm text-center`, withShadow(theme.mutedForeground)]}
+                numberOfLines={1}
+              >
                 {subtitle}
               </Text>
             ) : null}
           </View>
         )}
 
-        <View style={styles.transportArea}>
+        <View style={tw`items-center mt-4`}>
           <PlayerProgressBar
             positionMs={state?.positionMs ?? 0}
             durationMs={state?.durationMs ?? 0}
@@ -196,7 +239,7 @@ export default function PlayerScreen() {
             testID="player-progress"
           />
 
-          <View style={styles.transport}>
+          <View style={tw`flex-row items-center gap-2 mt-2`}>
             <ToggleBtn
               active={shuffle}
               onPress={toggleShuffle}
@@ -260,7 +303,17 @@ function PrimaryBtn({
 }: { icon: LucideIcon; onPress: () => void; theme: BtnTheme; testID?: string }) {
   return (
     <Pressable
-      style={[styles.btn, styles.btnPrimary, { backgroundColor: theme.accent }]}
+      style={[
+        tw`w-[88px] h-[88px] items-center justify-center rounded-full`,
+        {
+          backgroundColor: theme.accent,
+          shadowColor: '#000',
+          shadowOpacity: 0.45,
+          shadowRadius: 12,
+          shadowOffset: { width: 0, height: 6 },
+          elevation: 10,
+        },
+      ]}
       onPress={onPress}
       testID={testID}
     >
@@ -279,7 +332,11 @@ function IconBtn({
   icon: Icon, onPress, theme, testID, filled,
 }: { icon: LucideIcon; onPress: () => void; theme: BtnTheme; testID?: string; filled?: boolean }) {
   return (
-    <Pressable style={styles.btn} onPress={onPress} testID={testID}>
+    <Pressable
+      style={tw`w-14 h-14 items-center justify-center rounded-full`}
+      onPress={onPress}
+      testID={testID}
+    >
       <Icon
         size={32}
         color={theme.foreground}
@@ -302,7 +359,11 @@ function ToggleBtn({
 }) {
   const color = active ? theme.accent : theme.mutedForeground;
   return (
-    <Pressable style={styles.btn} onPress={onPress} testID={testID}>
+    <Pressable
+      style={tw`w-14 h-14 items-center justify-center rounded-full`}
+      onPress={onPress}
+      testID={testID}
+    >
       <Icon
         size={26}
         color={color}
@@ -321,53 +382,3 @@ function withShadow(color: string) {
     textShadowRadius: 4,
   } as const;
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1 },
-  darken: { backgroundColor: 'rgba(0,0,0,0.3)' },
-  webBackdropOverlay: { backgroundColor: 'rgba(0,0,0,0.3)' },
-
-  content: { flex: 1, paddingHorizontal: 24 },
-
-  artWrap: { flex: 1, alignItems: 'center', justifyContent: 'flex-end', marginTop: 8 },
-  art: {
-    maxWidth: '100%',
-    borderRadius: 18,
-    overflow: 'hidden',
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOpacity: 0.5,
-    shadowRadius: 18,
-    shadowOffset: { width: 0, height: 8 },
-    elevation: 12,
-  },
-  artImage: { width: '100%', height: '100%' },
-  artPlaceholder: { width: '100%', height: '100%', alignItems: 'center', justifyContent: 'center' },
-
-  title: { fontSize: 24, fontWeight: '800', textAlign: 'center' },
-  titleLyrics: { fontSize: 22 },
-  subtitle: { marginTop: 6, fontSize: 14, textAlign: 'center' },
-
-  lyricsWrap: { flex: 1, alignItems: 'stretch', paddingTop: 8 },
-  lyricsScroll: { flex: 1, marginTop: 16 },
-  lyricsContent: { paddingBottom: 24 },
-  lyricsText: { fontSize: 18, lineHeight: 28, fontWeight: '600', textAlign: 'center' },
-
-  transportArea: { alignItems: 'center', marginTop: 16 },
-
-  transport: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 8 },
-  btn: { width: 56, height: 56, alignItems: 'center', justifyContent: 'center', borderRadius: 28 },
-  btnPrimary: {
-    width: 88,
-    height: 88,
-    borderRadius: 44,
-    shadowColor: '#000',
-    shadowOpacity: 0.45,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 6 },
-    elevation: 10,
-  },
-
-  headerRight: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingRight: 4 },
-  headerIconBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
-});

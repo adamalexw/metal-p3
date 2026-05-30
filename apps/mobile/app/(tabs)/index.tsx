@@ -1,6 +1,6 @@
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, FlatList, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, FlatList, Platform, Pressable, Text, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MetalP3Media } from '../../modules/metalp3-media';
@@ -11,6 +11,7 @@ import { MINI_PLAYER_HEIGHT } from '../../src/components/MiniPlayer';
 import { deleteTracksAndPropagate } from '../../src/lib/delete-tracks';
 import type { AlbumGroup } from '../../src/lib/group-tracks-by-album';
 import { setLibraryTracks, subscribe as subscribeLibrary, getAlbumGroups } from '../../src/lib/library-cache';
+import { tw } from '../../src/lib/tw';
 import { useNowPlayingState } from '../../src/lib/useNowPlayingState';
 
 type AlbumRow =
@@ -115,25 +116,33 @@ export default function LibraryScreen() {
   const rows = useMemo(() => buildRows(albums), [albums]);
 
   return (
-    <View style={styles.container}>
-      {status === 'loading' || status === 'checking' ? <ActivityIndicator color="#fff" style={styles.spinner} /> : null}
+    <View style={tw`flex-1 bg-black pt-3 px-3`}>
+      {status === 'loading' || status === 'checking' ? (
+        <ActivityIndicator color="#fff" style={tw`mt-6`} />
+      ) : null}
 
       {status === 'denied' ? (
-        <Pressable style={styles.button} onPress={() => void load()}>
-          <Text style={styles.buttonText}>Grant permission</Text>
+        <Pressable
+          style={tw`mt-4 py-3 px-5 bg-[#1f6feb] rounded-lg self-start`}
+          onPress={() => void load()}
+        >
+          <Text style={tw`text-white font-semibold`}>Grant permission</Text>
         </Pressable>
       ) : null}
 
-      {status === 'error' ? <Text style={styles.error}>{error}</Text> : null}
+      {status === 'error' ? <Text style={tw`text-[#ff6b6b] mt-4`}>{error}</Text> : null}
 
       {status === 'ready' ? (
         <FlatList
-          style={styles.list}
+          style={tw`flex-1`}
           data={rows}
           keyExtractor={(r) => r.key}
-          contentContainerStyle={[styles.listContent, { paddingBottom: insets.bottom + 24 + miniPlayerPad }]}
+          contentContainerStyle={[tw`pt-2`, { paddingBottom: insets.bottom + 24 + miniPlayerPad }]}
           renderItem={({ item, index }) => (
-            <Animated.View entering={FadeInDown.duration(280).delay(Math.min(index * 35, 600))} style={styles.row}>
+            <Animated.View
+              entering={FadeInDown.duration(280).delay(Math.min(index * 35, 600))}
+              style={tw`flex-row`}
+            >
               {item.kind === 'pair' ? (
                 <>
                   <AlbumTile
@@ -154,7 +163,7 @@ export default function LibraryScreen() {
                     onPress={() => openAlbum(item.item)}
                     onLongPress={() => handleLongPressAlbum(item.item)}
                   />
-                  <View style={styles.tileSpacer} />
+                  <View style={tw`flex-1 mx-1`} />
                 </>
               )}
             </Animated.View>
@@ -201,15 +210,3 @@ export default function LibraryScreen() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#000', paddingTop: 12, paddingHorizontal: 12 },
-  spinner: { marginTop: 24 },
-  button: { marginTop: 16, paddingVertical: 12, paddingHorizontal: 20, backgroundColor: '#1f6feb', borderRadius: 8, alignSelf: 'flex-start' },
-  buttonText: { color: '#fff', fontWeight: '600' },
-  error: { color: '#ff6b6b', marginTop: 16 },
-  list: { flex: 1 },
-  listContent: { paddingTop: 8 },
-  row: { flexDirection: 'row' },
-  tileSpacer: { flex: 1, marginHorizontal: 4 },
-});

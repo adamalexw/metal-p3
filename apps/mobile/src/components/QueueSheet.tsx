@@ -6,6 +6,7 @@ import DraggableFlatList, {
 } from 'react-native-draggable-flatlist';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MetalP3Player, type QueueItem } from '../../modules/metalp3-player';
+import { tw } from '../lib/tw';
 import type { ArtworkTheme } from '../theme/types';
 
 const ICON_STROKE = 2.5;
@@ -40,8 +41,9 @@ export default function QueueSheet({ visible, onClose, queue, currentIndex, them
           delayLongPress={120}
           disabled={isActive}
           style={[
-            styles.row,
+            tw`flex-row items-center py-3 px-4`,
             {
+              borderBottomWidth: StyleSheet.hairlineWidth,
               backgroundColor: isActive
                 ? withAlpha(theme.foreground, 0.08)
                 : 'transparent',
@@ -50,12 +52,12 @@ export default function QueueSheet({ visible, onClose, queue, currentIndex, them
           ]}
           testID={`queue-row-${item.id}`}
         >
-          <View style={styles.rowText}>
-            <Text style={[styles.rowTitle, { color: titleColor }]} numberOfLines={1}>
+          <View style={tw`flex-1 pr-3`}>
+            <Text style={[tw`text-[15px] font-semibold`, { color: titleColor }]} numberOfLines={1}>
               {item.title ?? 'Unknown title'}
             </Text>
             {subtitle ? (
-              <Text style={[styles.rowSubtitle, { color: subColor }]} numberOfLines={1}>
+              <Text style={[tw`text-xs mt-0.5`, { color: subColor }]} numberOfLines={1}>
                 {subtitle}
               </Text>
             ) : null}
@@ -63,7 +65,7 @@ export default function QueueSheet({ visible, onClose, queue, currentIndex, them
           <Pressable
             onPressIn={drag}
             hitSlop={12}
-            style={styles.handle}
+            style={tw`w-10 h-10 items-center justify-center`}
             testID={`queue-handle-${item.id}`}
             accessibilityRole="button"
             accessibilityLabel="Drag to reorder"
@@ -83,7 +85,7 @@ export default function QueueSheet({ visible, onClose, queue, currentIndex, them
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <Pressable
-        style={styles.backdrop}
+        style={tw`flex-1 bg-black/40`}
         onPress={onClose}
         testID="queue-sheet-backdrop"
         accessibilityRole="button"
@@ -91,7 +93,7 @@ export default function QueueSheet({ visible, onClose, queue, currentIndex, them
       />
       <View
         style={[
-          styles.sheet,
+          tw`absolute left-0 right-0 bottom-0 h-3/4 rounded-t-2xl overflow-hidden`,
           {
             backgroundColor: theme.background,
             paddingBottom: insets.bottom + 8,
@@ -99,11 +101,16 @@ export default function QueueSheet({ visible, onClose, queue, currentIndex, them
         ]}
         testID="queue-sheet"
       >
-        <View style={[styles.header, { borderBottomColor: withAlpha(theme.foreground, 0.08) }]}>
-          <Text style={[styles.title, { color: theme.foreground }]}>Up Next</Text>
+        <View
+          style={[
+            tw`flex-row items-center justify-between px-4 py-[14px]`,
+            { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: withAlpha(theme.foreground, 0.08) },
+          ]}
+        >
+          <Text style={[tw`text-lg font-bold`, { color: theme.foreground }]}>Up Next</Text>
           <Pressable
             onPress={onClose}
-            style={styles.closeBtn}
+            style={tw`w-9 h-9 items-center justify-center`}
             hitSlop={8}
             testID="player-queue-close"
             accessibilityRole="button"
@@ -123,7 +130,7 @@ export default function QueueSheet({ visible, onClose, queue, currentIndex, them
           onDragEnd={onDragEnd}
           renderItem={renderItem}
           activationDistance={8}
-          containerStyle={styles.list}
+          containerStyle={tw`flex-1`}
           testID="queue-list"
         />
       </View>
@@ -138,39 +145,3 @@ function withAlpha(hex: string, alpha: number): string {
   const aHex = Math.round(a * 255).toString(16).padStart(2, '0');
   return `#${m[1]}${aHex}`;
 }
-
-const styles = StyleSheet.create({
-  backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)' },
-  sheet: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
-    height: '75%',
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
-    overflow: 'hidden',
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-  },
-  title: { fontSize: 18, fontWeight: '700' },
-  closeBtn: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
-  list: { flex: 1 },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-  },
-  rowText: { flex: 1, paddingRight: 12 },
-  rowTitle: { fontSize: 15, fontWeight: '600' },
-  rowSubtitle: { fontSize: 12, marginTop: 2 },
-  handle: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
-});

@@ -1,6 +1,6 @@
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Text, View } from 'react-native';
 import { MetalP3Player } from '../../../modules/metalp3-player';
 import { getLibraryTracks } from '../../../src/lib/library-cache';
 import {
@@ -12,6 +12,7 @@ import {
   subscribe,
 } from '../../../src/lib/playlist-store';
 import { toQueueItem } from '../../../src/lib/to-queue-item';
+import { tw } from '../../../src/lib/tw';
 import type { Track } from '../../../modules/metalp3-media/src/MetalP3Media.types';
 
 type Status = 'loading' | 'missing' | 'empty-library' | 'empty-playlist' | 'started' | 'error';
@@ -99,7 +100,7 @@ export default function PlaylistDetailScreen() {
   }, [playlistId]);
 
   return (
-    <View style={styles.container}>
+    <View style={tw`flex-1 bg-black`}>
       <Stack.Screen
         options={{
           title: playlist?.name ?? 'Playlist',
@@ -109,31 +110,26 @@ export default function PlaylistDetailScreen() {
         }}
       />
       {status === 'loading' || status === 'started' ? (
-        <ActivityIndicator color="#fff" style={styles.spinner} />
+        <ActivityIndicator color="#fff" style={tw`mt-12`} />
       ) : null}
       {status === 'missing' ? (
-        <Text style={styles.message} testID="playlist-missing">Playlist not found.</Text>
+        <Text style={tw`text-[#aaa] text-center mt-12 px-6`} testID="playlist-missing">
+          Playlist not found.
+        </Text>
       ) : null}
       {status === 'empty-library' ? (
-        <Text style={styles.message} testID="playlist-empty-library">
+        <Text style={tw`text-[#aaa] text-center mt-12 px-6`} testID="playlist-empty-library">
           Library not loaded — open Library first.
         </Text>
       ) : null}
       {status === 'empty-playlist' ? (
-        <Text style={styles.message} testID="playlist-empty">
+        <Text style={tw`text-[#aaa] text-center mt-12 px-6`} testID="playlist-empty">
           This playlist is empty. Long-press a track to add one.
         </Text>
       ) : null}
       {status === 'error' ? (
-        <Text style={styles.error} testID="playlist-error">{error}</Text>
+        <Text style={tw`text-[#ff6b6b] text-center mt-12 px-6`} testID="playlist-error">{error}</Text>
       ) : null}
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#000' },
-  spinner: { marginTop: 48 },
-  message: { color: '#aaa', textAlign: 'center', marginTop: 48, paddingHorizontal: 24 },
-  error: { color: '#ff6b6b', textAlign: 'center', marginTop: 48, paddingHorizontal: 24 },
-});

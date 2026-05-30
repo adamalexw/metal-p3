@@ -1,12 +1,5 @@
-import {
-  KeyboardAvoidingView,
-  Modal,
-  Platform,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { KeyboardAvoidingView, Modal, Platform, Pressable, Text, View } from 'react-native';
+import { tw } from '../lib/tw';
 
 interface ConfirmDeleteSheetProps {
   visible: boolean;
@@ -37,34 +30,39 @@ export default function ConfirmDeleteSheet({
       onRequestClose={onCancel}
       testID="confirm-delete-sheet"
     >
-      <Pressable style={styles.backdrop} onPress={busy ? undefined : onCancel}>
+      <Pressable style={tw`flex-1 bg-black/60`} onPress={busy ? undefined : onCancel}>
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          style={styles.flex}
+          style={tw`flex-1 justify-end`}
           pointerEvents="box-none"
         >
-          <Pressable style={styles.sheet} onPress={() => undefined}>
-            <Text style={styles.title}>{title}</Text>
-            <Text style={styles.message}>{message}</Text>
-            {error ? <Text style={styles.error}>{error}</Text> : null}
-            <View style={styles.buttonRow}>
+          <Pressable
+            style={tw`bg-[#111] rounded-t-2xl px-4 pt-4 pb-6`}
+            onPress={() => undefined}
+          >
+            <Text style={tw`text-white text-lg font-bold mb-2`}>{title}</Text>
+            <Text style={tw`text-[#ccc] text-sm leading-5 mb-4`}>{message}</Text>
+            {error ? (
+              <Text style={tw`text-[#ff6b6b] mb-3`}>{error}</Text>
+            ) : null}
+            <View style={tw`flex-row justify-end gap-2`}>
               <Pressable
-                style={[styles.cancelButton, busy && styles.buttonDisabled]}
+                style={tw.style('py-2.5 px-4 rounded-lg', busy && 'opacity-40')}
                 onPress={onCancel}
                 disabled={busy}
                 testID="confirm-delete-cancel"
               >
-                <Text style={styles.cancelButtonLabel}>Cancel</Text>
+                <Text style={tw`text-[#aaa] text-[15px] font-semibold`}>Cancel</Text>
               </Pressable>
               <Pressable
-                style={[styles.confirmButton, busy && styles.buttonDisabled]}
+                style={tw.style('py-2.5 px-4 rounded-lg bg-[#ff3b30]', busy && 'opacity-40')}
                 onPress={onConfirm}
                 disabled={busy}
                 testID="confirm-delete-confirm"
                 accessibilityRole="button"
                 accessibilityLabel={confirmLabel}
               >
-                <Text style={styles.confirmButtonLabel}>{confirmLabel}</Text>
+                <Text style={tw`text-white text-[15px] font-bold`}>{confirmLabel}</Text>
               </Pressable>
             </View>
           </Pressable>
@@ -73,30 +71,3 @@ export default function ConfirmDeleteSheet({
     </Modal>
   );
 }
-
-const styles = StyleSheet.create({
-  flex: { flex: 1, justifyContent: 'flex-end' },
-  backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)' },
-  sheet: {
-    backgroundColor: '#111',
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 24,
-  },
-  title: { color: '#fff', fontSize: 18, fontWeight: '700', marginBottom: 8 },
-  message: { color: '#ccc', fontSize: 14, lineHeight: 20, marginBottom: 16 },
-  error: { color: '#ff6b6b', marginBottom: 12 },
-  buttonRow: { flexDirection: 'row', justifyContent: 'flex-end', gap: 8 },
-  cancelButton: { paddingVertical: 10, paddingHorizontal: 16, borderRadius: 8 },
-  cancelButtonLabel: { color: '#aaa', fontSize: 15, fontWeight: '600' },
-  confirmButton: {
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-    backgroundColor: '#ff3b30',
-  },
-  confirmButtonLabel: { color: '#fff', fontSize: 15, fontWeight: '700' },
-  buttonDisabled: { opacity: 0.4 },
-});

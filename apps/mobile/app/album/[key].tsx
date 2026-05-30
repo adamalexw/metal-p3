@@ -14,6 +14,7 @@ import { toQueueItem } from '../../src/lib/to-queue-item';
 import AddToPlaylistSheet from '../../src/components/AddToPlaylistSheet';
 import ConfirmDeleteSheet from '../../src/components/ConfirmDeleteSheet';
 import { deleteTracksAndPropagate } from '../../src/lib/delete-tracks';
+import { tw } from '../../src/lib/tw';
 import { useNowPlayingState } from '../../src/lib/useNowPlayingState';
 import { useArtworkTheme } from '../../src/theme/useArtworkTheme';
 import type { Track } from '../../modules/metalp3-media/src/MetalP3Media.types';
@@ -63,9 +64,9 @@ export default function AlbumDetailScreen() {
 
   if (!group) {
     return (
-      <View style={styles.container}>
+      <View style={tw`flex-1 bg-black`}>
         <Stack.Screen options={{ title: 'Album', headerShown: true, headerStyle: { backgroundColor: '#000' }, headerTintColor: '#fff' }} />
-        <Text style={styles.missing} testID="album-missing">
+        <Text style={tw`text-[#ff6b6b] text-center mt-12 px-6`} testID="album-missing">
           Album not found. Return to the library and try again.
         </Text>
       </View>
@@ -134,7 +135,7 @@ export default function AlbumDetailScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={tw`flex-1 bg-black`}>
       <Stack.Screen
         options={{
           title: group.albumName,
@@ -150,11 +151,11 @@ export default function AlbumDetailScreen() {
         <View style={StyleSheet.absoluteFill} pointerEvents="none" testID="album-detail-backdrop">
           <Image source={{ uri: artUri }} style={StyleSheet.absoluteFill} resizeMode="cover" blurRadius={Platform.OS === 'android' ? 10 : 0} />
           {Platform.OS === 'web' ? (
-            <View style={[StyleSheet.absoluteFill, styles.webBackdropOverlay]} />
+            <View style={[StyleSheet.absoluteFill, tw`bg-black/30`]} />
           ) : (
             <BlurView intensity={35} tint="dark" style={StyleSheet.absoluteFill} />
           )}
-          <View style={[StyleSheet.absoluteFill, styles.darken]} />
+          <View style={[StyleSheet.absoluteFill, tw`bg-black/30`]} />
         </View>
       ) : null}
 
@@ -163,23 +164,26 @@ export default function AlbumDetailScreen() {
         keyExtractor={(t) => t.id}
         contentContainerStyle={{ paddingBottom: insets.bottom + 24 + miniPlayerPad }}
         ListHeaderComponent={
-          <View style={[styles.header, { paddingTop: insets.top + 56 }]}>
-            <View style={styles.artwork} testID="album-detail-artwork">
+          <View style={[tw`px-4 pb-6 items-center`, { paddingTop: insets.top + 56 }]}>
+            <View
+              style={tw`w-[220px] h-[220px] rounded-lg overflow-hidden bg-[#222] mb-4`}
+              testID="album-detail-artwork"
+            >
               {artUri ? (
-                <Image source={{ uri: artUri }} style={styles.artImage} resizeMode="cover" />
+                <Image source={{ uri: artUri }} style={tw`w-full h-full`} resizeMode="cover" />
               ) : (
-                <View style={styles.artPlaceholder} />
+                <View style={tw`w-full h-full bg-[#222]`} />
               )}
             </View>
             <Text
-              style={[styles.albumName, { color: theme.foreground }]}
+              style={[tw`text-[22px] font-bold text-center`, { color: theme.foreground }]}
               numberOfLines={2}
               testID="album-detail-name"
             >
               {group.albumName}
             </Text>
             <Text
-              style={[styles.bandName, { color: theme.foreground }]}
+              style={[tw`text-base mt-1 text-center`, { color: theme.foreground }]}
               numberOfLines={1}
               testID="album-detail-band"
             >
@@ -187,17 +191,22 @@ export default function AlbumDetailScreen() {
             </Text>
             {group.genre ? (
               <Text
-                style={[styles.genre, { color: theme.mutedForeground }]}
+                style={[tw`text-[13px] mt-1 text-center`, { color: theme.mutedForeground }]}
                 numberOfLines={1}
                 testID="album-detail-genre"
               >
                 {group.genre}
               </Text>
             ) : null}
-            <Text style={[styles.meta, { color: theme.mutedForeground }]}>{meta}</Text>
-            <View style={styles.actions}>
+            <Text style={[tw`text-[13px] mt-1.5 text-center`, { color: theme.mutedForeground }]}>
+              {meta}
+            </Text>
+            <View style={tw`flex-row gap-3 mt-4`}>
               <Pressable
-                style={[styles.actionBtn, styles.actionPrimary, { backgroundColor: theme.accent }]}
+                style={[
+                  tw`flex-row items-center justify-center gap-2 py-2.5 px-5 rounded-full min-w-[130px]`,
+                  { backgroundColor: theme.accent },
+                ]}
                 onPress={() => void playFrom(0)}
                 testID="album-detail-play"
                 accessibilityRole="button"
@@ -210,13 +219,20 @@ export default function AlbumDetailScreen() {
                   strokeWidth={2.5}
                   strokeLinecap="square"
                 />
-                <Text style={[styles.actionLabel, { color: theme.accentForeground }]}>Play</Text>
+                <Text
+                  style={[tw`text-sm font-bold tracking-[0.4px]`, { color: theme.accentForeground }]}
+                >
+                  Play
+                </Text>
               </Pressable>
               <Pressable
                 style={[
-                  styles.actionBtn,
-                  styles.actionSecondary,
-                  { backgroundColor: theme.surface, borderColor: theme.foreground },
+                  tw`flex-row items-center justify-center gap-2 py-2.5 px-5 rounded-full min-w-[130px]`,
+                  {
+                    borderWidth: 1.5,
+                    backgroundColor: theme.surface,
+                    borderColor: theme.foreground,
+                  },
                 ]}
                 onPress={() => void playShuffled()}
                 testID="album-detail-shuffle"
@@ -229,7 +245,9 @@ export default function AlbumDetailScreen() {
                   strokeWidth={2.5}
                   strokeLinecap="square"
                 />
-                <Text style={[styles.actionLabel, { color: theme.foreground }]}>Shuffle</Text>
+                <Text style={[tw`text-sm font-bold tracking-[0.4px]`, { color: theme.foreground }]}>
+                  Shuffle
+                </Text>
               </Pressable>
             </View>
           </View>
@@ -239,30 +257,42 @@ export default function AlbumDetailScreen() {
           const canDelete = Platform.OS === 'android';
           const row = (
             <Pressable
-              style={styles.row}
+              style={[
+                tw`flex-row items-center py-3 px-4 border-b border-white/[0.08]`,
+                { borderBottomWidth: StyleSheet.hairlineWidth },
+              ]}
               onPress={() => void playFrom(index)}
               onLongPress={() => setLongPressedTrackId(item.id)}
               testID={`album-track-${item.id}`}
             >
               {isPlaying ? (
                 <Text
-                  style={[styles.trackNumber, styles.trackNumberPlaying, { color: theme.accent }]}
+                  style={[
+                    tw`text-sm font-bold w-8 text-left`,
+                    { color: theme.accent, fontVariant: ['tabular-nums'] },
+                  ]}
                   testID={`album-track-playing-indicator-${item.id}`}
                 >
                   ▶
                 </Text>
               ) : (
-                <Text style={styles.trackNumber}>{formatTrackNumber(item, index)}</Text>
-              )}
-              <View style={styles.trackTextWrap}>
                 <Text
-                  style={[styles.trackTitle, isPlaying && { color: theme.accent }]}
+                  style={[tw`text-[#bbb] text-sm w-8`, { fontVariant: ['tabular-nums'] }]}
+                >
+                  {formatTrackNumber(item, index)}
+                </Text>
+              )}
+              <View style={tw`flex-1 px-2`}>
+                <Text
+                  style={[tw`text-white text-[15px]`, isPlaying && { color: theme.accent }]}
                   numberOfLines={1}
                 >
                   {item.title ?? 'Unknown title'}
                 </Text>
               </View>
-              <Text style={styles.trackDuration}>{formatTrackDuration(item.durationMs)}</Text>
+              <Text style={[tw`text-[#bbb] text-[13px]`, { fontVariant: ['tabular-nums'] }]}>
+                {formatTrackDuration(item.durationMs)}
+              </Text>
             </Pressable>
           );
           if (!canDelete) return row;
@@ -275,13 +305,13 @@ export default function AlbumDetailScreen() {
               testID={`album-track-swipe-${item.id}`}
               renderRightActions={() => (
                 <Pressable
-                  style={styles.deleteAction}
+                  style={tw`bg-[#ff3b30] justify-center items-center px-6 min-w-[96px]`}
                   onPress={() => requestDeleteTrack(item)}
                   testID={`album-track-delete-action-${item.id}`}
                   accessibilityRole="button"
                   accessibilityLabel={`Delete ${item.title ?? 'track'}`}
                 >
-                  <Text style={styles.deleteActionLabel}>Delete</Text>
+                  <Text style={tw`text-white text-sm font-bold tracking-[0.4px]`}>Delete</Text>
                 </Pressable>
               )}
               rightThreshold={48}
@@ -328,46 +358,3 @@ function formatTrackDuration(ms: number): string {
   const s = totalSeconds % 60;
   return `${m}:${String(s).padStart(2, '0')}`;
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#000' },
-  darken: { backgroundColor: 'rgba(0,0,0,0.3)' },
-  webBackdropOverlay: { backgroundColor: 'rgba(0,0,0,0.3)' },
-  header: { paddingHorizontal: 16, paddingBottom: 24, alignItems: 'center' },
-  artwork: { width: 220, height: 220, borderRadius: 8, overflow: 'hidden', backgroundColor: '#222', marginBottom: 16 },
-  artImage: { width: '100%', height: '100%' },
-  artPlaceholder: { width: '100%', height: '100%', backgroundColor: '#222' },
-  albumName: { fontSize: 22, fontWeight: '700', textAlign: 'center' },
-  bandName: { fontSize: 16, marginTop: 4, textAlign: 'center' },
-  genre: { fontSize: 13, marginTop: 4, textAlign: 'center' },
-  meta: { fontSize: 13, marginTop: 6, textAlign: 'center' },
-  actions: { flexDirection: 'row', gap: 12, marginTop: 16 },
-  actionBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 999,
-    minWidth: 130,
-  },
-  actionPrimary: {},
-  actionSecondary: { borderWidth: 1.5 },
-  actionLabel: { fontSize: 14, fontWeight: '700', letterSpacing: 0.4 },
-  row: { flexDirection: 'row', alignItems: 'center', paddingVertical: 12, paddingHorizontal: 16, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: 'rgba(255,255,255,0.08)' },
-  trackNumber: { color: '#bbb', fontSize: 14, width: 32, fontVariant: ['tabular-nums'] },
-  trackNumberPlaying: { fontSize: 14, fontWeight: '700', textAlign: 'left' },
-  trackTextWrap: { flex: 1, paddingHorizontal: 8 },
-  trackTitle: { color: '#fff', fontSize: 15 },
-  trackDuration: { color: '#bbb', fontSize: 13, fontVariant: ['tabular-nums'] },
-  missing: { color: '#ff6b6b', textAlign: 'center', marginTop: 48, paddingHorizontal: 24 },
-  deleteAction: {
-    backgroundColor: '#ff3b30',
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 24,
-    minWidth: 96,
-  },
-  deleteActionLabel: { color: '#fff', fontSize: 14, fontWeight: '700', letterSpacing: 0.4 },
-});

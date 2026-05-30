@@ -11,6 +11,7 @@ import {
   loadPlaylists,
   subscribe,
 } from '../../../src/lib/playlist-store';
+import { tw } from '../../../src/lib/tw';
 
 export default function PlaylistsListScreen() {
   const router = useRouter();
@@ -47,25 +48,28 @@ export default function PlaylistsListScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={tw`flex-1 bg-black`}>
       <FlatList
         data={playlists}
         keyExtractor={(p) => p.id}
         contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}
         ListEmptyComponent={
-          <Text style={styles.empty} testID="playlists-empty">
+          <Text style={tw`text-[#888] text-center px-6 pt-12`} testID="playlists-empty">
             No playlists yet. Long-press a track to add it to a new playlist.
           </Text>
         }
         renderItem={({ item }) => (
           <Pressable
-            style={styles.row}
+            style={[
+              tw`flex-row items-center justify-between py-4 px-4 border-b border-white/[0.08]`,
+              { borderBottomWidth: StyleSheet.hairlineWidth },
+            ]}
             onPress={() => router.push(`/playlists/${encodeURIComponent(item.id)}` as never)}
             onLongPress={() => setContextPlaylist(item)}
             testID={`playlist-row-${item.id}`}
           >
-            <Text style={styles.name} numberOfLines={1}>{item.name}</Text>
-            <Text style={styles.meta}>
+            <Text style={tw`text-white text-base flex-1 pr-3`} numberOfLines={1}>{item.name}</Text>
+            <Text style={tw`text-[#888] text-[13px]`}>
               {item.trackIds.length} {item.trackIds.length === 1 ? 'track' : 'tracks'}
             </Text>
           </Pressable>
@@ -109,19 +113,3 @@ export default function PlaylistsListScreen() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#000' },
-  empty: { color: '#888', textAlign: 'center', paddingHorizontal: 24, paddingTop: 48 },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 16,
-    paddingHorizontal: 16,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: 'rgba(255,255,255,0.08)',
-  },
-  name: { color: '#fff', fontSize: 16, flex: 1, paddingRight: 12 },
-  meta: { color: '#888', fontSize: 13 },
-});

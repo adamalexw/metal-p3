@@ -2,10 +2,10 @@ import { useCallback, useRef, useState } from 'react';
 import {
   type GestureResponderEvent,
   type LayoutChangeEvent,
-  StyleSheet,
   Text,
   View,
 } from 'react-native';
+import { tw } from '../lib/tw';
 
 interface Props {
   positionMs: number;
@@ -78,9 +78,9 @@ export function PlayerProgressBar({
   const trackColor = withAlpha(mutedForeground, 0.35);
 
   return (
-    <View style={styles.wrap} testID={testID}>
+    <View style={tw`w-full px-1`} testID={testID}>
       <View
-        style={styles.hitArea}
+        style={[tw`justify-center`, { height: HIT_HEIGHT }]}
         onLayout={onLayout}
         onStartShouldSetResponder={onStartShouldSetResponder}
         onMoveShouldSetResponder={onMoveShouldSetResponder}
@@ -90,30 +90,45 @@ export function PlayerProgressBar({
         onResponderTerminate={onResponderTerminate}
         onResponderTerminationRequest={onResponderTerminationRequest}
       >
-        <View style={[styles.track, { backgroundColor: trackColor }]}>
+        <View
+          style={[
+            tw`overflow-hidden`,
+            { height: TRACK_HEIGHT, borderRadius: TRACK_HEIGHT / 2, backgroundColor: trackColor },
+          ]}
+        >
           <View
-            style={[
-              styles.fill,
-              { backgroundColor: filledColor, width: `${ratio * 100}%` },
-            ]}
+            style={[tw`h-full`, { backgroundColor: filledColor, width: `${ratio * 100}%` }]}
           />
         </View>
         {enabled ? (
           <View
             style={[
-              styles.thumb,
+              tw`absolute`,
               {
+                width: THUMB_SIZE,
+                height: THUMB_SIZE,
+                borderRadius: THUMB_SIZE / 2,
+                top: (HIT_HEIGHT - THUMB_SIZE) / 2,
                 backgroundColor: filledColor,
                 left: Math.max(0, ratio * width - THUMB_SIZE / 2),
+                shadowColor: '#000',
+                shadowOpacity: 0.3,
+                shadowRadius: 3,
+                shadowOffset: { width: 0, height: 1 },
+                elevation: 3,
               },
             ]}
             testID={testID ? `${testID}-thumb` : undefined}
           />
         ) : null}
       </View>
-      <View style={styles.timeRow}>
-        <Text style={[styles.time, { color: mutedForeground }]}>{fmt(displayMs)}</Text>
-        <Text style={[styles.time, { color: mutedForeground }]}>{fmt(durationMs)}</Text>
+      <View style={tw`flex-row justify-between mt-0.5`}>
+        <Text style={[tw`text-xs`, { color: mutedForeground, fontVariant: ['tabular-nums'] }]}>
+          {fmt(displayMs)}
+        </Text>
+        <Text style={[tw`text-xs`, { color: mutedForeground, fontVariant: ['tabular-nums'] }]}>
+          {fmt(durationMs)}
+        </Text>
       </View>
     </View>
   );
@@ -135,42 +150,5 @@ function withAlpha(hex: string, alpha: number): string {
   const aHex = Math.round(a * 255).toString(16).padStart(2, '0');
   return `#${m[1]}${aHex}`;
 }
-
-const styles = StyleSheet.create({
-  wrap: { width: '100%', paddingHorizontal: 4 },
-  hitArea: {
-    height: HIT_HEIGHT,
-    justifyContent: 'center',
-  },
-  track: {
-    height: TRACK_HEIGHT,
-    borderRadius: TRACK_HEIGHT / 2,
-    overflow: 'hidden',
-  },
-  fill: {
-    height: '100%',
-  },
-  thumb: {
-    position: 'absolute',
-    width: THUMB_SIZE,
-    height: THUMB_SIZE,
-    borderRadius: THUMB_SIZE / 2,
-    top: (HIT_HEIGHT - THUMB_SIZE) / 2,
-    shadowColor: '#000',
-    shadowOpacity: 0.3,
-    shadowRadius: 3,
-    shadowOffset: { width: 0, height: 1 },
-    elevation: 3,
-  },
-  timeRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 2,
-  },
-  time: {
-    fontSize: 12,
-    fontVariant: ['tabular-nums'],
-  },
-});
 
 export default PlayerProgressBar;
