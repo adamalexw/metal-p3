@@ -1,0 +1,14 @@
+diff --git a/node_modules/@expo/cli/build/src/start/platforms/android/gradle.js b/node_modules/@expo/cli/build/src/start/platforms/android/gradle.js
+index fb459dd..188d9ba 100644
+--- a/node_modules/@expo/cli/build/src/start/platforms/android/gradle.js
++++ b/node_modules/@expo/cli/build/src/start/platforms/android/gradle.js
+@@ -73,8 +73,7 @@ async function assembleAsync(androidProjectPath, { variant, port, appName, build
+         'lint',
+         // ignore tests
+         '-x',
+-        'test',
+-        '--configure-on-demand'
++        'test'
+     ];
+     if (buildCache) args.push('--build-cache');
+     // Generate a profile under `/android/app/build/reports/profile`

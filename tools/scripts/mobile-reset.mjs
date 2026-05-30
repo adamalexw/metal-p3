@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { execSync } from 'node:child_process';
-import { existsSync, rmSync } from 'node:fs';
+import { existsSync, readdirSync, rmSync, statSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 
@@ -54,17 +54,30 @@ for (const port of METRO_PORTS) killPort(port);
 
 const targets = [
   join(repoRoot, 'apps', 'mobile', '.expo'),
+  join(repoRoot, 'apps', 'mobile', 'android', 'build', 'generated', 'autolinking'),
   join(repoRoot, 'node_modules', '.cache'),
   join(tmpdir(), 'metro-cache'),
   join(tmpdir(), 'haste-map-metro'),
   join(tmpdir(), 'react-native-packager-cache-' + (process.env.USER ?? process.env.USERNAME ?? 'user')),
 ];
 
+// Metro 0.83+ writes per-project file maps directly under tmpdir() as `metro-file-map-<hash>-<hash>` files.
+// Glob them dynamically so a project root rename doesn't leave stale indexes behind.
+const tmp = tmpdir();
+if (existsSync(tmp)) {
+  for (const entry of readdirSync(tmp)) {
+    if (entry.startsWith('metro-file-map-')) {
+      targets.push(join(tmp, entry));
+    }
+  }
+}
+
 let removed = 0;
 for (const target of targets) {
   if (existsSync(target)) {
     try {
-      rmSync(target, { recursive: true, force: true, maxRetries: 3 });
+      const isDir = statSync(target).isDirectory();
+      rmSync(target, { recursive: isDir, force: true, maxRetries: 3 });
       console.log(`  removed ${target}`);
       removed++;
     } catch (err) {
