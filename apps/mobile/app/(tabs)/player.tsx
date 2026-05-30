@@ -1,8 +1,9 @@
 import { BlurView } from 'expo-blur';
 import { useMemo, useState } from 'react';
-import { Image, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Dimensions, Image, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MetalP3Player, type RepeatMode } from '../../modules/metalp3-player';
+import { PlayerProgressBar } from '../../src/components/PlayerProgressBar';
 import { useLyrics } from '../../src/lib/useLyrics';
 import { useNowPlayingState } from '../../src/lib/useNowPlayingState';
 import { useArtworkTheme } from '../../src/theme/useArtworkTheme';
@@ -24,6 +25,11 @@ export default function PlayerScreen() {
     () => [current?.artist, current?.album].filter(Boolean).join(' — '),
     [current?.artist, current?.album],
   );
+
+  const artSize = useMemo(() => {
+    const w = Dimensions.get('window').width - 48;
+    return Math.max(160, Math.min(w, 480));
+  }, []);
 
   const togglePlay = () => (isPlaying ? void MetalP3Player.pause() : void MetalP3Player.play());
   const cycleRepeat = () => {
@@ -72,7 +78,7 @@ export default function PlayerScreen() {
           </View>
         ) : (
           <View style={styles.artWrap}>
-            <View style={styles.art} testID="player-art">
+            <View style={[styles.art, { width: artSize, height: artSize }]} testID="player-art">
               {theme.artworkDataUri ? (
                 <Image source={{ uri: theme.artworkDataUri }} style={styles.artImage} resizeMode="cover" />
               ) : (
@@ -99,9 +105,20 @@ export default function PlayerScreen() {
         )}
 
         <View style={styles.transportArea}>
-          <Text style={[styles.time, withShadow(theme.mutedForeground)]}>
-            {fmt(state?.positionMs ?? 0)} / {fmt(state?.durationMs ?? 0)}
-          </Text>
+          <PlayerProgressBar
+            positionMs={state?.positionMs ?? 0}
+            durationMs={state?.durationMs ?? 0}
+            accent={theme.accent}
+            mutedForeground={theme.mutedForeground}
+            onSeek={(ms) => {
+              try {
+                void MetalP3Player.seekTo(ms);
+              } catch {
+                // swallow — next stateChanged will reconcile
+              }
+            }}
+            testID="player-progress"
+          />
 
           <View style={styles.transport}>
             <ToggleBtn
@@ -229,11 +246,6 @@ function withShadow(color: string) {
   } as const;
 }
 
-function fmt(ms: number): string {
-  const s = Math.max(0, Math.floor(ms / 1000));
-  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
-}
-
 const styles = StyleSheet.create({
   container: { flex: 1 },
   darken: { backgroundColor: 'rgba(0,0,0,0.55)' },
@@ -243,8 +255,6 @@ const styles = StyleSheet.create({
 
   artWrap: { alignItems: 'center', marginTop: 8 },
   art: {
-    width: 320,
-    height: 320,
     maxWidth: '100%',
     borderRadius: 18,
     overflow: 'hidden',
@@ -269,9 +279,8 @@ const styles = StyleSheet.create({
   lyricsText: { fontSize: 18, lineHeight: 28, fontWeight: '600', textAlign: 'center' },
 
   transportArea: { alignItems: 'center', marginTop: 16 },
-  time: { fontSize: 13, fontVariant: ['tabular-nums'], marginBottom: 14 },
 
-  transport: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  transport: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 8 },
   btn: { width: 56, height: 56, alignItems: 'center', justifyContent: 'center', borderRadius: 28 },
   btnPrimary: {
     width: 88,
