@@ -67,7 +67,7 @@ const styles = StyleSheet.create({
   tile: { flex: 1, marginHorizontal: 4, marginBottom: 16 },
   tileFullWidth: { flex: 0, alignSelf: 'stretch', marginHorizontal: 4 },
   artwork: { width: '100%', aspectRatio: 1, borderRadius: 6, overflow: 'hidden', backgroundColor: '#222' },
-  artworkFullWidth: { aspectRatio: 16 / 9 },
+  artworkFullWidth: { aspectRatio: 1 },
   artImage: { width: '100%', height: '100%' },
   artPlaceholder: { width: '100%', height: '100%', backgroundColor: '#222' },
   albumName: { color: '#fff', fontSize: 14, fontWeight: '600', marginTop: 8 },

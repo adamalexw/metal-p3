@@ -1,5 +1,5 @@
 import { BlurView } from 'expo-blur';
-import { Stack, useLocalSearchParams } from 'expo-router';
+import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { FlatList, Image, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -11,15 +11,19 @@ import { findAlbumGroup } from '../../src/lib/library-cache';
 import { toQueueItem } from '../../src/lib/to-queue-item';
 import AddToPlaylistSheet from '../../src/components/AddToPlaylistSheet';
 import { useNowPlayingState } from '../../src/lib/useNowPlayingState';
+import { useArtworkTheme } from '../../src/theme/useArtworkTheme';
 import type { Track } from '../../modules/metalp3-media/src/MetalP3Media.types';
 
 export default function AlbumDetailScreen() {
   const params = useLocalSearchParams<{ key: string }>();
+  const router = useRouter();
   const rawKey = typeof params.key === 'string' ? params.key : '';
   const albumKey = decodeURIComponent(rawKey);
   const group = findAlbumGroup(albumKey);
   const insets = useSafeAreaInsets();
   const nowPlaying = useNowPlayingState();
+  const theme = useArtworkTheme(group?.representativeUri ?? null);
+  const playingTrackId = nowPlaying?.current?.id ?? null;
   const miniPlayerPad = nowPlaying?.current ? MINI_PLAYER_HEIGHT + 16 : 0;
   const [artUri, setArtUri] = useState<string | null>(null);
   const [longPressedTrackId, setLongPressedTrackId] = useState<string | null>(null);
@@ -54,8 +58,14 @@ export default function AlbumDetailScreen() {
   const meta = `${group.trackCount} ${group.trackCount === 1 ? 'song' : 'songs'} · ${formatAlbumDuration(group.totalDurationMs)}`;
 
   const playFrom = async (index: number) => {
-    await MetalP3Player.setQueueAsync(group.tracks.map(toQueueItem), index, 0);
-    await MetalP3Player.play();
+    try {
+      await MetalP3Player.setQueueAsync(group.tracks.map(toQueueItem), index, 0);
+      await MetalP3Player.play();
+    } catch (err) {
+      console.warn('AlbumDetailScreen: failed to start playback', err);
+      return;
+    }
+    router.push('/(tabs)/player' as never);
   };
 
   return (
@@ -109,22 +119,37 @@ export default function AlbumDetailScreen() {
             <Text style={styles.meta}>{meta}</Text>
           </View>
         }
-        renderItem={({ item, index }) => (
-          <Pressable
-            style={styles.row}
-            onPress={() => void playFrom(index)}
-            onLongPress={() => setLongPressedTrackId(item.id)}
-            testID={`album-track-${item.id}`}
-          >
-            <Text style={styles.trackNumber}>{formatTrackNumber(item, index)}</Text>
-            <View style={styles.trackTextWrap}>
-              <Text style={styles.trackTitle} numberOfLines={1}>
-                {item.title ?? 'Unknown title'}
-              </Text>
-            </View>
-            <Text style={styles.trackDuration}>{formatTrackDuration(item.durationMs)}</Text>
-          </Pressable>
-        )}
+        renderItem={({ item, index }) => {
+          const isPlaying = playingTrackId !== null && playingTrackId === item.id;
+          return (
+            <Pressable
+              style={styles.row}
+              onPress={() => void playFrom(index)}
+              onLongPress={() => setLongPressedTrackId(item.id)}
+              testID={`album-track-${item.id}`}
+            >
+              {isPlaying ? (
+                <Text
+                  style={[styles.trackNumber, styles.trackNumberPlaying, { color: theme.accent }]}
+                  testID={`album-track-playing-indicator-${item.id}`}
+                >
+                  ▶
+                </Text>
+              ) : (
+                <Text style={styles.trackNumber}>{formatTrackNumber(item, index)}</Text>
+              )}
+              <View style={styles.trackTextWrap}>
+                <Text
+                  style={[styles.trackTitle, isPlaying && { color: theme.accent }]}
+                  numberOfLines={1}
+                >
+                  {item.title ?? 'Unknown title'}
+                </Text>
+              </View>
+              <Text style={styles.trackDuration}>{formatTrackDuration(item.durationMs)}</Text>
+            </Pressable>
+          );
+        }}
       />
 
       <AddToPlaylistSheet
@@ -162,6 +187,7 @@ const styles = StyleSheet.create({
   meta: { color: '#bbb', fontSize: 13, marginTop: 6, textAlign: 'center' },
   row: { flexDirection: 'row', alignItems: 'center', paddingVertical: 12, paddingHorizontal: 16, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: 'rgba(255,255,255,0.08)' },
   trackNumber: { color: '#bbb', fontSize: 14, width: 32, fontVariant: ['tabular-nums'] },
+  trackNumberPlaying: { fontSize: 14, fontWeight: '700', textAlign: 'left' },
   trackTextWrap: { flex: 1, paddingHorizontal: 8 },
   trackTitle: { color: '#fff', fontSize: 15 },
   trackDuration: { color: '#bbb', fontSize: 13, fontVariant: ['tabular-nums'] },

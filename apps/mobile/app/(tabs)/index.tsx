@@ -94,7 +94,7 @@ export default function LibraryScreen() {
           keyExtractor={(r) => r.key}
           contentContainerStyle={[styles.listContent, { paddingBottom: insets.bottom + 24 + miniPlayerPad }]}
           renderItem={({ item, index }) => (
-            <Animated.View entering={FadeInDown.duration(300).delay((index % 8) * 40)} style={styles.row}>
+            <Animated.View entering={FadeInDown.duration(280).delay(Math.min(index * 35, 600))} style={styles.row}>
               {item.kind === 'pair' ? (
                 <>
                   <AlbumTile group={item.left} onPress={() => openAlbum(item.left)} />

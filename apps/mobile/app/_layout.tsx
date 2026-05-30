@@ -13,7 +13,13 @@ export default function RootLayout() {
         {/* eslint-disable-next-line react/style-prop-object */}
         <StatusBar style="light" />
         <View style={{ flex: 1 }}>
-          <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: '#000' } }}>
+          <Stack
+            screenOptions={{
+              headerShown: false,
+              contentStyle: { backgroundColor: '#000' },
+              animation: 'slide_from_right',
+            }}
+          >
             <Stack.Screen name="(tabs)" />
             <Stack.Screen name="album/[key]" />
             <Stack.Screen name="+not-found" />
