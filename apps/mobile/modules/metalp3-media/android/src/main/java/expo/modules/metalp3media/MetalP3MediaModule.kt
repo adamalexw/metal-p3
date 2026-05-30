@@ -274,7 +274,7 @@ class MetalP3MediaModule : Module() {
     }
     while (p + 10 <= tagEnd) {
       val id = String(b, p, 4, Charsets.ISO_8859_1)
-      if (id[0] == '') break
+      if (id[0] == '\u0000') break
       val frameSize = if (major == 4) synchsafe(b, p + 4) else readInt32(b, p + 4)
       val frameEnd = p + 10 + frameSize
       if (frameSize <= 0 || frameEnd > tagEnd) break
