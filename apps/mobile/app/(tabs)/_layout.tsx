@@ -14,7 +14,6 @@ export default function TabsLayout() {
       }}
     >
       <Drawer.Screen name="index" options={{ title: 'Library', drawerLabel: 'Library' }} />
-      <Drawer.Screen name="search" options={{ title: 'Search', drawerLabel: 'Search' }} />
       <Drawer.Screen name="player" options={{ title: 'Now Playing', drawerLabel: 'Now Playing' }} />
     </Drawer>
   );
