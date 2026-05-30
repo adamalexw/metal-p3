@@ -1,6 +1,6 @@
 import { requireNativeModule } from 'expo-modules-core';
 import { PermissionsAndroid, Platform } from 'react-native';
-import type { Artwork, PermissionStatus, ScanOptions, Track, TrackTags } from './src/MetalP3Media.types';
+import type { Artwork, Lyrics, PermissionStatus, ScanOptions, Track, TrackTags } from './src/MetalP3Media.types';
 
 export * from './src/MetalP3Media.types';
 
@@ -11,6 +11,7 @@ interface NativeModule {
   searchAsync(query: string, limit?: number): Promise<Track[]>;
   getTrackAsync(uri: string): Promise<TrackTags | null>;
   getArtworkAsync(uri: string): Promise<Artwork | null>;
+  getLyricsAsync(uri: string): Promise<Lyrics | null>;
 }
 
 const native = requireNativeModule<NativeModule>('MetalP3Media');
@@ -41,6 +42,7 @@ export const MetalP3Media = {
   searchAsync: (query: string, limit?: number) => native.searchAsync(query, limit),
   getTrackAsync: (uri: string) => native.getTrackAsync(uri),
   getArtworkAsync: (uri: string) => native.getArtworkAsync(uri),
+  getLyricsAsync: (uri: string) => native.getLyricsAsync(uri),
 };
 
 export default MetalP3Media;

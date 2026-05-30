@@ -76,6 +76,15 @@ class PlaybackService : MediaLibraryService() {
       override fun onEvents(p: Player, events: Player.Events) {
         publishWidgetSnapshot()
       }
+
+      override fun onPlaybackStateChanged(state: Int) {
+        // When the queue runs out and we're not on repeat, rewind to the first
+        // track and stay paused so the user sees the album poised to start over.
+        if (state == Player.STATE_ENDED && player.repeatMode == Player.REPEAT_MODE_OFF && player.mediaItemCount > 0) {
+          player.pause()
+          player.seekTo(0, 0L)
+        }
+      }
     })
     publishWidgetSnapshot()
   }
