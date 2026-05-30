@@ -1,4 +1,5 @@
 import { usePathname, useRouter } from 'expo-router';
+import { Disc3, Pause, Play, SkipBack, SkipForward } from 'lucide-react-native';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MetalP3Player } from '../../modules/metalp3-player';
@@ -6,6 +7,8 @@ import { useNowPlayingState } from '../lib/useNowPlayingState';
 import { useArtworkTheme } from '../theme/useArtworkTheme';
 
 export const MINI_PLAYER_HEIGHT = 72;
+
+const ICON_STROKE = 2.5;
 
 export default function MiniPlayer() {
   const router = useRouter();
@@ -57,9 +60,12 @@ export default function MiniPlayer() {
                 resizeMode="cover"
               />
             ) : (
-              <Text style={[styles.artGlyph, { color: theme.mutedForeground }]}>
-                {current.title?.[0]?.toUpperCase() ?? '♫'}
-              </Text>
+              <Disc3
+                size={32}
+                color={theme.mutedForeground}
+                strokeWidth={ICON_STROKE}
+                strokeLinecap="square"
+              />
             )}
           </View>
           <View style={styles.textWrap}>
@@ -91,7 +97,13 @@ export default function MiniPlayer() {
             accessibilityLabel="Skip to previous track"
             hitSlop={8}
           >
-            <Text style={[styles.iconLabel, { color: theme.foreground }]}>{'⏮'}</Text>
+            <SkipBack
+              size={22}
+              color={theme.foreground}
+              fill={theme.foreground}
+              strokeWidth={ICON_STROKE}
+              strokeLinecap="square"
+            />
           </Pressable>
           <Pressable
             style={[styles.playBtn, { backgroundColor: theme.accent }]}
@@ -101,9 +113,23 @@ export default function MiniPlayer() {
             accessibilityLabel={isPlaying ? 'Pause' : 'Play'}
             hitSlop={6}
           >
-            <Text style={[styles.playLabel, { color: theme.accentForeground }]}>
-              {isPlaying ? '⏸' : '▶'}
-            </Text>
+            {isPlaying ? (
+              <Pause
+                size={22}
+                color={theme.accentForeground}
+                fill={theme.accentForeground}
+                strokeWidth={ICON_STROKE}
+                strokeLinecap="square"
+              />
+            ) : (
+              <Play
+                size={22}
+                color={theme.accentForeground}
+                fill={theme.accentForeground}
+                strokeWidth={ICON_STROKE}
+                strokeLinecap="square"
+              />
+            )}
           </Pressable>
           <Pressable
             style={styles.iconBtn}
@@ -113,7 +139,13 @@ export default function MiniPlayer() {
             accessibilityLabel="Skip to next track"
             hitSlop={8}
           >
-            <Text style={[styles.iconLabel, { color: theme.foreground }]}>{'⏭'}</Text>
+            <SkipForward
+              size={22}
+              color={theme.foreground}
+              fill={theme.foreground}
+              strokeWidth={ICON_STROKE}
+              strokeLinecap="square"
+            />
           </Pressable>
         </View>
       </View>
@@ -167,7 +199,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   artImage: { width: '100%', height: '100%' },
-  artGlyph: { fontSize: 26, fontWeight: '800' },
   textWrap: { flex: 1, paddingHorizontal: 12, justifyContent: 'center' },
   title: { fontSize: 14, fontWeight: '700' },
   artist: { fontSize: 12, marginTop: 2 },
@@ -184,7 +215,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderRadius: 22,
   },
-  iconLabel: { fontSize: 22, fontWeight: '700' },
   playBtn: {
     width: 48,
     height: 48,
@@ -192,5 +222,4 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderRadius: 24,
   },
-  playLabel: { fontSize: 22, fontWeight: '800' },
 });

@@ -86,8 +86,9 @@ export function useArtworkTheme(trackUri: string | null | undefined): ArtworkThe
     setTheme((t) => ({ ...t, loading: true }));
 
     (async () => {
+      let dataUri: string | null = null;
       try {
-        const dataUri = await fetchArtworkDataUri(trackUri);
+        dataUri = await fetchArtworkDataUri(trackUri);
         if (!dataUri) {
           if (!cancelled) setTheme({ ...DEFAULT_THEME });
           return;
@@ -101,7 +102,7 @@ export function useArtworkTheme(trackUri: string | null | undefined): ArtworkThe
         THEME_CACHE.set(trackUri, next);
         if (!cancelled) setTheme(next);
       } catch {
-        if (!cancelled) setTheme(DEFAULT_THEME);
+        if (!cancelled) setTheme({ ...DEFAULT_THEME, artworkDataUri: dataUri });
       }
     })();
 

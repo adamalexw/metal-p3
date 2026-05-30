@@ -1,4 +1,15 @@
 import { BlurView } from 'expo-blur';
+import {
+  type LucideIcon,
+  Pause,
+  Play,
+  Repeat,
+  Repeat1,
+  Shuffle,
+  SkipBack,
+  SkipForward,
+  Skull,
+} from 'lucide-react-native';
 import { useMemo, useState } from 'react';
 import { Dimensions, Image, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -7,6 +18,8 @@ import { PlayerProgressBar } from '../../src/components/PlayerProgressBar';
 import { useLyrics } from '../../src/lib/useLyrics';
 import { useNowPlayingState } from '../../src/lib/useNowPlayingState';
 import { useArtworkTheme } from '../../src/theme/useArtworkTheme';
+
+const ICON_STROKE = 2.5;
 
 export default function PlayerScreen() {
   const insets = useSafeAreaInsets();
@@ -46,12 +59,12 @@ export default function PlayerScreen() {
             source={{ uri: theme.artworkDataUri }}
             style={StyleSheet.absoluteFill}
             resizeMode="cover"
-            blurRadius={Platform.OS === 'android' ? 25 : 0}
+            blurRadius={Platform.OS === 'android' ? 10 : 0}
           />
           {Platform.OS === 'web' ? (
             <View style={[StyleSheet.absoluteFill, styles.webBackdropOverlay]} />
           ) : (
-            <BlurView intensity={80} tint="dark" style={StyleSheet.absoluteFill} />
+            <BlurView intensity={35} tint="dark" style={StyleSheet.absoluteFill} />
           )}
           <View style={[StyleSheet.absoluteFill, styles.darken]} />
         </View>
@@ -83,9 +96,12 @@ export default function PlayerScreen() {
                 <Image source={{ uri: theme.artworkDataUri }} style={styles.artImage} resizeMode="cover" />
               ) : (
                 <View style={[styles.artPlaceholder, { backgroundColor: theme.surface }]}>
-                  <Text style={[styles.artGlyph, { color: theme.mutedForeground }]}>
-                    {current?.title?.[0]?.toUpperCase() ?? '♫'}
-                  </Text>
+                  <Skull
+                    size={140}
+                    color={theme.mutedForeground}
+                    strokeWidth={ICON_STROKE}
+                    strokeLinecap="square"
+                  />
                 </View>
               )}
             </View>
@@ -122,37 +138,38 @@ export default function PlayerScreen() {
 
           <View style={styles.transport}>
             <ToggleBtn
-              label="\u{1F500}"
               active={shuffle}
               onPress={toggleShuffle}
               theme={theme}
               testID="player-shuffle"
+              icon={Shuffle}
             />
             <IconBtn
-              label="⏮"
               onPress={() => void MetalP3Player.skipToPrevious()}
               theme={theme}
               testID="player-prev"
+              icon={SkipBack}
+              filled
             />
             <PrimaryBtn
-              label={isPlaying ? '⏸' : '▶'}
               onPress={togglePlay}
               theme={theme}
               testID="player-play"
+              icon={isPlaying ? Pause : Play}
             />
             <IconBtn
-              label="⏭"
               onPress={() => void MetalP3Player.skipToNext()}
               theme={theme}
               testID="player-next"
+              icon={SkipForward}
+              filled
             />
             <ToggleBtn
-              label={repeatMode === 'one' ? '\u{1F501}' : '\u{1F501}'}
               active={repeatMode !== 'off'}
-              badge={repeatMode === 'one' ? '1' : null}
               onPress={cycleRepeat}
               theme={theme}
               testID="player-repeat"
+              icon={repeatMode === 'one' ? Repeat1 : Repeat}
             />
           </View>
 
@@ -193,35 +210,46 @@ interface BtnTheme {
 }
 
 function PrimaryBtn({
-  label, onPress, theme, testID,
-}: { label: string; onPress: () => void; theme: BtnTheme; testID?: string }) {
+  icon: Icon, onPress, theme, testID,
+}: { icon: LucideIcon; onPress: () => void; theme: BtnTheme; testID?: string }) {
   return (
     <Pressable
       style={[styles.btn, styles.btnPrimary, { backgroundColor: theme.accent }]}
       onPress={onPress}
       testID={testID}
     >
-      <Text style={[styles.btnLabelPrimary, { color: theme.accentForeground }]}>{label}</Text>
+      <Icon
+        size={40}
+        color={theme.accentForeground}
+        fill={theme.accentForeground}
+        strokeWidth={ICON_STROKE}
+        strokeLinecap="square"
+      />
     </Pressable>
   );
 }
 
 function IconBtn({
-  label, onPress, theme, testID,
-}: { label: string; onPress: () => void; theme: BtnTheme; testID?: string }) {
+  icon: Icon, onPress, theme, testID, filled,
+}: { icon: LucideIcon; onPress: () => void; theme: BtnTheme; testID?: string; filled?: boolean }) {
   return (
     <Pressable style={styles.btn} onPress={onPress} testID={testID}>
-      <Text style={[styles.btnLabel, withShadow(theme.foreground)]}>{label}</Text>
+      <Icon
+        size={32}
+        color={theme.foreground}
+        fill={filled ? theme.foreground : 'transparent'}
+        strokeWidth={ICON_STROKE}
+        strokeLinecap="square"
+      />
     </Pressable>
   );
 }
 
 function ToggleBtn({
-  label, active, badge, onPress, theme, testID,
+  icon: Icon, active, onPress, theme, testID,
 }: {
-  label: string;
+  icon: LucideIcon;
   active: boolean;
-  badge?: string | null;
   onPress: () => void;
   theme: BtnTheme;
   testID?: string;
@@ -229,10 +257,12 @@ function ToggleBtn({
   const color = active ? theme.accent : theme.mutedForeground;
   return (
     <Pressable style={styles.btn} onPress={onPress} testID={testID}>
-      <Text style={[styles.btnLabelSmall, withShadow(color)]}>{label}</Text>
-      {badge ? (
-        <Text style={[styles.btnBadge, withShadow(color)]}>{badge}</Text>
-      ) : null}
+      <Icon
+        size={26}
+        color={color}
+        strokeWidth={ICON_STROKE}
+        strokeLinecap="square"
+      />
     </Pressable>
   );
 }
@@ -248,8 +278,8 @@ function withShadow(color: string) {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  darken: { backgroundColor: 'rgba(0,0,0,0.55)' },
-  webBackdropOverlay: { backgroundColor: 'rgba(0,0,0,0.55)' },
+  darken: { backgroundColor: 'rgba(0,0,0,0.3)' },
+  webBackdropOverlay: { backgroundColor: 'rgba(0,0,0,0.3)' },
 
   content: { flex: 1, paddingHorizontal: 24, justifyContent: 'space-between' },
 
@@ -267,7 +297,6 @@ const styles = StyleSheet.create({
   },
   artImage: { width: '100%', height: '100%' },
   artPlaceholder: { width: '100%', height: '100%', alignItems: 'center', justifyContent: 'center' },
-  artGlyph: { fontSize: 110, fontWeight: '800' },
 
   title: { fontSize: 24, fontWeight: '800', textAlign: 'center' },
   titleLyrics: { fontSize: 22 },
@@ -291,16 +320,6 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     shadowOffset: { width: 0, height: 6 },
     elevation: 10,
-  },
-  btnLabel: { fontSize: 30, fontWeight: '700' },
-  btnLabelPrimary: { fontSize: 38, fontWeight: '800' },
-  btnLabelSmall: { fontSize: 22, fontWeight: '700' },
-  btnBadge: {
-    position: 'absolute',
-    bottom: 8,
-    fontSize: 11,
-    fontWeight: '800',
-    fontVariant: ['tabular-nums'],
   },
 
   lyricsToggle: {
