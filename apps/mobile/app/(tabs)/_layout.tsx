@@ -1,19 +1,21 @@
-import { Tabs } from 'expo-router';
+import { Drawer } from 'expo-router/drawer';
 
 export default function TabsLayout() {
   return (
-    <Tabs
+    <Drawer
       screenOptions={{
         headerStyle: { backgroundColor: '#000' },
         headerTintColor: '#fff',
-        tabBarStyle: { backgroundColor: '#000', borderTopColor: '#222' },
-        tabBarActiveTintColor: '#fff',
-        tabBarInactiveTintColor: '#888',
+        drawerStyle: { backgroundColor: '#111' },
+        drawerActiveTintColor: '#fff',
+        drawerInactiveTintColor: '#888',
+        drawerActiveBackgroundColor: '#222',
+        sceneStyle: { backgroundColor: '#000' },
       }}
     >
-      <Tabs.Screen name="index" options={{ title: 'Library' }} />
-      <Tabs.Screen name="search" options={{ title: 'Search' }} />
-      <Tabs.Screen name="player" options={{ title: 'Now Playing' }} />
-    </Tabs>
+      <Drawer.Screen name="index" options={{ title: 'Library', drawerLabel: 'Library' }} />
+      <Drawer.Screen name="search" options={{ title: 'Search', drawerLabel: 'Search' }} />
+      <Drawer.Screen name="player" options={{ title: 'Now Playing', drawerLabel: 'Now Playing' }} />
+    </Drawer>
   );
 }

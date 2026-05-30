@@ -40,7 +40,9 @@
     "expo-linking": "*",
     "expo-constants": "*",
     "expo-modules-core": "*",
-    "react-native-image-colors": "*"
+    "react-native-image-colors": "*",
+    "react-native-gesture-handler": "*",
+    "expo-blur": "*"
   },
   "devDependencies": {}
 }
