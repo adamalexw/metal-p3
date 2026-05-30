@@ -13,7 +13,7 @@ import {
   SkipForward,
   Skull,
 } from 'lucide-react-native';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Dimensions, Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MetalP3Player, type RepeatMode } from '../../modules/metalp3-player';
@@ -82,56 +82,57 @@ export default function PlayerScreen() {
 
   const headerTitleText = current?.title ?? 'Now Playing';
 
-  const openAlbum = () => {
+  const openAlbum = useCallback(() => {
     if (!albumKey) return;
     router.push(`/album/${encodeURIComponent(albumKey)}` as never);
-  };
+  }, [albumKey, router]);
 
   useEffect(() => {
+    const titleShown = showLyrics && hasLyrics;
     navigation.setOptions({
       headerShown: true,
       headerTransparent: true,
       headerStyle: { backgroundColor: 'transparent' },
       headerTintColor: theme.foreground,
-      headerTitleAlign: 'left',
-      headerTitleContainerStyle: {
-        flex: 1,
-        alignItems: 'center',
-        justifyContent: 'center',
-      },
-      headerTitle: () => (
-        <View
-          style={tw`flex-1 items-center justify-center`}
-          pointerEvents="box-none"
-          testID="player-header-title"
-        >
-          <Pressable
-            onPress={openAlbum}
-            disabled={!albumKey}
-            style={tw`items-center max-w-full`}
-            accessibilityRole="button"
-            accessibilityLabel="Open album"
-            testID="player-header-album-link"
-          >
-            <Text
-              style={[tw`text-base font-semibold text-center`, { color: theme.foreground }]}
-              numberOfLines={1}
-              ellipsizeMode="tail"
+      headerTitleAlign: 'center',
+      headerTitleContainerStyle: titleShown
+        ? { flex: 1, alignItems: 'center', justifyContent: 'center' }
+        : undefined,
+      headerTitle: titleShown
+        ? () => (
+            <View
+              style={tw`flex-1 items-center justify-center`}
+              pointerEvents="box-none"
+              testID="player-header-title"
             >
-              {headerTitleText}
-            </Text>
-            {headerSubtitle ? (
-              <Text
-                style={[tw`text-xs text-center`, { color: theme.mutedForeground }]}
-                numberOfLines={1}
-                ellipsizeMode="tail"
+              <Pressable
+                onPress={openAlbum}
+                disabled={!albumKey}
+                style={tw`items-center max-w-full`}
+                accessibilityRole="button"
+                accessibilityLabel="Open album"
+                testID="player-header-album-link"
               >
-                {headerSubtitle}
-              </Text>
-            ) : null}
-          </Pressable>
-        </View>
-      ),
+                <Text
+                  style={[tw`text-base font-semibold text-center`, { color: theme.foreground }]}
+                  numberOfLines={1}
+                  ellipsizeMode="tail"
+                >
+                  {headerTitleText}
+                </Text>
+                {headerSubtitle ? (
+                  <Text
+                    style={[tw`text-xs text-center`, { color: theme.mutedForeground }]}
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                  >
+                    {headerSubtitle}
+                  </Text>
+                ) : null}
+              </Pressable>
+            </View>
+          )
+        : () => null,
       headerRight: () => (
         <View style={tw`flex-row items-center gap-1 pr-1`}>
           <Pressable
@@ -174,7 +175,7 @@ export default function PlayerScreen() {
     headerTitleText,
     headerSubtitle,
     albumKey,
-    router,
+    openAlbum,
     theme.foreground,
     theme.mutedForeground,
     theme.accent,
@@ -289,12 +290,21 @@ export default function PlayerScreen() {
                 {current?.title ?? 'Nothing playing'}
               </Text>
               {subtitle ? (
-                <Text
-                  style={[tw`mt-2 text-lg font-semibold text-center`, withShadow(theme.mutedForeground)]}
-                  numberOfLines={1}
+                <Pressable
+                  onPress={openAlbum}
+                  disabled={!albumKey}
+                  hitSlop={6}
+                  accessibilityRole="button"
+                  accessibilityLabel="Open album"
+                  testID="player-album-link"
                 >
-                  {subtitle}
-                </Text>
+                  <Text
+                    style={[tw`mt-2 text-lg font-semibold text-center`, withShadow(theme.mutedForeground)]}
+                    numberOfLines={1}
+                  >
+                    {subtitle}
+                  </Text>
+                </Pressable>
               ) : null}
               {genre ? (
                 <Text

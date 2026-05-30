@@ -44,6 +44,7 @@ const mockMedia = {
   getArtworkAsync: jest.fn().mockResolvedValue(null),
   getLyricsAsync: jest.fn().mockResolvedValue(null),
   deleteTracksAsync: jest.fn(),
+  deleteAlbumFolderAsync: jest.fn(),
 };
 
 const mockPlayer = {
@@ -132,8 +133,8 @@ describe('LibraryScreen', () => {
     expect(genreNodes.length).toBeGreaterThanOrEqual(1);
   });
 
-  it('long-press on an album tile opens the context menu, and confirming Delete calls deleteTracksAsync with every track URI in the album', async () => {
-    mockMedia.deleteTracksAsync.mockResolvedValueOnce({
+  it('long-press on an album tile opens the context menu, and confirming Delete calls deleteAlbumFolderAsync with every track URI in the album', async () => {
+    mockMedia.deleteAlbumFolderAsync.mockResolvedValueOnce({
       deletedUris: ['a://1', 'a://2'],
       failedUris: [],
     });
@@ -149,9 +150,10 @@ describe('LibraryScreen', () => {
     fireEvent.press(getByTestId('confirm-delete-confirm'));
 
     await waitFor(() => {
-      expect(mockMedia.deleteTracksAsync).toHaveBeenCalledTimes(1);
+      expect(mockMedia.deleteAlbumFolderAsync).toHaveBeenCalledTimes(1);
     });
-    const args = mockMedia.deleteTracksAsync.mock.calls[0][0] as string[];
+    expect(mockMedia.deleteTracksAsync).not.toHaveBeenCalled();
+    const args = mockMedia.deleteAlbumFolderAsync.mock.calls[0][0] as string[];
     expect(args.sort()).toEqual(['a://1', 'a://2']);
   });
 

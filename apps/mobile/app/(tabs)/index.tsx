@@ -134,7 +134,7 @@ export default function LibraryScreen() {
     setDeleteBusy(true);
     setDeleteError(null);
     try {
-      const outcome = await deleteTracksAndPropagate(pendingDeleteAlbum.tracks);
+      const outcome = await deleteTracksAndPropagate(pendingDeleteAlbum.tracks, 'album-folder');
       if (outcome.deletedIds.length === 0) {
         setDeleteError('Delete was cancelled or failed.');
         setDeleteBusy(false);

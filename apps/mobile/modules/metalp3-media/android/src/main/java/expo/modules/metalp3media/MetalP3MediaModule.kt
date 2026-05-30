@@ -67,6 +67,10 @@ class MetalP3MediaModule : Module() {
       deleteTracks(uris, promise)
     }
 
+    AsyncFunction("deleteAlbumFolderAsync") { audioUris: List<String>, promise: Promise ->
+      deleteAlbumFolder(audioUris, promise)
+    }
+
     OnActivityResult { _, payload ->
       val pending = pendingDeletes.remove(payload.requestCode) ?: return@OnActivityResult
       if (payload.resultCode == Activity.RESULT_OK) {
@@ -140,6 +144,150 @@ class MetalP3MediaModule : Module() {
       }
     }
     promise.resolve(mapOf("deletedUris" to deleted, "failedUris" to failed))
+  }
+
+  /**
+   * Delete every file (audio, images, sidecars, etc.) that sits in the same
+   * folder as the supplied audio URIs. On scoped-storage Android the OS won't
+   * let us delete directories directly, so emptying every file in the folder
+   * is the closest thing — once empty, the folder is effectively gone.
+   */
+  private fun deleteAlbumFolder(audioUris: List<String>, promise: Promise) {
+    if (audioUris.isEmpty()) {
+      promise.resolve(mapOf("deletedUris" to emptyList<String>(), "failedUris" to emptyList<String>()))
+      return
+    }
+    if (!hasAudioPermission()) {
+      promise.reject(CodedException("E_DELETE_PERMISSION", "Audio permission not granted", null))
+      return
+    }
+
+    val folderPaths = collectFolderPaths(audioUris)
+    if (folderPaths.isEmpty()) {
+      // Couldn't resolve folder — fall through to a track-only delete.
+      deleteTracks(audioUris, promise)
+      return
+    }
+
+    val allUris = collectFolderFileUris(folderPaths)
+    if (allUris.isEmpty()) {
+      deleteTracks(audioUris, promise)
+      return
+    }
+
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+      val activity = appContext.currentActivity
+      if (activity == null) {
+        promise.reject(CodedException("E_DELETE_NO_ACTIVITY", "No current activity to host delete dialog", null))
+        return
+      }
+      val parsed = allUris.mapNotNull { runCatching { Uri.parse(it) }.getOrNull() }
+      if (parsed.isEmpty()) {
+        promise.resolve(mapOf("deletedUris" to emptyList<String>(), "failedUris" to allUris))
+        return
+      }
+      try {
+        val pendingIntent = MediaStore.createDeleteRequest(ctx.contentResolver, parsed)
+        val requestCode = nextDeleteRequestCode++
+        // Report only the audio URIs back as "deleted" so the JS layer can
+        // reconcile the library cache; the extra files are byproducts.
+        pendingDeletes[requestCode] = PendingDelete(audioUris, promise)
+        activity.startIntentSenderForResult(
+          pendingIntent.intentSender,
+          requestCode,
+          null,
+          0,
+          0,
+          0,
+          null,
+        )
+      } catch (t: Throwable) {
+        promise.reject(CodedException("E_DELETE_FAILED", t.message ?: "Failed to start delete request", t))
+      }
+      return
+    }
+
+    // API < 30 fallback: best-effort direct delete of every file.
+    val deletedAudio = mutableListOf<String>()
+    val failedAudio = mutableListOf<String>()
+    val audioSet = audioUris.toSet()
+    for (uriString in allUris) {
+      try {
+        val rows = ctx.contentResolver.delete(Uri.parse(uriString), null, null)
+        if (uriString in audioSet) {
+          if (rows > 0) deletedAudio += uriString else failedAudio += uriString
+        }
+      } catch (_: Throwable) {
+        if (uriString in audioSet) failedAudio += uriString
+      }
+    }
+    promise.resolve(mapOf("deletedUris" to deletedAudio, "failedUris" to failedAudio))
+  }
+
+  /**
+   * For each audio URI, look up its `RELATIVE_PATH` in MediaStore and return
+   * the de-duplicated set of folder paths.
+   */
+  private fun collectFolderPaths(audioUris: List<String>): Set<String> {
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return emptySet()
+    val ids = audioUris.mapNotNull { runCatching { ContentUris.parseId(Uri.parse(it)) }.getOrNull() }
+    if (ids.isEmpty()) return emptySet()
+    val placeholders = ids.joinToString(",") { "?" }
+    val args = ids.map { it.toString() }.toTypedArray()
+    val out = mutableSetOf<String>()
+    ctx.contentResolver.query(
+      MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+      arrayOf(MediaStore.MediaColumns.RELATIVE_PATH),
+      "${MediaStore.MediaColumns._ID} IN ($placeholders)",
+      args,
+      null,
+    )?.use { c ->
+      val pathIdx = c.getColumnIndex(MediaStore.MediaColumns.RELATIVE_PATH)
+      if (pathIdx < 0) return@use
+      while (c.moveToNext()) {
+        val rel = c.getStringOrNull(pathIdx) ?: continue
+        // Normalize: strip trailing slash; keep one form for matching.
+        out += rel.trimEnd('/')
+      }
+    }
+    return out
+  }
+
+  /**
+   * Query MediaStore.Files for every row whose `RELATIVE_PATH` matches one of
+   * the given folders. Returns content:// URIs across all media types
+   * (audio, image, video, downloads, …).
+   */
+  private fun collectFolderFileUris(folders: Set<String>): List<String> {
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q || folders.isEmpty()) return emptyList()
+    val out = mutableListOf<String>()
+    val collection = MediaStore.Files.getContentUri(MediaStore.VOLUME_EXTERNAL)
+    // RELATIVE_PATH in MediaStore typically ends with a trailing slash. Match
+    // both with and without it, plus a LIKE fallback for nested folders the
+    // user might consider "the same album folder".
+    val orClauses = mutableListOf<String>()
+    val args = mutableListOf<String>()
+    for (folder in folders) {
+      orClauses += "${MediaStore.MediaColumns.RELATIVE_PATH} = ?"
+      args += "$folder/"
+      orClauses += "${MediaStore.MediaColumns.RELATIVE_PATH} = ?"
+      args += folder
+    }
+    val selection = orClauses.joinToString(" OR ")
+    ctx.contentResolver.query(
+      collection,
+      arrayOf(MediaStore.MediaColumns._ID),
+      selection,
+      args.toTypedArray(),
+      null,
+    )?.use { c ->
+      val idIdx = c.getColumnIndexOrThrow(MediaStore.MediaColumns._ID)
+      while (c.moveToNext()) {
+        val id = c.getLong(idIdx)
+        out += ContentUris.withAppendedId(collection, id).toString()
+      }
+    }
+    return out
   }
 
   private val ctx get() = appContext.reactContext

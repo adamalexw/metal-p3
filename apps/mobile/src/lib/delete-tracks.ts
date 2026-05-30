@@ -15,12 +15,21 @@ export interface DeleteTracksOutcome {
  * through every downstream surface that holds copies of those track ids:
  * library cache, playlists, and the active player queue (advancing or
  * stopping playback if the current track was deleted).
+ *
+ * When `mode` is "album-folder", the native side bundles every file in the
+ * tracks' parent folder (audio + artwork + sidecars) into a single delete
+ * request so the folder is left empty.
  */
-export async function deleteTracksAndPropagate(tracks: Track[]): Promise<DeleteTracksOutcome> {
+export async function deleteTracksAndPropagate(
+  tracks: Track[],
+  mode: 'tracks' | 'album-folder' = 'tracks',
+): Promise<DeleteTracksOutcome> {
   if (tracks.length === 0) return { deletedIds: [], failedUris: [] };
 
   const uris = tracks.map((t) => t.uri);
-  const result = await MetalP3Media.deleteTracksAsync(uris);
+  const result = mode === 'album-folder'
+    ? await MetalP3Media.deleteAlbumFolderAsync(uris)
+    : await MetalP3Media.deleteTracksAsync(uris);
   const deletedUriSet = new Set(result.deletedUris);
   const deletedIds = tracks.filter((t) => deletedUriSet.has(t.uri)).map((t) => t.id);
   if (deletedIds.length === 0) {

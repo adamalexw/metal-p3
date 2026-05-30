@@ -77,6 +77,7 @@ const mockMedia = {
   getArtworkAsync: jest.fn().mockResolvedValue(null),
   getLyricsAsync: jest.fn().mockResolvedValue(null),
   deleteTracksAsync: jest.fn(),
+  deleteAlbumFolderAsync: jest.fn(),
 };
 
 jest.mock('expo-modules-core', () => ({

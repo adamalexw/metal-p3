@@ -21,6 +21,7 @@ interface NativeModule {
   getArtworkAsync(uri: string): Promise<Artwork | null>;
   getLyricsAsync(uri: string): Promise<Lyrics | null>;
   deleteTracksAsync(uris: string[]): Promise<DeleteTracksResult>;
+  deleteAlbumFolderAsync(audioUris: string[]): Promise<DeleteTracksResult>;
 }
 
 const native = requireNativeModule<NativeModule>('MetalP3Media');
@@ -50,6 +51,7 @@ export const MetalP3Media = {
   getArtworkAsync: (uri: string) => native.getArtworkAsync(uri),
   getLyricsAsync: (uri: string) => native.getLyricsAsync(uri),
   deleteTracksAsync: (uris: string[]) => native.deleteTracksAsync(uris),
+  deleteAlbumFolderAsync: (audioUris: string[]) => native.deleteAlbumFolderAsync(audioUris),
 };
 
 export default MetalP3Media;
