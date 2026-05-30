@@ -47,7 +47,8 @@
     "react-native-worklets": "*",
     "expo-blur": "*",
     "@react-native-async-storage/async-storage": "*",
-    "lucide-react-native": "*"
+    "lucide-react-native": "*",
+    "twrnc": "*"
   },
   "devDependencies": {}
 }
