@@ -51,6 +51,7 @@ jest.mock('expo-modules-core', () => {
     searchAsync: jest.fn().mockResolvedValue([]),
     getTrackAsync: jest.fn().mockResolvedValue(null),
     getArtworkAsync: jest.fn().mockResolvedValue(null),
+    getLyricsAsync: jest.fn().mockResolvedValue(null),
   };
   const playerMock = {
     setQueueAsync: jest.fn().mockResolvedValue(undefined),

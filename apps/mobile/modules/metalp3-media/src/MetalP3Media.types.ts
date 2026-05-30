@@ -40,6 +40,13 @@ export interface Artwork {
   byteLength: number;
 }
 
+export interface Lyrics {
+  /** Plain (unsynchronized) lyrics text. */
+  text: string;
+  /** ISO-639-2 language code from the tag, when available. */
+  language: string | null;
+}
+
 export interface ScanOptions {
   limit?: number;
   minDurationMs?: number;
