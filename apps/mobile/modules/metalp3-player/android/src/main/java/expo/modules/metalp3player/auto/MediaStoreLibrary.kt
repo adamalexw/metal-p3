@@ -1,10 +1,12 @@
 package expo.modules.metalp3player.auto
 
+import android.content.ContentResolver
 import android.content.ContentUris
 import android.content.Context
 import android.database.Cursor
 import android.net.Uri
 import android.os.Build
+import android.os.Bundle
 import android.provider.MediaStore
 
 /**
@@ -48,7 +50,8 @@ internal object MediaStoreLibrary {
     ctx,
     selection = "${MediaStore.Audio.Media.IS_MUSIC}=1",
     args = null,
-    sort = "${MediaStore.Audio.Media.TITLE} COLLATE NOCASE ASC LIMIT $limit",
+    sort = "${MediaStore.Audio.Media.TITLE} COLLATE NOCASE ASC",
+    limit = limit,
   )
 
   fun tracksForAlbum(ctx: Context, albumId: Long): List<Track> = queryTracks(
@@ -78,7 +81,7 @@ internal object MediaStoreLibrary {
   fun albumArtUri(albumId: Long): Uri =
     ContentUris.withAppendedId(Uri.parse("content://media/external/audio/albumart"), albumId)
 
-  private fun queryTracks(ctx: Context, selection: String?, args: Array<String>?, sort: String?): List<Track> {
+  private fun queryTracks(ctx: Context, selection: String?, args: Array<String>?, sort: String?, limit: Int = 0): List<Track> {
     val collection = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
       MediaStore.Audio.Media.getContentUri(MediaStore.VOLUME_EXTERNAL) else MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
     val cols = arrayOf(
@@ -88,7 +91,7 @@ internal object MediaStoreLibrary {
       MediaStore.Audio.Media.ALBUM,
       MediaStore.Audio.Media.ALBUM_ID,
     )
-    return query(ctx, collection, cols, selection, args, sort) { c ->
+    return query(ctx, collection, cols, selection, args, sort, limit) { c ->
       val id = c.getLong(0)
       Track(
         id = id,
@@ -108,10 +111,22 @@ internal object MediaStoreLibrary {
     selection: String?,
     args: Array<String>?,
     sort: String?,
+    limit: Int = 0,
     crossinline map: (Cursor) -> T,
   ): List<T> {
     val out = ArrayList<T>()
-    ctx.contentResolver.query(uri, cols, selection, args, sort)?.use { c ->
+    val cursor = if (limit > 0 && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+      val queryArgs = Bundle().apply {
+        if (selection != null) putString(ContentResolver.QUERY_ARG_SQL_SELECTION, selection)
+        if (args != null) putStringArray(ContentResolver.QUERY_ARG_SQL_SELECTION_ARGS, args)
+        if (sort != null) putString(ContentResolver.QUERY_ARG_SQL_SORT_ORDER, sort)
+        putInt(ContentResolver.QUERY_ARG_LIMIT, limit)
+      }
+      ctx.contentResolver.query(uri, cols, queryArgs, null)
+    } else {
+      ctx.contentResolver.query(uri, cols, selection, args, sort)
+    }
+    cursor?.use { c ->
       while (c.moveToNext()) out.add(map(c))
     }
     return out
