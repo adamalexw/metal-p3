@@ -1,6 +1,6 @@
 import { BlurView } from 'expo-blur';
 import { Disc3, GripVertical, Trash2, Volume2, X } from 'lucide-react-native';
-import { useEffect, useRef, useState } from 'react';
+import { useRef } from 'react';
 import { Image, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import DraggableFlatList, {
   type RenderItemParams,
@@ -9,50 +9,15 @@ import DraggableFlatList, {
 import { GestureHandlerRootView, Swipeable } from 'react-native-gesture-handler';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { MetalP3Media } from '../../modules/metalp3-media';
 import { MetalP3Player, type QueueItem } from '../../modules/metalp3-player';
 import { withAlpha } from '../lib/color';
 import { formatTrackDuration } from '../lib/group-tracks-by-album';
 import { tw } from '../lib/tw';
+import { useTrackArtwork } from '../lib/useTrackArtwork';
 import { ICON_STROKE } from '../theme/icons';
 import type { ArtworkTheme } from '../theme/types';
 
 const ART_SIZE = 44;
-
-const ARTWORK_CACHE = new Map<string, string | null>();
-
-function useTrackArtwork(uri: string | null | undefined): string | null {
-  const [dataUri, setDataUri] = useState<string | null>(() =>
-    uri ? ARTWORK_CACHE.get(uri) ?? null : null,
-  );
-
-  useEffect(() => {
-    if (!uri) {
-      setDataUri(null);
-      return;
-    }
-    if (ARTWORK_CACHE.has(uri)) {
-      setDataUri(ARTWORK_CACHE.get(uri) ?? null);
-      return;
-    }
-    let cancelled = false;
-    MetalP3Media.getArtworkAsync(uri)
-      .then((art) => {
-        const value = art ? `data:${art.mimeType};base64,${art.base64}` : null;
-        ARTWORK_CACHE.set(uri, value);
-        if (!cancelled) setDataUri(value);
-      })
-      .catch(() => {
-        ARTWORK_CACHE.set(uri, null);
-        if (!cancelled) setDataUri(null);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [uri]);
-
-  return dataUri;
-}
 
 interface Props {
   visible: boolean;

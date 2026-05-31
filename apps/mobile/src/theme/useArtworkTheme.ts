@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { getColors } from 'react-native-image-colors';
 import type { AndroidImageColors } from 'react-native-image-colors/build/types';
-import { MetalP3Media } from '../../modules/metalp3-media';
+import { loadTrackArtwork } from '../lib/useTrackArtwork';
 import {
   bestMonoFor,
   clampLuminanceDown,
@@ -27,16 +27,7 @@ function pickMostSaturated(candidates: Array<Rgb | null>): Rgb | null {
 }
 import { DEFAULT_THEME, type ArtworkTheme } from './types';
 
-const ARTWORK_CACHE = new Map<string, string | null>();
 const THEME_CACHE = new Map<string, ArtworkTheme>();
-
-async function fetchArtworkDataUri(trackUri: string): Promise<string | null> {
-  if (ARTWORK_CACHE.has(trackUri)) return ARTWORK_CACHE.get(trackUri) ?? null;
-  const art = await MetalP3Media.getArtworkAsync(trackUri);
-  const value = art ? `data:${art.mimeType};base64,${art.base64}` : null;
-  ARTWORK_CACHE.set(trackUri, value);
-  return value;
-}
 
 /**
  * Build a theme from an Android Palette result, guaranteeing WCAG AA contrast
@@ -89,7 +80,7 @@ async function loadArtworkTheme(trackUri: string): Promise<ArtworkTheme> {
 
   let dataUri: string | null = null;
   try {
-    dataUri = await fetchArtworkDataUri(trackUri);
+    dataUri = await loadTrackArtwork(trackUri);
     if (!dataUri) return { ...DEFAULT_THEME };
     const result = await getColors(dataUri, { cache: true, key: trackUri });
     if (result.platform !== 'android') {

@@ -6,28 +6,13 @@ import Animated, {
   useSharedValue,
   withSpring,
 } from 'react-native-reanimated';
-import { MetalP3Media } from '../../modules/metalp3-media';
 import { getLibraryTracks } from '../lib/library-cache';
 import type { Playlist } from '../lib/playlist-store';
 import { resolvePlaylistTracks } from '../lib/start-playlist';
 import { tw } from '../lib/tw';
+import { getCachedTrackArtwork, loadTrackArtwork } from '../lib/useTrackArtwork';
 
 const PRESS_SPRING = { damping: 18, stiffness: 320, mass: 0.6 };
-
-const ART_CACHE = new Map<string, string | null>();
-
-async function fetchArtwork(uri: string): Promise<string | null> {
-  if (ART_CACHE.has(uri)) return ART_CACHE.get(uri) ?? null;
-  try {
-    const art = await MetalP3Media.getArtworkAsync(uri);
-    const value = art ? `data:${art.mimeType};base64,${art.base64}` : null;
-    ART_CACHE.set(uri, value);
-    return value;
-  } catch {
-    ART_CACHE.set(uri, null);
-    return null;
-  }
-}
 
 interface PlaylistTileProps {
   playlist: Playlist;
@@ -73,12 +58,12 @@ export default function PlaylistTile({ playlist, onPress, onLongPress }: Playlis
     [playlist],
   );
   const [artUris, setArtUris] = useState<(string | null)[]>(() =>
-    uris.map((u) => ART_CACHE.get(u) ?? null),
+    uris.map((u) => getCachedTrackArtwork(u)),
   );
 
   useEffect(() => {
     let cancelled = false;
-    Promise.all(uris.map((u) => fetchArtwork(u))).then((next) => {
+    Promise.all(uris.map((u) => loadTrackArtwork(u))).then((next) => {
       if (cancelled) return;
       setArtUris(next);
     });

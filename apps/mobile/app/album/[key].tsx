@@ -5,7 +5,6 @@ import { useEffect, useRef, useState } from 'react';
 import { FlatList, Image, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Swipeable } from 'react-native-gesture-handler';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { MetalP3Media } from '../../modules/metalp3-media';
 import { MetalP3Player } from '../../modules/metalp3-player';
 import { MINI_PLAYER_HEIGHT } from '../../src/components/MiniPlayer';
 import { toFlagEmoji } from '../../src/lib/country-flag';
@@ -18,6 +17,7 @@ import ConfirmDeleteSheet from '../../src/components/ConfirmDeleteSheet';
 import { deleteTracksAndPropagate } from '../../src/lib/delete-tracks';
 import { tw } from '../../src/lib/tw';
 import { useNowPlayingState } from '../../src/lib/useNowPlayingState';
+import { useTrackArtwork } from '../../src/lib/useTrackArtwork';
 import { useTrackExtras } from '../../src/lib/useTrackExtras';
 import { prefetchArtworkTheme, useArtworkTheme } from '../../src/theme/useArtworkTheme';
 import type { Track } from '../../modules/metalp3-media/src/MetalP3Media.types';
@@ -38,7 +38,7 @@ export default function AlbumDetailScreen() {
   const playingTrackId = nowPlaying?.current?.id ?? null;
   const hasMiniPlayer = !!nowPlaying?.current;
   const listBottomPad = hasMiniPlayer ? insets.bottom + 24 + MINI_PLAYER_HEIGHT + 16 : insets.bottom + 8;
-  const [artUri, setArtUri] = useState<string | null>(null);
+  const artUri = useTrackArtwork(group?.representativeUri ?? null);
   const [longPressedTrackId, setLongPressedTrackId] = useState<string | null>(null);
   const [pendingDeleteTrack, setPendingDeleteTrack] = useState<Track | null>(null);
   const [deleteBusy, setDeleteBusy] = useState(false);
@@ -52,22 +52,6 @@ export default function AlbumDetailScreen() {
       router.back();
     }
   }, [group, rawKey, router]);
-
-  useEffect(() => {
-    if (!group) return;
-    let cancelled = false;
-    MetalP3Media.getArtworkAsync(group.representativeUri)
-      .then((art) => {
-        if (cancelled || !art) return;
-        setArtUri(`data:${art.mimeType};base64,${art.base64}`);
-      })
-      .catch((err) => {
-        console.warn('AlbumDetailScreen: failed to load artwork', err);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [group]);
 
   if (!group) {
     return (

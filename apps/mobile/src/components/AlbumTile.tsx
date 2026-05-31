@@ -1,14 +1,13 @@
-import { useEffect, useState } from 'react';
 import { Image, Pressable, Text, View } from 'react-native';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withSpring,
 } from 'react-native-reanimated';
-import { MetalP3Media } from '../../modules/metalp3-media';
 import type { AlbumGroup } from '../lib/group-tracks-by-album';
 import { formatAlbumDuration } from '../lib/group-tracks-by-album';
 import { tw } from '../lib/tw';
+import { useTrackArtwork } from '../lib/useTrackArtwork';
 
 interface AlbumTileProps {
   group: AlbumGroup;
@@ -19,23 +18,8 @@ interface AlbumTileProps {
 const PRESS_SPRING = { damping: 18, stiffness: 320, mass: 0.6 };
 
 export default function AlbumTile({ group, onPress, onLongPress }: AlbumTileProps) {
-  const [artUri, setArtUri] = useState<string | null>(null);
+  const artUri = useTrackArtwork(group.representativeUri);
   const scale = useSharedValue(1);
-
-  useEffect(() => {
-    let cancelled = false;
-    MetalP3Media.getArtworkAsync(group.representativeUri)
-      .then((art) => {
-        if (cancelled || !art) return;
-        setArtUri(`data:${art.mimeType};base64,${art.base64}`);
-      })
-      .catch((err) => {
-        console.warn('AlbumTile: failed to load artwork', err);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [group.representativeUri]);
 
   const animatedStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
 
