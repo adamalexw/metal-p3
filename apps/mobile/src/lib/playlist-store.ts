@@ -28,8 +28,28 @@ function notify(): void {
   }
 }
 
+/**
+ * Mirror the playlist set to the native side so the Android Auto browse
+ * tree can read it synchronously. Best-effort — failures here are not
+ * fatal to the JS app, and the native module isn't available under Jest.
+ */
+function syncToNative(): void {
+  try {
+    // Lazy require so unit tests don't need to mock the native module.
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const mod: { MetalP3Player?: { setPlaylists?: (json: string) => Promise<void> } } =
+      require('../../modules/metalp3-player');
+    void mod?.MetalP3Player?.setPlaylists?.(JSON.stringify(playlists));
+  } catch (err) {
+    if (process.env.JEST_WORKER_ID === undefined) {
+      console.warn('playlist-store: native sync failed', err);
+    }
+  }
+}
+
 async function persist(): Promise<void> {
   await AsyncStorage.setItem(PLAYLIST_STORAGE_KEY, JSON.stringify(playlists));
+  syncToNative();
 }
 
 function isPlaylistArray(value: unknown): value is Playlist[] {
@@ -66,6 +86,7 @@ export async function loadPlaylists(): Promise<Playlist[]> {
     } finally {
       loaded = true;
       loadPromise = null;
+      syncToNative();
       notify();
     }
     return playlists;

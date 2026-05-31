@@ -17,6 +17,7 @@ interface NativeModule {
   setShuffleAsync(on: boolean): Promise<void>;
   moveQueueItemAsync(fromIndex: number, toIndex: number): Promise<void>;
   getStateAsync(): Promise<PlaybackState>;
+  setPlaylistsAsync(json: string): Promise<void>;
   addListener(eventName: 'stateChanged', listener: (state: PlaybackState) => void): EventSubscription;
 }
 
@@ -38,6 +39,7 @@ export const MetalP3Player = {
   moveQueueItem: (fromIndex: number, toIndex: number) =>
     native.moveQueueItemAsync(fromIndex, toIndex),
   getStateAsync: () => native.getStateAsync(),
+  setPlaylists: (json: string) => native.setPlaylistsAsync(json),
   addStateListener: (listener: (state: PlaybackState) => void) =>
     native.addListener('stateChanged', listener),
 };

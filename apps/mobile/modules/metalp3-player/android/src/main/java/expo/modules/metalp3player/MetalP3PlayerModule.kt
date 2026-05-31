@@ -14,6 +14,7 @@ import com.google.common.util.concurrent.MoreExecutors
 import expo.modules.kotlin.exception.CodedException
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
+import expo.modules.metalp3player.auto.PlaylistStore
 
 class MetalP3PlayerModule : Module() {
 
@@ -93,6 +94,12 @@ class MetalP3PlayerModule : Module() {
 
     AsyncFunction("getStateAsync") {
       runOnMainBlocking { snapshotState() }
+    }
+
+    AsyncFunction("setPlaylistsAsync") { json: String ->
+      val ctx = appContext.reactContext
+        ?: throw CodedException("E_NO_CONTEXT", "React context unavailable", null)
+      PlaylistStore.write(ctx, json)
     }
   }
 

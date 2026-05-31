@@ -20,7 +20,12 @@ import com.google.common.util.concurrent.ListenableFuture
  * Android Auto, Google Assistant and Wear OS via the browse tree:
  *
  *   metalp3:root
- *     └─ metalp3:cat:albums   →  metalp3:album:<id>   → metalp3:track:<id>
+ *     ├─ metalp3:cat:albums     →  metalp3:album:<id>     → metalp3:track:<id>
+ *     └─ metalp3:cat:playlists  →  metalp3:playlist:<id>  → metalp3:track:<id>
+ *
+ * Playlists live in JS (AsyncStorage) and are mirrored to native via
+ * [PlaylistStore]; the JS layer pushes the playlist set on every mutation so
+ * AA's synchronous browse callback can read them.
  *
  * All MediaItems for tracks carry localConfiguration so [androidx.media3.exoplayer.ExoPlayer]
  * can play them once the controller calls setMediaItems/play.
@@ -128,7 +133,7 @@ class AutomotiveLibraryCallback(private val context: Context) :
   private fun rootItem(): MediaItem = browsable(Ids.ROOT, "Metal P3", null)
 
   private fun childrenOf(parentId: String): List<MediaItem>? = when {
-    parentId == Ids.ROOT -> listOf(albumsCategoryItem())
+    parentId == Ids.ROOT -> listOf(albumsCategoryItem(), playlistsCategoryItem())
     parentId == Ids.CAT_ALBUMS -> MediaStoreLibrary.listAlbums(context).map { album ->
       browsable(
         id = Ids.album(album.id),
@@ -142,12 +147,27 @@ class AutomotiveLibraryCallback(private val context: Context) :
       val albumId = parentId.removePrefix(Ids.ALBUM_PREFIX).toLongOrNull() ?: return null
       MediaStoreLibrary.tracksForAlbum(context, albumId).map(::trackItem)
     }
+    parentId == Ids.CAT_PLAYLISTS -> PlaylistStore.list(context).map { pl ->
+      browsable(
+        id = Ids.playlist(pl.id),
+        title = pl.name,
+        subtitle = trackCountSubtitle(pl.trackIds.size),
+        artworkUri = playlistArtworkUri(pl),
+        mediaType = MediaMetadata.MEDIA_TYPE_PLAYLIST,
+      )
+    }
+    parentId.startsWith(Ids.PLAYLIST_PREFIX) -> {
+      val pid = parentId.removePrefix(Ids.PLAYLIST_PREFIX)
+      val pl = PlaylistStore.byId(context, pid) ?: return emptyList()
+      pl.trackIds.mapNotNull { tid -> MediaStoreLibrary.trackById(context, tid) }.map(::trackItem)
+    }
     else -> null
   }
 
   private fun resolveItem(mediaId: String): MediaItem? = when {
     mediaId == Ids.ROOT -> rootItem()
     mediaId == Ids.CAT_ALBUMS -> albumsCategoryItem()
+    mediaId == Ids.CAT_PLAYLISTS -> playlistsCategoryItem()
     mediaId.startsWith(Ids.TRACK_PREFIX) -> trackItemFor(mediaId)
     mediaId.startsWith(Ids.ALBUM_PREFIX) -> {
       val albumId = mediaId.removePrefix(Ids.ALBUM_PREFIX).toLongOrNull() ?: return null
@@ -160,7 +180,42 @@ class AutomotiveLibraryCallback(private val context: Context) :
         mediaType = MediaMetadata.MEDIA_TYPE_ALBUM,
       )
     }
+    mediaId.startsWith(Ids.PLAYLIST_PREFIX) -> {
+      val pid = mediaId.removePrefix(Ids.PLAYLIST_PREFIX)
+      val pl = PlaylistStore.byId(context, pid) ?: return null
+      browsable(
+        id = mediaId,
+        title = pl.name,
+        subtitle = trackCountSubtitle(pl.trackIds.size),
+        artworkUri = playlistArtworkUri(pl),
+        mediaType = MediaMetadata.MEDIA_TYPE_PLAYLIST,
+      )
+    }
     else -> null
+  }
+
+  /**
+   * Playlists browse root. List-style — playlists don't have a single artwork
+   * worth using as a grid tile, so we keep the list layout.
+   */
+  private fun playlistsCategoryItem(): MediaItem = browsable(
+    id = Ids.CAT_PLAYLISTS,
+    title = "Playlists",
+    subtitle = null,
+    mediaType = MediaMetadata.MEDIA_TYPE_FOLDER_PLAYLISTS,
+  )
+
+  /** Use the artwork of the first resolvable track as the playlist tile. */
+  private fun playlistArtworkUri(pl: PlaylistStore.Entry): Uri? {
+    val firstTrackId = pl.trackIds.firstOrNull() ?: return null
+    val track = MediaStoreLibrary.trackById(context, firstTrackId) ?: return null
+    return MediaStoreLibrary.albumArtUri(track.albumId)
+  }
+
+  private fun trackCountSubtitle(count: Int): String = when (count) {
+    0 -> "Empty"
+    1 -> "1 track"
+    else -> "$count tracks"
   }
 
   /**
@@ -218,6 +273,9 @@ class AutomotiveLibraryCallback(private val context: Context) :
     val metadata = MediaMetadata.Builder()
       .setTitle(title)
       .setSubtitle(subtitle)
+      // setArtist drives the second-line text in AA's list/grid layouts.
+      // setSubtitle alone is ignored by the in-car renderer.
+      .setArtist(subtitle)
       .setArtworkUri(artworkUri)
       .setIsBrowsable(true)
       .setIsPlayable(false)
@@ -230,9 +288,12 @@ class AutomotiveLibraryCallback(private val context: Context) :
   private object Ids {
     const val ROOT = "metalp3:root"
     const val CAT_ALBUMS = "metalp3:cat:albums"
+    const val CAT_PLAYLISTS = "metalp3:cat:playlists"
     const val ALBUM_PREFIX = "metalp3:album:"
+    const val PLAYLIST_PREFIX = "metalp3:playlist:"
     const val TRACK_PREFIX = "metalp3:track:"
     fun album(id: Long) = "$ALBUM_PREFIX$id"
+    fun playlist(id: String) = "$PLAYLIST_PREFIX$id"
     fun track(id: Long) = "$TRACK_PREFIX$id"
   }
 }
