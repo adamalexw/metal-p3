@@ -1,10 +1,12 @@
 package expo.modules.metalp3player.auto
 
+import android.content.ContentResolver
 import android.content.ContentUris
 import android.content.Context
 import android.database.Cursor
 import android.net.Uri
 import android.os.Build
+import android.os.Bundle
 import android.provider.MediaStore
 
 /**
@@ -37,6 +39,48 @@ internal object MediaStoreLibrary {
     }
   }
 
+  /**
+   * Returns up to [limit] albums in descending order of DATE_ADDED. The
+   * Albums collection itself doesn't expose DATE_ADDED, so we walk the
+   * Audio.Media collection in date order and dedupe by album_id — the
+   * first time we see an album_id is its newest track's date.
+   */
+  fun listRecentAlbums(ctx: Context, limit: Int = 24): List<Album> {
+    val collection = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
+      MediaStore.Audio.Media.getContentUri(MediaStore.VOLUME_EXTERNAL) else MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
+    val cols = mutableListOf(
+      MediaStore.Audio.Media.ALBUM_ID,
+      MediaStore.Audio.Media.ALBUM,
+      MediaStore.Audio.Media.ARTIST,
+      MediaStore.Audio.Media.DATE_ADDED,
+    )
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+      cols += MediaStore.Audio.Media.ALBUM_ARTIST
+    }
+    val seen = HashSet<Long>()
+    val out = ArrayList<Album>(limit)
+    ctx.contentResolver.query(
+      collection,
+      cols.toTypedArray(),
+      "${MediaStore.Audio.Media.IS_MUSIC}=1",
+      null,
+      "${MediaStore.Audio.Media.DATE_ADDED} DESC",
+    )?.use { c ->
+      val albumArtistIdx = c.getColumnIndex("album_artist")
+      while (c.moveToNext() && out.size < limit) {
+        val albumId = c.getLong(0)
+        if (!seen.add(albumId)) continue
+        val albumArtist = if (albumArtistIdx >= 0) c.getString(albumArtistIdx) else null
+        out += Album(
+          id = albumId,
+          title = c.getString(1) ?: "Unknown album",
+          artist = albumArtist ?: c.getString(2),
+        )
+      }
+    }
+    return out
+  }
+
   fun listArtists(ctx: Context): List<Artist> {
     val cols = arrayOf(MediaStore.Audio.Artists._ID, MediaStore.Audio.Artists.ARTIST)
     return query(ctx, MediaStore.Audio.Artists.EXTERNAL_CONTENT_URI, cols, null, null, "${MediaStore.Audio.Artists.ARTIST} COLLATE NOCASE ASC") { c ->
@@ -48,7 +92,8 @@ internal object MediaStoreLibrary {
     ctx,
     selection = "${MediaStore.Audio.Media.IS_MUSIC}=1",
     args = null,
-    sort = "${MediaStore.Audio.Media.TITLE} COLLATE NOCASE ASC LIMIT $limit",
+    sort = "${MediaStore.Audio.Media.TITLE} COLLATE NOCASE ASC",
+    limit = limit,
   )
 
   fun tracksForAlbum(ctx: Context, albumId: Long): List<Track> = queryTracks(
@@ -78,7 +123,7 @@ internal object MediaStoreLibrary {
   fun albumArtUri(albumId: Long): Uri =
     ContentUris.withAppendedId(Uri.parse("content://media/external/audio/albumart"), albumId)
 
-  private fun queryTracks(ctx: Context, selection: String?, args: Array<String>?, sort: String?): List<Track> {
+  private fun queryTracks(ctx: Context, selection: String?, args: Array<String>?, sort: String?, limit: Int = 0): List<Track> {
     val collection = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
       MediaStore.Audio.Media.getContentUri(MediaStore.VOLUME_EXTERNAL) else MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
     val cols = arrayOf(
@@ -88,7 +133,7 @@ internal object MediaStoreLibrary {
       MediaStore.Audio.Media.ALBUM,
       MediaStore.Audio.Media.ALBUM_ID,
     )
-    return query(ctx, collection, cols, selection, args, sort) { c ->
+    return query(ctx, collection, cols, selection, args, sort, limit) { c ->
       val id = c.getLong(0)
       Track(
         id = id,
@@ -108,10 +153,22 @@ internal object MediaStoreLibrary {
     selection: String?,
     args: Array<String>?,
     sort: String?,
+    limit: Int = 0,
     crossinline map: (Cursor) -> T,
   ): List<T> {
     val out = ArrayList<T>()
-    ctx.contentResolver.query(uri, cols, selection, args, sort)?.use { c ->
+    val cursor = if (limit > 0 && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+      val queryArgs = Bundle().apply {
+        if (selection != null) putString(ContentResolver.QUERY_ARG_SQL_SELECTION, selection)
+        if (args != null) putStringArray(ContentResolver.QUERY_ARG_SQL_SELECTION_ARGS, args)
+        if (sort != null) putString(ContentResolver.QUERY_ARG_SQL_SORT_ORDER, sort)
+        putInt(ContentResolver.QUERY_ARG_LIMIT, limit)
+      }
+      ctx.contentResolver.query(uri, cols, queryArgs, null)
+    } else {
+      ctx.contentResolver.query(uri, cols, selection, args, sort)
+    }
+    cursor?.use { c ->
       while (c.moveToNext()) out.add(map(c))
     }
     return out
