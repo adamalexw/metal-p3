@@ -15,18 +15,15 @@ export default function BlurredBackdrop() {
         style={[
           StyleSheet.absoluteFill,
           tw`items-center justify-center`,
-          { opacity: 0.18 },
         ]}
       >
         <Image
           source={require('../../assets/images/library-backdrop.png')}
           style={tw`w-[140%] h-[140%]`}
           resizeMode="cover"
-          blurRadius={28}
+          blurRadius={18}
         />
       </View>
-      <BlurView intensity={30} tint="dark" style={StyleSheet.absoluteFill} />
-      <View style={[StyleSheet.absoluteFill, tw`bg-black/40`]} />
     </View>
   );
 }

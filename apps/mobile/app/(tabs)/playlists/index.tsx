@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Text, View } from 'react-native';
 import Animated, {
   FadeIn,
-  ZoomIn,
+  FadeInUp,
   useAnimatedScrollHandler,
   useSharedValue,
 } from 'react-native-reanimated';
@@ -146,7 +146,7 @@ export default function PlaylistsListScreen() {
         contentContainerStyle={[tw`px-3`, { paddingBottom: insets.bottom + 24 + miniPlayerPad }]}
         renderItem={({ item, index }) => (
           <Animated.View
-            entering={ZoomIn.duration(360).delay(Math.min(index * 40, 600)).springify().damping(14)}
+            entering={FadeInUp.duration(280).delay(Math.min(index * 25, 400))}
             style={tw`flex-row`}
           >
             {item.kind === 'pair' ? (
