@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Metal P3 Mobile",
+    "name": "M(etal)P3",
     "slug": "metal-p3-mobile",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -33,7 +33,8 @@
         "expo-splash-screen",
         {
           "image": "./assets/images/splash-icon.png",
-          "resizeMode": "cover",
+          "imageWidth": 400,
+          "resizeMode": "contain",
           "backgroundColor": "#000000"
         }
       ]

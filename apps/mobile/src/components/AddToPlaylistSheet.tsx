@@ -1,3 +1,4 @@
+import { BlurView } from 'expo-blur';
 import { useEffect, useMemo, useState } from 'react';
 import {
   FlatList,
@@ -106,9 +107,11 @@ export default function AddToPlaylistSheet({ visible, trackId, onClose }: AddToP
       <Pressable style={tw`flex-1 bg-black/60`} onPress={onClose}>
         <View style={tw`flex-1 justify-end`} pointerEvents="box-none">
           <Pressable
-            style={tw`bg-[#111] rounded-t-2xl px-4 pt-4 pb-6 max-h-[70%]`}
+            style={tw`rounded-t-2xl px-4 pt-4 pb-6 max-h-[70%] overflow-hidden`}
             onPress={() => undefined}
           >
+            <BlurView intensity={40} tint="dark" style={StyleSheet.absoluteFill} />
+            <View style={[StyleSheet.absoluteFill, tw`bg-black/60`]} />
             <Text style={tw`text-white text-lg font-bold mb-3`}>Add to playlist</Text>
 
             {mode === 'list' ? (

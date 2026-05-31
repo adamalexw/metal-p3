@@ -33,7 +33,9 @@
     "update": "nx migrate latest",
     "workspace-generator": "nx workspace-generator",
     "dep-graph": "nx dep-graph",
-    "help": "nx help"
+    "help": "nx help",
+    "android": "expo run:android",
+    "ios": "expo run:ios"
   },
   "private": true,
   "dependencies": {

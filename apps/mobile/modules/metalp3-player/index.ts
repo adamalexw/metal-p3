@@ -15,6 +15,7 @@ interface NativeModule {
   skipToIndexAsync(index: number): Promise<void>;
   setRepeatModeAsync(mode: RepeatMode): Promise<void>;
   setShuffleAsync(on: boolean): Promise<void>;
+  replaceUpcomingAsync(items: QueueItem[]): Promise<void>;
   moveQueueItemAsync(fromIndex: number, toIndex: number): Promise<void>;
   getStateAsync(): Promise<PlaybackState>;
   setPlaylistsAsync(json: string): Promise<void>;
@@ -36,6 +37,7 @@ export const MetalP3Player = {
   skipToIndex: (index: number) => native.skipToIndexAsync(index),
   setRepeatMode: (mode: RepeatMode) => native.setRepeatModeAsync(mode),
   setShuffle: (on: boolean) => native.setShuffleAsync(on),
+  replaceUpcoming: (items: QueueItem[]) => native.replaceUpcomingAsync(items),
   moveQueueItem: (fromIndex: number, toIndex: number) =>
     native.moveQueueItemAsync(fromIndex, toIndex),
   getStateAsync: () => native.getStateAsync(),

@@ -43,8 +43,10 @@ const mockMedia = {
   getTrackAsync: jest.fn().mockResolvedValue(null),
   getArtworkAsync: jest.fn().mockResolvedValue(null),
   getLyricsAsync: jest.fn().mockResolvedValue(null),
+  getExtrasAsync: jest.fn().mockResolvedValue(null),
   deleteTracksAsync: jest.fn(),
   deleteAlbumFolderAsync: jest.fn(),
+  addListener: jest.fn().mockReturnValue({ remove: jest.fn() }),
 };
 
 const mockPlayer = {
@@ -170,7 +172,7 @@ describe('LibraryScreen', () => {
       expect(mockPlayer.playAsync).toHaveBeenCalledTimes(1);
     });
     expect(mockPlayer.setShuffleAsync).toHaveBeenCalledWith(false);
-    expect(mockPush).toHaveBeenCalledWith('/player');
+    expect(mockPush).toHaveBeenCalledWith('/(tabs)/player');
   });
 
   it('Play album on shuffle from the context menu enables shuffle before playing', async () => {

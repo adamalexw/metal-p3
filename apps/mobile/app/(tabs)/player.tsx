@@ -1,9 +1,11 @@
 import { BlurView } from 'expo-blur';
+import { DrawerActions } from '@react-navigation/native';
 import { useNavigation, useRouter } from 'expo-router';
 import {
   Captions,
   ListMusic,
   type LucideIcon,
+  Menu,
   Pause,
   Play,
   Repeat,
@@ -14,14 +16,17 @@ import {
   Skull,
 } from 'lucide-react-native';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Dimensions, Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Dimensions, Image, Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MetalP3Player, type RepeatMode } from '../../modules/metalp3-player';
 import { PlayerProgressBar } from '../../src/components/PlayerProgressBar';
 import QueueSheet from '../../src/components/QueueSheet';
+import { toFlagEmoji } from '../../src/lib/country-flag';
 import { findAlbumGroup, getLibraryTracks, subscribe as subscribeLibrary } from '../../src/lib/library-cache';
+import { shuffled } from '../../src/lib/shuffle';
 import { useLyrics } from '../../src/lib/useLyrics';
 import { useNowPlayingState } from '../../src/lib/useNowPlayingState';
+import { useTrackExtras } from '../../src/lib/useTrackExtras';
 import { tw } from '../../src/lib/tw';
 import { useArtworkTheme } from '../../src/theme/useArtworkTheme';
 
@@ -45,11 +50,13 @@ export default function PlayerScreen() {
   const theme = useArtworkTheme(current?.uri ?? null);
   const lyrics = useLyrics(current?.uri ?? null);
   const hasLyrics = !!lyrics.text;
+  const extras = useTrackExtras(current?.uri ?? null);
+  const flag = useMemo(() => toFlagEmoji(extras.country), [extras.country]);
+  const albumUrl = extras.metalArchivesUrl;
 
-  const subtitle = useMemo(
-    () => [current?.artist, current?.album].filter(Boolean).join(' — '),
-    [current?.artist, current?.album],
-  );
+  const artistText = current?.artist ?? '';
+  const albumText = current?.album ?? '';
+  const subtitleSeparator = artistText && albumText ? ' — ' : '';
 
   const albumKey = useMemo(() => {
     const band = (current?.albumArtist ?? current?.artist ?? '').toLowerCase().trim();
@@ -88,52 +95,101 @@ export default function PlayerScreen() {
   }, [albumKey, router]);
 
   useEffect(() => {
-    const titleShown = showLyrics && hasLyrics;
-    navigation.setOptions({
-      headerShown: true,
-      headerTransparent: true,
-      headerStyle: { backgroundColor: 'transparent' },
-      headerTintColor: theme.foreground,
-      headerTitleAlign: 'center',
-      headerTitleContainerStyle: titleShown
-        ? { flex: 1, alignItems: 'center', justifyContent: 'center' }
-        : undefined,
-      headerTitle: titleShown
-        ? () => (
-            <View
-              style={tw`flex-1 items-center justify-center`}
-              pointerEvents="box-none"
-              testID="player-header-title"
+    navigation.setOptions({ headerShown: false });
+  }, [navigation]);
+
+  const titleShown = showLyrics && hasLyrics;
+
+  const artSize = useMemo(() => {
+    const w = Dimensions.get('window').width - 48;
+    return Math.max(160, Math.min(w, 480));
+  }, []);
+
+  const togglePlay = () => (isPlaying ? void MetalP3Player.pause() : void MetalP3Player.play());
+  const cycleRepeat = () => {
+    const next: RepeatMode = repeatMode === 'off' ? 'all' : repeatMode === 'all' ? 'one' : 'off';
+    void MetalP3Player.setRepeatMode(next);
+  };
+  const toggleShuffle = async () => {
+    const next = !shuffle;
+    await MetalP3Player.setShuffle(next);
+    if (next) {
+      const queue = state?.queue ?? [];
+      const idx = state?.currentIndex ?? -1;
+      if (queue.length > 1 && idx >= 0) {
+        const before = queue.slice(0, idx);
+        const after = queue.slice(idx + 1);
+        await MetalP3Player.replaceUpcoming(shuffled([...before, ...after]));
+      }
+    }
+  };
+
+  return (
+    <View style={[tw`flex-1`, { backgroundColor: theme.background }]}>
+      {theme.artworkDataUri ? (
+        <View style={StyleSheet.absoluteFill} pointerEvents="none" testID="player-backdrop">
+          <Image
+            source={{ uri: theme.artworkDataUri }}
+            style={StyleSheet.absoluteFill}
+            resizeMode="cover"
+            blurRadius={10}
+          />
+          <BlurView intensity={35} tint="dark" style={StyleSheet.absoluteFill} />
+          <View style={[StyleSheet.absoluteFill, tw`bg-black/30`]} />
+        </View>
+      ) : null}
+
+      <View
+        style={[
+          tw`flex-row items-center px-2`,
+          { paddingTop: insets.top, height: insets.top + 56 },
+        ]}
+        testID="player-header"
+      >
+        <Pressable
+          onPress={() => navigation.dispatch(DrawerActions.openDrawer())}
+          style={tw`w-10 h-10 items-center justify-center ml-1`}
+          hitSlop={8}
+          testID="player-menu-toggle"
+          accessibilityRole="button"
+          accessibilityLabel="Open menu"
+        >
+          <Menu
+            size={24}
+            color={theme.foreground}
+            strokeWidth={ICON_STROKE}
+            strokeLinecap="square"
+          />
+        </Pressable>
+        {titleShown ? (
+          <Pressable
+            onPress={openAlbum}
+            disabled={!albumKey}
+            style={tw`flex-1 items-center justify-center px-2`}
+            accessibilityRole="button"
+            accessibilityLabel="Open album"
+            testID="player-header-album-link"
+          >
+            <Text
+              style={[tw`text-base font-semibold text-center`, { color: theme.foreground }]}
+              numberOfLines={1}
+              ellipsizeMode="tail"
             >
-              <Pressable
-                onPress={openAlbum}
-                disabled={!albumKey}
-                style={tw`items-center max-w-full`}
-                accessibilityRole="button"
-                accessibilityLabel="Open album"
-                testID="player-header-album-link"
+              {headerTitleText}
+            </Text>
+            {headerSubtitle ? (
+              <Text
+                style={[tw`text-xs text-center`, { color: theme.mutedForeground }]}
+                numberOfLines={1}
+                ellipsizeMode="tail"
               >
-                <Text
-                  style={[tw`text-base font-semibold text-center`, { color: theme.foreground }]}
-                  numberOfLines={1}
-                  ellipsizeMode="tail"
-                >
-                  {headerTitleText}
-                </Text>
-                {headerSubtitle ? (
-                  <Text
-                    style={[tw`text-xs text-center`, { color: theme.mutedForeground }]}
-                    numberOfLines={1}
-                    ellipsizeMode="tail"
-                  >
-                    {headerSubtitle}
-                  </Text>
-                ) : null}
-              </Pressable>
-            </View>
-          )
-        : () => null,
-      headerRight: () => (
+                {headerSubtitle}
+              </Text>
+            ) : null}
+          </Pressable>
+        ) : (
+          <View style={tw`flex-1`} />
+        )}
         <View style={tw`flex-row items-center gap-1 pr-1`}>
           <Pressable
             onPress={() => setQueueOpen(true)}
@@ -168,56 +224,13 @@ export default function PlayerScreen() {
             </Pressable>
           ) : null}
         </View>
-      ),
-    });
-  }, [
-    navigation,
-    headerTitleText,
-    headerSubtitle,
-    albumKey,
-    openAlbum,
-    theme.foreground,
-    theme.mutedForeground,
-    theme.accent,
-    hasLyrics,
-    showLyrics,
-  ]);
-
-  const artSize = useMemo(() => {
-    const w = Dimensions.get('window').width - 48;
-    return Math.max(160, Math.min(w, 480));
-  }, []);
-
-  const togglePlay = () => (isPlaying ? void MetalP3Player.pause() : void MetalP3Player.play());
-  const cycleRepeat = () => {
-    const next: RepeatMode = repeatMode === 'off' ? 'all' : repeatMode === 'all' ? 'one' : 'off';
-    void MetalP3Player.setRepeatMode(next);
-  };
-  const toggleShuffle = () => void MetalP3Player.setShuffle(!shuffle);
-
-  return (
-    <View style={[tw`flex-1`, { backgroundColor: theme.background }]}>
-      {theme.artworkDataUri ? (
-        <View style={StyleSheet.absoluteFill} pointerEvents="none" testID="player-backdrop">
-          <Image
-            source={{ uri: theme.artworkDataUri }}
-            style={StyleSheet.absoluteFill}
-            resizeMode="cover"
-            blurRadius={10}
-          />
-          <BlurView intensity={35} tint="dark" style={StyleSheet.absoluteFill} />
-          <View style={[StyleSheet.absoluteFill, tw`bg-black/30`]} />
-        </View>
-      ) : null}
+      </View>
 
       <View
         pointerEvents="box-none"
         style={[
           tw`flex-1 px-6`,
-          {
-            paddingTop: insets.top + 56 + 16,
-            paddingBottom: insets.bottom + 24,
-          },
+          { paddingBottom: insets.bottom + 24 },
         ]}
       >
         {showLyrics && hasLyrics ? (
@@ -289,29 +302,54 @@ export default function PlayerScreen() {
               >
                 {current?.title ?? 'Nothing playing'}
               </Text>
-              {subtitle ? (
-                <Pressable
-                  onPress={openAlbum}
-                  disabled={!albumKey}
-                  hitSlop={6}
-                  accessibilityRole="button"
-                  accessibilityLabel="Open album"
-                  testID="player-album-link"
+              {artistText || albumText ? (
+                <Text
+                  style={[tw`mt-2 text-lg font-semibold text-center`, withShadow(theme.mutedForeground)]}
+                  numberOfLines={1}
+                  testID="player-subtitle"
                 >
-                  <Text
-                    style={[tw`mt-2 text-lg font-semibold text-center`, withShadow(theme.mutedForeground)]}
-                    numberOfLines={1}
-                  >
-                    {subtitle}
-                  </Text>
-                </Pressable>
+                  {artistText ? (
+                    <Text
+                      onPress={albumKey ? openAlbum : undefined}
+                      accessibilityRole="button"
+                      accessibilityLabel="Open album"
+                      testID="player-album-link"
+                    >
+                      {artistText}
+                    </Text>
+                  ) : null}
+                  {subtitleSeparator}
+                  {albumText ? (
+                    albumUrl ? (
+                      <Text
+                        onPress={() => void Linking.openURL(albumUrl)}
+                        accessibilityRole="link"
+                        accessibilityLabel="Open Metal Archives page"
+                        testID="player-album-archives-link"
+                        style={[tw`underline`, { color: theme.accent }]}
+                      >
+                        {albumText}
+                      </Text>
+                    ) : (
+                      <Text
+                        onPress={albumKey ? openAlbum : undefined}
+                        accessibilityRole="button"
+                        accessibilityLabel="Open album"
+                      >
+                        {albumText}
+                      </Text>
+                    )
+                  ) : null}
+                </Text>
               ) : null}
-              {genre ? (
+              {genre || flag ? (
                 <Text
                   style={[tw`mt-1.5 text-sm text-center`, withShadow(theme.mutedForeground)]}
                   numberOfLines={1}
+                  testID="player-genre"
                 >
-                  {genre}
+                  {flag ? `${flag}  ` : ''}
+                  {genre ?? ''}
                 </Text>
               ) : null}
             </View>

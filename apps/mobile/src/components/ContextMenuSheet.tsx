@@ -1,3 +1,4 @@
+import { BlurView } from 'expo-blur';
 import type { LucideIcon } from 'lucide-react-native';
 import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import { tw } from '../lib/tw';
@@ -37,9 +38,11 @@ export default function ContextMenuSheet({
       <Pressable style={tw`flex-1 bg-black/60`} onPress={onClose}>
         <View style={tw`flex-1 justify-end`} pointerEvents="box-none">
           <Pressable
-            style={tw`bg-[#111] rounded-t-2xl px-4 pt-4 pb-6`}
+            style={tw`rounded-t-2xl px-4 pt-4 pb-6 overflow-hidden`}
             onPress={() => undefined}
           >
+            <BlurView intensity={40} tint="dark" style={StyleSheet.absoluteFill} />
+            <View style={[StyleSheet.absoluteFill, tw`bg-black/60`]} />
             {title ? (
               <Text style={tw`text-white text-base font-bold mb-1`}>{title}</Text>
             ) : null}

@@ -23,7 +23,6 @@ export default function RootLayout() {
           >
             <Stack.Screen name="(tabs)" />
             <Stack.Screen name="album/[key]" />
-            <Stack.Screen name="player" />
             <Stack.Screen name="+not-found" />
           </Stack>
           <MiniPlayer />

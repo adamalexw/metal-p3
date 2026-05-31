@@ -1,4 +1,4 @@
-# Metal P3 Mobile (Android)
+# M(etal)P3 (Android)
 
 React Native + Expo Router music player. Android-only.
 

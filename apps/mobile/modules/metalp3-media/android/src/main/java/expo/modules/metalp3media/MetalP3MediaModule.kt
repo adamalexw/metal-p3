@@ -4,10 +4,13 @@ import android.Manifest
 import android.app.Activity
 import android.content.ContentUris
 import android.content.pm.PackageManager
+import android.database.ContentObserver
 import android.database.Cursor
 import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import android.provider.MediaStore
 import android.util.Base64
 import androidx.core.content.ContextCompat
@@ -24,12 +27,25 @@ class MetalP3MediaModule : Module() {
   private val pendingDeletes = mutableMapOf<Int, PendingDelete>()
   private var nextDeleteRequestCode = 0x4D44 // 'MD'
 
+  private val mainHandler = Handler(Looper.getMainLooper())
+  private var mediaObserver: ContentObserver? = null
+
+  // ContentObserver fires repeatedly during a multi-file copy; debounce so we
+  // emit one event per logical batch instead of N per second.
+  private val mediaChangedDebounce = Runnable {
+    sendEvent("mediaChanged", emptyMap<String, Any?>())
+  }
+
   override fun definition() = ModuleDefinition {
     Name("MetalP3Media")
+    Events("mediaChanged")
 
     Constants(
       "audioPermission" to audioPermissionName(),
     )
+
+    OnCreate { registerMediaObserver() }
+    OnDestroy { unregisterMediaObserver() }
 
     AsyncFunction("getPermissionsAsync") {
       mapOf(
@@ -61,6 +77,11 @@ class MetalP3MediaModule : Module() {
     AsyncFunction("getLyricsAsync") { uri: String ->
       requirePermission()
       readLyrics(uri)
+    }
+
+    AsyncFunction("getExtrasAsync") { uri: String ->
+      requirePermission()
+      readExtras(uri)
     }
 
     AsyncFunction("deleteTracksAsync") { uris: List<String>, promise: Promise ->
@@ -292,6 +313,35 @@ class MetalP3MediaModule : Module() {
 
   private val ctx get() = appContext.reactContext
     ?: throw CodedException("E_NO_CONTEXT", "React context unavailable", null)
+
+  /**
+   * Watch MediaStore audio for changes (transfers, scans, deletes) so the JS
+   * layer can refresh the library without the user having to open settings or
+   * pull to refresh. Fires `mediaChanged` debounced ~750ms.
+   */
+  private fun registerMediaObserver() {
+    if (mediaObserver != null) return
+    val context = appContext.reactContext ?: return
+    val observer = object : ContentObserver(mainHandler) {
+      override fun onChange(selfChange: Boolean, uri: Uri?) {
+        mainHandler.removeCallbacks(mediaChangedDebounce)
+        mainHandler.postDelayed(mediaChangedDebounce, 750L)
+      }
+    }
+    context.contentResolver.registerContentObserver(
+      MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+      true,
+      observer,
+    )
+    mediaObserver = observer
+  }
+
+  private fun unregisterMediaObserver() {
+    val observer = mediaObserver ?: return
+    mainHandler.removeCallbacks(mediaChangedDebounce)
+    appContext.reactContext?.contentResolver?.unregisterContentObserver(observer)
+    mediaObserver = null
+  }
 
   private fun audioPermissionName(): String =
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
@@ -594,6 +644,102 @@ class MetalP3MediaModule : Module() {
       ((b[offset + 1].toInt() and 0xFF) shl 16) or
       ((b[offset + 2].toInt() and 0xFF) shl 8) or
       (b[offset + 3].toInt() and 0xFF)
+  }
+
+  // ---- extras (country / metal archives url) ------------------------------
+
+  /**
+   * Reads user-defined ID3v2 TXXX frames written by the desktop app:
+   *   TXXX[COUNTRY] -> band's country of origin
+   *   TXXX[METAL_ARCHIVES_URL] -> encyclopaediametallum.com album page
+   * Returns null when neither is present.
+   */
+  private fun readExtras(uriString: String): Map<String, Any?>? {
+    val uri = try { Uri.parse(uriString) } catch (_: Throwable) { return null }
+    return try {
+      ctx.contentResolver.openInputStream(uri)?.use { input ->
+        val limit = 1 shl 20
+        val buffer = ByteArray(limit)
+        var read = 0
+        while (read < limit) {
+          val n = input.read(buffer, read, limit - read)
+          if (n <= 0) break
+          read += n
+        }
+        val bytes = if (read == limit) buffer else buffer.copyOf(read)
+        parseId3v2Txxx(bytes)
+      }
+    } catch (_: Throwable) {
+      null
+    }
+  }
+
+  private fun parseId3v2Txxx(b: ByteArray): Map<String, Any?>? {
+    if (b.size < 10) return null
+    if (b[0] != 'I'.code.toByte() || b[1] != 'D'.code.toByte() || b[2] != '3'.code.toByte()) return null
+    val major = b[3].toInt() and 0xFF
+    if (major !in 2..4) return null
+    val flags = b[5].toInt() and 0xFF
+    val tagSize = synchsafe(b, 6)
+    val tagEnd = (10 + tagSize).coerceAtMost(b.size)
+    var p = 10
+    if ((flags and 0x40) != 0 && major >= 3) {
+      val extSize = if (major == 4) synchsafe(b, p) else readInt32(b, p)
+      p += 4 + extSize.coerceAtLeast(0)
+    }
+    var country: String? = null
+    var metalArchivesUrl: String? = null
+    while (p + 10 <= tagEnd) {
+      val id = String(b, p, 4, Charsets.ISO_8859_1)
+      if (id[0] == '\u0000') break
+      val frameSize = if (major == 4) synchsafe(b, p + 4) else readInt32(b, p + 4)
+      val frameEnd = p + 10 + frameSize
+      if (frameSize <= 0 || frameEnd > tagEnd) break
+      if (id == "TXXX") {
+        val pair = parseTxxxFrame(b.copyOfRange(p + 10, frameEnd))
+        if (pair != null) {
+          val (description, value) = pair
+          when (description.uppercase()) {
+            "COUNTRY" -> if (country == null) country = value
+            "METAL_ARCHIVES_URL" -> if (metalArchivesUrl == null) metalArchivesUrl = value
+          }
+        }
+      }
+      p = frameEnd
+    }
+    if (country == null && metalArchivesUrl == null) return null
+    return mapOf(
+      "country" to country,
+      "metalArchivesUrl" to metalArchivesUrl,
+    )
+  }
+
+  private fun parseTxxxFrame(body: ByteArray): Pair<String, String>? {
+    if (body.size < 2) return null
+    val encoding = body[0].toInt() and 0xFF
+    val charset = when (encoding) {
+      0 -> Charsets.ISO_8859_1
+      1, 2 -> Charsets.UTF_16
+      3 -> Charsets.UTF_8
+      else -> Charsets.ISO_8859_1
+    }
+    val descEnd = findNullTerminator(body, 1, encoding)
+    if (descEnd < 0) return null
+    val descBytes = body.copyOfRange(1, descEnd - if (encoding == 1 || encoding == 2) 2 else 1)
+    val description = String(descBytes, charset).trim()
+    if (descEnd >= body.size) return null
+    // Value runs to end-of-frame; some writers append a terminator we should drop.
+    var valueEnd = body.size
+    if ((encoding == 1 || encoding == 2) && valueEnd >= descEnd + 2 &&
+        body[valueEnd - 2] == 0.toByte() && body[valueEnd - 1] == 0.toByte()) {
+      valueEnd -= 2
+    } else if (encoding != 1 && encoding != 2 && valueEnd > descEnd && body[valueEnd - 1] == 0.toByte()) {
+      valueEnd -= 1
+    }
+    if (valueEnd <= descEnd) return null
+    val value = String(body, descEnd, valueEnd - descEnd, charset).trim()
+    if (description.isEmpty() || value.isEmpty()) return null
+    return description to value
   }
 
   /**

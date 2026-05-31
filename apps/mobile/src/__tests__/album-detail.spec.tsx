@@ -76,6 +76,7 @@ const mockMedia = {
   getTrackAsync: jest.fn().mockResolvedValue(null),
   getArtworkAsync: jest.fn().mockResolvedValue(null),
   getLyricsAsync: jest.fn().mockResolvedValue(null),
+  getExtrasAsync: jest.fn().mockResolvedValue(null),
   deleteTracksAsync: jest.fn(),
   deleteAlbumFolderAsync: jest.fn(),
 };
@@ -209,7 +210,7 @@ describe('AlbumDetailScreen', () => {
     expect(setQueueArgs[0]).toHaveLength(2);
 
     await waitFor(() => {
-      expect(mockPush).toHaveBeenCalledWith('/player');
+      expect(mockPush).toHaveBeenCalledWith('/(tabs)/player');
     });
   });
 
@@ -269,7 +270,7 @@ describe('AlbumDetailScreen', () => {
     expect(setQueueArgs[0]).toHaveLength(2);
 
     await waitFor(() => {
-      expect(mockPush).toHaveBeenCalledWith('/player');
+      expect(mockPush).toHaveBeenCalledWith('/(tabs)/player');
     });
   });
 
@@ -286,11 +287,11 @@ describe('AlbumDetailScreen', () => {
     const setShuffleOrder = mockPlayer.setShuffleAsync.mock.invocationCallOrder[0];
     const setQueueOrder = mockPlayer.setQueueAsync.mock.invocationCallOrder[0];
     const playOrder = mockPlayer.playAsync.mock.invocationCallOrder[0];
-    expect(setShuffleOrder).toBeLessThan(setQueueOrder);
-    expect(setQueueOrder).toBeLessThan(playOrder);
+    expect(setQueueOrder).toBeLessThan(setShuffleOrder);
+    expect(setShuffleOrder).toBeLessThan(playOrder);
 
     await waitFor(() => {
-      expect(mockPush).toHaveBeenCalledWith('/player');
+      expect(mockPush).toHaveBeenCalledWith('/(tabs)/player');
     });
   });
 

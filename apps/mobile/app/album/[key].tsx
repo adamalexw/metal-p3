@@ -2,12 +2,13 @@ import { BlurView } from 'expo-blur';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { Play, Shuffle } from 'lucide-react-native';
 import { useEffect, useRef, useState } from 'react';
-import { FlatList, Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { FlatList, Image, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Swipeable } from 'react-native-gesture-handler';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MetalP3Media } from '../../modules/metalp3-media';
 import { MetalP3Player } from '../../modules/metalp3-player';
 import { MINI_PLAYER_HEIGHT } from '../../src/components/MiniPlayer';
+import { toFlagEmoji } from '../../src/lib/country-flag';
 import { formatAlbumDuration } from '../../src/lib/group-tracks-by-album';
 import { findAlbumGroup, subscribe as subscribeLibrary } from '../../src/lib/library-cache';
 import { shuffled } from '../../src/lib/shuffle';
@@ -17,6 +18,7 @@ import ConfirmDeleteSheet from '../../src/components/ConfirmDeleteSheet';
 import { deleteTracksAndPropagate } from '../../src/lib/delete-tracks';
 import { tw } from '../../src/lib/tw';
 import { useNowPlayingState } from '../../src/lib/useNowPlayingState';
+import { useTrackExtras } from '../../src/lib/useTrackExtras';
 import { useArtworkTheme } from '../../src/theme/useArtworkTheme';
 import type { Track } from '../../modules/metalp3-media/src/MetalP3Media.types';
 
@@ -30,6 +32,9 @@ export default function AlbumDetailScreen() {
   const insets = useSafeAreaInsets();
   const nowPlaying = useNowPlayingState();
   const theme = useArtworkTheme(group?.representativeUri ?? null);
+  const extras = useTrackExtras(group?.representativeUri ?? null);
+  const albumUrl = extras.metalArchivesUrl;
+  const flag = toFlagEmoji(extras.country);
   const playingTrackId = nowPlaying?.current?.id ?? null;
   const miniPlayerPad = nowPlaying?.current ? MINI_PLAYER_HEIGHT + 16 : 0;
   const [artUri, setArtUri] = useState<string | null>(null);
@@ -85,19 +90,19 @@ export default function AlbumDetailScreen() {
       console.warn('AlbumDetailScreen: failed to start playback', err);
       return;
     }
-    router.push('/player' as never);
+    router.push('/(tabs)/player' as never);
   };
 
   const playShuffled = async () => {
     try {
-      await MetalP3Player.setShuffle(true);
       await MetalP3Player.setQueueAsync(shuffled(group.tracks).map(toQueueItem), 0, 0);
+      await MetalP3Player.setShuffle(true);
       await MetalP3Player.play();
     } catch (err) {
       console.warn('AlbumDetailScreen: failed to start shuffle playback', err);
       return;
     }
-    router.push('/player' as never);
+    router.push('/(tabs)/player' as never);
   };
 
   const requestDeleteTrack = (track: Track) => {
@@ -171,13 +176,29 @@ export default function AlbumDetailScreen() {
                 <View style={tw`w-full h-full bg-[#222]`} />
               )}
             </View>
-            <Text
-              style={[tw`text-[22px] font-bold text-center`, { color: theme.foreground }]}
-              numberOfLines={2}
-              testID="album-detail-name"
-            >
-              {group.albumName}
-            </Text>
+            {albumUrl ? (
+              <Text
+                style={[
+                  tw`text-[22px] font-bold text-center underline`,
+                  { color: theme.accent },
+                ]}
+                numberOfLines={2}
+                onPress={() => void Linking.openURL(albumUrl)}
+                accessibilityRole="link"
+                accessibilityLabel="Open Metal Archives page"
+                testID="album-detail-name-link"
+              >
+                {group.albumName}
+              </Text>
+            ) : (
+              <Text
+                style={[tw`text-[22px] font-bold text-center`, { color: theme.foreground }]}
+                numberOfLines={2}
+                testID="album-detail-name"
+              >
+                {group.albumName}
+              </Text>
+            )}
             <Text
               style={[tw`text-base mt-1 text-center`, { color: theme.foreground }]}
               numberOfLines={1}
@@ -185,13 +206,14 @@ export default function AlbumDetailScreen() {
             >
               {group.bandName}
             </Text>
-            {group.genre ? (
+            {group.genre || flag ? (
               <Text
                 style={[tw`text-[13px] mt-1 text-center`, { color: theme.mutedForeground }]}
                 numberOfLines={1}
                 testID="album-detail-genre"
               >
-                {group.genre}
+                {flag ? `${flag}  ` : ''}
+                {group.genre ?? ''}
               </Text>
             ) : null}
             <Text style={[tw`text-[13px] mt-1.5 text-center`, { color: theme.mutedForeground }]}>

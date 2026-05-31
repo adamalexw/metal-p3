@@ -31,7 +31,7 @@ extensions.configure(com.facebook.react.ReactSettingsExtension) { ex ->
 }
 expoAutolinking.useExpoModules()
 
-rootProject.name = 'Metal P3 Mobile'
+rootProject.name = 'M(etal)P3'
 
 expoAutolinking.useExpoVersionCatalog()
 
