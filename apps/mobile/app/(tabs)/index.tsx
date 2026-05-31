@@ -135,7 +135,7 @@ export default function LibraryScreen() {
         console.warn('LibraryScreen: failed to start playback', err);
         return;
       }
-      router.push('/player' as never);
+      router.push('/(tabs)/player' as never);
     },
     [router],
   );
@@ -143,14 +143,14 @@ export default function LibraryScreen() {
   const shuffleAlbum = useCallback(
     async (group: AlbumGroup) => {
       try {
-        await MetalP3Player.setShuffle(true);
         await MetalP3Player.setQueueAsync(shuffled(group.tracks).map(toQueueItem), 0, 0);
+        await MetalP3Player.setShuffle(true);
         await MetalP3Player.play();
       } catch (err) {
         console.warn('LibraryScreen: failed to start shuffle playback', err);
         return;
       }
-      router.push('/player' as never);
+      router.push('/(tabs)/player' as never);
     },
     [router],
   );

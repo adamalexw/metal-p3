@@ -23,6 +23,7 @@ import { PlayerProgressBar } from '../../src/components/PlayerProgressBar';
 import QueueSheet from '../../src/components/QueueSheet';
 import { toFlagEmoji } from '../../src/lib/country-flag';
 import { findAlbumGroup, getLibraryTracks, subscribe as subscribeLibrary } from '../../src/lib/library-cache';
+import { shuffled } from '../../src/lib/shuffle';
 import { useLyrics } from '../../src/lib/useLyrics';
 import { useNowPlayingState } from '../../src/lib/useNowPlayingState';
 import { useTrackExtras } from '../../src/lib/useTrackExtras';
@@ -109,7 +110,19 @@ export default function PlayerScreen() {
     const next: RepeatMode = repeatMode === 'off' ? 'all' : repeatMode === 'all' ? 'one' : 'off';
     void MetalP3Player.setRepeatMode(next);
   };
-  const toggleShuffle = () => void MetalP3Player.setShuffle(!shuffle);
+  const toggleShuffle = async () => {
+    const next = !shuffle;
+    await MetalP3Player.setShuffle(next);
+    if (next) {
+      const queue = state?.queue ?? [];
+      const idx = state?.currentIndex ?? -1;
+      if (queue.length > 1 && idx >= 0) {
+        const before = queue.slice(0, idx);
+        const after = queue.slice(idx + 1);
+        await MetalP3Player.replaceUpcoming(shuffled([...before, ...after]));
+      }
+    }
+  };
 
   return (
     <View style={[tw`flex-1`, { backgroundColor: theme.background }]}>

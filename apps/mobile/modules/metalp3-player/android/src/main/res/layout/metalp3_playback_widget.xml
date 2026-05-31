@@ -40,6 +40,7 @@
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:layout_marginStart="10dp"
+        android:gravity="center_horizontal"
         android:orientation="vertical">
 
       <TextView
@@ -51,6 +52,7 @@
           android:textStyle="bold"
           android:singleLine="true"
           android:ellipsize="end"
+          android:gravity="center_horizontal"
           android:text="@string/metalp3_widget_idle" />
 
       <TextView
@@ -61,6 +63,7 @@
           android:textSize="11sp"
           android:singleLine="true"
           android:ellipsize="end"
+          android:gravity="center_horizontal"
           android:layout_marginTop="1dp"
           android:text="@string/metalp3_widget_tap_to_open" />
 
@@ -69,6 +72,7 @@
           android:layout_height="wrap_content"
           android:orientation="horizontal"
           android:gravity="center_vertical"
+          android:layout_gravity="center_horizontal"
           android:layout_marginTop="4dp">
 
         <ImageButton

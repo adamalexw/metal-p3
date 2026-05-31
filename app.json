@@ -11,5 +11,8 @@
     "router": {
       "root": "apps/mobile/app"
     }
+  },
+  "android": {
+    "package": "com.anonymous.metalp3"
   }
 }

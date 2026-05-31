@@ -2,10 +2,13 @@ package expo.modules.metalp3player
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.BitmapShader
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Rect
+import android.graphics.RectF
+import android.graphics.Shader
 import android.media.MediaMetadataRetriever
 import android.util.Log
 import androidx.annotation.OptIn
@@ -178,8 +181,8 @@ class PlaybackService : MediaLibraryService() {
         val (fg, muted, accent) = pickPaletteColors(palette)
         // RemoteViews enforces a per-bitmap IPC budget; embedded album art is
         // typically 1500px+ and silently fails to inflate. Cap both copies.
-        val widgetArt = bmp?.let { downsample(it, 192) }
-        val blurred = bmp?.let { downsample(it, 32) }
+        val widgetArt = bmp?.let { downsample(it, 192) }?.let { roundCorners(it, 18f) }
+        val blurred = bmp?.let { downsample(it, 128) }
         val cur = PlaybackService_BridgeSnapshot.read()
         PlaybackService_BridgeSnapshot.publish(
           cur.copy(
@@ -222,6 +225,25 @@ class PlaybackService : MediaLibraryService() {
   } catch (t: Throwable) {
     Log.w(TAG, "downsample failed", t)
     null
+  }
+
+  /**
+   * RemoteViews ImageViews can't be clipped by the launcher, so we bake the
+   * rounded corners straight into the bitmap. `radiusDp` is interpreted in dp;
+   * we convert to px against the source bitmap's native resolution so the
+   * corner curve stays visually consistent regardless of widget cell size.
+   */
+  private fun roundCorners(src: Bitmap, radiusDp: Float): Bitmap {
+    val density = resources.displayMetrics.density
+    val radiusPx = radiusDp * density
+    val out = Bitmap.createBitmap(src.width, src.height, Bitmap.Config.ARGB_8888)
+    val canvas = Canvas(out)
+    val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+      isFilterBitmap = true
+      shader = BitmapShader(src, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP)
+    }
+    canvas.drawRoundRect(RectF(0f, 0f, src.width.toFloat(), src.height.toFloat()), radiusPx, radiusPx, paint)
+    return out
   }
 
   /** Decode the artwork bytes ExoPlayer's metadata extractor already pulled out. */

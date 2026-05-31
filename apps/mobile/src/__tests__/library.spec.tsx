@@ -172,7 +172,7 @@ describe('LibraryScreen', () => {
       expect(mockPlayer.playAsync).toHaveBeenCalledTimes(1);
     });
     expect(mockPlayer.setShuffleAsync).toHaveBeenCalledWith(false);
-    expect(mockPush).toHaveBeenCalledWith('/player');
+    expect(mockPush).toHaveBeenCalledWith('/(tabs)/player');
   });
 
   it('Play album on shuffle from the context menu enables shuffle before playing', async () => {

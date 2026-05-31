@@ -50,7 +50,8 @@
     "lucide-react-native": "*",
     "twrnc": "*",
     "@react-navigation/elements": "*",
-    "@react-navigation/drawer": "*"
+    "@react-navigation/drawer": "*",
+    "@react-navigation/native": "*"
   },
   "devDependencies": {}
 }

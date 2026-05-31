@@ -20,6 +20,7 @@ class MetalP3PlayerModule : Module() {
   private val mainHandler = Handler(Looper.getMainLooper())
   private var controller: MediaController? = null
   private var controllerFuture: ListenableFuture<MediaController>? = null
+  private var userShuffle: Boolean = false
 
   private val playerListener = object : Player.Listener {
     override fun onEvents(player: Player, events: Player.Events) {
@@ -84,7 +85,21 @@ class MetalP3PlayerModule : Module() {
     }
 
     AsyncFunction("setShuffleAsync") { on: Boolean ->
-      withController { it.shuffleModeEnabled = on }
+      userShuffle = on
+      withController {
+        it.shuffleModeEnabled = false
+        emitState()
+      }
+    }
+
+    AsyncFunction("replaceUpcomingAsync") { items: List<Map<String, Any?>> ->
+      val mediaItems = items.map(::toMediaItem)
+      withController { c ->
+        val from = c.currentMediaItemIndex + 1
+        val end = c.mediaItemCount
+        if (from < end) c.removeMediaItems(from, end)
+        if (mediaItems.isNotEmpty()) c.addMediaItems(mediaItems)
+      }
     }
 
     AsyncFunction("moveQueueItemAsync") { fromIndex: Int, toIndex: Int ->
@@ -177,7 +192,7 @@ class MetalP3PlayerModule : Module() {
         Player.REPEAT_MODE_ALL -> "all"
         else -> "off"
       },
-      "shuffle" to c.shuffleModeEnabled,
+      "shuffle" to userShuffle,
       "current" to mapOf(
         "id" to c.currentMediaItem?.mediaId,
         "uri" to c.currentMediaItem?.localConfiguration?.uri?.toString(),

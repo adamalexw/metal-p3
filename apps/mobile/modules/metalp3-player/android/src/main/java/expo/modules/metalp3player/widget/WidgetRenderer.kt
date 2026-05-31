@@ -107,12 +107,11 @@ object WidgetRenderer {
     return views
   }
 
-  /** "Band — Album · 3/12" — empty parts are dropped without dangling separators. */
+  /** "Band · 3/12" — empty parts are dropped without dangling separators. */
   private fun buildSubtitle(ctx: Context, snap: WidgetSnapshot): CharSequence {
-    val artistAlbum = listOfNotNull(snap.artist, snap.album).joinToString(" — ")
     val counter = if (snap.queueCount > 0 && snap.queueIndex >= 0)
       "${snap.queueIndex + 1}/${snap.queueCount}" else null
-    val parts = listOfNotNull(artistAlbum.ifEmpty { null }, counter)
+    val parts = listOfNotNull(snap.artist, counter)
     if (parts.isEmpty()) return ctx.getString(R.string.metalp3_widget_tap_to_open)
     return parts.joinToString(" · ")
   }

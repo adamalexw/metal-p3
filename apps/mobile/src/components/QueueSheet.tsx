@@ -1,3 +1,4 @@
+import { BlurView } from 'expo-blur';
 import { GripVertical, Volume2, X } from 'lucide-react-native';
 import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import DraggableFlatList, {
@@ -122,13 +123,17 @@ export default function QueueSheet({ visible, onClose, queue, currentIndex, them
         <View
           style={[
             tw`absolute left-0 right-0 bottom-0 h-3/4 rounded-t-2xl overflow-hidden`,
-            {
-              backgroundColor: theme.background,
-              paddingBottom: insets.bottom + 8,
-            },
+            { paddingBottom: insets.bottom + 8 },
           ]}
           testID="queue-sheet"
         >
+          <BlurView intensity={40} tint="dark" style={StyleSheet.absoluteFill} />
+          <View
+            style={[
+              StyleSheet.absoluteFill,
+              { backgroundColor: withAlpha(theme.background, 0.7) },
+            ]}
+          />
         <View
           style={[
             tw`flex-row items-center justify-between px-4 py-[14px]`,
