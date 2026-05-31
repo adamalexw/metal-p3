@@ -16,7 +16,6 @@ import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
-import androidx.media3.common.TrackSelectionParameters
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
@@ -36,9 +35,13 @@ import java.util.concurrent.Executors
  * is what lets Android Auto / Wear OS / Google Assistant browse the library.
  *
  * Bit-perfect / hi-res:
- * - Audio offload is requested so the SoC decoder/DAC bypasses the framework mixer when supported.
  * - No audio processors are added; default ExoPlayer renderer keeps the source PCM untouched.
  * - Audio attributes mark the stream as MUSIC (not voice) so Android picks the high-quality path.
+ *
+ * Audio offload is intentionally NOT enabled. media3 1.5.x's offload sleep
+ * state can fail to wake on auto-advance (TRANSITION_REASON_AUTO), producing
+ * silence on the next track until the user hits skip. The non-offload renderer
+ * still does no resampling for local files, so bit-perfect is preserved.
  */
 @OptIn(UnstableApi::class)
 class PlaybackService : MediaLibraryService() {
@@ -67,18 +70,6 @@ class PlaybackService : MediaLibraryService() {
       )
       .setHandleAudioBecomingNoisy(true)
       .setWakeMode(C.WAKE_MODE_LOCAL)
-      .build()
-
-    player.trackSelectionParameters = player.trackSelectionParameters
-      .buildUpon()
-      .setAudioOffloadPreferences(
-        TrackSelectionParameters.AudioOffloadPreferences.Builder()
-          .setAudioOffloadMode(
-            TrackSelectionParameters.AudioOffloadPreferences.AUDIO_OFFLOAD_MODE_ENABLED
-          )
-          .setIsGaplessSupportRequired(true)
-          .build()
-      )
       .build()
 
     librarySession = MediaLibrarySession
