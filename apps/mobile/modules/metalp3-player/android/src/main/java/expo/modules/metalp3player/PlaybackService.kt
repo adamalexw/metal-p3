@@ -2,7 +2,12 @@ package expo.modules.metalp3player
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Paint
+import android.graphics.Rect
 import android.media.MediaMetadataRetriever
+import android.util.Log
 import androidx.annotation.OptIn
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
@@ -14,6 +19,7 @@ import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.MediaLibraryService
 import androidx.media3.session.MediaSession
+import androidx.palette.graphics.Palette
 import expo.modules.metalp3player.auto.AutomotiveLibraryCallback
 import expo.modules.metalp3player.widget.PlaybackService_BridgeSnapshot
 import expo.modules.metalp3player.widget.WidgetRenderer
@@ -33,6 +39,10 @@ import java.util.concurrent.Executors
  */
 @OptIn(UnstableApi::class)
 class PlaybackService : MediaLibraryService() {
+
+  private companion object {
+    const val TAG = "MetalP3Widget"
+  }
 
   private lateinit var player: ExoPlayer
   private lateinit var librarySession: MediaLibrarySession
@@ -112,37 +122,119 @@ class PlaybackService : MediaLibraryService() {
     val md = item?.mediaMetadata
     val title = md?.title?.toString()
     val artist = md?.artist?.toString() ?: md?.albumArtist?.toString()
-    val artworkUri = md?.artworkUri?.toString() ?: item?.localConfiguration?.uri?.toString()
+    val album = md?.albumTitle?.toString()
+    val sourceUri = item?.localConfiguration?.uri?.toString()
+    val artworkUri = md?.artworkUri?.toString() ?: sourceUri
+    // ExoPlayer extracts embedded artwork as part of normal playback metadata —
+    // prefer those bytes over re-opening the file ourselves. setDataSource on
+    // a content:// URI from the service's process can fail with status 0x80000000
+    // even when JS-side reads of the same URI succeed, so we cache the artwork
+    // payload alongside the URI to detect changes.
+    val artworkBytes = md?.artworkData
     val hasQueue = player.mediaItemCount > 0
+    val repeatMode = when (player.repeatMode) {
+      Player.REPEAT_MODE_ONE -> "one"
+      Player.REPEAT_MODE_ALL -> "all"
+      else -> "off"
+    }
+
+    val keepArtwork = artworkUri != null && artworkUri == lastArtworkUri
+    val prev = PlaybackService_BridgeSnapshot.read()
 
     PlaybackService_BridgeSnapshot.publish(
       WidgetSnapshot(
         title = title,
         artist = artist,
+        album = album,
         isPlaying = player.isPlaying,
         hasQueue = hasQueue,
-        artwork = PlaybackService_BridgeSnapshot.read().artwork
-          .takeIf { artworkUri == lastArtworkUri },
+        artwork = if (keepArtwork) prev.artwork else null,
+        artworkBlurred = if (keepArtwork) prev.artworkBlurred else null,
+        queueIndex = if (hasQueue) player.currentMediaItemIndex else -1,
+        queueCount = player.mediaItemCount,
+        shuffle = player.shuffleModeEnabled,
+        repeatMode = repeatMode,
+        foreground = if (keepArtwork) prev.foreground else WidgetSnapshot.EMPTY.foreground,
+        mutedForeground = if (keepArtwork) prev.mutedForeground else WidgetSnapshot.EMPTY.mutedForeground,
+        accent = if (keepArtwork) prev.accent else WidgetSnapshot.EMPTY.accent,
       )
     )
     WidgetRenderer.renderAll(applicationContext)
 
     if (artworkUri != null && artworkUri != lastArtworkUri) {
       lastArtworkUri = artworkUri
-      loadArtworkAsync(artworkUri)
+      loadArtworkAsync(artworkUri, artworkBytes, sourceUri)
     } else if (artworkUri == null) {
       lastArtworkUri = null
     }
   }
 
-  private fun loadArtworkAsync(uri: String) {
+  private fun loadArtworkAsync(uri: String, embeddedBytes: ByteArray?, sourceUri: String?) {
     artworkExecutor.execute {
-      val bmp = decodeArtwork(uri)
+      val bmp = decodeArtworkBytes(embeddedBytes)
+        ?: sourceUri?.let { decodeArtwork(it) }
       if (uri == lastArtworkUri) {
+        val palette = bmp?.let { runCatching { Palette.from(it).generate() }.getOrNull() }
+        val (fg, muted, accent) = pickPaletteColors(palette)
+        // RemoteViews enforces a per-bitmap IPC budget; embedded album art is
+        // typically 1500px+ and silently fails to inflate. Cap both copies.
+        val widgetArt = bmp?.let { downsample(it, 192) }
+        val blurred = bmp?.let { downsample(it, 32) }
         val cur = PlaybackService_BridgeSnapshot.read()
-        PlaybackService_BridgeSnapshot.publish(cur.copy(artwork = bmp))
+        PlaybackService_BridgeSnapshot.publish(
+          cur.copy(
+            artwork = widgetArt,
+            artworkBlurred = blurred,
+            foreground = fg,
+            mutedForeground = muted,
+            accent = accent,
+          )
+        )
         WidgetRenderer.renderAll(applicationContext)
       }
+    }
+  }
+
+  /**
+   * RemoteViews drops bitmaps that:
+   *   1. exceed its per-IPC budget (~roughly screen-size; album art is often 1500px+),
+   *   2. use a hardware-backed config — they can't cross processes,
+   *   3. use a non-ARGB config that the launcher can't render.
+   *
+   * To dodge all three we draw the source onto a fresh software ARGB_8888 canvas
+   * at a known small size. Caller hands us already-decoded bytes so this stays
+   * off the main thread.
+   */
+  private fun downsample(src: Bitmap, targetMaxEdge: Int): Bitmap? = try {
+    val w = src.width
+    val h = src.height
+    if (w <= 0 || h <= 0) null else {
+      val scale = (targetMaxEdge.toFloat() / maxOf(w, h)).coerceAtMost(1f)
+      val nw = (w * scale).toInt().coerceAtLeast(1)
+      val nh = (h * scale).toInt().coerceAtLeast(1)
+      val out = Bitmap.createBitmap(nw, nh, Bitmap.Config.ARGB_8888)
+      val canvas = Canvas(out)
+      val paint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG)
+      canvas.drawBitmap(src, Rect(0, 0, w, h), Rect(0, 0, nw, nh), paint)
+      Log.i(TAG, "downsample(${targetMaxEdge}) src=${w}x${h} -> out=${nw}x${nh}")
+      out
+    }
+  } catch (t: Throwable) {
+    Log.w(TAG, "downsample failed", t)
+    null
+  }
+
+  /** Decode the artwork bytes ExoPlayer's metadata extractor already pulled out. */
+  private fun decodeArtworkBytes(bytes: ByteArray?): Bitmap? {
+    if (bytes == null || bytes.isEmpty()) return null
+    return try {
+      val opts = BitmapFactory.Options().apply { inPreferredConfig = Bitmap.Config.ARGB_8888 }
+      val bmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.size, opts)
+      Log.i(TAG, "decodeArtworkBytes: ${bytes.size}B -> bmp=${bmp?.width}x${bmp?.height}")
+      bmp
+    } catch (t: Throwable) {
+      Log.w(TAG, "decodeArtworkBytes failed", t)
+      null
     }
   }
 
@@ -150,11 +242,54 @@ class PlaybackService : MediaLibraryService() {
     val retriever = MediaMetadataRetriever()
     retriever.use {
       it.setDataSource(applicationContext, android.net.Uri.parse(uri))
-      it.embeddedPicture?.let { bytes ->
-        BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+      val pic = it.embeddedPicture
+      if (pic == null) {
+        Log.i(TAG, "decodeArtwork: no embedded picture for $uri")
+        null
+      } else {
+        val opts = BitmapFactory.Options().apply { inPreferredConfig = Bitmap.Config.ARGB_8888 }
+        val bmp = BitmapFactory.decodeByteArray(pic, 0, pic.size, opts)
+        Log.i(TAG, "decodeArtwork: ${pic.size}B -> bmp=${bmp?.width}x${bmp?.height}")
+        bmp
       }
     }
-  } catch (_: Throwable) {
+  } catch (t: Throwable) {
+    Log.w(TAG, "decodeArtwork(uri=$uri) failed: ${t.message}")
     null
   }
+
+  /**
+   * Pick a (foreground, mutedForeground, accent) triple for the widget that
+   * stays legible against a dimmed-blurred copy of the same artwork. We bias
+   * toward light text since the renderer applies a dark scrim.
+   */
+  private fun pickPaletteColors(palette: Palette?): Triple<Int, Int, Int> {
+    if (palette == null) {
+      return Triple(
+        WidgetSnapshot.EMPTY.foreground,
+        WidgetSnapshot.EMPTY.mutedForeground,
+        WidgetSnapshot.EMPTY.accent,
+      )
+    }
+    val accentRaw = palette.lightVibrantSwatch?.rgb
+      ?: palette.vibrantSwatch?.rgb
+      ?: palette.lightMutedSwatch?.rgb
+      ?: palette.dominantSwatch?.rgb
+      ?: WidgetSnapshot.EMPTY.accent
+    val accent = lighten(accentRaw, 0.45f)
+    val foreground = 0xFFFFFFFF.toInt()
+    val muted = withAlpha(foreground, 0xCC)
+    return Triple(foreground, muted, accent)
+  }
+
+  private fun lighten(color: Int, amount: Float): Int {
+    val a = amount.coerceIn(0f, 1f)
+    val r = (Color.red(color) + (255 - Color.red(color)) * a).toInt().coerceIn(0, 255)
+    val g = (Color.green(color) + (255 - Color.green(color)) * a).toInt().coerceIn(0, 255)
+    val b = (Color.blue(color) + (255 - Color.blue(color)) * a).toInt().coerceIn(0, 255)
+    return Color.argb(0xFF, r, g, b)
+  }
+
+  private fun withAlpha(color: Int, alpha: Int): Int =
+    (alpha and 0xFF shl 24) or (color and 0x00FFFFFF)
 }

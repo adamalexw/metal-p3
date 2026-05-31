@@ -43,8 +43,10 @@ const mockMedia = {
   getTrackAsync: jest.fn().mockResolvedValue(null),
   getArtworkAsync: jest.fn().mockResolvedValue(null),
   getLyricsAsync: jest.fn().mockResolvedValue(null),
+  getExtrasAsync: jest.fn().mockResolvedValue(null),
   deleteTracksAsync: jest.fn(),
   deleteAlbumFolderAsync: jest.fn(),
+  addListener: jest.fn().mockReturnValue({ remove: jest.fn() }),
 };
 
 const mockPlayer = {

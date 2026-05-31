@@ -47,6 +47,13 @@ export interface Lyrics {
   language: string | null;
 }
 
+export interface TrackExtras {
+  /** TXXX[COUNTRY] — band's country of origin as a free-form name. */
+  country: string | null;
+  /** TXXX[METAL_ARCHIVES_URL] — encyclopaediametallum.com album page. */
+  metalArchivesUrl: string | null;
+}
+
 export interface ScanOptions {
   limit?: number;
   minDurationMs?: number;

@@ -1,7 +1,7 @@
 import { useRouter } from 'expo-router';
 import { ListPlus, Play, Shuffle, Trash2 } from 'lucide-react-native';
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, FlatList, Pressable, Text, View } from 'react-native';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { ActivityIndicator, AppState, FlatList, Pressable, Text, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MetalP3Media } from '../../modules/metalp3-media';
@@ -53,6 +53,8 @@ export default function LibraryScreen() {
   const [deleteBusy, setDeleteBusy] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
+  const scanInFlight = useRef(false);
+
   const load = useCallback(async () => {
     setStatus('checking');
     setError(null);
@@ -64,6 +66,7 @@ export default function LibraryScreen() {
         return;
       }
       setStatus('loading');
+      scanInFlight.current = true;
       const result = await MetalP3Media.scanAudioAsync({ minDurationMs: 10_000 });
       const groups = setLibraryTracks(result);
       setAlbums(groups);
@@ -71,6 +74,25 @@ export default function LibraryScreen() {
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
       setStatus('error');
+    } finally {
+      scanInFlight.current = false;
+    }
+  }, []);
+
+  // Background rescan — runs when MediaStore changes (file transfer, scan) or
+  // the app returns to the foreground. Doesn't flip status so the grid stays
+  // mounted; the cache subscription pushes updated albums when tracks differ.
+  const resync = useCallback(async () => {
+    if (scanInFlight.current) return;
+    if (!(await MetalP3Media.getPermissionsAsync()).granted) return;
+    scanInFlight.current = true;
+    try {
+      const result = await MetalP3Media.scanAudioAsync({ minDurationMs: 10_000 });
+      setLibraryTracks(result);
+    } catch (err) {
+      console.warn('LibraryScreen: resync failed', err);
+    } finally {
+      scanInFlight.current = false;
     }
   }, []);
 
@@ -79,6 +101,18 @@ export default function LibraryScreen() {
   }, [load]);
 
   useEffect(() => subscribeLibrary(() => setAlbums(getAlbumGroups())), []);
+
+  useEffect(() => {
+    const sub = MetalP3Media.addMediaChangedListener(() => void resync());
+    return () => sub.remove();
+  }, [resync]);
+
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state === 'active') void resync();
+    });
+    return () => sub.remove();
+  }, [resync]);
 
   const openAlbum = useCallback(
     (group: AlbumGroup) => {
