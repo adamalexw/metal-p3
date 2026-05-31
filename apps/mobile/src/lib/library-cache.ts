@@ -59,14 +59,3 @@ export function removeTracksByIds(ids: string[]): AlbumGroup[] {
   notify();
   return cachedGroups;
 }
-
-export function removeAlbumByKey(key: string): { groups: AlbumGroup[]; removedTrackIds: string[] } {
-  const target = cachedGroups.find((g) => g.key === key);
-  if (!target) return { groups: cachedGroups, removedTrackIds: [] };
-  const removedTrackIds = target.tracks.map((t) => t.id);
-  const removeSet = new Set(removedTrackIds);
-  cachedTracks = cachedTracks.filter((t) => !removeSet.has(t.id));
-  cachedGroups = groupTracksByAlbum(cachedTracks);
-  notify();
-  return { groups: cachedGroups, removedTrackIds };
-}
