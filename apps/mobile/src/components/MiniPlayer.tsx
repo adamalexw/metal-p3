@@ -3,14 +3,14 @@ import { Disc3, Pause, Play, SkipBack, SkipForward } from 'lucide-react-native';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MetalP3Player } from '../../modules/metalp3-player';
+import { withAlpha } from '../lib/color';
 import { useNowPlayingState } from '../lib/useNowPlayingState';
 import { tw } from '../lib/tw';
+import { ICON_STROKE } from '../theme/icons';
 import { useArtworkTheme } from '../theme/useArtworkTheme';
 import ArtworkImage from './ArtworkImage';
 
 export const MINI_PLAYER_HEIGHT = 72;
-
-const ICON_STROKE = 2.5;
 
 export default function MiniPlayer() {
   const router = useRouter();
@@ -162,12 +162,4 @@ export default function MiniPlayer() {
       </View>
     </View>
   );
-}
-
-function withAlpha(hex: string, alpha: number): string {
-  const m = /^#([0-9a-f]{6})$/i.exec(hex);
-  if (!m) return hex;
-  const a = Math.max(0, Math.min(1, alpha));
-  const aHex = Math.round(a * 255).toString(16).padStart(2, '0');
-  return `#${m[1]}${aHex}`;
 }

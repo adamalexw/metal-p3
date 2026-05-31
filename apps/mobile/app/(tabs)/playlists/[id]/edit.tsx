@@ -20,9 +20,8 @@ import {
   subscribe,
 } from '../../../../src/lib/playlist-store';
 import { tw } from '../../../../src/lib/tw';
+import { ICON_STROKE } from '../../../../src/theme/icons';
 import type { Track } from '../../../../modules/metalp3-media/src/MetalP3Media.types';
-
-const ICON_STROKE = 2.5;
 
 interface RowTrack {
   id: string;

@@ -7,6 +7,7 @@ import {
   Text,
   View,
 } from 'react-native';
+import { withAlpha } from '../lib/color';
 import { tw } from '../lib/tw';
 
 interface Props {
@@ -195,14 +196,6 @@ function fmt(ms: number): string {
 
 function clamp01(value: number): number {
   return Math.max(0, Math.min(1, value));
-}
-
-function withAlpha(hex: string, alpha: number): string {
-  const m = /^#([0-9a-f]{6})$/i.exec(hex);
-  if (!m) return hex;
-  const a = clamp01(alpha);
-  const aHex = Math.round(a * 255).toString(16).padStart(2, '0');
-  return `#${m[1]}${aHex}`;
 }
 
 export default PlayerProgressBar;

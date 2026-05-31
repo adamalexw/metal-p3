@@ -11,10 +11,12 @@ import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MetalP3Media } from '../../modules/metalp3-media';
 import { MetalP3Player, type QueueItem } from '../../modules/metalp3-player';
+import { withAlpha } from '../lib/color';
+import { formatTrackDuration } from '../lib/group-tracks-by-album';
 import { tw } from '../lib/tw';
+import { ICON_STROKE } from '../theme/icons';
 import type { ArtworkTheme } from '../theme/types';
 
-const ICON_STROKE = 2.5;
 const ART_SIZE = 44;
 
 const ARTWORK_CACHE = new Map<string, string | null>();
@@ -310,7 +312,7 @@ function QueueRow({ item, isActive, isCurrent, theme, drag, onPress }: QueueRowP
             { color: subColor, fontVariant: ['tabular-nums'] },
           ]}
         >
-          {formatDuration(item.durationMs)}
+          {formatTrackDuration(item.durationMs)}
         </Text>
       ) : null}
       <Pressable
@@ -330,19 +332,4 @@ function QueueRow({ item, isActive, isCurrent, theme, drag, onPress }: QueueRowP
       </Pressable>
     </Pressable>
   );
-}
-
-function formatDuration(ms: number): string {
-  const totalSeconds = Math.floor(Math.max(0, ms) / 1000);
-  const m = Math.floor(totalSeconds / 60);
-  const s = totalSeconds % 60;
-  return `${m}:${String(s).padStart(2, '0')}`;
-}
-
-function withAlpha(hex: string, alpha: number): string {
-  const m = /^#([0-9a-f]{6})$/i.exec(hex);
-  if (!m) return hex;
-  const a = Math.max(0, Math.min(1, alpha));
-  const aHex = Math.round(a * 255).toString(16).padStart(2, '0');
-  return `#${m[1]}${aHex}`;
 }

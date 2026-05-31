@@ -80,3 +80,10 @@ export function formatAlbumDuration(totalMs: number): string {
   }
   return `${minutes}:${String(seconds).padStart(2, '0')}`;
 }
+
+export function formatTrackDuration(ms: number): string {
+  const totalSeconds = Math.floor(Math.max(0, ms) / 1000);
+  const m = Math.floor(totalSeconds / 60);
+  const s = totalSeconds % 60;
+  return `${m}:${String(s).padStart(2, '0')}`;
+}

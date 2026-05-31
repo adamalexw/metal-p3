@@ -22,6 +22,7 @@ import { MetalP3Player, type RepeatMode } from '../../modules/metalp3-player';
 import ArtworkImage from '../../src/components/ArtworkImage';
 import { PlayerProgressBar } from '../../src/components/PlayerProgressBar';
 import QueueSheet from '../../src/components/QueueSheet';
+import { withAlpha } from '../../src/lib/color';
 import { toFlagEmoji } from '../../src/lib/country-flag';
 import { findAlbumGroup, getLibraryTracks, subscribe as subscribeLibrary } from '../../src/lib/library-cache';
 import { shuffled } from '../../src/lib/shuffle';
@@ -29,9 +30,8 @@ import { useLyrics } from '../../src/lib/useLyrics';
 import { useNowPlayingState } from '../../src/lib/useNowPlayingState';
 import { useTrackExtras } from '../../src/lib/useTrackExtras';
 import { tw } from '../../src/lib/tw';
+import { ICON_STROKE } from '../../src/theme/icons';
 import { useArtworkTheme } from '../../src/theme/useArtworkTheme';
-
-const ICON_STROKE = 2.5;
 
 export default function PlayerScreen() {
   const insets = useSafeAreaInsets();
@@ -517,14 +517,6 @@ function ToggleBtn({
       />
     </Pressable>
   );
-}
-
-function withAlpha(hex: string, alpha: number): string {
-  const m = /^#([0-9a-f]{6})$/i.exec(hex);
-  if (!m) return hex;
-  const a = Math.max(0, Math.min(1, alpha));
-  const aHex = Math.round(a * 255).toString(16).padStart(2, '0');
-  return `#${m[1]}${aHex}`;
 }
 
 function withShadow(color: string) {

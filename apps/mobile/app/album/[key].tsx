@@ -9,7 +9,7 @@ import { MetalP3Media } from '../../modules/metalp3-media';
 import { MetalP3Player } from '../../modules/metalp3-player';
 import { MINI_PLAYER_HEIGHT } from '../../src/components/MiniPlayer';
 import { toFlagEmoji } from '../../src/lib/country-flag';
-import { formatAlbumDuration } from '../../src/lib/group-tracks-by-album';
+import { formatAlbumDuration, formatTrackDuration } from '../../src/lib/group-tracks-by-album';
 import { findAlbumGroup, subscribe as subscribeLibrary } from '../../src/lib/library-cache';
 import { shuffled } from '../../src/lib/shuffle';
 import { toQueueItem } from '../../src/lib/to-queue-item';
@@ -400,11 +400,4 @@ export default function AlbumDetailScreen() {
 function formatTrackNumber(track: Track, fallbackIndex: number): string {
   const n = track.trackNumber ?? fallbackIndex + 1;
   return String(n).padStart(2, '0');
-}
-
-function formatTrackDuration(ms: number): string {
-  const totalSeconds = Math.floor(Math.max(0, ms) / 1000);
-  const m = Math.floor(totalSeconds / 60);
-  const s = totalSeconds % 60;
-  return `${m}:${String(s).padStart(2, '0')}`;
 }
