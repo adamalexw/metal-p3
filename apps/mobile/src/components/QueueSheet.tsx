@@ -90,6 +90,16 @@ export default function QueueSheet({ visible, onClose, queue, currentIndex, them
               </Text>
             ) : null}
           </View>
+          {typeof item.durationMs === 'number' && item.durationMs > 0 ? (
+            <Text
+              style={[
+                tw`text-[13px] mr-2`,
+                { color: subColor, fontVariant: ['tabular-nums'] },
+              ]}
+            >
+              {formatDuration(item.durationMs)}
+            </Text>
+          ) : null}
           <Pressable
             onPressIn={drag}
             hitSlop={12}
@@ -170,6 +180,13 @@ export default function QueueSheet({ visible, onClose, queue, currentIndex, them
       </GestureHandlerRootView>
     </Modal>
   );
+}
+
+function formatDuration(ms: number): string {
+  const totalSeconds = Math.floor(Math.max(0, ms) / 1000);
+  const m = Math.floor(totalSeconds / 60);
+  const s = totalSeconds % 60;
+  return `${m}:${String(s).padStart(2, '0')}`;
 }
 
 function withAlpha(hex: string, alpha: number): string {

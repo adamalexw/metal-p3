@@ -140,6 +140,7 @@ class MetalP3PlayerModule : Module() {
       .setAlbumArtist(item["albumArtist"] as? String)
       .also { b ->
         (item["artworkUri"] as? String)?.let { b.setArtworkUri(Uri.parse(it)) }
+        (item["durationMs"] as? Number)?.toLong()?.let { b.setDurationMs(it) }
       }
       .build()
     return MediaItem.Builder()
@@ -176,6 +177,7 @@ class MetalP3PlayerModule : Module() {
         "album" to itemMd.albumTitle?.toString(),
         "albumArtist" to itemMd.albumArtist?.toString(),
         "artworkUri" to itemMd.artworkUri?.toString(),
+        "durationMs" to itemMd.durationMs,
       )
     }
     return mapOf(

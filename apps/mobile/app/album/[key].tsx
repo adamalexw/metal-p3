@@ -2,7 +2,7 @@ import { BlurView } from 'expo-blur';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { Play, Shuffle } from 'lucide-react-native';
 import { useEffect, useRef, useState } from 'react';
-import { FlatList, Image, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Animated, Image, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Swipeable } from 'react-native-gesture-handler';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MetalP3Media } from '../../modules/metalp3-media';
@@ -43,6 +43,13 @@ export default function AlbumDetailScreen() {
   const [deleteBusy, setDeleteBusy] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const swipeableRefs = useRef(new Map<string, Swipeable>());
+  const scrollY = useRef(new Animated.Value(0)).current;
+  const headerHeight = insets.top + 56;
+  const headerOpacity = scrollY.interpolate({
+    inputRange: [0, 220, 280],
+    outputRange: [0, 0, 1],
+    extrapolate: 'clamp',
+  });
 
   useEffect(() => subscribeLibrary(() => forceTick((n) => n + 1)), []);
 
@@ -145,10 +152,22 @@ export default function AlbumDetailScreen() {
         options={{
           title: group.albumName,
           headerShown: true,
-          headerStyle: { backgroundColor: 'transparent' },
           headerTintColor: theme.foreground,
           headerTitleStyle: { color: theme.foreground },
           headerTransparent: true,
+          headerShadowVisible: false,
+          headerBackground: () => (
+            <Animated.View
+              style={[
+                StyleSheet.absoluteFill,
+                {
+                  height: headerHeight,
+                  backgroundColor: theme.background,
+                  opacity: headerOpacity,
+                },
+              ]}
+            />
+          ),
         }}
       />
 
@@ -160,10 +179,15 @@ export default function AlbumDetailScreen() {
         </View>
       ) : null}
 
-      <FlatList
+      <Animated.FlatList
         data={group.tracks}
-        keyExtractor={(t) => t.id}
+        keyExtractor={(t: Track) => t.id}
         contentContainerStyle={{ paddingBottom: insets.bottom + 24 + miniPlayerPad }}
+        onScroll={Animated.event(
+          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+          { useNativeDriver: true },
+        )}
+        scrollEventThrottle={16}
         ListHeaderComponent={
           <View style={[tw`px-4 pb-6 items-center`, { paddingTop: insets.top + 56 }]}>
             <View
@@ -283,15 +307,12 @@ export default function AlbumDetailScreen() {
               testID={`album-track-${item.id}`}
             >
               {isPlaying ? (
-                <Text
-                  style={[
-                    tw`text-sm font-bold w-8 text-left`,
-                    { color: theme.accent, fontVariant: ['tabular-nums'] },
-                  ]}
+                <View
+                  style={tw`w-8 items-start`}
                   testID={`album-track-playing-indicator-${item.id}`}
                 >
-                  ▶
-                </Text>
+                  <Play size={14} color={theme.accent} fill={theme.accent} />
+                </View>
               ) : (
                 <Text
                   style={[tw`text-[#bbb] text-sm w-8`, { fontVariant: ['tabular-nums'] }]}
