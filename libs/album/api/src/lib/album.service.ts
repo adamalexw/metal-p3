@@ -290,9 +290,52 @@ export class AlbumService {
     // Step 1: Read ID3 tags and resolve (or create) the band record.
     // Step 2: Search Metal Archives for URLs, then persist the album.
     // Step 3: Rename the folder and individual track files to a canonical format.
+    // Step 4: Propagate album-level Metal Archives metadata (country / albumUrl) into each track's ID3.
     return this.prepareTagsAndBand(folder, dirName).pipe(
       concatMap(({ tags, band }) => this.searchAndCreateAlbum(folder, tags, band)),
       concatMap((albumDto) => this.renameFolderAndTracks(albumDto)),
+      concatMap((albumDto) => this.propagateAlbumMetadataToTracks(albumDto)),
+    );
+  }
+
+  private propagateAlbumMetadataToTracks(albumDto: AlbumDto): Observable<AlbumDto> {
+    if (!albumDto.country && !albumDto.albumUrl) {
+      return of(albumDto);
+    }
+
+    let files: string[];
+    try {
+      files = this.fileSystemService
+        .getFiles(albumDto.fullPath)
+        .filter((f) => path.extname(f) === '.mp3')
+        .map((f) => path.join(albumDto.fullPath, f));
+    } catch (error) {
+      Logger.error(`Failed to list files for track metadata propagation in "${albumDto.fullPath}": ${error}`);
+      return of(albumDto);
+    }
+
+    if (!files.length) {
+      return of(albumDto);
+    }
+
+    return this.trackService.getTracks(files).pipe(
+      concatMap((tracks) => {
+        const enriched = tracks.map((track) => ({
+          ...track,
+          artist: albumDto.artist ?? track.artist,
+          album: albumDto.album ?? track.album,
+          year: albumDto.year ?? track.year,
+          genre: albumDto.genre ?? track.genre,
+          country: albumDto.country ?? track.country,
+          albumUrl: albumDto.albumUrl ?? track.albumUrl,
+          artistUrl: albumDto.artistUrl ?? track.artistUrl,
+        }));
+        return from(this.trackService.saveTracks(enriched)).pipe(map(() => albumDto));
+      }),
+      catchError((error) => {
+        Logger.error(`Failed to propagate album metadata to tracks for album ${albumDto.id}: ${error}`);
+        return of(albumDto);
+      }),
     );
   }
 
