@@ -2,11 +2,13 @@ package expo.modules.metalp3player.auto
 
 import android.content.Context
 import android.net.Uri
+import android.os.Bundle
 import androidx.annotation.OptIn
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.LibraryResult
+import androidx.media3.session.MediaConstants
 import androidx.media3.session.MediaLibraryService
 import androidx.media3.session.MediaSession
 import com.google.common.collect.ImmutableList
@@ -15,12 +17,10 @@ import com.google.common.util.concurrent.ListenableFuture
 
 /**
  * MediaLibrarySession callback that exposes the on-device music library to
- * Android Auto, Google Assistant and Wear OS via the standard browse tree:
+ * Android Auto, Google Assistant and Wear OS via the browse tree:
  *
  *   metalp3:root
- *     ├─ metalp3:cat:albums   →  metalp3:album:<id>   → metalp3:track:<id>
- *     ├─ metalp3:cat:artists  →  metalp3:artist:<id>  → metalp3:track:<id>
- *     └─ metalp3:cat:all      →  metalp3:track:<id>
+ *     └─ metalp3:cat:albums   →  metalp3:album:<id>   → metalp3:track:<id>
  *
  * All MediaItems for tracks carry localConfiguration so [androidx.media3.exoplayer.ExoPlayer]
  * can play them once the controller calls setMediaItems/play.
@@ -78,16 +78,57 @@ class AutomotiveLibraryCallback(private val context: Context) :
     return Futures.immediateFuture(resolved)
   }
 
+  /**
+   * When the user taps a single track in an album browse view, AA only sends
+   * that one track. Expand the queue to the full album starting at the tapped
+   * track so the rest of the album plays through.
+   */
+  override fun onSetMediaItems(
+    mediaSession: MediaSession,
+    controller: MediaSession.ControllerInfo,
+    mediaItems: MutableList<MediaItem>,
+    startIndex: Int,
+    startPositionMs: Long,
+  ): ListenableFuture<MediaSession.MediaItemsWithStartPosition> {
+    val expanded = expandToAlbum(mediaItems, startIndex)
+    return Futures.immediateFuture(
+      MediaSession.MediaItemsWithStartPosition(
+        expanded.items,
+        expanded.startIndex,
+        startPositionMs,
+      )
+    )
+  }
+
+  private data class Expansion(val items: MutableList<MediaItem>, val startIndex: Int)
+
+  private fun expandToAlbum(incoming: MutableList<MediaItem>, requestedStartIndex: Int): Expansion {
+    if (incoming.size != 1) {
+      // Multiple items — caller already supplied a queue, just rehydrate URIs.
+      val rehydrated = incoming.mapNotNull { trackItemFor(it.mediaId) }.toMutableList()
+      val safeIndex = requestedStartIndex.coerceIn(0, (rehydrated.size - 1).coerceAtLeast(0))
+      return Expansion(rehydrated, safeIndex)
+    }
+    val tappedId = incoming[0].mediaId
+    val trackId = tappedId.removePrefix(Ids.TRACK_PREFIX).toLongOrNull()
+      ?: return Expansion(mutableListOf(trackItemFor(tappedId) ?: incoming[0]), 0)
+    val track = MediaStoreLibrary.trackById(context, trackId)
+      ?: return Expansion(mutableListOf(trackItemFor(tappedId) ?: incoming[0]), 0)
+    val albumTracks = MediaStoreLibrary.tracksForAlbum(context, track.albumId)
+    if (albumTracks.isEmpty()) {
+      return Expansion(mutableListOf(trackItem(track)), 0)
+    }
+    val items = albumTracks.map(::trackItem).toMutableList()
+    val idx = albumTracks.indexOfFirst { it.id == track.id }.coerceAtLeast(0)
+    return Expansion(items, idx)
+  }
+
   // ---- tree building -------------------------------------------------------
 
   private fun rootItem(): MediaItem = browsable(Ids.ROOT, "Metal P3", null)
 
   private fun childrenOf(parentId: String): List<MediaItem>? = when {
-    parentId == Ids.ROOT -> listOf(
-      browsable(Ids.CAT_ALBUMS, "Albums", null),
-      browsable(Ids.CAT_ARTISTS, "Artists", null),
-      browsable(Ids.CAT_ALL, "All Tracks", null),
-    )
+    parentId == Ids.ROOT -> listOf(albumsCategoryItem())
     parentId == Ids.CAT_ALBUMS -> MediaStoreLibrary.listAlbums(context).map { album ->
       browsable(
         id = Ids.album(album.id),
@@ -97,31 +138,16 @@ class AutomotiveLibraryCallback(private val context: Context) :
         mediaType = MediaMetadata.MEDIA_TYPE_ALBUM,
       )
     }
-    parentId == Ids.CAT_ARTISTS -> MediaStoreLibrary.listArtists(context).map { artist ->
-      browsable(
-        id = Ids.artist(artist.id),
-        title = artist.name,
-        subtitle = null,
-        mediaType = MediaMetadata.MEDIA_TYPE_ARTIST,
-      )
-    }
-    parentId == Ids.CAT_ALL -> MediaStoreLibrary.listAllTracks(context).map(::trackItem)
     parentId.startsWith(Ids.ALBUM_PREFIX) -> {
       val albumId = parentId.removePrefix(Ids.ALBUM_PREFIX).toLongOrNull() ?: return null
       MediaStoreLibrary.tracksForAlbum(context, albumId).map(::trackItem)
-    }
-    parentId.startsWith(Ids.ARTIST_PREFIX) -> {
-      val artistId = parentId.removePrefix(Ids.ARTIST_PREFIX).toLongOrNull() ?: return null
-      MediaStoreLibrary.tracksForArtist(context, artistId).map(::trackItem)
     }
     else -> null
   }
 
   private fun resolveItem(mediaId: String): MediaItem? = when {
     mediaId == Ids.ROOT -> rootItem()
-    mediaId == Ids.CAT_ALBUMS -> browsable(Ids.CAT_ALBUMS, "Albums", null)
-    mediaId == Ids.CAT_ARTISTS -> browsable(Ids.CAT_ARTISTS, "Artists", null)
-    mediaId == Ids.CAT_ALL -> browsable(Ids.CAT_ALL, "All Tracks", null)
+    mediaId == Ids.CAT_ALBUMS -> albumsCategoryItem()
     mediaId.startsWith(Ids.TRACK_PREFIX) -> trackItemFor(mediaId)
     mediaId.startsWith(Ids.ALBUM_PREFIX) -> {
       val albumId = mediaId.removePrefix(Ids.ALBUM_PREFIX).toLongOrNull() ?: return null
@@ -134,13 +160,29 @@ class AutomotiveLibraryCallback(private val context: Context) :
         mediaType = MediaMetadata.MEDIA_TYPE_ALBUM,
       )
     }
-    mediaId.startsWith(Ids.ARTIST_PREFIX) -> {
-      val artistId = mediaId.removePrefix(Ids.ARTIST_PREFIX).toLongOrNull() ?: return null
-      val artist = MediaStoreLibrary.listArtists(context).firstOrNull { it.id == artistId } ?: return null
-      browsable(mediaId, artist.name, null, mediaType = MediaMetadata.MEDIA_TYPE_ARTIST)
-    }
     else -> null
   }
+
+  /**
+   * Albums browse root. The grid content-style hint tells AA to render its
+   * children (the album list) as a 2-column grid of artwork tiles with the
+   * title/subtitle rendered as a caption underneath each tile.
+   */
+  private fun albumsCategoryItem(): MediaItem = browsable(
+    id = Ids.CAT_ALBUMS,
+    title = "Albums",
+    subtitle = null,
+    extras = Bundle().apply {
+      putInt(
+        MediaConstants.EXTRAS_KEY_CONTENT_STYLE_BROWSABLE,
+        MediaConstants.EXTRAS_VALUE_CONTENT_STYLE_GRID_ITEM,
+      )
+      putInt(
+        MediaConstants.EXTRAS_KEY_CONTENT_STYLE_PLAYABLE,
+        MediaConstants.EXTRAS_VALUE_CONTENT_STYLE_LIST_ITEM,
+      )
+    },
+  )
 
   private fun trackItemFor(mediaId: String): MediaItem? {
     val trackId = mediaId.removePrefix(Ids.TRACK_PREFIX).toLongOrNull() ?: return null
@@ -171,6 +213,7 @@ class AutomotiveLibraryCallback(private val context: Context) :
     subtitle: String?,
     artworkUri: Uri? = null,
     mediaType: Int = MediaMetadata.MEDIA_TYPE_FOLDER_MIXED,
+    extras: Bundle? = null,
   ): MediaItem {
     val metadata = MediaMetadata.Builder()
       .setTitle(title)
@@ -179,6 +222,7 @@ class AutomotiveLibraryCallback(private val context: Context) :
       .setIsBrowsable(true)
       .setIsPlayable(false)
       .setMediaType(mediaType)
+      .apply { if (extras != null) setExtras(extras) }
       .build()
     return MediaItem.Builder().setMediaId(id).setMediaMetadata(metadata).build()
   }
@@ -186,13 +230,9 @@ class AutomotiveLibraryCallback(private val context: Context) :
   private object Ids {
     const val ROOT = "metalp3:root"
     const val CAT_ALBUMS = "metalp3:cat:albums"
-    const val CAT_ARTISTS = "metalp3:cat:artists"
-    const val CAT_ALL = "metalp3:cat:all"
     const val ALBUM_PREFIX = "metalp3:album:"
-    const val ARTIST_PREFIX = "metalp3:artist:"
     const val TRACK_PREFIX = "metalp3:track:"
     fun album(id: Long) = "$ALBUM_PREFIX$id"
-    fun artist(id: Long) = "$ARTIST_PREFIX$id"
     fun track(id: Long) = "$TRACK_PREFIX$id"
   }
 }
