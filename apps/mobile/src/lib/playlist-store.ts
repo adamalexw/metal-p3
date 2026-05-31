@@ -154,6 +154,61 @@ export async function addTrackToPlaylist(playlistId: string, trackId: string): P
   notify();
 }
 
+export async function renamePlaylist(playlistId: string, rawName: string): Promise<void> {
+  const name = rawName.trim();
+  if (!name) throw new Error('Playlist name is required.');
+  const idx = playlists.findIndex((p) => p.id === playlistId);
+  if (idx === -1) throw new Error(`Playlist ${playlistId} not found.`);
+  if (playlists[idx].name === name) return;
+  const clash = playlists.some(
+    (p) => p.id !== playlistId && p.name.toLowerCase() === name.toLowerCase(),
+  );
+  if (clash) throw new DuplicatePlaylistNameError(name);
+  const updated: Playlist = { ...playlists[idx], name, updatedAt: Date.now() };
+  playlists = [...playlists.slice(0, idx), updated, ...playlists.slice(idx + 1)];
+  await persist();
+  notify();
+}
+
+export async function removeTrackFromPlaylist(
+  playlistId: string,
+  trackId: string,
+): Promise<void> {
+  const idx = playlists.findIndex((p) => p.id === playlistId);
+  if (idx === -1) return;
+  const existing = playlists[idx];
+  const filtered = existing.trackIds.filter((id) => id !== trackId);
+  if (filtered.length === existing.trackIds.length) return;
+  const updated: Playlist = { ...existing, trackIds: filtered, updatedAt: Date.now() };
+  playlists = [...playlists.slice(0, idx), updated, ...playlists.slice(idx + 1)];
+  await persist();
+  notify();
+}
+
+export async function reorderPlaylistTracks(
+  playlistId: string,
+  fromIndex: number,
+  toIndex: number,
+): Promise<void> {
+  if (fromIndex === toIndex) return;
+  const idx = playlists.findIndex((p) => p.id === playlistId);
+  if (idx === -1) return;
+  const existing = playlists[idx];
+  if (
+    fromIndex < 0
+    || toIndex < 0
+    || fromIndex >= existing.trackIds.length
+    || toIndex >= existing.trackIds.length
+  ) return;
+  const next = [...existing.trackIds];
+  const [moved] = next.splice(fromIndex, 1);
+  next.splice(toIndex, 0, moved);
+  const updated: Playlist = { ...existing, trackIds: next, updatedAt: Date.now() };
+  playlists = [...playlists.slice(0, idx), updated, ...playlists.slice(idx + 1)];
+  await persist();
+  notify();
+}
+
 export async function deletePlaylist(playlistId: string): Promise<void> {
   const idx = playlists.findIndex((p) => p.id === playlistId);
   if (idx === -1) return;

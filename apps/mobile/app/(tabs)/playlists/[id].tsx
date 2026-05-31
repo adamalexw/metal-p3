@@ -8,24 +8,13 @@ import {
   getActivePlaylistId,
   getPlaylist,
   loadPlaylists,
-  setActivePlaylistId,
   subscribe,
 } from '../../../src/lib/playlist-store';
+import { resolvePlaylistTracks, startPlaylist } from '../../../src/lib/start-playlist';
 import { toQueueItem } from '../../../src/lib/to-queue-item';
 import { tw } from '../../../src/lib/tw';
-import type { Track } from '../../../modules/metalp3-media/src/MetalP3Media.types';
 
-type Status = 'loading' | 'missing' | 'empty-library' | 'empty-playlist' | 'started' | 'error';
-
-function resolveTracks(playlist: Playlist, library: Track[]): Track[] {
-  const byId = new Map(library.map((t) => [t.id, t]));
-  const out: Track[] = [];
-  for (const id of playlist.trackIds) {
-    const found = byId.get(id);
-    if (found) out.push(found);
-  }
-  return out;
-}
+type Status = 'loading' | 'missing' | 'empty-library' | 'empty-playlist' | 'error';
 
 export default function PlaylistDetailScreen() {
   const params = useLocalSearchParams<{ id: string }>();
@@ -43,31 +32,33 @@ export default function PlaylistDetailScreen() {
       await loadPlaylists();
       if (cancelled) return;
       const found = getPlaylist(playlistId);
-      if (!found) {
-        setStatus('missing');
-        return;
-      }
-      setPlaylist(found);
-      const library = getLibraryTracks();
-      if (library.length === 0) {
-        setStatus('empty-library');
-        return;
-      }
-      const tracks = resolveTracks(found, library);
-      if (tracks.length === 0) {
-        setStatus('empty-playlist');
-        return;
-      }
-      try {
-        await MetalP3Player.setQueueAsync(tracks.map(toQueueItem), 0, 0);
-        await MetalP3Player.play();
-        setActivePlaylistId(found.id);
+      if (found) {
+        setPlaylist(found);
         lastTrackIdsRef.current = found.trackIds.join('|');
-        setStatus('started');
-        router.replace('/player' as never);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : String(err));
-        setStatus('error');
+      }
+
+      const result = await startPlaylist(playlistId);
+      if (cancelled) return;
+
+      if (result.ok) {
+        router.replace('/(tabs)/player' as never);
+        return;
+      }
+
+      switch (result.reason) {
+        case 'missing':
+          setStatus('missing');
+          break;
+        case 'empty-library':
+          setStatus('empty-library');
+          break;
+        case 'empty-playlist':
+          setStatus('empty-playlist');
+          break;
+        case 'error':
+          setError(result.message ?? 'Could not start playback.');
+          setStatus('error');
+          break;
       }
     })();
     return () => {
@@ -87,7 +78,7 @@ export default function PlaylistDetailScreen() {
       void (async () => {
         try {
           const library = getLibraryTracks();
-          const tracks = resolveTracks(updated, library);
+          const tracks = resolvePlaylistTracks(updated, library);
           if (tracks.length === 0) return;
           const state = await MetalP3Player.getStateAsync();
           const safeIndex = Math.min(Math.max(0, state.currentIndex), tracks.length - 1);
@@ -109,7 +100,7 @@ export default function PlaylistDetailScreen() {
           headerTintColor: '#fff',
         }}
       />
-      {status === 'loading' || status === 'started' ? (
+      {status === 'loading' ? (
         <ActivityIndicator color="#fff" style={tw`mt-12`} />
       ) : null}
       {status === 'missing' ? (

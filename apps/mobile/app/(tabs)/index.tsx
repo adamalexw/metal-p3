@@ -1,14 +1,24 @@
 import { useRouter } from 'expo-router';
 import { ListPlus, Play, Shuffle, Trash2 } from 'lucide-react-native';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, AppState, FlatList, Pressable, Text, View } from 'react-native';
-import Animated, { FadeInDown } from 'react-native-reanimated';
+import { ActivityIndicator, AppState, Pressable, Text, View } from 'react-native';
+import Animated, {
+  FadeIn,
+  ZoomIn,
+  useAnimatedScrollHandler,
+  useSharedValue,
+} from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MetalP3Media } from '../../modules/metalp3-media';
 import { MetalP3Player } from '../../modules/metalp3-player';
 import AlbumTile from '../../src/components/AlbumTile';
 import ConfirmDeleteSheet from '../../src/components/ConfirmDeleteSheet';
 import ContextMenuSheet from '../../src/components/ContextMenuSheet';
+import LibraryHeader, {
+  LibraryHeaderSpacer,
+  formatLibraryStats,
+} from '../../src/components/LibraryHeader';
+import BlurredBackdrop from '../../src/components/BlurredBackdrop';
 import { MINI_PLAYER_HEIGHT } from '../../src/components/MiniPlayer';
 import { deleteTracksAndPropagate } from '../../src/lib/delete-tracks';
 import type { AlbumGroup } from '../../src/lib/group-tracks-by-album';
@@ -17,6 +27,7 @@ import { shuffled } from '../../src/lib/shuffle';
 import { toQueueItem } from '../../src/lib/to-queue-item';
 import { tw } from '../../src/lib/tw';
 import { useNowPlayingState } from '../../src/lib/useNowPlayingState';
+import { prefetchArtworkTheme } from '../../src/theme/useArtworkTheme';
 
 type AlbumRow =
   | { kind: 'pair'; key: string; left: AlbumGroup; right: AlbumGroup }
@@ -127,6 +138,7 @@ export default function LibraryScreen() {
 
   const playAlbum = useCallback(
     async (group: AlbumGroup) => {
+      prefetchArtworkTheme(group.tracks[0]?.uri);
       try {
         await MetalP3Player.setShuffle(false);
         await MetalP3Player.setQueueAsync(group.tracks.map(toQueueItem), 0, 0);
@@ -142,8 +154,10 @@ export default function LibraryScreen() {
 
   const shuffleAlbum = useCallback(
     async (group: AlbumGroup) => {
+      const ordered = shuffled(group.tracks);
+      prefetchArtworkTheme(ordered[0]?.uri);
       try {
-        await MetalP3Player.setQueueAsync(shuffled(group.tracks).map(toQueueItem), 0, 0);
+        await MetalP3Player.setQueueAsync(ordered.map(toQueueItem), 0, 0);
         await MetalP3Player.setShuffle(true);
         await MetalP3Player.play();
       } catch (err) {
@@ -190,60 +204,86 @@ export default function LibraryScreen() {
 
   const rows = useMemo(() => buildRows(albums), [albums]);
 
+  const scrollY = useSharedValue(0);
+  const onScroll = useAnimatedScrollHandler((e) => {
+    scrollY.value = e.contentOffset.y;
+  });
+
   return (
-    <View style={tw`flex-1 bg-black pt-3 px-3`}>
+    <View style={tw`flex-1 bg-black`}>
+      <Animated.View
+        entering={FadeIn.duration(600)}
+        style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+        pointerEvents="none"
+      >
+        <BlurredBackdrop />
+      </Animated.View>
+
       {status === 'loading' || status === 'checking' ? (
-        <ActivityIndicator color="#fff" style={tw`mt-6`} />
+        <ActivityIndicator color="#fff" style={[tw`mt-6`, { marginTop: insets.top + 24 }]} />
       ) : null}
 
       {status === 'denied' ? (
         <Pressable
-          style={tw`mt-4 py-3 px-5 bg-[#1f6feb] rounded-lg self-start`}
+          style={[tw`py-3 px-5 bg-[#1f6feb] rounded-lg self-start mx-3`, { marginTop: insets.top + 16 }]}
           onPress={() => void load()}
         >
           <Text style={tw`text-white font-semibold`}>Grant permission</Text>
         </Pressable>
       ) : null}
 
-      {status === 'error' ? <Text style={tw`text-[#ff6b6b] mt-4`}>{error}</Text> : null}
+      {status === 'error' ? (
+        <Text style={[tw`text-[#ff6b6b] mx-3`, { marginTop: insets.top + 16 }]}>{error}</Text>
+      ) : null}
 
       {status === 'ready' ? (
-        <FlatList
-          style={tw`flex-1`}
-          data={rows}
-          keyExtractor={(r) => r.key}
-          contentContainerStyle={[tw`pt-2`, { paddingBottom: insets.bottom + 24 + miniPlayerPad }]}
-          renderItem={({ item, index }) => (
-            <Animated.View
-              entering={FadeInDown.duration(280).delay(Math.min(index * 35, 600))}
-              style={tw`flex-row`}
-            >
-              {item.kind === 'pair' ? (
-                <>
-                  <AlbumTile
-                    group={item.left}
-                    onPress={() => openAlbum(item.left)}
-                    onLongPress={() => handleLongPressAlbum(item.left)}
-                  />
-                  <AlbumTile
-                    group={item.right}
-                    onPress={() => openAlbum(item.right)}
-                    onLongPress={() => handleLongPressAlbum(item.right)}
-                  />
-                </>
-              ) : (
-                <>
-                  <AlbumTile
-                    group={item.item}
-                    onPress={() => openAlbum(item.item)}
-                    onLongPress={() => handleLongPressAlbum(item.item)}
-                  />
-                  <View style={tw`flex-1 mx-1`} />
-                </>
-              )}
-            </Animated.View>
-          )}
-        />
+        <>
+          <Animated.FlatList
+            style={tw`flex-1`}
+            data={rows}
+            keyExtractor={(r) => r.key}
+            onScroll={onScroll}
+            scrollEventThrottle={16}
+            ListHeaderComponent={<LibraryHeaderSpacer topInset={insets.top} />}
+          contentContainerStyle={[tw`px-3`, { paddingBottom: insets.bottom + 24 + miniPlayerPad }]}
+            renderItem={({ item, index }) => (
+              <Animated.View
+                entering={ZoomIn.duration(360).delay(Math.min(index * 40, 600)).springify().damping(14)}
+                style={tw`flex-row`}
+              >
+                {item.kind === 'pair' ? (
+                  <>
+                    <AlbumTile
+                      group={item.left}
+                      onPress={() => openAlbum(item.left)}
+                      onLongPress={() => handleLongPressAlbum(item.left)}
+                    />
+                    <AlbumTile
+                      group={item.right}
+                      onPress={() => openAlbum(item.right)}
+                      onLongPress={() => handleLongPressAlbum(item.right)}
+                    />
+                  </>
+                ) : (
+                  <>
+                    <AlbumTile
+                      group={item.item}
+                      onPress={() => openAlbum(item.item)}
+                      onLongPress={() => handleLongPressAlbum(item.item)}
+                    />
+                    <View style={tw`flex-1 mx-1`} />
+                  </>
+                )}
+              </Animated.View>
+            )}
+          />
+          <LibraryHeader
+            title="Library"
+            stats={formatLibraryStats(albums)}
+            topInset={insets.top}
+            scrollY={scrollY}
+          />
+        </>
       ) : null}
 
       <ContextMenuSheet

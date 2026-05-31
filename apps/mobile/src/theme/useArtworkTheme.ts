@@ -83,8 +83,46 @@ function paletteToTheme(p: AndroidImageColors, artworkDataUri: string): ArtworkT
   };
 }
 
+async function loadArtworkTheme(trackUri: string): Promise<ArtworkTheme> {
+  const cached = THEME_CACHE.get(trackUri);
+  if (cached) return cached;
+
+  let dataUri: string | null = null;
+  try {
+    dataUri = await fetchArtworkDataUri(trackUri);
+    if (!dataUri) return { ...DEFAULT_THEME };
+    const result = await getColors(dataUri, { cache: true, key: trackUri });
+    if (result.platform !== 'android') {
+      return { ...DEFAULT_THEME, artworkDataUri: dataUri };
+    }
+    const next = paletteToTheme(result, dataUri);
+    THEME_CACHE.set(trackUri, next);
+    return next;
+  } catch {
+    return { ...DEFAULT_THEME, artworkDataUri: dataUri };
+  }
+}
+
+/**
+ * Fire-and-forget warmer used right before navigating to the player screen.
+ * Why: extracting the embedded picture + palette takes long enough to leave a
+ * visible "placeholder → artwork" pop on cold play. Pre-populating the caches
+ * while the queue is being set means the player can paint the final theme on
+ * its first render.
+ */
+export function prefetchArtworkTheme(trackUri: string | null | undefined): void {
+  if (!trackUri) return;
+  if (THEME_CACHE.has(trackUri)) return;
+  void loadArtworkTheme(trackUri).catch(() => {
+    // Swallow — the hook will retry and surface the failure if it still matters.
+  });
+}
+
 export function useArtworkTheme(trackUri: string | null | undefined): ArtworkTheme {
-  const [theme, setTheme] = useState<ArtworkTheme>(DEFAULT_THEME);
+  const [theme, setTheme] = useState<ArtworkTheme>(() => {
+    if (!trackUri) return DEFAULT_THEME;
+    return THEME_CACHE.get(trackUri) ?? DEFAULT_THEME;
+  });
 
   useEffect(() => {
     if (!trackUri) {
@@ -101,26 +139,9 @@ export function useArtworkTheme(trackUri: string | null | undefined): ArtworkThe
     let cancelled = false;
     setTheme((t) => ({ ...t, loading: true }));
 
-    (async () => {
-      let dataUri: string | null = null;
-      try {
-        dataUri = await fetchArtworkDataUri(trackUri);
-        if (!dataUri) {
-          if (!cancelled) setTheme({ ...DEFAULT_THEME });
-          return;
-        }
-        const result = await getColors(dataUri, { cache: true, key: trackUri });
-        if (result.platform !== 'android') {
-          if (!cancelled) setTheme({ ...DEFAULT_THEME, artworkDataUri: dataUri });
-          return;
-        }
-        const next = paletteToTheme(result, dataUri);
-        THEME_CACHE.set(trackUri, next);
-        if (!cancelled) setTheme(next);
-      } catch {
-        if (!cancelled) setTheme({ ...DEFAULT_THEME, artworkDataUri: dataUri });
-      }
-    })();
+    void loadArtworkTheme(trackUri).then((next) => {
+      if (!cancelled) setTheme(next);
+    });
 
     return () => {
       cancelled = true;

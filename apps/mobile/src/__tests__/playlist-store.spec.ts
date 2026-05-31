@@ -33,7 +33,10 @@ import {
   getPlaylist,
   getPlaylists,
   loadPlaylists,
+  removeTrackFromPlaylist,
   removeTrackIdsFromAllPlaylists,
+  renamePlaylist,
+  reorderPlaylistTracks,
   setActivePlaylistId,
   subscribe,
 } from '../lib/playlist-store';
@@ -152,6 +155,75 @@ describe('playlist-store', () => {
     await deletePlaylist(b.id);
 
     expect(getActivePlaylistId()).toBe(a.id);
+  });
+
+  it('renamePlaylist updates the name and persists', async () => {
+    await loadPlaylists();
+    const pl = await createPlaylist('Old');
+    await renamePlaylist(pl.id, 'New Name');
+    expect(getPlaylist(pl.id)?.name).toBe('New Name');
+    const persisted = JSON.parse(mocked.__store.get(PLAYLIST_STORAGE_KEY) ?? '[]');
+    expect(persisted[0].name).toBe('New Name');
+  });
+
+  it('renamePlaylist trims whitespace and rejects empty names', async () => {
+    await loadPlaylists();
+    const pl = await createPlaylist('Keep');
+    await expect(renamePlaylist(pl.id, '   ')).rejects.toThrow(/required/);
+    await renamePlaylist(pl.id, '  Spaced  ');
+    expect(getPlaylist(pl.id)?.name).toBe('Spaced');
+  });
+
+  it('renamePlaylist rejects a duplicate name (case-insensitive) but allows same-name no-op', async () => {
+    await loadPlaylists();
+    const a = await createPlaylist('Alpha');
+    await createPlaylist('Beta');
+    await expect(renamePlaylist(a.id, 'beta')).rejects.toBeInstanceOf(DuplicatePlaylistNameError);
+    // Same name as itself is a silent no-op, even cased differently in storage.
+    await expect(renamePlaylist(a.id, 'Alpha')).resolves.toBeUndefined();
+  });
+
+  it('removeTrackFromPlaylist removes the track and persists', async () => {
+    await loadPlaylists();
+    const pl = await createPlaylist('PL');
+    await addTrackToPlaylist(pl.id, 't1');
+    await addTrackToPlaylist(pl.id, 't2');
+    await addTrackToPlaylist(pl.id, 't3');
+    await removeTrackFromPlaylist(pl.id, 't2');
+    expect(getPlaylist(pl.id)?.trackIds).toEqual(['t1', 't3']);
+  });
+
+  it('removeTrackFromPlaylist is a no-op when the track is not in the playlist', async () => {
+    await loadPlaylists();
+    const pl = await createPlaylist('PL');
+    await addTrackToPlaylist(pl.id, 't1');
+    const writesBefore = mocked.setItem.mock.calls.length;
+    await removeTrackFromPlaylist(pl.id, 'nonexistent');
+    expect(mocked.setItem.mock.calls.length).toBe(writesBefore);
+    expect(getPlaylist(pl.id)?.trackIds).toEqual(['t1']);
+  });
+
+  it('reorderPlaylistTracks moves a track between indices', async () => {
+    await loadPlaylists();
+    const pl = await createPlaylist('Order');
+    await addTrackToPlaylist(pl.id, 'a');
+    await addTrackToPlaylist(pl.id, 'b');
+    await addTrackToPlaylist(pl.id, 'c');
+    await reorderPlaylistTracks(pl.id, 0, 2);
+    expect(getPlaylist(pl.id)?.trackIds).toEqual(['b', 'c', 'a']);
+  });
+
+  it('reorderPlaylistTracks is a no-op for equal indices or out-of-range positions', async () => {
+    await loadPlaylists();
+    const pl = await createPlaylist('Order');
+    await addTrackToPlaylist(pl.id, 'a');
+    await addTrackToPlaylist(pl.id, 'b');
+    const writesBefore = mocked.setItem.mock.calls.length;
+    await reorderPlaylistTracks(pl.id, 0, 0);
+    await reorderPlaylistTracks(pl.id, 5, 0);
+    await reorderPlaylistTracks(pl.id, 0, -1);
+    expect(mocked.setItem.mock.calls.length).toBe(writesBefore);
+    expect(getPlaylist(pl.id)?.trackIds).toEqual(['a', 'b']);
   });
 
   it('removeTrackIdsFromAllPlaylists strips the given ids from every playlist', async () => {

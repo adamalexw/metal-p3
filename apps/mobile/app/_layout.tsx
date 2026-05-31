@@ -1,13 +1,19 @@
 import 'react-native-gesture-handler';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { useEffect } from 'react';
 import { View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import MiniPlayer from '../src/components/MiniPlayer';
+import { startArtworkPrefetcher } from '../src/lib/artwork-prefetcher';
 import { tw } from '../src/lib/tw';
 
 export default function RootLayout() {
+  useEffect(() => {
+    startArtworkPrefetcher();
+  }, []);
+
   return (
     <GestureHandlerRootView style={tw`flex-1`}>
       <SafeAreaProvider>

@@ -16,9 +16,10 @@ import {
   Skull,
 } from 'lucide-react-native';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Dimensions, Image, Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Dimensions, Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MetalP3Player, type RepeatMode } from '../../modules/metalp3-player';
+import ArtworkImage from '../../src/components/ArtworkImage';
 import { PlayerProgressBar } from '../../src/components/PlayerProgressBar';
 import QueueSheet from '../../src/components/QueueSheet';
 import { toFlagEmoji } from '../../src/lib/country-flag';
@@ -47,6 +48,11 @@ export default function PlayerScreen() {
   const isPlaying = state?.isPlaying ?? false;
   const repeatMode: RepeatMode = state?.repeatMode ?? 'off';
   const shuffle = state?.shuffle ?? false;
+  const queueLength = state?.queue?.length ?? 0;
+  const currentIndex = state?.currentIndex ?? -1;
+  const canSkipNext =
+    queueLength > 0 && (repeatMode !== 'off' || currentIndex < queueLength - 1);
+  const canSkipPrev = queueLength > 0 && (repeatMode !== 'off' || currentIndex > 0);
   const theme = useArtworkTheme(current?.uri ?? null);
   const lyrics = useLyrics(current?.uri ?? null);
   const hasLyrics = !!lyrics.text;
@@ -128,8 +134,8 @@ export default function PlayerScreen() {
     <View style={[tw`flex-1`, { backgroundColor: theme.background }]}>
       {theme.artworkDataUri ? (
         <View style={StyleSheet.absoluteFill} pointerEvents="none" testID="player-backdrop">
-          <Image
-            source={{ uri: theme.artworkDataUri }}
+          <ArtworkImage
+            uri={theme.artworkDataUri}
             style={StyleSheet.absoluteFill}
             resizeMode="cover"
             blurRadius={10}
@@ -229,7 +235,7 @@ export default function PlayerScreen() {
       <View
         pointerEvents="box-none"
         style={[
-          tw`flex-1 px-6`,
+          tw`flex-1 px-6 pt-6`,
           { paddingBottom: insets.bottom + 24 },
         ]}
       >
@@ -272,27 +278,20 @@ export default function PlayerScreen() {
               ]}
               testID="player-art"
             >
-              {theme.artworkDataUri ? (
-                <Image
-                  source={{ uri: theme.artworkDataUri }}
-                  style={tw`w-full h-full`}
-                  resizeMode="cover"
+              <View
+                style={[
+                  tw`absolute inset-0 items-center justify-center`,
+                  { backgroundColor: theme.surface },
+                ]}
+              >
+                <Skull
+                  size={140}
+                  color={theme.mutedForeground}
+                  strokeWidth={ICON_STROKE}
+                  strokeLinecap="square"
                 />
-              ) : (
-                <View
-                  style={[
-                    tw`w-full h-full items-center justify-center`,
-                    { backgroundColor: theme.surface },
-                  ]}
-                >
-                  <Skull
-                    size={140}
-                    color={theme.mutedForeground}
-                    strokeWidth={ICON_STROKE}
-                    strokeLinecap="square"
-                  />
-                </View>
-              )}
+              </View>
+              <ArtworkImage uri={theme.artworkDataUri} style={tw`w-full h-full`} resizeMode="cover" />
             </View>
             <View style={tw`flex-1 items-center justify-center self-stretch px-2`}>
               <Text
@@ -387,6 +386,7 @@ export default function PlayerScreen() {
               testID="player-prev"
               icon={SkipBack}
               filled
+              disabled={!canSkipPrev}
             />
             <PrimaryBtn
               onPress={togglePlay}
@@ -400,6 +400,7 @@ export default function PlayerScreen() {
               testID="player-next"
               icon={SkipForward}
               filled
+              disabled={!canSkipNext}
             />
             <ToggleBtn
               active={repeatMode !== 'off'}
@@ -463,18 +464,28 @@ function PrimaryBtn({
 }
 
 function IconBtn({
-  icon: Icon, onPress, theme, testID, filled,
-}: { icon: LucideIcon; onPress: () => void; theme: BtnTheme; testID?: string; filled?: boolean }) {
+  icon: Icon, onPress, theme, testID, filled, disabled,
+}: {
+  icon: LucideIcon;
+  onPress: () => void;
+  theme: BtnTheme;
+  testID?: string;
+  filled?: boolean;
+  disabled?: boolean;
+}) {
+  const color = disabled ? withAlpha(theme.accent, 0.3) : theme.accent;
   return (
     <Pressable
       style={tw`w-14 h-14 items-center justify-center rounded-full`}
       onPress={onPress}
+      disabled={disabled}
       testID={testID}
+      accessibilityState={{ disabled: !!disabled }}
     >
       <Icon
         size={32}
-        color={theme.accent}
-        fill={filled ? theme.accent : 'transparent'}
+        color={color}
+        fill={filled ? color : 'transparent'}
         strokeWidth={ICON_STROKE}
         strokeLinecap="square"
       />

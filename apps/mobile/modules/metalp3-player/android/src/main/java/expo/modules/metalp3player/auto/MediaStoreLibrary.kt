@@ -26,6 +26,7 @@ internal object MediaStoreLibrary {
     val album: String?,
     val albumId: Long,
     val uri: Uri,
+    val durationMs: Long,
   )
 
   fun listAlbums(ctx: Context): List<Album> {
@@ -132,6 +133,7 @@ internal object MediaStoreLibrary {
       MediaStore.Audio.Media.ARTIST,
       MediaStore.Audio.Media.ALBUM,
       MediaStore.Audio.Media.ALBUM_ID,
+      MediaStore.Audio.Media.DURATION,
     )
     return query(ctx, collection, cols, selection, args, sort, limit) { c ->
       val id = c.getLong(0)
@@ -142,6 +144,7 @@ internal object MediaStoreLibrary {
         album = c.getString(3),
         albumId = c.getLong(4),
         uri = ContentUris.withAppendedId(collection, id),
+        durationMs = c.getLong(5).coerceAtLeast(0L),
       )
     }
   }

@@ -24,6 +24,8 @@ data class WidgetSnapshot(
   val shuffle: Boolean,
   /** "off" | "all" | "one" */
   val repeatMode: String,
+  val canSkipNext: Boolean,
+  val canSkipPrev: Boolean,
   val foreground: Int,
   val mutedForeground: Int,
   val accent: Int,
@@ -45,6 +47,8 @@ data class WidgetSnapshot(
       queueCount = 0,
       shuffle = false,
       repeatMode = "off",
+      canSkipNext = false,
+      canSkipPrev = false,
       foreground = DEFAULT_FG,
       mutedForeground = DEFAULT_MUTED,
       accent = DEFAULT_ACCENT,

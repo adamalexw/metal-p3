@@ -27,6 +27,7 @@ const mockPush = jest.fn();
 
 jest.mock('expo-router', () => ({
   useRouter: () => ({ push: mockPush }),
+  useNavigation: () => ({ dispatch: jest.fn() }),
 }));
 
 jest.mock('react-native-safe-area-context', () => ({

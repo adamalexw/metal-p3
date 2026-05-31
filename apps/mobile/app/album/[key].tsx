@@ -2,7 +2,7 @@ import { BlurView } from 'expo-blur';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { Play, Shuffle } from 'lucide-react-native';
 import { useEffect, useRef, useState } from 'react';
-import { Animated, Image, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
+import { FlatList, Image, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Swipeable } from 'react-native-gesture-handler';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MetalP3Media } from '../../modules/metalp3-media';
@@ -19,7 +19,7 @@ import { deleteTracksAndPropagate } from '../../src/lib/delete-tracks';
 import { tw } from '../../src/lib/tw';
 import { useNowPlayingState } from '../../src/lib/useNowPlayingState';
 import { useTrackExtras } from '../../src/lib/useTrackExtras';
-import { useArtworkTheme } from '../../src/theme/useArtworkTheme';
+import { prefetchArtworkTheme, useArtworkTheme } from '../../src/theme/useArtworkTheme';
 import type { Track } from '../../modules/metalp3-media/src/MetalP3Media.types';
 
 export default function AlbumDetailScreen() {
@@ -36,20 +36,14 @@ export default function AlbumDetailScreen() {
   const albumUrl = extras.metalArchivesUrl;
   const flag = toFlagEmoji(extras.country);
   const playingTrackId = nowPlaying?.current?.id ?? null;
-  const miniPlayerPad = nowPlaying?.current ? MINI_PLAYER_HEIGHT + 16 : 0;
+  const hasMiniPlayer = !!nowPlaying?.current;
+  const listBottomPad = hasMiniPlayer ? insets.bottom + 24 + MINI_PLAYER_HEIGHT + 16 : insets.bottom + 8;
   const [artUri, setArtUri] = useState<string | null>(null);
   const [longPressedTrackId, setLongPressedTrackId] = useState<string | null>(null);
   const [pendingDeleteTrack, setPendingDeleteTrack] = useState<Track | null>(null);
   const [deleteBusy, setDeleteBusy] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const swipeableRefs = useRef(new Map<string, Swipeable>());
-  const scrollY = useRef(new Animated.Value(0)).current;
-  const headerHeight = insets.top + 56;
-  const headerOpacity = scrollY.interpolate({
-    inputRange: [0, 220, 280],
-    outputRange: [0, 0, 1],
-    extrapolate: 'clamp',
-  });
 
   useEffect(() => subscribeLibrary(() => forceTick((n) => n + 1)), []);
 
@@ -89,6 +83,7 @@ export default function AlbumDetailScreen() {
   const meta = `${group.trackCount} ${group.trackCount === 1 ? 'song' : 'songs'} · ${formatAlbumDuration(group.totalDurationMs)}`;
 
   const playFrom = async (index: number) => {
+    prefetchArtworkTheme(group.tracks[index]?.uri);
     try {
       await MetalP3Player.setShuffle(false);
       await MetalP3Player.setQueueAsync(group.tracks.map(toQueueItem), index, 0);
@@ -101,8 +96,10 @@ export default function AlbumDetailScreen() {
   };
 
   const playShuffled = async () => {
+    const ordered = shuffled(group.tracks);
+    prefetchArtworkTheme(ordered[0]?.uri);
     try {
-      await MetalP3Player.setQueueAsync(shuffled(group.tracks).map(toQueueItem), 0, 0);
+      await MetalP3Player.setQueueAsync(ordered.map(toQueueItem), 0, 0);
       await MetalP3Player.setShuffle(true);
       await MetalP3Player.play();
     } catch (err) {
@@ -153,21 +150,42 @@ export default function AlbumDetailScreen() {
           title: group.albumName,
           headerShown: true,
           headerTintColor: theme.foreground,
-          headerTitleStyle: { color: theme.foreground },
+          headerTitleAlign: 'center',
+          headerTitle: () => (
+            <View style={tw`items-center`} testID="album-detail-header-title">
+              <Text
+                style={[tw`text-base font-semibold`, { color: theme.foreground }]}
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
+                {group.albumName}
+              </Text>
+              <Text
+                style={[tw`text-xs`, { color: theme.mutedForeground }]}
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
+                {group.bandName}
+              </Text>
+            </View>
+          ),
           headerTransparent: true,
           headerShadowVisible: false,
-          headerBackground: () => (
-            <Animated.View
-              style={[
-                StyleSheet.absoluteFill,
-                {
-                  height: headerHeight,
-                  backgroundColor: theme.background,
-                  opacity: headerOpacity,
-                },
-              ]}
-            />
-          ),
+          headerBackground: () =>
+            artUri ? (
+              <View style={StyleSheet.absoluteFill}>
+                <Image
+                  source={{ uri: artUri }}
+                  style={StyleSheet.absoluteFill}
+                  resizeMode="cover"
+                  blurRadius={10}
+                />
+                <BlurView intensity={35} tint="dark" style={StyleSheet.absoluteFill} />
+                <View style={[StyleSheet.absoluteFill, tw`bg-black/30`]} />
+              </View>
+            ) : (
+              <View style={[StyleSheet.absoluteFill, { backgroundColor: theme.background }]} />
+            ),
         }}
       />
 
@@ -179,17 +197,12 @@ export default function AlbumDetailScreen() {
         </View>
       ) : null}
 
-      <Animated.FlatList
+      <FlatList<Track>
         data={group.tracks}
-        keyExtractor={(t: Track) => t.id}
-        contentContainerStyle={{ paddingBottom: insets.bottom + 24 + miniPlayerPad }}
-        onScroll={Animated.event(
-          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-          { useNativeDriver: true },
-        )}
-        scrollEventThrottle={16}
+        keyExtractor={(t) => t.id}
+        contentContainerStyle={{ paddingBottom: listBottomPad }}
         ListHeaderComponent={
-          <View style={[tw`px-4 pb-6 items-center`, { paddingTop: insets.top + 56 }]}>
+          <View style={[tw`px-4 pb-6 items-center`, { paddingTop: insets.top + 88 }]}>
             <View
               style={tw`w-[220px] h-[220px] rounded-lg overflow-hidden bg-[#222] mb-4`}
               testID="album-detail-artwork"

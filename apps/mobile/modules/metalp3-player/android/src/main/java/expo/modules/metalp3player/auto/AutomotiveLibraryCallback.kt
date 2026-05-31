@@ -297,6 +297,7 @@ class AutomotiveLibraryCallback(private val context: Context) :
       .setIsBrowsable(false)
       .setIsPlayable(true)
       .setMediaType(MediaMetadata.MEDIA_TYPE_MUSIC)
+      .setDurationMs(track.durationMs)
       .build()
     return MediaItem.Builder()
       .setMediaId(Ids.track(track.id))

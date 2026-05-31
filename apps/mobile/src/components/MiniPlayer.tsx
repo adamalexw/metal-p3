@@ -1,11 +1,12 @@
 import { usePathname, useRouter } from 'expo-router';
 import { Disc3, Pause, Play, SkipBack, SkipForward } from 'lucide-react-native';
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MetalP3Player } from '../../modules/metalp3-player';
 import { useNowPlayingState } from '../lib/useNowPlayingState';
 import { tw } from '../lib/tw';
 import { useArtworkTheme } from '../theme/useArtworkTheme';
+import ArtworkImage from './ArtworkImage';
 
 export const MINI_PLAYER_HEIGHT = 72;
 
@@ -66,20 +67,17 @@ export default function MiniPlayer() {
               { backgroundColor: theme.surface },
             ]}
           >
-            {theme.artworkDataUri ? (
-              <Image
-                source={{ uri: theme.artworkDataUri }}
-                style={tw`w-full h-full`}
-                resizeMode="cover"
-              />
-            ) : (
-              <Disc3
-                size={32}
-                color={theme.mutedForeground}
-                strokeWidth={ICON_STROKE}
-                strokeLinecap="square"
-              />
-            )}
+            <Disc3
+              size={32}
+              color={theme.mutedForeground}
+              strokeWidth={ICON_STROKE}
+              strokeLinecap="square"
+            />
+            <ArtworkImage
+              uri={theme.artworkDataUri}
+              style={tw`absolute inset-0 w-full h-full`}
+              resizeMode="cover"
+            />
           </View>
           <View style={tw`flex-1 px-3 justify-center`}>
             <Text

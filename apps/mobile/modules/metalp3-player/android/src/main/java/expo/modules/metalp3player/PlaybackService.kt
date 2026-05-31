@@ -157,6 +157,8 @@ class PlaybackService : MediaLibraryService() {
         queueCount = player.mediaItemCount,
         shuffle = player.shuffleModeEnabled,
         repeatMode = repeatMode,
+        canSkipNext = hasQueue && player.hasNextMediaItem(),
+        canSkipPrev = hasQueue && player.hasPreviousMediaItem(),
         foreground = if (keepArtwork) prev.foreground else WidgetSnapshot.EMPTY.foreground,
         mutedForeground = if (keepArtwork) prev.mutedForeground else WidgetSnapshot.EMPTY.mutedForeground,
         accent = if (keepArtwork) prev.accent else WidgetSnapshot.EMPTY.accent,

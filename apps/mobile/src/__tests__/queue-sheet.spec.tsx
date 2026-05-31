@@ -13,6 +13,8 @@ const mockPlayer = {
   setRepeatModeAsync: jest.fn().mockResolvedValue(undefined),
   setShuffleAsync: jest.fn().mockResolvedValue(undefined),
   moveQueueItemAsync: jest.fn().mockResolvedValue(undefined),
+  removeQueueItemAsync: jest.fn().mockResolvedValue(undefined),
+  clearQueueAsync: jest.fn().mockResolvedValue(undefined),
   getStateAsync: jest.fn(),
   addListener: jest.fn().mockReturnValue({ remove: jest.fn() }),
 };
@@ -21,9 +23,46 @@ jest.mock('expo-modules-core', () => ({
   requireNativeModule: () => mockPlayer,
 }));
 
+jest.mock('../../modules/metalp3-media', () => ({
+  MetalP3Media: {
+    getArtworkAsync: jest.fn().mockResolvedValue(null),
+  },
+}));
+
 jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
 }));
+
+const mockReplace = jest.fn();
+jest.mock('expo-router', () => ({
+  useRouter: () => ({ replace: mockReplace, push: jest.fn(), back: jest.fn() }),
+}));
+
+jest.mock('react-native-gesture-handler', () => {
+  const React = require('react');
+  const { View } = require('react-native');
+  const GestureHandlerRootView = ({ children, style }: { children?: React.ReactNode; style?: unknown }) =>
+    React.createElement(View, { style }, children);
+  const Swipeable = React.forwardRef(
+    (
+      props: {
+        renderRightActions?: () => React.ReactNode;
+        children?: React.ReactNode;
+        testID?: string;
+      },
+      ref: React.Ref<unknown>,
+    ) => {
+      React.useImperativeHandle(ref, () => ({ close: () => undefined }));
+      return React.createElement(
+        View,
+        { testID: props.testID },
+        props.children,
+        props.renderRightActions ? props.renderRightActions() : null,
+      );
+    },
+  );
+  return { GestureHandlerRootView, Swipeable };
+});
 
 interface DragEndArgs {
   data: QueueItem[];
@@ -159,5 +198,52 @@ describe('QueueSheet', () => {
 
     fireEvent.press(getByTestId('player-queue-close'));
     expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('clears the queue, closes, and navigates back to the library', () => {
+    const onClose = jest.fn();
+    const { getByTestId } = render(
+      <QueueSheet
+        visible={true}
+        onClose={onClose}
+        queue={queue}
+        currentIndex={0}
+        theme={theme}
+      />,
+    );
+
+    fireEvent.press(getByTestId('player-queue-clear'));
+    expect(mockPlayer.clearQueueAsync).toHaveBeenCalledTimes(1);
+    expect(onClose).toHaveBeenCalledTimes(1);
+    expect(mockReplace).toHaveBeenCalledWith('/(tabs)');
+  });
+
+  it('hides the clear button when the queue is empty', () => {
+    const { queryByTestId } = render(
+      <QueueSheet
+        visible={true}
+        onClose={() => undefined}
+        queue={[]}
+        currentIndex={-1}
+        theme={theme}
+      />,
+    );
+
+    expect(queryByTestId('player-queue-clear')).toBeNull();
+  });
+
+  it('removes the swiped row at its current index', () => {
+    const { getByTestId } = render(
+      <QueueSheet
+        visible={true}
+        onClose={() => undefined}
+        queue={queue}
+        currentIndex={0}
+        theme={theme}
+      />,
+    );
+
+    fireEvent.press(getByTestId('queue-row-remove-b'));
+    expect(mockPlayer.removeQueueItemAsync).toHaveBeenCalledWith(1);
   });
 });

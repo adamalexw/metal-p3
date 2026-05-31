@@ -17,6 +17,8 @@ interface NativeModule {
   setShuffleAsync(on: boolean): Promise<void>;
   replaceUpcomingAsync(items: QueueItem[]): Promise<void>;
   moveQueueItemAsync(fromIndex: number, toIndex: number): Promise<void>;
+  removeQueueItemAsync(index: number): Promise<void>;
+  clearQueueAsync(): Promise<void>;
   getStateAsync(): Promise<PlaybackState>;
   setPlaylistsAsync(json: string): Promise<void>;
   addListener(eventName: 'stateChanged', listener: (state: PlaybackState) => void): EventSubscription;
@@ -40,6 +42,8 @@ export const MetalP3Player = {
   replaceUpcoming: (items: QueueItem[]) => native.replaceUpcomingAsync(items),
   moveQueueItem: (fromIndex: number, toIndex: number) =>
     native.moveQueueItemAsync(fromIndex, toIndex),
+  removeQueueItem: (index: number) => native.removeQueueItemAsync(index),
+  clearQueue: () => native.clearQueueAsync(),
   getStateAsync: () => native.getStateAsync(),
   setPlaylists: (json: string) => native.setPlaylistsAsync(json),
   addStateListener: (listener: (state: PlaybackState) => void) =>

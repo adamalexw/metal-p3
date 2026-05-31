@@ -1,21 +1,27 @@
 import { DrawerContentScrollView, DrawerItemList, type DrawerContentComponentProps } from '@react-navigation/drawer';
+import { BlurView } from 'expo-blur';
 import { Drawer } from 'expo-router/drawer';
-import { Image, View } from 'react-native';
+import { Disc3, ListMusic, Music4 } from 'lucide-react-native';
+import { Image, StyleSheet, View } from 'react-native';
 import { tw } from '../../src/lib/tw';
 import { useNowPlayingState } from '../../src/lib/useNowPlayingState';
 
 function DrawerContent(props: DrawerContentComponentProps) {
   return (
-    <DrawerContentScrollView {...props}>
-      <View style={tw`items-center py-6 border-b border-neutral-800 mb-2`}>
-        <Image
-          source={require('../../assets/images/splash-icon.png')}
-          style={tw`w-32 h-32`}
-          resizeMode="contain"
-        />
-      </View>
-      <DrawerItemList {...props} />
-    </DrawerContentScrollView>
+    <View style={tw`flex-1`}>
+      <BlurView intensity={40} tint="dark" style={StyleSheet.absoluteFill} />
+      <View style={[StyleSheet.absoluteFill, tw`bg-black/60`]} />
+      <DrawerContentScrollView {...props}>
+        <View style={tw`items-center py-8 border-b border-white/[0.08] mb-2`}>
+          <Image
+            source={require('../../assets/images/splash-icon.png')}
+            style={tw`w-56 h-56`}
+            resizeMode="contain"
+          />
+        </View>
+        <DrawerItemList {...props} />
+      </DrawerContentScrollView>
+    </View>
   );
 }
 
@@ -29,21 +35,44 @@ export default function TabsLayout() {
       screenOptions={{
         headerStyle: { backgroundColor: '#000' },
         headerTintColor: '#fff',
-        drawerStyle: { backgroundColor: '#111' },
+        drawerStyle: { backgroundColor: 'transparent' },
         drawerActiveTintColor: '#fff',
-        drawerInactiveTintColor: '#888',
-        drawerActiveBackgroundColor: '#222',
+        drawerInactiveTintColor: '#bbb',
+        drawerActiveBackgroundColor: 'rgba(255,255,255,0.12)',
         sceneStyle: { backgroundColor: '#000' },
       }}
     >
-      <Drawer.Screen name="index" options={{ title: 'Library', drawerLabel: 'Library' }} />
-      <Drawer.Screen name="playlists" options={{ title: 'Playlists', drawerLabel: 'Playlists' }} />
+      <Drawer.Screen
+        name="index"
+        options={{
+          title: 'Library',
+          drawerLabel: 'Library',
+          headerShown: false,
+          drawerIcon: ({ color }) => (
+            <Disc3 size={22} color={color} strokeWidth={2.25} strokeLinecap="square" />
+          ),
+        }}
+      />
+      <Drawer.Screen
+        name="playlists"
+        options={{
+          title: 'Playlists',
+          drawerLabel: 'Playlists',
+          headerShown: false,
+          drawerIcon: ({ color }) => (
+            <ListMusic size={22} color={color} strokeWidth={2.25} strokeLinecap="square" />
+          ),
+        }}
+      />
       <Drawer.Screen
         name="player"
         options={{
           title: 'Now Playing',
           drawerLabel: 'Now Playing',
           drawerItemStyle: hasQueue ? undefined : { display: 'none' },
+          drawerIcon: ({ color }) => (
+            <Music4 size={22} color={color} strokeWidth={2.25} strokeLinecap="square" />
+          ),
         }}
       />
     </Drawer>

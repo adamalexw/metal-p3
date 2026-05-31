@@ -24,14 +24,36 @@ jest.mock('@react-native-async-storage/async-storage', () => {
 });
 
 const mockPush = jest.fn();
-jest.mock('expo-router', () => ({ useRouter: () => ({ push: mockPush }) }));
+jest.mock('expo-router', () => ({
+  useRouter: () => ({ push: mockPush }),
+  useNavigation: () => ({ dispatch: jest.fn() }),
+}));
 
 jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
 }));
 
+const mockPlayer = {
+  setQueueAsync: jest.fn().mockResolvedValue(undefined),
+  playAsync: jest.fn().mockResolvedValue(undefined),
+  pauseAsync: jest.fn().mockResolvedValue(undefined),
+  stopAsync: jest.fn().mockResolvedValue(undefined),
+  seekToAsync: jest.fn().mockResolvedValue(undefined),
+  skipToNextAsync: jest.fn().mockResolvedValue(undefined),
+  skipToPreviousAsync: jest.fn().mockResolvedValue(undefined),
+  setRepeatModeAsync: jest.fn().mockResolvedValue(undefined),
+  setShuffleAsync: jest.fn().mockResolvedValue(undefined),
+  setPlaylistsAsync: jest.fn().mockResolvedValue(undefined),
+  getStateAsync: jest.fn().mockResolvedValue({
+    ready: false, isPlaying: false, isLoading: false, currentIndex: -1,
+    positionMs: 0, durationMs: 0, bufferedMs: 0, playbackRate: 1,
+    repeatMode: 'off', shuffle: false, current: null, queue: [],
+  }),
+  addListener: jest.fn().mockReturnValue({ remove: jest.fn() }),
+};
+
 jest.mock('expo-modules-core', () => ({
-  requireNativeModule: () => ({}),
+  requireNativeModule: () => mockPlayer,
 }));
 
 const PlaylistsListScreen = require('../../app/(tabs)/playlists/index').default;
@@ -57,7 +79,7 @@ describe('PlaylistsListScreen', () => {
 
     const { findByTestId, getByTestId, queryByTestId } = render(<PlaylistsListScreen />);
 
-    const row = await findByTestId(`playlist-row-${b.id}`);
+    const row = await findByTestId(`playlist-tile-${b.id}`);
     fireEvent(row, 'longPress');
 
     fireEvent.press(getByTestId(`playlist-context-delete-${b.id}`));
@@ -73,7 +95,7 @@ describe('PlaylistsListScreen', () => {
     );
     expect(getPlaylists()[0].id).toBe(a.id);
     await waitFor(() => {
-      expect(queryByTestId(`playlist-row-${b.id}`)).toBeNull();
+      expect(queryByTestId(`playlist-tile-${b.id}`)).toBeNull();
     });
   });
 
@@ -81,7 +103,7 @@ describe('PlaylistsListScreen', () => {
     const a = await createPlaylist('Stays');
     const { findByTestId, getByTestId, queryByTestId } = render(<PlaylistsListScreen />);
 
-    const row = await findByTestId(`playlist-row-${a.id}`);
+    const row = await findByTestId(`playlist-tile-${a.id}`);
     fireEvent(row, 'longPress');
     fireEvent.press(getByTestId(`playlist-context-delete-${a.id}`));
     await findByTestId('confirm-delete-sheet');

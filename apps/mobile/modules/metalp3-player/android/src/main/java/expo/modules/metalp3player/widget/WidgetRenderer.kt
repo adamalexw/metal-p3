@@ -45,7 +45,10 @@ object WidgetRenderer {
     if (snap.artwork != null) {
       views.setImageViewBitmap(R.id.metalp3_widget_art, snap.artwork)
     } else {
-      views.setImageViewResource(R.id.metalp3_widget_art, R.drawable.metalp3_widget_ic_note)
+      // No queue → show the app's splash icon as the artwork tile so the
+      // widget reads as "Metal P3" rather than a generic music-note silhouette.
+      // Once playback starts, the real artwork bitmap takes over.
+      views.setImageViewResource(R.id.metalp3_widget_art, R.drawable.metalp3_widget_splash)
     }
 
     if (snap.artworkBlurred != null) {
@@ -66,14 +69,18 @@ object WidgetRenderer {
 
     // Tint transport icons by reflecting setColorFilter(Int) on the ImageButton.
     // RemoteViews has supported the int form since API 1.
-    val foregroundButtons = intArrayOf(
+    views.setInt(R.id.metalp3_widget_play_pause, "setColorFilter", snap.foreground)
+    val disabledColor = dim(snap.foreground, 0.3f)
+    views.setInt(
       R.id.metalp3_widget_prev,
-      R.id.metalp3_widget_next,
-      R.id.metalp3_widget_play_pause,
+      "setColorFilter",
+      if (snap.canSkipPrev) snap.foreground else disabledColor,
     )
-    for (id in foregroundButtons) {
-      views.setInt(id, "setColorFilter", snap.foreground)
-    }
+    views.setInt(
+      R.id.metalp3_widget_next,
+      "setColorFilter",
+      if (snap.canSkipNext) snap.foreground else disabledColor,
+    )
     val shuffleColor = if (snap.shuffle) snap.accent else dim(snap.foreground, 0.55f)
     val repeatColor = if (snap.repeatMode != "off") snap.accent else dim(snap.foreground, 0.55f)
     views.setInt(R.id.metalp3_widget_shuffle, "setColorFilter", shuffleColor)
@@ -84,14 +91,25 @@ object WidgetRenderer {
       else openAppIntent(ctx)
 
     views.setOnClickPendingIntent(R.id.metalp3_widget_play_pause, playPauseIntent)
-    views.setOnClickPendingIntent(
+    setTransportClick(
+      views,
       R.id.metalp3_widget_prev,
-      broadcast(ctx, PlaybackWidgetProvider.ACTION_PREV),
+      ctx,
+      PlaybackWidgetProvider.ACTION_PREV,
+      enabled = snap.canSkipPrev,
     )
-    views.setOnClickPendingIntent(
+    setTransportClick(
+      views,
       R.id.metalp3_widget_next,
-      broadcast(ctx, PlaybackWidgetProvider.ACTION_NEXT),
+      ctx,
+      PlaybackWidgetProvider.ACTION_NEXT,
+      enabled = snap.canSkipNext,
     )
+    // Older devices throw if the API isn't found; setBoolean has been on
+    // ImageButton since API 1 (via View#setEnabled), so this is safe.
+    views.setBoolean(R.id.metalp3_widget_prev, "setEnabled", snap.canSkipPrev)
+    views.setBoolean(R.id.metalp3_widget_next, "setEnabled", snap.canSkipNext)
+
     views.setOnClickPendingIntent(
       R.id.metalp3_widget_shuffle,
       broadcast(ctx, PlaybackWidgetProvider.ACTION_SHUFFLE),
@@ -122,6 +140,26 @@ object WidgetRenderer {
     val g = (Color.green(color) * a).toInt().coerceIn(0, 255)
     val b = (Color.blue(color) * a).toInt().coerceIn(0, 255)
     return Color.argb(Color.alpha(color), r, g, b)
+  }
+
+  /**
+   * Wires the click target for a transport button. When [enabled] is false we
+   * clear the pending intent so taps don't fire the action; the renderer also
+   * dims the icon and calls setEnabled(false) on the view so launchers that
+   * respect that flag will mark it un-pressable.
+   */
+  private fun setTransportClick(
+    views: RemoteViews,
+    viewId: Int,
+    ctx: Context,
+    action: String,
+    enabled: Boolean,
+  ) {
+    if (enabled) {
+      views.setOnClickPendingIntent(viewId, broadcast(ctx, action))
+    } else {
+      views.setOnClickPendingIntent(viewId, null)
+    }
   }
 
   private fun broadcast(ctx: Context, action: String): PendingIntent {

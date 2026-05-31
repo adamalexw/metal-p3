@@ -107,6 +107,19 @@ class MetalP3PlayerModule : Module() {
       withController { it.moveMediaItem(fromIndex, toIndex) }
     }
 
+    AsyncFunction("removeQueueItemAsync") { index: Int ->
+      withController { c ->
+        if (index in 0 until c.mediaItemCount) c.removeMediaItem(index)
+      }
+    }
+
+    AsyncFunction("clearQueueAsync") {
+      withController { c ->
+        c.stop()
+        c.clearMediaItems()
+      }
+    }
+
     AsyncFunction("getStateAsync") {
       runOnMainBlocking { snapshotState() }
     }
@@ -157,6 +170,11 @@ class MetalP3PlayerModule : Module() {
       .build()
   }
 
+  // Auto's media tree prefixes track ids ("metalp3:track:<n>"). JS uses the bare
+  // MediaStore id, so strip the prefix when reporting state to JS.
+  private fun stripTrackPrefix(id: String?): String? =
+    id?.removePrefix("metalp3:track:")
+
   private fun snapshotState(): Map<String, Any?> {
     val c = controller ?: return mapOf(
       "ready" to false,
@@ -177,7 +195,7 @@ class MetalP3PlayerModule : Module() {
       val item = c.getMediaItemAt(i)
       val itemMd = item.mediaMetadata
       mapOf(
-        "id" to item.mediaId,
+        "id" to stripTrackPrefix(item.mediaId),
         "uri" to item.localConfiguration?.uri?.toString(),
         "title" to itemMd.title?.toString(),
         "artist" to itemMd.artist?.toString(),
@@ -203,7 +221,7 @@ class MetalP3PlayerModule : Module() {
       },
       "shuffle" to userShuffle,
       "current" to mapOf(
-        "id" to c.currentMediaItem?.mediaId,
+        "id" to stripTrackPrefix(c.currentMediaItem?.mediaId),
         "uri" to c.currentMediaItem?.localConfiguration?.uri?.toString(),
         "title" to md.title?.toString(),
         "artist" to md.artist?.toString(),
