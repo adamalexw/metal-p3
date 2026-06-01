@@ -1,0 +1,21 @@
+{
+  "name": "shared-lrclib",
+  "$schema": "..\\..\\..\\node_modules\\nx\\schemas\\project-schema.json",
+  "sourceRoot": "libs/shared/lrclib/src",
+  "projectType": "library",
+  "tags": ["scope:shared", "type:api"],
+  "targets": {
+    "test": {
+      "outputs": ["{workspaceRoot}/coverage/libs/shared/lrclib", "{workspaceRoot}\\coverage\\libs\\shared\\lrclib"],
+      "options": {
+        "passWithNoTests": true
+      },
+      "configurations": {
+        "ci": {
+          "ci": true,
+          "coverage": true
+        }
+      }
+    }
+  }
+}
