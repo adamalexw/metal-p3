@@ -247,6 +247,35 @@ export const albumsFeature = createFeature({
           state,
         ),
     ),
+    on(
+      TrackActions.getSyncedLyrics,
+      (state, { id, maTrackId }): AlbumState =>
+        albumAdapter.mapOne(
+          {
+            id,
+            map: (album) => ({
+              ...album,
+              maTracks: maTrackAdapter.updateOne({ id: maTrackId, changes: { lyricsLoading: true } }, album.maTracks),
+            }),
+          },
+          state,
+        ),
+    ),
+    on(
+      TrackActions.getSyncedLyricsSuccess,
+      (state, { id, localTrackId, syncedLyrics }): AlbumState =>
+        albumAdapter.mapOne(
+          {
+            id,
+            map: (album) => ({
+              ...album,
+              tracks: trackAdapter.updateOne({ id: localTrackId, changes: { syncedLyrics, lyricsSource: 'synced' } }, album.tracks),
+              maTracks: maTrackAdapter.map((maTrack) => (maTrack.lyricsLoading ? { ...maTrack, lyricsLoading: false } : maTrack), album.maTracks),
+            }),
+          },
+          state,
+        ),
+    ),
     on(TrackActions.getMetalArchivesTracks, (state, { id }): AlbumState => albumAdapter.updateOne({ id, changes: { gettingMaTracks: true } }, state)),
     on(
       TrackActions.getMetalArchivesTracksSuccess,

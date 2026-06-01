@@ -33,7 +33,10 @@
     <ng-container matColumnDef="title">
       <mat-header-cell *matHeaderCellDef>Track</mat-header-cell>
       <mat-cell *matCellDef="let element">
-        {{ element.title }}
+        <span>{{ element.title }}</span>
+        @if (element.lyricsSource === 'synced') {
+          <span class="ml-2 rounded bg-emerald-700 px-2 py-0.5 text-xs uppercase text-white">Synced</span>
+        }
       </mat-cell>
     </ng-container>
 

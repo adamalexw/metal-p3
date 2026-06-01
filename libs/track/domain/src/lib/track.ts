@@ -1,6 +1,8 @@
 import { FormControl } from '@angular/forms';
 import { TrackDto } from '@metal-p3/api-interfaces';
 
+export type TrackLyricsSource = 'synced' | 'plain';
+
 export interface Track extends TrackDto {
   trackSaving?: boolean;
   trackSavingError?: string;
@@ -10,6 +12,7 @@ export interface Track extends TrackDto {
   trackDeleting?: boolean;
   trackDeletionError?: string;
   playlistItemId?: number;
+  lyricsSource?: TrackLyricsSource | null;
 }
 
 export type TracksForm = {

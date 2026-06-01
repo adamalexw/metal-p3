@@ -86,6 +86,30 @@ export class TrackEffects {
     );
   });
 
+  getSyncedLyrics$ = createEffect(() => {
+    return this.actions$.pipe(
+      ofType(TrackActions.getSyncedLyrics),
+      mergeMap(({ id, localTrackId, maTrackId, artist, track, album, durationSeconds }) =>
+        this.service.getSyncedLyrics({ artist, track, album, durationSeconds }).pipe(
+          map((result) => {
+            if (result?.syncedLyrics && !result.instrumental) {
+              return TrackActions.getSyncedLyricsSuccess({ id, localTrackId, syncedLyrics: result.syncedLyrics });
+            }
+            return TrackActions.getSyncedLyricsMiss({ id, localTrackId, maTrackId });
+          }),
+          catchError(() => of(TrackActions.getSyncedLyricsMiss({ id, localTrackId, maTrackId }))),
+        ),
+      ),
+    );
+  });
+
+  syncedLyricsFallback$ = createEffect(() => {
+    return this.actions$.pipe(
+      ofType(TrackActions.getSyncedLyricsMiss),
+      map(({ id, maTrackId }) => TrackActions.getLyrics({ id, trackId: maTrackId })),
+    );
+  });
+
   renameTrack$ = createEffect(() => {
     return this.actions$.pipe(
       ofType(TrackActions.renameTrack),
