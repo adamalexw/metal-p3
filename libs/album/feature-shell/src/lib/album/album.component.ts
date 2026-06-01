@@ -326,8 +326,8 @@ export class AlbumShellComponent implements OnInit {
   }
 
   private getTrack(album: AlbumWithoutTracks, albumTrack: Track): Track {
-    const { artist, genre, year, artistUrl, albumUrl, cover } = album;
-    const track = { ...albumTrack, artist, genre, year, artistUrl, albumUrl, cover, album: album.album };
+    const { artist, genre, year, country, artistUrl, albumUrl, cover } = album;
+    const track = { ...albumTrack, artist, genre, year, country, artistUrl, albumUrl, cover, album: album.album };
     return track;
   }
 
