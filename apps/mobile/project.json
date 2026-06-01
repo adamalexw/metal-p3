@@ -71,15 +71,6 @@
         "platform": "all",
         "outputDir": "apps/mobile/dist"
       }
-    },
-    "serve-static": {
-      "executor": "@nx/web:file-server",
-      "dependsOn": ["export"],
-      "options": {
-        "buildTarget": "mobile:export",
-        "staticFilePath": "apps/mobile/dist",
-        "spa": true
-      }
     }
   }
 }
