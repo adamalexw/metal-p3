@@ -10,18 +10,25 @@ import android.graphics.Rect
 import android.graphics.RectF
 import android.graphics.Shader
 import android.media.MediaMetadataRetriever
+import android.net.Uri
 import android.util.Log
 import androidx.annotation.OptIn
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
+import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
+import androidx.media3.common.util.BitmapLoader
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.session.CacheBitmapLoader
 import androidx.media3.session.MediaLibraryService
 import androidx.media3.session.MediaSession
 import androidx.palette.graphics.Palette
+import com.google.common.util.concurrent.Futures
+import com.google.common.util.concurrent.ListenableFuture
+import java.util.concurrent.Callable
 import expo.modules.metalp3player.auto.AutomotiveLibraryCallback
 import expo.modules.metalp3player.widget.PlaybackService_BridgeSnapshot
 import expo.modules.metalp3player.widget.WidgetRenderer
@@ -74,6 +81,7 @@ class PlaybackService : MediaLibraryService() {
 
     librarySession = MediaLibrarySession
       .Builder(this, player, AutomotiveLibraryCallback(applicationContext))
+      .setBitmapLoader(CacheBitmapLoader(LockscreenBitmapLoader(applicationContext) { player }))
       .build()
 
     player.addListener(object : Player.Listener {
@@ -307,4 +315,90 @@ class PlaybackService : MediaLibraryService() {
 
   private fun withAlpha(color: Int, alpha: Int): Int =
     (alpha and 0xFF shl 24) or (color and 0x00FFFFFF)
+}
+
+/**
+ * Resolves album art for the lockscreen / Bluetooth / Auto media controls. The
+ * default `DataSourceBitmapLoader` only handles standalone image URIs; our
+ * tracks store art embedded in the audio file, so we mirror the same path the
+ * widget renderer uses (artworkData first, then MediaMetadataRetriever on the
+ * source URI).
+ */
+@OptIn(UnstableApi::class)
+private class LockscreenBitmapLoader(
+  private val context: android.content.Context,
+  private val playerProvider: () -> ExoPlayer,
+) : BitmapLoader {
+  private val executor = Executors.newSingleThreadExecutor()
+
+  override fun supportsMimeType(mimeType: String): Boolean = true
+
+  override fun decodeBitmap(data: ByteArray): ListenableFuture<Bitmap> =
+    Futures.submit(
+      Callable {
+        decodeBytes(data) ?: throw IllegalStateException("decodeBitmap returned null")
+      },
+      executor,
+    )
+
+  override fun loadBitmap(uri: Uri): ListenableFuture<Bitmap> =
+    Futures.submit(
+      Callable {
+        loadFromUriOrPlayer(uri) ?: throw IllegalStateException("loadBitmap($uri) returned null")
+      },
+      executor,
+    )
+
+  override fun loadBitmapFromMetadata(metadata: MediaMetadata): ListenableFuture<Bitmap>? {
+    val data = metadata.artworkData
+    if (data != null && data.isNotEmpty()) return decodeBitmap(data)
+    // ExoPlayer's extractor populates artworkData mid-playback, after the
+    // system has already cached our static MediaItem metadata. Fall back to
+    // the live player metadata so re-queries get the embedded art.
+    val livePlayerArt = livePlayerArtwork()
+    if (livePlayerArt != null) return decodeBitmap(livePlayerArt)
+    val uri = metadata.artworkUri ?: return null
+    return loadBitmap(uri)
+  }
+
+  private fun livePlayerArtwork(): ByteArray? = try {
+    val art = playerProvider().mediaMetadata.artworkData
+    if (art != null && art.isNotEmpty()) art else null
+  } catch (t: Throwable) {
+    null
+  }
+
+  private fun loadFromUriOrPlayer(uri: Uri): Bitmap? {
+    livePlayerArtwork()?.let { return decodeBytes(it) }
+    return loadFromUri(uri)
+  }
+
+  private fun decodeBytes(bytes: ByteArray): Bitmap? = try {
+    val opts = BitmapFactory.Options().apply { inPreferredConfig = Bitmap.Config.ARGB_8888 }
+    BitmapFactory.decodeByteArray(bytes, 0, bytes.size, opts)
+  } catch (t: Throwable) {
+    null
+  }
+
+  private fun loadFromUri(uri: Uri): Bitmap? {
+    // 1. Try as a plain image (handles MediaStore album-art URIs like
+    //    content://media/external/audio/albumart/<id>, http/file URIs, etc.).
+    val asImage = runCatching {
+      context.contentResolver.openInputStream(uri)?.use { stream ->
+        val opts = BitmapFactory.Options().apply { inPreferredConfig = Bitmap.Config.ARGB_8888 }
+        BitmapFactory.decodeStream(stream, null, opts)
+      }
+    }.getOrNull()
+    if (asImage != null) return asImage
+    // 2. Fall back to MediaMetadataRetriever for audio files with embedded art.
+    return runCatching {
+      val retriever = MediaMetadataRetriever()
+      retriever.use {
+        it.setDataSource(context, uri)
+        val pic = it.embeddedPicture ?: return@runCatching null
+        val opts = BitmapFactory.Options().apply { inPreferredConfig = Bitmap.Config.ARGB_8888 }
+        BitmapFactory.decodeByteArray(pic, 0, pic.size, opts)
+      }
+    }.getOrNull()
+  }
 }

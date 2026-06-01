@@ -153,13 +153,17 @@ class MetalP3PlayerModule : Module() {
   private fun toMediaItem(item: Map<String, Any?>): MediaItem {
     val uri = (item["uri"] as? String)
       ?: throw CodedException("E_BAD_ITEM", "Queue item missing uri", null)
+    val explicitArtworkUri = item["artworkUri"] as? String
     val metadata = MediaMetadata.Builder()
       .setTitle(item["title"] as? String)
       .setArtist(item["artist"] as? String)
       .setAlbumTitle(item["album"] as? String)
       .setAlbumArtist(item["albumArtist"] as? String)
+      // The system requests a bitmap only when artworkUri is set. Use the
+      // source uri as a placeholder; PlaybackService's BitmapLoader prefers
+      // the live extracted artworkData and falls back to opening the uri.
+      .setArtworkUri(Uri.parse(explicitArtworkUri ?: uri))
       .also { b ->
-        (item["artworkUri"] as? String)?.let { b.setArtworkUri(Uri.parse(it)) }
         (item["durationMs"] as? Number)?.toLong()?.let { b.setDurationMs(it) }
       }
       .build()

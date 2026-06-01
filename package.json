@@ -17,6 +17,7 @@
     "mobile:reset": "node tools/scripts/mobile-reset.mjs && nx run mobile:start --clear",
     "mobile:rebuild": "node tools/scripts/mobile-reset.mjs && nx run mobile:run-android",
     "mobile:prebuild-android": "node tools/scripts/mobile-prebuild-android.mjs",
+    "mobile:release-android": "node tools/scripts/mobile-release-android.mjs",
     "updateDbSchema": "npx prisma db pull && npx prisma generate",
     "deploy:api": "npx nx build api --configuration=production && node ./tools/deployment/deploy-api.js",
     "deploy:ui": "set NODE_ENV=production && npx nx build ui --configuration=production && node ./tools/deployment/deploy-ui.js",
