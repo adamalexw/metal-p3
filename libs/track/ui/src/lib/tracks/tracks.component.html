@@ -51,7 +51,7 @@
             <mat-icon>adb</mat-icon>
             <span>Transfer</span>
           </button>
-          <button type="button" (click)="viewLyrics(i, element.get('lyrics')?.value)" mat-menu-item>
+          <button type="button" (click)="viewLyrics(i, element.get('lyrics')?.value, element.get('syncedLyrics')?.value)" mat-menu-item>
             <mat-icon>article</mat-icon>
             <span>Lyrics</span>
           </button>

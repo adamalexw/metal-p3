@@ -22,6 +22,7 @@ export type TracksForm = {
   duration: FormControl<number | undefined>;
   bitrate: FormControl<number | undefined>;
   lyrics: FormControl<string | undefined>;
+  syncedLyrics: FormControl<string | undefined>;
   file: FormControl<string>;
   folder: FormControl<string>;
   fullPath: FormControl<string>;
