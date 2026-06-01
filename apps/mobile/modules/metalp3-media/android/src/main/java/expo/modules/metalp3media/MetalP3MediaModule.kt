@@ -79,6 +79,11 @@ class MetalP3MediaModule : Module() {
       readLyrics(uri)
     }
 
+    AsyncFunction("getSyncedLyricsAsync") { uri: String ->
+      requirePermission()
+      readSyncedLyrics(uri)
+    }
+
     AsyncFunction("getExtrasAsync") { uri: String ->
       requirePermission()
       readExtras(uri)
@@ -644,6 +649,105 @@ class MetalP3MediaModule : Module() {
       ((b[offset + 1].toInt() and 0xFF) shl 16) or
       ((b[offset + 2].toInt() and 0xFF) shl 8) or
       (b[offset + 3].toInt() and 0xFF)
+  }
+
+  // ---- synchronised lyrics (.lrc sidecar) ---------------------------------
+
+  /**
+   * Look up a sibling .lrc file for the given audio URI and parse its timed
+   * lines. Returns { lines: [{startMs, text}, ...] } sorted by startMs, or
+   * null when no sidecar exists, the file is unreadable, or it contains no
+   * valid timed lines.
+   */
+  private fun readSyncedLyrics(uriString: String): Map<String, Any?>? {
+    val audioUri = try { Uri.parse(uriString) } catch (_: Throwable) { return null }
+    val (relativePath, displayName) = lookupAudioMetadata(audioUri) ?: return null
+    val stem = displayName.substringBeforeLast('.', displayName)
+    val lrcUri = findSidecarUri(relativePath, "$stem.lrc") ?: return null
+
+    val text = try {
+      ctx.contentResolver.openInputStream(lrcUri)?.use { input ->
+        input.readBytes().toString(Charsets.UTF_8)
+      }
+    } catch (_: Throwable) {
+      null
+    } ?: return null
+
+    val lines = parseLrc(text)
+    return if (lines.isEmpty()) null else mapOf("lines" to lines)
+  }
+
+  private fun lookupAudioMetadata(audioUri: Uri): Pair<String, String>? {
+    return try {
+      ctx.contentResolver.query(
+        audioUri,
+        arrayOf(MediaStore.MediaColumns.RELATIVE_PATH, MediaStore.MediaColumns.DISPLAY_NAME),
+        null, null, null,
+      )?.use { c ->
+        if (!c.moveToFirst()) return null
+        val rel = c.getStringOrNull(c.getColumnIndex(MediaStore.MediaColumns.RELATIVE_PATH)) ?: return null
+        val name = c.getStringOrNull(c.getColumnIndex(MediaStore.MediaColumns.DISPLAY_NAME)) ?: return null
+        rel to name
+      }
+    } catch (_: Throwable) {
+      null
+    }
+  }
+
+  private fun findSidecarUri(relativePath: String, lrcDisplayName: String): Uri? {
+    val collection = MediaStore.Files.getContentUri(MediaStore.VOLUME_EXTERNAL)
+    val folderWithSlash = if (relativePath.endsWith('/')) relativePath else "$relativePath/"
+    val folderWithout = folderWithSlash.trimEnd('/')
+
+    return try {
+      ctx.contentResolver.query(
+        collection,
+        arrayOf(MediaStore.MediaColumns._ID),
+        "(${MediaStore.MediaColumns.RELATIVE_PATH} = ? OR ${MediaStore.MediaColumns.RELATIVE_PATH} = ?) AND ${MediaStore.MediaColumns.DISPLAY_NAME} = ?",
+        arrayOf(folderWithSlash, folderWithout, lrcDisplayName),
+        null,
+      )?.use { c ->
+        if (!c.moveToFirst()) return null
+        val idIdx = c.getColumnIndexOrThrow(MediaStore.MediaColumns._ID)
+        val id = c.getLong(idIdx)
+        ContentUris.withAppendedId(collection, id)
+      }
+    } catch (_: Throwable) {
+      null
+    }
+  }
+
+  private val lrcTimestampLine = Regex("""\[(\d{1,2}):(\d{2})(?:[.:](\d{1,3}))?]""")
+  private val lrcMetadataLine = Regex("""^\[(?:ar|ti|al|au|by|length|offset|re|tool|ve):""", RegexOption.IGNORE_CASE)
+
+  private fun parseLrc(text: String): List<Map<String, Any?>> {
+    val out = mutableListOf<Pair<Int, String>>()
+    text.split('\n').forEach { rawLine ->
+      val line = rawLine.trimEnd('\r')
+      if (line.isBlank()) return@forEach
+      if (lrcMetadataLine.containsMatchIn(line.trimStart())) return@forEach
+
+      val matches = lrcTimestampLine.findAll(line).toList()
+      if (matches.isEmpty()) return@forEach
+
+      val tail = line.substring(matches.last().range.last + 1).trim()
+      matches.forEach { m ->
+        val mins = m.groupValues[1].toIntOrNull() ?: return@forEach
+        val secs = m.groupValues[2].toIntOrNull() ?: return@forEach
+        val fracRaw = m.groupValues.getOrNull(3) ?: ""
+        val fracMs = when {
+          fracRaw.isEmpty() -> 0
+          fracRaw.length == 1 -> fracRaw.toInt() * 100
+          fracRaw.length == 2 -> fracRaw.toInt() * 10
+          else -> fracRaw.take(3).toInt()
+        }
+        val startMs = ((mins * 60) + secs) * 1000 + fracMs
+        out += startMs to tail
+      }
+    }
+    return out
+      .sortedBy { it.first }
+      .map { (start, txt) -> mapOf("startMs" to start, "text" to txt) }
   }
 
   // ---- extras (country / metal archives url) ------------------------------
