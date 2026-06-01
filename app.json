@@ -1,0 +1,18 @@
+{
+  "plugins": [
+    [
+      "expo-router",
+      {
+        "root": "./apps/mobile/app"
+      }
+    ]
+  ],
+  "extra": {
+    "router": {
+      "root": "apps/mobile/app"
+    }
+  },
+  "android": {
+    "package": "com.metalp3.mobile"
+  }
+}

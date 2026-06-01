@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/metalp3_widget_background">
+
+  <ImageView
+      android:id="@+id/metalp3_widget_bg"
+      android:layout_width="match_parent"
+      android:layout_height="match_parent"
+      android:scaleType="centerCrop"
+      android:importantForAccessibility="no"
+      android:contentDescription="@null" />
+
+  <FrameLayout
+      android:id="@+id/metalp3_widget_scrim"
+      android:layout_width="match_parent"
+      android:layout_height="match_parent"
+      android:background="#B3000000" />
+
+  <LinearLayout
+      android:layout_width="match_parent"
+      android:layout_height="match_parent"
+      android:orientation="horizontal"
+      android:gravity="center_vertical"
+      android:padding="8dp">
+
+    <ImageView
+        android:id="@+id/metalp3_widget_art"
+        android:layout_width="64dp"
+        android:layout_height="64dp"
+        android:scaleType="centerCrop"
+        android:adjustViewBounds="true"
+        android:background="@drawable/metalp3_widget_art_placeholder"
+        android:src="@drawable/metalp3_widget_ic_note"
+        android:contentDescription="@string/metalp3_widget_label" />
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:layout_marginStart="10dp"
+        android:gravity="center_horizontal"
+        android:orientation="vertical">
+
+      <TextView
+          android:id="@+id/metalp3_widget_title"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:textColor="#FFFFFF"
+          android:textSize="13sp"
+          android:textStyle="bold"
+          android:singleLine="true"
+          android:ellipsize="end"
+          android:gravity="center_horizontal"
+          android:text="@string/metalp3_widget_idle" />
+
+      <TextView
+          android:id="@+id/metalp3_widget_subtitle"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:textColor="#C0C0C0"
+          android:textSize="11sp"
+          android:singleLine="true"
+          android:ellipsize="end"
+          android:gravity="center_horizontal"
+          android:layout_marginTop="1dp"
+          android:text="@string/metalp3_widget_tap_to_open" />
+
+      <LinearLayout
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:orientation="horizontal"
+          android:gravity="center_vertical"
+          android:layout_gravity="center_horizontal"
+          android:layout_marginTop="4dp">
+
+        <ImageButton
+            android:id="@+id/metalp3_widget_shuffle"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/metalp3_widget_ic_shuffle"
+            android:scaleType="center"
+            android:contentDescription="Shuffle" />
+
+        <ImageButton
+            android:id="@+id/metalp3_widget_prev"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/metalp3_widget_ic_prev"
+            android:scaleType="center"
+            android:contentDescription="Previous" />
+
+        <ImageButton
+            android:id="@+id/metalp3_widget_play_pause"
+            android:layout_width="36dp"
+            android:layout_height="32dp"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/metalp3_widget_ic_play"
+            android:scaleType="center"
+            android:contentDescription="Play/Pause" />
+
+        <ImageButton
+            android:id="@+id/metalp3_widget_next"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/metalp3_widget_ic_next"
+            android:scaleType="center"
+            android:contentDescription="Next" />
+
+        <ImageButton
+            android:id="@+id/metalp3_widget_repeat"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/metalp3_widget_ic_repeat"
+            android:scaleType="center"
+            android:contentDescription="Repeat" />
+      </LinearLayout>
+    </LinearLayout>
+  </LinearLayout>
+</FrameLayout>

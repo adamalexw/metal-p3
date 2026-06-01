@@ -116,6 +116,11 @@
       "cache": true,
       "dependsOn": ["^build"],
       "inputs": ["production", "^production"]
+    },
+    "@nx/expo:build": {
+      "cache": true,
+      "dependsOn": ["^build"],
+      "inputs": ["production", "^production"]
     }
   },
   "plugins": [
@@ -163,5 +168,8 @@
   },
   "parallel": 1,
   "defaultBase": "master",
-  "analytics": false
+  "analytics": false,
+  "tui": {
+    "enabled": false
+  }
 }

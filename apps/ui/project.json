@@ -14,7 +14,16 @@
         "browser": "apps/ui/src/main.ts",
         "polyfills": ["apps/ui/src/polyfills.ts"],
         "tsConfig": "apps/ui/tsconfig.app.json",
-        "assets": ["apps/ui/src/favicon.ico", "apps/ui/src/assets"],
+        "assets": [
+          "apps/ui/src/favicon.ico",
+          "apps/ui/src/favicon-16x16.png",
+          "apps/ui/src/favicon-32x32.png",
+          "apps/ui/src/apple-touch-icon.png",
+          "apps/ui/src/android-chrome-192x192.png",
+          "apps/ui/src/android-chrome-512x512.png",
+          "apps/ui/src/site.webmanifest",
+          "apps/ui/src/assets"
+        ],
         "styles": ["apps/ui/src/styles.scss"],
         "stylePreprocessorOptions": {
           "includePaths": ["apps/ui/src"]
