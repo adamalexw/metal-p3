@@ -39,6 +39,11 @@ testem.log
 .DS_Store
 Thumbs.db
 
+# Local env / secrets
+.env
+.env.local
+.env.*.local
+
 .angular
 
 .nx/cache
