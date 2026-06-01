@@ -1,8 +1,8 @@
 import { RenameTrack, TrackDto } from '@metal-p3/api-interfaces';
 import { AdbService } from '@metal-p3/shared/adb';
 import { FileSystemService } from '@metal-p3/shared/file-system';
-import { Injectable } from '@nestjs/common';
-import { createReadStream, existsSync, readFileSync } from 'fs';
+import { Injectable, Logger } from '@nestjs/common';
+import { createReadStream, existsSync, readFileSync, unlinkSync, writeFileSync } from 'fs';
 import { IAudioMetadata, IOptions, parseFile } from 'music-metadata';
 import * as NodeID3 from 'node-id3';
 import { ReadStream } from 'node:fs';
@@ -60,6 +60,7 @@ export class TrackService {
       duration: mm.format.duration,
       genre: mm.common.genre && mm.common.genre[0],
       lyrics: this.extractLyrics(mm),
+      syncedLyrics: this.readLrcSidecar(fullPath),
       title: mm.common.title ?? '',
       trackNumber: this.getTrackNo(mm.common.track),
       year: mm.common.year,
@@ -73,6 +74,23 @@ export class TrackService {
     // Fall back to raw native USLT frame when common.lyrics mapping fails
     const native = mm.native['ID3v2.4'] ?? mm.native['ID3v2.3'];
     return native?.find((t) => t.id === 'USLT')?.value?.text;
+  }
+
+  private getLrcSidecarPath(mp3Path: string): string {
+    const dir = dirname(mp3Path);
+    const stem = basename(mp3Path, extname(mp3Path));
+    return join(dir, `${stem}.lrc`);
+  }
+
+  private readLrcSidecar(mp3Path: string): string | undefined {
+    const lrcPath = this.getLrcSidecarPath(mp3Path);
+    if (!existsSync(lrcPath)) return undefined;
+    try {
+      return readFileSync(lrcPath, 'utf8');
+    } catch (error) {
+      Logger.error(`Failed to read lrc sidecar at ${lrcPath}`, error);
+      return undefined;
+    }
   }
 
   private getTrackNo(track: { no: number | null; of: number | null }): string {
@@ -117,7 +135,24 @@ export class TrackService {
       await this.updateTrack(tags, track.fullPath);
     }
 
+    this.persistLrcSidecar(track);
+
     return true;
+  }
+
+  private persistLrcSidecar(track: TrackDto): void {
+    if (track.syncedLyrics === undefined) return;
+
+    const lrcPath = this.getLrcSidecarPath(track.fullPath);
+
+    if (track.syncedLyrics === '') {
+      if (existsSync(lrcPath)) {
+        unlinkSync(lrcPath);
+      }
+      return;
+    }
+
+    writeFileSync(lrcPath, track.syncedLyrics, 'utf8');
   }
 
   async saveTracks(tracks: TrackDto[]): Promise<boolean> {

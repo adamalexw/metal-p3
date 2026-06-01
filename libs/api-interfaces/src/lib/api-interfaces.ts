@@ -45,6 +45,7 @@ export interface TrackBase {
   bitrate?: number;
   duration?: number;
   lyrics?: string;
+  syncedLyrics?: string;
 }
 
 type WithoutNull<T> = { [K in keyof T]: Exclude<T[K], null> };
