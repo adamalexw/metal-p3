@@ -14,7 +14,7 @@ import { Store } from '@ngrx/store';
 import { catchError, concatMap, filter, forkJoin, map, Observable, of, tap } from 'rxjs';
 import { PlaylistService } from '../playlist.service';
 import { PlaylistActions } from './actions';
-import { selectActivePlaylistId, selectPlaylistById } from './selectors';
+import { selectActivePlaylist, selectActivePlaylistId, selectPlaylistById } from './selectors';
 
 @Injectable()
 export class PlaylistEffects {
@@ -142,11 +142,25 @@ export class PlaylistEffects {
   transfer$ = createEffect(() => {
     return this.actions$.pipe(
       ofType(PlaylistActions.transfer),
-      concatLatestFrom(() => this.store.select(selectPlaylist).pipe(nonNullable())),
-      concatMap(([_, tracks]) => {
+      concatLatestFrom(() => [this.store.select(selectPlaylist).pipe(nonNullable()), this.store.select(selectActivePlaylist)]),
+      concatMap(([_, tracks, activePlaylist]) => {
         const tracks$ = tracks.map((track) => this.trackService.transferTrack(track.fullPath));
 
-        return forkJoin(tracks$);
+        return forkJoin(tracks$).pipe(
+          concatMap(() => {
+            if (!activePlaylist?.name) {
+              return of(undefined);
+            }
+
+            return this.trackService
+              .transferPlaylist({
+                name: activePlaylist.name,
+                playlistId: activePlaylist.id,
+                tracks: tracks.map((track, index) => ({ fullPath: track.fullPath || '', index })),
+              })
+              .pipe(catchError(() => of(undefined)));
+          }),
+        );
       }),
       map(() => PlaylistActions.transferComplete()),
     );

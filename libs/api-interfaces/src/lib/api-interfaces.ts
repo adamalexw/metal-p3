@@ -110,6 +110,17 @@ export interface RenameTrack {
   file: string;
 }
 
+export interface TransferPlaylistTrackRequest {
+  fullPath: string;
+  index: number;
+}
+
+export interface TransferPlaylistRequest {
+  name: string;
+  playlistId?: number | string;
+  tracks: TransferPlaylistTrackRequest[];
+}
+
 export const ALBUM_ADDED = 'albumAdded';
 export const LYRICS_HISTORY_UPDATE = 'lyricsHistoryUpdate';
 export const LYRICS_HISTORY_COMPLETE = 'lyricsHistoryComplete';

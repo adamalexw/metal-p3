@@ -1,4 +1,4 @@
-import { RenameTrack, TrackDto } from '@metal-p3/api-interfaces';
+import { RenameTrack, TrackDto, TransferPlaylistRequest } from '@metal-p3/api-interfaces';
 import { AdbService } from '@metal-p3/shared/adb';
 import { FileSystemService } from '@metal-p3/shared/file-system';
 import { Injectable, Logger } from '@nestjs/common';
@@ -233,6 +233,28 @@ export class TrackService {
 
   async transferTrack(file: string): Promise<void> {
     await this.adbService.transferFile(file);
+  }
+
+  async transferPlaylist(request: TransferPlaylistRequest): Promise<void> {
+    const name = request.name?.trim();
+    if (!name) {
+      throw new Error('Playlist name is required');
+    }
+
+    const tracks = [...request.tracks]
+      .sort((a, b) => a.index - b.index)
+      .map((t) => ({
+        index: t.index,
+        relativePath: `${this.fileSystemService.getParentFoler(t.fullPath)}/${this.fileSystemService.getFilename(t.fullPath)}`,
+      }));
+
+    await this.adbService.transferPlaylistManifest({
+      version: 1,
+      playlistId: request.playlistId,
+      name,
+      transferredAt: Date.now(),
+      tracks,
+    });
   }
 
   playTrack(file: string): ReadStream {

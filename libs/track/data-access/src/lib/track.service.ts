@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { API, ApplyLyrics } from '@metal-p3/album/domain';
-import { AlbumDto, MetalArchivesAlbumTrack, RenameTrack, TrackDto } from '@metal-p3/api-interfaces';
+import { AlbumDto, MetalArchivesAlbumTrack, RenameTrack, TrackDto, TransferPlaylistRequest } from '@metal-p3/api-interfaces';
 import { Observable } from 'rxjs';
 
 @Injectable({
@@ -56,6 +56,10 @@ export class TrackService {
 
   transferTrack(file: string): Observable<void> {
     return this.http.get<void>(`${this.baseUrl}/transferTrack?file=${encodeURIComponent(file)}`);
+  }
+
+  transferPlaylist(request: TransferPlaylistRequest): Observable<void> {
+    return this.http.post<void>(`${this.baseUrl}/transferPlaylist`, request);
   }
 
   playTrack(file: string): Observable<Blob> {

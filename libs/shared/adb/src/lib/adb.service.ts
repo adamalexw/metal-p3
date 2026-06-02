@@ -2,10 +2,23 @@ import Adb, { Device } from '@devicefarmer/adbkit';
 import { FileSystemService } from '@metal-p3/shared/file-system';
 import { Injectable } from '@nestjs/common';
 import { execFile } from 'child_process';
-import { existsSync } from 'fs';
-import { networkInterfaces } from 'os';
+import { existsSync, mkdtempSync, rmSync, writeFileSync } from 'fs';
+import { tmpdir, networkInterfaces } from 'os';
 import { basename, dirname, extname, join } from 'path';
 import { promisify } from 'util';
+
+export interface PlaylistManifestTrack {
+  index: number;
+  relativePath: string;
+}
+
+export interface PlaylistManifest {
+  version: 1;
+  playlistId?: number | string;
+  name: string;
+  transferredAt: number;
+  tracks: PlaylistManifestTrack[];
+}
 
 const execFileAsync = promisify(execFile);
 
@@ -90,6 +103,58 @@ export class AdbService {
       console.error('Something went wrong:', err);
       return Promise.reject(new Error('Something went wrong'));
     }
+  }
+
+  async transferPlaylistManifest(manifest: PlaylistManifest): Promise<void> {
+    const slug = this.slugify(manifest.name);
+    if (!slug) {
+      return Promise.reject(new Error('Playlist name produced an empty slug'));
+    }
+
+    const tempDir = mkdtempSync(join(tmpdir(), 'metalp3-manifest-'));
+    const tempPath = join(tempDir, `${slug}.json`);
+    const dest = `/storage/emulated/0/Music/.metalp3/playlists/${slug}.json`;
+
+    try {
+      writeFileSync(tempPath, JSON.stringify(manifest), 'utf8');
+      const devices = await this.getDevices();
+
+      await Promise.all(
+        devices.map(async (device: Device) => {
+          const deviceClient = this.client.getDevice(device.id);
+          await this.push(deviceClient, tempPath, dest);
+        }),
+      );
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        console.error('Manifest transfer failed:', err.stack);
+        throw new Error(err.message);
+      }
+      console.error('Manifest transfer failed:', err);
+      throw new Error('Manifest transfer failed');
+    } finally {
+      try {
+        rmSync(tempDir, { recursive: true, force: true });
+      } catch {
+        // best effort cleanup
+      }
+    }
+  }
+
+  private slugify(name: string): string {
+    return name
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+  }
+
+  private async push(deviceClient: ReturnType<ReturnType<typeof Adb.createClient>['getDevice']>, src: string, dest: string): Promise<void> {
+    const transfer = await deviceClient.push(src, dest);
+    await new Promise<void>((resolve, reject) => {
+      transfer.on('end', () => resolve());
+      transfer.on('error', reject);
+    });
   }
 
   private async pushAndScan(deviceClient: ReturnType<ReturnType<typeof Adb.createClient>['getDevice']>, src: string, dest: string): Promise<void> {

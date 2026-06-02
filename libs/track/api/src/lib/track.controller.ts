@@ -1,4 +1,4 @@
-import { RenameTrack, TrackDto } from '@metal-p3/api-interfaces';
+import { RenameTrack, TrackDto, TransferPlaylistRequest } from '@metal-p3/api-interfaces';
 import { FileSystemService } from '@metal-p3/shared/file-system';
 import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Patch, Post, Query, Res } from '@nestjs/common';
 import { Response } from 'express';
@@ -46,6 +46,12 @@ export class TrackController {
   @Get('transferTrack')
   transferTrack(@Query('file') file: string): Promise<void> {
     return this.trackService.transferTrack(file);
+  }
+
+  @Post('transferPlaylist')
+  @HttpCode(HttpStatus.ACCEPTED)
+  transferPlaylist(@Body() request: TransferPlaylistRequest): Promise<void> {
+    return this.trackService.transferPlaylist(request);
   }
 
   @Get('playTrack')
