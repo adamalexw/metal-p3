@@ -30,7 +30,7 @@ export const TrackActions = createActionGroup({
     'Get Lyrics Success': props<{ id: number; trackId: string; lyrics: string }>(),
     'Get Lyrics Error': props<{ id: number; trackId: string; error: string }>(),
     'Get Synced Lyrics': props<{ id: number; localTrackId: number; maTrackId: string; artist: string; track: string; album: string; durationSeconds?: number }>(),
-    'Get Synced Lyrics Success': props<{ id: number; localTrackId: number; syncedLyrics: string }>(),
+    'Get Synced Lyrics Success': props<{ id: number; localTrackId: number; maTrackId: string; syncedLyrics: string }>(),
     'Get Synced Lyrics Miss': props<{ id: number; localTrackId: number; maTrackId: string }>(),
     'Apply Lyrics': props<{ id: number; lyrics: ApplyLyrics[] }>(),
     'Apply Lyrics Success': props<{ update: Update<Album> }>(),

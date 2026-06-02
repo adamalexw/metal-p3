@@ -138,7 +138,7 @@ export class ApplyLyricsShellComponent implements OnInit {
                       durationSeconds: localTrack.duration,
                     }),
                   ),
-                i > 0 ? 5000 : 0,
+                i * 3000,
               );
             });
         }),
@@ -181,12 +181,17 @@ export class ApplyLyricsShellComponent implements OnInit {
     return lyrics.replace(/<br \/>/gi, '');
   }
 
-  private matchLocalTrack(tracks: { id: number; title?: string; trackNumber?: string }[], maTrack: { trackNumber?: string; title?: string }) {
+  private matchLocalTrack(tracks: { id: number; title?: string; trackNumber?: string; duration?: number }[], maTrack: { trackNumber?: string; title?: string }) {
     const byTitle = tracks.find((t) => !!t.title && t.title.toLowerCase() === maTrack.title?.toLowerCase());
-    if (byTitle) return byTitle;
+    if (byTitle) {
+      return byTitle;
+    }
+
     if (maTrack.trackNumber) {
       const byNumber = tracks.find((t) => Number(t.trackNumber) === Number(maTrack.trackNumber));
-      if (byNumber) return byNumber;
+      if (byNumber) {
+        return byNumber;
+      }
     }
     return undefined;
   }

@@ -1,7 +1,7 @@
 import { HttpService } from '@nestjs/axios';
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { AxiosError } from 'axios';
-import { catchError, map, Observable, of } from 'rxjs';
+import { catchError, map, Observable, of, timeout } from 'rxjs';
 
 export interface LrcLibParams {
   artistName: string;
@@ -52,6 +52,7 @@ export class LrcLibService {
     const url = `${this.baseUrl}/api/get?${query.toString()}`;
 
     return this.httpService.get<LrcLibResponse>(url, { headers: { 'User-Agent': this.userAgent } }).pipe(
+      timeout(15_000),
       map((response) => this.toResult(response.data)),
       catchError((error: AxiosError) => {
         if (error.response?.status === 404) {
