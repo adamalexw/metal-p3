@@ -9,7 +9,7 @@ interface ThemeColors {
   accent: string;
 }
 
-const TICK_MS = 250;
+const TICK_MS = 80;
 const LINE_HEIGHT = 32;
 
 export function SyncedLyricsView({
@@ -18,12 +18,16 @@ export function SyncedLyricsView({
   isPlaying = true,
   theme,
   testID,
+  offsetMs = 0,
 }: {
   lines: SyncedLyricsLine[];
   positionMs: number | null | undefined;
   isPlaying?: boolean;
   theme: ThemeColors;
   testID?: string;
+  // Lead time in ms to compensate for audio output latency (Bluetooth, sink buffers, etc.).
+  // Positive values advance the highlight earlier.
+  offsetMs?: number;
 }) {
   const scrollRef = useRef<ScrollView | null>(null);
   // The native player only emits stateChanged on discrete events (play/pause/
@@ -48,12 +52,13 @@ export function SyncedLyricsView({
 
   const activeIndex = useMemo(() => {
     if (tickedMs == null) return -1;
+    const target = tickedMs + offsetMs;
     let lo = 0;
     let hi = lines.length - 1;
     let answer = -1;
     while (lo <= hi) {
       const mid = (lo + hi) >> 1;
-      if (lines[mid].startMs <= tickedMs) {
+      if (lines[mid].startMs <= target) {
         answer = mid;
         lo = mid + 1;
       } else {
@@ -61,7 +66,7 @@ export function SyncedLyricsView({
       }
     }
     return answer;
-  }, [tickedMs, lines]);
+  }, [tickedMs, lines, offsetMs]);
 
   useEffect(() => {
     if (activeIndex < 0) return;

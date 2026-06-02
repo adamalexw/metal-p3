@@ -11,7 +11,7 @@ import { environment } from '../environments/environment.prod';
 
 @Module({
   imports: [
-    SharedAdbModule.forRoot(environment.adbPath),
+    SharedAdbModule,
     AlbumModule.forRoot(environment.basePath, environment.take),
     BandModule,
     CoverModule,

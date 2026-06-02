@@ -251,6 +251,7 @@ export default function PlayerScreen() {
               isPlaying={isPlaying}
               theme={theme}
               testID="player-lyrics-synced"
+              offsetMs={300}
             />
           ) : (
             <View

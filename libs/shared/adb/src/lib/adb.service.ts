@@ -1,6 +1,6 @@
 import Adb, { Device } from '@devicefarmer/adbkit';
 import { FileSystemService } from '@metal-p3/shared/file-system';
-import { Inject, Injectable, Optional } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { execFile } from 'child_process';
 import { existsSync } from 'fs';
 import { networkInterfaces } from 'os';
@@ -14,11 +14,9 @@ export class AdbService {
   private readonly adbPath: string;
   private readonly client: ReturnType<typeof Adb.createClient>;
 
-  constructor(
-    private readonly fileSystemService: FileSystemService,
-    @Optional() @Inject('ADB_PATH') adbPath?: string,
-  ) {
-    this.adbPath = adbPath ?? process.env['ADB_PATH'] ?? 'adb';
+  constructor(private readonly fileSystemService: FileSystemService) {
+    const sdkRoot = process.env['ANDROID_SDK_ROOT'] ?? process.env['ANDROID_HOME'];
+    this.adbPath = sdkRoot ? join(sdkRoot, 'platform-tools', process.platform === 'win32' ? 'adb.exe' : 'adb') : 'adb';
     this.client = Adb.createClient({ bin: this.adbPath, port: 5037 });
   }
 
