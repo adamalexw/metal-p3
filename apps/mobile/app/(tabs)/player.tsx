@@ -248,6 +248,7 @@ export default function PlayerScreen() {
             <SyncedLyricsView
               lines={synced.lines!}
               positionMs={state?.positionMs ?? null}
+              isPlaying={isPlaying}
               theme={theme}
               testID="player-lyrics-synced"
             />

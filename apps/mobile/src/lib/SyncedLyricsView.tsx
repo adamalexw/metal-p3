@@ -9,44 +9,51 @@ interface ThemeColors {
   accent: string;
 }
 
-const POSITION_THROTTLE_MS = 250;
+const TICK_MS = 250;
 const LINE_HEIGHT = 32;
 
 export function SyncedLyricsView({
   lines,
   positionMs,
+  isPlaying = true,
   theme,
   testID,
 }: {
   lines: SyncedLyricsLine[];
   positionMs: number | null | undefined;
+  isPlaying?: boolean;
   theme: ThemeColors;
   testID?: string;
 }) {
   const scrollRef = useRef<ScrollView | null>(null);
-  const lastTickRef = useRef(0);
-  const [throttledPosition, setThrottledPosition] = useState<number | null>(null);
+  // The native player only emits stateChanged on discrete events (play/pause/
+  // seek/track-change), so positionMs doesn't advance during normal playback.
+  // Interpolate locally with wall-clock so the active line keeps tracking.
+  const [tickedMs, setTickedMs] = useState<number | null>(positionMs ?? null);
 
   useEffect(() => {
     if (positionMs == null) {
-      setThrottledPosition(null);
+      setTickedMs(null);
       return;
     }
-    const now = Date.now();
-    if (now - lastTickRef.current >= POSITION_THROTTLE_MS) {
-      lastTickRef.current = now;
-      setThrottledPosition(positionMs);
-    }
-  }, [positionMs]);
+    setTickedMs(positionMs);
+    if (!isPlaying) return;
+    const startedAt = Date.now();
+    const baseMs = positionMs;
+    const id = setInterval(() => {
+      setTickedMs(baseMs + (Date.now() - startedAt));
+    }, TICK_MS);
+    return () => clearInterval(id);
+  }, [positionMs, isPlaying]);
 
   const activeIndex = useMemo(() => {
-    if (throttledPosition == null) return -1;
+    if (tickedMs == null) return -1;
     let lo = 0;
     let hi = lines.length - 1;
     let answer = -1;
     while (lo <= hi) {
       const mid = (lo + hi) >> 1;
-      if (lines[mid].startMs <= throttledPosition) {
+      if (lines[mid].startMs <= tickedMs) {
         answer = mid;
         lo = mid + 1;
       } else {
@@ -54,7 +61,7 @@ export function SyncedLyricsView({
       }
     }
     return answer;
-  }, [throttledPosition, lines]);
+  }, [tickedMs, lines]);
 
   useEffect(() => {
     if (activeIndex < 0) return;
