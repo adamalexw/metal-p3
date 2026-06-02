@@ -13,7 +13,7 @@ export interface LyricsSheetData {
   source?: LyricsSheetSource;
 }
 
-const LRC_TIMESTAMP_LINE = /^\[\d{1,2}:\d{2}(?:[.:]\d{1,3})?\]\s*/;
+const LRC_TIMESTAMP_LINE = /^(?:\[\d{1,2}:\d{2}(?:[.:]\d{1,3})?\])+\s*/;
 const LRC_METADATA_LINE = /^\[(?:ar|ti|al|au|by|length|offset|re|tool|ve):/i;
 
 export function stripLrcTimestamps(text: string): string {

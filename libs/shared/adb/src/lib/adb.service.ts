@@ -92,7 +92,7 @@ export class AdbService {
     }
   }
 
-  private async pushAndScan(deviceClient: ReturnType<typeof Adb.createClient>['getDevice'] extends (...args: never[]) => infer R ? R : never, src: string, dest: string): Promise<void> {
+  private async pushAndScan(deviceClient: ReturnType<ReturnType<typeof Adb.createClient>['getDevice']>, src: string, dest: string): Promise<void> {
     const transfer = await deviceClient.push(src, dest);
     await new Promise<void>((resolve, reject) => {
       transfer.on('end', () => {

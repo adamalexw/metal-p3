@@ -145,14 +145,18 @@ export class TrackService {
 
     const lrcPath = this.getLrcSidecarPath(track.fullPath);
 
-    if (track.syncedLyrics === '') {
-      if (existsSync(lrcPath)) {
-        unlinkSync(lrcPath);
+    try {
+      if (track.syncedLyrics === '') {
+        if (existsSync(lrcPath)) {
+          unlinkSync(lrcPath);
+        }
+        return;
       }
-      return;
-    }
 
-    writeFileSync(lrcPath, track.syncedLyrics, 'utf8');
+      writeFileSync(lrcPath, track.syncedLyrics, 'utf8');
+    } catch (error) {
+      Logger.error(`Failed to persist lrc sidecar at ${lrcPath}`, error);
+    }
   }
 
   async saveTracks(tracks: TrackDto[]): Promise<boolean> {

@@ -10,6 +10,11 @@ describe('stripLrcTimestamps', () => {
     expect(stripLrcTimestamps('[00:01] hello')).toBe('hello');
   });
 
+  it('removes multiple leading timestamps on the same line', () => {
+    expect(stripLrcTimestamps('[00:10.00][00:20.00]text')).toBe('text');
+    expect(stripLrcTimestamps('[00:10.00][00:20.50][01:00] chorus')).toBe('chorus');
+  });
+
   it('drops metadata-only lines', () => {
     const input = '[ar: Iron Maiden]\n[ti: The Trooper]\n[al: Piece of Mind]\n[length: 04:11]\n[00:00.00] Steady\n[00:01.00] As she goes';
     expect(stripLrcTimestamps(input)).toBe('Steady\nAs she goes');

@@ -1,14 +1,14 @@
 @if (source === 'synced') {
-  <button type="button" (click)="onSave()" mat-icon-button aria-label="Close">
+  <button aria-label="Close" type="button" (click)="onSave()" mat-icon-button>
     <mat-icon>close</mat-icon>
   </button>
   @if (lyrics.trim()) {
-    <pre class="m-3 whitespace-pre-wrap font-sans text-base leading-relaxed">{{ lyrics }}</pre>
+    <pre class="m-3 font-sans text-base leading-relaxed whitespace-pre-wrap">{{ lyrics }}</pre>
   } @else {
-    <p class="m-3 italic text-gray-500">No lyrics</p>
+    <p class="m-3 text-gray-500 italic">No lyrics</p>
   }
 } @else {
-  <button type="button" (click)="onSave()" mat-icon-button>
+  <button aria-label="Save" type="button" (click)="onSave()" mat-icon-button>
     <mat-icon>save</mat-icon>
   </button>
   <mat-form-field>
