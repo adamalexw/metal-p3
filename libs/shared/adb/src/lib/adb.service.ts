@@ -1,8 +1,10 @@
 import Adb, { Device } from '@devicefarmer/adbkit';
 import { FileSystemService } from '@metal-p3/shared/file-system';
-import { Inject, Injectable, Optional } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { execFile } from 'child_process';
+import { existsSync } from 'fs';
 import { networkInterfaces } from 'os';
+import { basename, dirname, extname, join } from 'path';
 import { promisify } from 'util';
 
 const execFileAsync = promisify(execFile);
@@ -12,11 +14,9 @@ export class AdbService {
   private readonly adbPath: string;
   private readonly client: ReturnType<typeof Adb.createClient>;
 
-  constructor(
-    private readonly fileSystemService: FileSystemService,
-    @Optional() @Inject('ADB_PATH') adbPath?: string,
-  ) {
-    this.adbPath = adbPath ?? process.env['ADB_PATH'] ?? 'adb';
+  constructor(private readonly fileSystemService: FileSystemService) {
+    const sdkRoot = process.env['ANDROID_SDK_ROOT'] ?? process.env['ANDROID_HOME'];
+    this.adbPath = sdkRoot ? join(sdkRoot, 'platform-tools', process.platform === 'win32' ? 'adb.exe' : 'adb') : 'adb';
     this.client = Adb.createClient({ bin: this.adbPath, port: 5037 });
   }
 
@@ -62,23 +62,24 @@ export class AdbService {
 
   async transferFile(file: string) {
     try {
-      const dest = `/storage/emulated/0/Music/${this.fileSystemService.getParentFoler(file)}/${this.fileSystemService.getFilename(file)}`;
+      const parentFolder = this.fileSystemService.getParentFoler(file);
+      const filename = this.fileSystemService.getFilename(file);
+      const dest = `/storage/emulated/0/Music/${parentFolder}/${filename}`;
+
+      const lrcStem = basename(file, extname(file));
+      const lrcSrc = join(dirname(file), `${lrcStem}.lrc`);
+      const hasSidecar = existsSync(lrcSrc);
+      const lrcDest = hasSidecar ? `/storage/emulated/0/Music/${parentFolder}/${lrcStem}.lrc` : null;
+
       const devices = await this.getDevices();
 
       await Promise.all(
         devices.map(async (device: Device) => {
           const deviceClient = this.client.getDevice(device.id);
-          const transfer = await deviceClient.push(file, dest);
-          await new Promise<void>((resolve, reject) => {
-            transfer.on('end', () => {
-              const command = `am broadcast -a android.intent.action.MEDIA_SCANNER_SCAN_FILE -d "file://${dest}"`;
-              deviceClient
-                .shell(command)
-                .then(() => resolve())
-                .catch(reject);
-            });
-            transfer.on('error', reject);
-          });
+          await this.pushAndScan(deviceClient, file, dest);
+          if (lrcDest) {
+            await this.pushAndScan(deviceClient, lrcSrc, lrcDest);
+          }
         }),
       );
     } catch (err: unknown) {
@@ -89,6 +90,20 @@ export class AdbService {
       console.error('Something went wrong:', err);
       return Promise.reject(new Error('Something went wrong'));
     }
+  }
+
+  private async pushAndScan(deviceClient: ReturnType<ReturnType<typeof Adb.createClient>['getDevice']>, src: string, dest: string): Promise<void> {
+    const transfer = await deviceClient.push(src, dest);
+    await new Promise<void>((resolve, reject) => {
+      transfer.on('end', () => {
+        const command = `am broadcast -a android.intent.action.MEDIA_SCANNER_SCAN_FILE -d "file://${dest}"`;
+        deviceClient
+          .shell(command)
+          .then(() => resolve())
+          .catch(reject);
+      });
+      transfer.on('error', reject);
+    });
   }
 
   isWifiConnected(): boolean {

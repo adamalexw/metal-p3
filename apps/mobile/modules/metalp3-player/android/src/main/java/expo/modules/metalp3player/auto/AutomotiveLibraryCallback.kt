@@ -27,11 +27,6 @@ import com.google.common.util.concurrent.ListenableFuture
  * [PlaylistStore]; the JS layer pushes the playlist set on every mutation so
  * AA's synchronous browse callback can read them.
  *
- * The AA Coolwalk side widget queries [onGetLibraryRoot] with
- * [LibraryParams.isRecent] = true. We answer with a synthetic "recent" root
- * whose children are the latest-added albums, so the widget surfaces the
- * user's freshest sideloads as one-tap resume tiles.
- *
  * All MediaItems for tracks carry localConfiguration so [androidx.media3.exoplayer.ExoPlayer]
  * can play them once the controller calls setMediaItems/play.
  */
@@ -44,12 +39,7 @@ class AutomotiveLibraryCallback(private val context: Context) :
     browser: MediaSession.ControllerInfo,
     params: MediaLibraryService.LibraryParams?,
   ): ListenableFuture<LibraryResult<MediaItem>> {
-    // AA's Coolwalk side widget calls onGetLibraryRoot with isRecent=true to
-    // populate its "recent items" row. Returning the recent-albums category
-    // as the root makes those tiles appear directly in the widget without
-    // the user having to drill into the full browse tree.
-    val root = if (params?.isRecent == true) recentCategoryItem() else rootItem()
-    return Futures.immediateFuture(LibraryResult.ofItem(root, params))
+    return Futures.immediateFuture(LibraryResult.ofItem(rootItem(), params))
   }
 
   override fun onGetItem(
@@ -145,15 +135,6 @@ class AutomotiveLibraryCallback(private val context: Context) :
 
   private fun childrenOf(parentId: String): List<MediaItem>? = when {
     parentId == Ids.ROOT -> listOf(albumsCategoryItem(), playlistsCategoryItem())
-    parentId == Ids.CAT_RECENT -> MediaStoreLibrary.listRecentAlbums(context).map { album ->
-      browsable(
-        id = Ids.album(album.id),
-        title = album.title,
-        subtitle = album.artist,
-        artworkUri = MediaStoreLibrary.albumArtUri(album.id),
-        mediaType = MediaMetadata.MEDIA_TYPE_ALBUM,
-      )
-    }
     parentId == Ids.CAT_ALBUMS -> MediaStoreLibrary.listAlbums(context).map { album ->
       browsable(
         id = Ids.album(album.id),
@@ -186,7 +167,6 @@ class AutomotiveLibraryCallback(private val context: Context) :
 
   private fun resolveItem(mediaId: String): MediaItem? = when {
     mediaId == Ids.ROOT -> rootItem()
-    mediaId == Ids.CAT_RECENT -> recentCategoryItem()
     mediaId == Ids.CAT_ALBUMS -> albumsCategoryItem()
     mediaId == Ids.CAT_PLAYLISTS -> playlistsCategoryItem()
     mediaId.startsWith(Ids.TRACK_PREFIX) -> trackItemFor(mediaId)
@@ -259,18 +239,6 @@ class AutomotiveLibraryCallback(private val context: Context) :
     extras = gridStyleExtras(),
   )
 
-  /**
-   * Recently-added albums in the same grid layout as the full Albums list,
-   * but capped to the latest [MediaStoreLibrary.listRecentAlbums] entries
-   * so the user sees their newest sideloads first without scrolling.
-   */
-  private fun recentCategoryItem(): MediaItem = browsable(
-    id = Ids.CAT_RECENT,
-    title = "Recently Added",
-    subtitle = null,
-    extras = gridStyleExtras(),
-  )
-
   private fun gridStyleExtras(): Bundle = Bundle().apply {
     putInt(
       MediaConstants.EXTRAS_KEY_CONTENT_STYLE_BROWSABLE,
@@ -331,7 +299,6 @@ class AutomotiveLibraryCallback(private val context: Context) :
 
   private object Ids {
     const val ROOT = "metalp3:root"
-    const val CAT_RECENT = "metalp3:cat:recent"
     const val CAT_ALBUMS = "metalp3:cat:albums"
     const val CAT_PLAYLISTS = "metalp3:cat:playlists"
     const val ALBUM_PREFIX = "metalp3:album:"

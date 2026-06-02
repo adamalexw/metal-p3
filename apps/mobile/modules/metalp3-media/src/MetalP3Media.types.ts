@@ -47,6 +47,17 @@ export interface Lyrics {
   language: string | null;
 }
 
+export interface SyncedLyricsLine {
+  /** Line start time in milliseconds from track start. */
+  startMs: number;
+  /** Line text with timestamps stripped. */
+  text: string;
+}
+
+export interface SyncedLyrics {
+  lines: SyncedLyricsLine[];
+}
+
 export interface TrackExtras {
   /** TXXX[COUNTRY] — band's country of origin as a free-form name. */
   country: string | null;

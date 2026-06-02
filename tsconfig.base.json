@@ -53,6 +53,7 @@
       "@metal-p3/shared/error": ["libs/shared/error/src/index.ts"],
       "@metal-p3/shared/feedback": ["libs/shared/feedback/src/index.ts"],
       "@metal-p3/shared/file-system": ["libs/shared/file-system/src/index.ts"],
+      "@metal-p3/shared/lrclib": ["libs/shared/lrclib/src/index.ts"],
       "@metal-p3/shared/metal-archives": ["libs/shared/metal-archives/src/index.ts"],
       "@metal-p3/shared/navigation": ["libs/shared/navigation/src/index.ts"],
       "@metal-p3/shared/safe-pipe": ["libs/shared/safe-pipe/src/index.ts"],

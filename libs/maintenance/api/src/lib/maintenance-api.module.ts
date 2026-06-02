@@ -1,6 +1,7 @@
 import { BASE_PATH_TOKEN } from '@metal-p3/api-interfaces';
 import { SharedDatabaseModule } from '@metal-p3/shared/database';
 import { SharedFileSystemModule } from '@metal-p3/shared/file-system';
+import { SharedLrcLibModule } from '@metal-p3/shared/lrclib';
 import { SharedMetalArchivesModule } from '@metal-p3/shared/metal-archives';
 import { DynamicModule, Module } from '@nestjs/common';
 import { FileSystemController } from './file-system.controller';
@@ -12,7 +13,7 @@ import { UrlController } from './url.controller';
 import { UrlService } from './url.service';
 
 @Module({
-  imports: [SharedDatabaseModule, SharedFileSystemModule, SharedMetalArchivesModule],
+  imports: [SharedDatabaseModule, SharedFileSystemModule, SharedLrcLibModule, SharedMetalArchivesModule],
   controllers: [LyricsController, FileSystemController, UrlController],
   providers: [LyricsService, MaintenanceGateway, FileSystemMaintenanceService, UrlService],
   exports: [FileSystemMaintenanceService],

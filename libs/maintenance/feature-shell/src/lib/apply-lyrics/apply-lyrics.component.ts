@@ -115,14 +115,32 @@ export class ApplyLyricsShellComponent implements OnInit {
       )
       .subscribe();
 
-    this.maTracks$
+    combineLatest([this.maTracks$, this.tracks$, this.album$.pipe(nonNullable())])
       .pipe(
-        filter((maTracks) => !!maTracks?.length),
+        filter(([maTracks, tracks]) => !!maTracks?.length && !!tracks?.length),
         withLatestFrom(this.albumId$),
-        tap(([maTracks, id]) => {
+        tap(([[maTracks, tracks, album], id]) => {
           maTracks
-            ?.filter((track) => track.hasLyrics && !track.lyricsLoading)
-            .forEach((track, i) => setTimeout(() => this.store.dispatch(TrackActions.getLyrics({ id, trackId: track.id })), i > 0 ? 5000 : 0));
+            ?.filter((maTrack) => maTrack.hasLyrics && !maTrack.lyricsLoading)
+            .forEach((maTrack, i) => {
+              const localTrack = this.matchLocalTrack(tracks ?? [], maTrack);
+              if (!localTrack) return;
+              setTimeout(
+                () =>
+                  this.store.dispatch(
+                    TrackActions.getSyncedLyrics({
+                      id,
+                      localTrackId: localTrack.id,
+                      maTrackId: maTrack.id,
+                      artist: album.artist ?? '',
+                      track: localTrack.title ?? maTrack.title ?? '',
+                      album: album.album ?? '',
+                      durationSeconds: localTrack.duration,
+                    }),
+                  ),
+                i * 3000,
+              );
+            });
         }),
         take(1),
         takeUntilDestroyed(this.destroyRef),
@@ -141,7 +159,14 @@ export class ApplyLyricsShellComponent implements OnInit {
   }
 
   onApply(id: number, lyrics: ApplyLyrics[]) {
-    const tracksToSave = lyrics.filter((track) => track.maTrack?.lyrics).map((track) => ({ ...track, lyrics: this.formatLyrics(track.maTrack!.lyrics!) }));
+    const tracksToSave = lyrics
+      .filter((track) => track.syncedLyrics || track.maTrack?.lyrics)
+      .map((track) => {
+        if (track.syncedLyrics) {
+          return { ...track };
+        }
+        return { ...track, lyrics: this.formatLyrics(track.maTrack!.lyrics!) };
+      });
 
     if (tracksToSave.length) {
       this.store.dispatch(TrackActions.saveTracks({ id, tracks: tracksToSave }));
@@ -154,6 +179,21 @@ export class ApplyLyricsShellComponent implements OnInit {
 
   private formatLyrics(lyrics: string): string {
     return lyrics.replace(/<br \/>/gi, '');
+  }
+
+  private matchLocalTrack(tracks: { id: number; title?: string; trackNumber?: string; duration?: number }[], maTrack: { trackNumber?: string; title?: string }) {
+    const byTitle = tracks.find((t) => !!t.title && t.title.toLowerCase() === maTrack.title?.toLowerCase());
+    if (byTitle) {
+      return byTitle;
+    }
+
+    if (maTrack.trackNumber) {
+      const byNumber = tracks.find((t) => Number(t.trackNumber) === Number(maTrack.trackNumber));
+      if (byNumber) {
+        return byNumber;
+      }
+    }
+    return undefined;
   }
 
   onTransfer(tracks: { id: number; trackId: number }[]) {

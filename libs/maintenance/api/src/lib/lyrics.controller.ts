@@ -1,6 +1,7 @@
 import { LyricsHistoryDto } from '@metal-p3/maintenance/domain';
+import { LrcLibResult } from '@metal-p3/shared/lrclib';
 import { Controller, Delete, Get, Patch, Post, Query } from '@nestjs/common';
-import { Observable } from 'rxjs';
+import { map, Observable } from 'rxjs';
 import { LyricsService } from './lyrics.service';
 
 @Controller('maintenance/lyrics')
@@ -45,5 +46,13 @@ export class LyricsController {
   @Get('cancel')
   cancelHistoryCheck(): void {
     this.lyricsService.cancelHistoryCheck();
+  }
+
+  @Get('synced')
+  getSynced(@Query('artist') artist: string, @Query('track') track: string, @Query('album') album: string, @Query('duration') duration?: string): Observable<LrcLibResult> {
+    const durationSeconds = duration ? Number(duration) : undefined;
+    return this.lyricsService
+      .getSynced({ artistName: artist, trackName: track, albumName: album, durationSeconds })
+      .pipe(map((result) => result ?? { syncedLyrics: null, plainLyrics: null, instrumental: false }));
   }
 }

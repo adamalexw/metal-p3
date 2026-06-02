@@ -5,7 +5,7 @@ import { TrackService } from '@metal-p3/track/data-access';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { concatLatestFrom } from '@ngrx/operators';
 import { Store } from '@ngrx/store';
-import { catchError, concatMap, EMPTY, map, mergeMap, of } from 'rxjs';
+import { catchError, concatMap, EMPTY, map, mergeMap, of, timeout } from 'rxjs';
 import { TrackActions } from './actions';
 import { selectTrack } from './selectors';
 
@@ -79,10 +79,35 @@ export class TrackEffects {
       ofType(TrackActions.getLyrics),
       mergeMap(({ id, trackId }) =>
         this.service.getLyrics(trackId).pipe(
+          timeout(60_000),
           map((lyrics) => TrackActions.getLyricsSuccess({ id, trackId, lyrics })),
           catchError((error) => of(TrackActions.getLyricsError({ id, trackId, error: this.errorService.getError(error) }))),
         ),
       ),
+    );
+  });
+
+  getSyncedLyrics$ = createEffect(() => {
+    return this.actions$.pipe(
+      ofType(TrackActions.getSyncedLyrics),
+      mergeMap(({ id, localTrackId, maTrackId, artist, track, album, durationSeconds }) =>
+        this.service.getSyncedLyrics({ artist, track, album, durationSeconds }).pipe(
+          map((result) => {
+            if (result?.syncedLyrics && !result.instrumental) {
+              return TrackActions.getSyncedLyricsSuccess({ id, localTrackId, maTrackId, syncedLyrics: result.syncedLyrics });
+            }
+            return TrackActions.getSyncedLyricsMiss({ id, localTrackId, maTrackId });
+          }),
+          catchError(() => of(TrackActions.getSyncedLyricsMiss({ id, localTrackId, maTrackId }))),
+        ),
+      ),
+    );
+  });
+
+  syncedLyricsFallback$ = createEffect(() => {
+    return this.actions$.pipe(
+      ofType(TrackActions.getSyncedLyricsMiss),
+      map(({ id, maTrackId }) => TrackActions.getLyrics({ id, trackId: maTrackId })),
     );
   });
 

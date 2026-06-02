@@ -28,6 +28,8 @@ import { findAlbumGroup, getLibraryTracks, subscribe as subscribeLibrary } from 
 import { shuffled } from '../../src/lib/shuffle';
 import { useLyrics } from '../../src/lib/useLyrics';
 import { useNowPlayingState } from '../../src/lib/useNowPlayingState';
+import { useSyncedLyrics } from '../../src/lib/useSyncedLyrics';
+import { SyncedLyricsView } from '../../src/lib/SyncedLyricsView';
 import { useTrackExtras } from '../../src/lib/useTrackExtras';
 import { tw } from '../../src/lib/tw';
 import { ICON_STROKE } from '../../src/theme/icons';
@@ -55,7 +57,9 @@ export default function PlayerScreen() {
   const canSkipPrev = queueLength > 0 && (repeatMode !== 'off' || currentIndex > 0);
   const theme = useArtworkTheme(current?.uri ?? null);
   const lyrics = useLyrics(current?.uri ?? null);
-  const hasLyrics = !!lyrics.text;
+  const synced = useSyncedLyrics(current?.uri ?? null);
+  const hasSynced = !!synced.lines?.length;
+  const hasLyrics = hasSynced || !!lyrics.text;
   const extras = useTrackExtras(current?.uri ?? null);
   const flag = useMemo(() => toFlagEmoji(extras.country), [extras.country]);
   const albumUrl = extras.metalArchivesUrl;
@@ -240,27 +244,38 @@ export default function PlayerScreen() {
         ]}
       >
         {showLyrics && hasLyrics ? (
-          <View
-            pointerEvents="box-none"
-            style={tw`flex-1 items-stretch`}
-            testID="player-lyrics"
-          >
-            <ScrollView
-              style={tw`flex-1`}
-              contentContainerStyle={tw`pb-6`}
-              showsVerticalScrollIndicator={false}
+          hasSynced ? (
+            <SyncedLyricsView
+              lines={synced.lines!}
+              positionMs={state?.positionMs ?? null}
+              isPlaying={isPlaying}
+              theme={theme}
+              testID="player-lyrics-synced"
+              offsetMs={300}
+            />
+          ) : (
+            <View
+              pointerEvents="box-none"
+              style={tw`flex-1 items-stretch`}
+              testID="player-lyrics"
             >
-              <Text
-                style={[
-                  tw`text-lg font-semibold text-center`,
-                  { lineHeight: 28 },
-                  withShadow(theme.accent),
-                ]}
+              <ScrollView
+                style={tw`flex-1`}
+                contentContainerStyle={tw`pb-6`}
+                showsVerticalScrollIndicator={false}
               >
-                {lyrics.text}
-              </Text>
-            </ScrollView>
-          </View>
+                <Text
+                  style={[
+                    tw`text-lg font-semibold text-center`,
+                    { lineHeight: 28 },
+                    withShadow(theme.accent),
+                  ]}
+                >
+                  {lyrics.text}
+                </Text>
+              </ScrollView>
+            </View>
+          )
         ) : (
           <View pointerEvents="box-none" style={tw`flex-1 items-center`}>
             <View

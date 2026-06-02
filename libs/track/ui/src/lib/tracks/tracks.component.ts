@@ -98,16 +98,20 @@ export class TracksComponent implements OnInit {
       duration: this.fb.control(track.duration),
       bitrate: this.fb.control(track.bitrate),
       lyrics: this.fb.control(track.lyrics),
+      syncedLyrics: this.fb.control(track.syncedLyrics),
       file: this.fb.control(track.file),
       folder: this.fb.control(track.folder),
       fullPath: this.fb.control(track.fullPath),
     });
   }
 
-  viewLyrics(index: number, lyrics: string) {
-    const ref = this.bottomSheet.open(LyricsComponent, {
-      data: { lyrics },
-    });
+  viewLyrics(index: number, lyrics: string | undefined, syncedLyrics: string | undefined) {
+    const synced = syncedLyrics?.trim();
+    const data = synced ? { text: synced, source: 'synced' as const } : { text: lyrics ?? '', source: 'plain' as const };
+
+    const ref = this.bottomSheet.open(LyricsComponent, { data });
+
+    if (data.source === 'synced') return;
 
     ref
       .afterDismissed()
