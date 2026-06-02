@@ -35,51 +35,10 @@ internal object MediaStoreLibrary {
       MediaStore.Audio.Albums.ALBUM,
       MediaStore.Audio.Albums.ARTIST,
     )
-    return query(ctx, MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI, cols, null, null, "${MediaStore.Audio.Albums.ALBUM} COLLATE NOCASE ASC") { c ->
+    val sort = "${MediaStore.Audio.Albums.ARTIST} COLLATE NOCASE ASC, ${MediaStore.Audio.Albums.ALBUM} COLLATE NOCASE ASC"
+    return query(ctx, MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI, cols, null, null, sort) { c ->
       Album(c.getLong(0), c.getString(1) ?: "Unknown album", c.getString(2))
     }
-  }
-
-  /**
-   * Returns up to [limit] albums in descending order of DATE_ADDED. The
-   * Albums collection itself doesn't expose DATE_ADDED, so we walk the
-   * Audio.Media collection in date order and dedupe by album_id — the
-   * first time we see an album_id is its newest track's date.
-   */
-  fun listRecentAlbums(ctx: Context, limit: Int = 24): List<Album> {
-    val collection = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
-      MediaStore.Audio.Media.getContentUri(MediaStore.VOLUME_EXTERNAL) else MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
-    val cols = mutableListOf(
-      MediaStore.Audio.Media.ALBUM_ID,
-      MediaStore.Audio.Media.ALBUM,
-      MediaStore.Audio.Media.ARTIST,
-      MediaStore.Audio.Media.DATE_ADDED,
-    )
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-      cols += MediaStore.Audio.Media.ALBUM_ARTIST
-    }
-    val seen = HashSet<Long>()
-    val out = ArrayList<Album>(limit)
-    ctx.contentResolver.query(
-      collection,
-      cols.toTypedArray(),
-      "${MediaStore.Audio.Media.IS_MUSIC}=1",
-      null,
-      "${MediaStore.Audio.Media.DATE_ADDED} DESC",
-    )?.use { c ->
-      val albumArtistIdx = c.getColumnIndex("album_artist")
-      while (c.moveToNext() && out.size < limit) {
-        val albumId = c.getLong(0)
-        if (!seen.add(albumId)) continue
-        val albumArtist = if (albumArtistIdx >= 0) c.getString(albumArtistIdx) else null
-        out += Album(
-          id = albumId,
-          title = c.getString(1) ?: "Unknown album",
-          artist = albumArtist ?: c.getString(2),
-        )
-      }
-    }
-    return out
   }
 
   fun listArtists(ctx: Context): List<Artist> {
