@@ -2,7 +2,6 @@ package expo.modules.metalp3player.auto
 
 import android.content.Context
 import android.os.Build
-import android.os.Environment
 import android.provider.MediaStore
 import org.json.JSONArray
 import org.json.JSONObject
@@ -14,8 +13,8 @@ import java.io.File
  * resolves each manifest's `relativePath` entries to MediaStore audio
  * `_ID`s so the JS playlist store can rebuild the same ordered playlist.
  *
- * Manifest layout on disk:
- *   /storage/emulated/0/Music/.metalp3/playlists/<slug>.json
+ * Manifest layout on disk (app's scoped external files dir):
+ *   /storage/emulated/0/Android/data/<pkg>/files/playlists/<slug>.json
  *
  * Manifest payload:
  *   {
@@ -34,7 +33,7 @@ internal object PlaylistManifestImporter {
   data class Imported(val name: String, val trackIds: List<String>)
 
   fun importAll(ctx: Context): List<Imported> {
-    val dir = manifestDir() ?: return emptyList()
+    val dir = manifestDir(ctx) ?: return emptyList()
     if (!dir.exists() || !dir.isDirectory) return emptyList()
     val files = dir.listFiles { f -> f.isFile && f.name.endsWith(".json", ignoreCase = true) }
       ?: return emptyList()
@@ -57,13 +56,9 @@ internal object PlaylistManifestImporter {
     return out
   }
 
-  private fun manifestDir(): File? {
-    val music = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-      Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC)
-    } else {
-      Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC)
-    } ?: return null
-    return File(music, ".metalp3/playlists")
+  private fun manifestDir(ctx: Context): File? {
+    // App's own scoped external dir — no storage permission needed, ADB can push into it.
+    return ctx.getExternalFilesDir("playlists")
   }
 
   private data class Parsed(val name: String, val tracks: List<String>)

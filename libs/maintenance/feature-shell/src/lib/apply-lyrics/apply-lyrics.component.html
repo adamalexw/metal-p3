@@ -1,6 +1,6 @@
 <app-apply-lyrics
   [albumId]="albumId$ | async"
-  [lyricsLoading]="(lyricsLoading$ | async) || (lyricsExpected$ | async)"
+  [lyricsLoading]="lyricsLoading$ | async"
   [lyricsLoadingProgress]="lyricsLoadingProgress$ | async"
   [tracksLoading]="tracksLoading$ | async"
   [maTracks]="maTracks$ | async"

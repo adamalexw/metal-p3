@@ -4,6 +4,7 @@ import { PlaylistItem } from '@metal-p3/player/domain';
 import { playlistItemToDto } from '@metal-p3/player/util';
 import { PlaylistDto } from '@metal-p3/playlist/domain';
 import { ErrorService } from '@metal-p3/shared/error';
+import { NotificationService } from '@metal-p3/shared/feedback';
 import { nonNullable } from '@metal-p3/shared/utils';
 import { TrackService } from '@metal-p3/track/data-access';
 import { Track } from '@metal-p3/track/domain';
@@ -24,6 +25,7 @@ export class PlaylistEffects {
   private readonly trackService = inject(TrackService);
   private readonly playerService = inject(PlayerService);
   private readonly errorService = inject(ErrorService);
+  private readonly notificationService = inject(NotificationService);
 
   loadPlaylists$ = createEffect(() => {
     return this.actions$.pipe(
@@ -149,7 +151,7 @@ export class PlaylistEffects {
         return forkJoin(tracks$).pipe(
           concatMap(() => {
             if (!activePlaylist?.name) {
-              return of(undefined);
+              return of(PlaylistActions.transferComplete());
             }
 
             return this.trackService
@@ -158,11 +160,32 @@ export class PlaylistEffects {
                 playlistId: activePlaylist.id,
                 tracks: tracks.map((track, index) => ({ fullPath: track.fullPath || '', index })),
               })
-              .pipe(catchError(() => of(undefined)));
+              .pipe(
+                map(() => PlaylistActions.transferComplete()),
+                catchError((error) => of(PlaylistActions.transferError({ error: this.errorService.getError(error) }))),
+              );
           }),
+          catchError((error) => of(PlaylistActions.transferError({ error: this.errorService.getError(error) }))),
         );
       }),
-      map(() => PlaylistActions.transferComplete()),
     );
   });
+
+  notifyTransfer$ = createEffect(
+    () =>
+      this.actions$.pipe(
+        ofType(PlaylistActions.transferComplete),
+        tap(() => this.notificationService.showComplete('Playlist transferred')),
+      ),
+    { dispatch: false },
+  );
+
+  notifyTransferError$ = createEffect(
+    () =>
+      this.actions$.pipe(
+        ofType(PlaylistActions.transferError),
+        tap(({ error }) => this.notificationService.showError(error, 'Transfer Playlist')),
+      ),
+    { dispatch: false },
+  );
 }

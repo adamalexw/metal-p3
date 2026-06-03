@@ -3,7 +3,7 @@ import { FileSystemService } from '@metal-p3/shared/file-system';
 import { Injectable } from '@nestjs/common';
 import { execFile } from 'child_process';
 import { existsSync, mkdtempSync, rmSync, writeFileSync } from 'fs';
-import { tmpdir, networkInterfaces } from 'os';
+import { networkInterfaces, tmpdir } from 'os';
 import { basename, dirname, extname, join } from 'path';
 import { promisify } from 'util';
 
@@ -113,7 +113,8 @@ export class AdbService {
 
     const tempDir = mkdtempSync(join(tmpdir(), 'metalp3-manifest-'));
     const tempPath = join(tempDir, `${slug}.json`);
-    const dest = `/storage/emulated/0/Music/.metalp3/playlists/${slug}.json`;
+    // App's scoped external dir — readable by the mobile app without MANAGE_EXTERNAL_STORAGE.
+    const dest = `/storage/emulated/0/Android/data/com.metalp3.mobile/files/playlists/${slug}.json`;
 
     try {
       writeFileSync(tempPath, JSON.stringify(manifest), 'utf8');

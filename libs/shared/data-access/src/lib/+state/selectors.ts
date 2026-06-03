@@ -26,7 +26,8 @@ export const selectTrackRenamingProgress = createSelector(selectTrackCount, sele
 
 export const selectLyricsLoadedCount = createSelector(selectMaTracks, (tracks) => tracks?.filter((track) => track.lyricsLoading)?.length || 0);
 export const selectLyricsLoading = createSelector(selectLyricsLoadedCount, (tracks) => tracks > 0);
-export const selectLyricsLoadingProgress = createSelector(selectTrackCount, selectLyricsLoadedCount, (total, progress) => getProgress(total || 0, progress));
+export const selectLyricsExpectedTotal = createSelector(selectMaTracks, (tracks) => tracks?.filter((track) => track.hasLyrics)?.length || 0);
+export const selectLyricsLoadingProgress = createSelector(selectLyricsExpectedTotal, selectLyricsLoadedCount, (total, inFlight) => (total === 0 ? 0 : Math.floor(((total - inFlight) / total) * 100)));
 export const selectLyricsExpected = createSelector(selectMaTracks, (tracks) => tracks?.some((track) => track.hasLyrics && track.lyrics == null && !track.lyricsLoading) ?? false);
 
 const getProgress = (total: number, progress: number): number => {

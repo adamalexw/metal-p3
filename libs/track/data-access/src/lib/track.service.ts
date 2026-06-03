@@ -38,11 +38,13 @@ export class TrackService {
     return this.http.get(`${this.albumUrl}/getLyrics?trackId=${trackId}`, { responseType: 'text' });
   }
 
-  getSyncedLyrics(params: { artist: string; track: string; album: string; durationSeconds?: number }): Observable<{ syncedLyrics: string | null; plainLyrics: string | null; instrumental: boolean } | null> {
+  getSyncedLyrics(params: {
+    artist: string;
+    track: string;
+    album: string;
+    durationSeconds?: number;
+  }): Observable<{ syncedLyrics: string | null; plainLyrics: string | null; instrumental: boolean } | null> {
     const query = new URLSearchParams({ artist: params.artist, track: params.track, album: params.album });
-    if (params.durationSeconds && params.durationSeconds > 0) {
-      query.set('duration', String(Math.round(params.durationSeconds)));
-    }
     return this.http.get<{ syncedLyrics: string | null; plainLyrics: string | null; instrumental: boolean } | null>(`${this.api}maintenance/lyrics/synced?${query.toString()}`);
   }
 
