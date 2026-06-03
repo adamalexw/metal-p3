@@ -20,7 +20,7 @@ import { environment } from '../environments/environment.prod';
     SharedFileSystemModule.forRoot(environment.basePath),
     MaintenanceApiModule.forRoot(environment.basePath),
     PlaylistApiModule,
-    SetlistImporterApiModule.forRoot(environment.basePath),
+    SetlistImporterApiModule,
   ],
 })
 export class AppModule {}

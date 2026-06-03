@@ -57,8 +57,7 @@ const extractSetlistId = (url: string): string => {
 export const parseSetlistHtml = (html: string, sourceUrl: string): ImportedSetlist => {
   const root = parse(html);
 
-  const headlineText = root.querySelector('.setlistHeadline a, .setlistHeadline h1')?.textContent.trim();
-  const artist = (headlineText?.split(/\s+setlist\b/i)[0].trim() || root.querySelector('a[href*="/setlists/"]')?.textContent.replace(/\s+setlist\b.*/i, '').trim()) ?? '';
+  const artist = root.querySelector('.setlistHeadline a, .setlistHeadline h1')?.textContent.replace(/setlist/i, '').trim() ?? root.querySelector('a[href*="/setlists/"]')?.textContent.trim() ?? '';
 
   const venue = root.querySelector('.setlistHeadline + p, .infoContainer .summary')?.textContent.trim() ?? root.querySelector('a.summary span')?.textContent.trim() ?? undefined;
 

@@ -18,7 +18,6 @@ const apkPath = resolve(mobileRoot, 'android', 'app', 'build', 'outputs', 'apk',
 
 const skipPrebuild = process.argv.includes('--no-prebuild');
 
-
 const JVM17_PIN_MARKER = "// Pin every subproject's Kotlin compile to JVM 17";
 const JVM17_PIN = `
 // Pin every subproject's Kotlin compile to JVM 17 so libraries that don't pin
@@ -101,13 +100,18 @@ step('Override react.root → workspace root in app/build.gradle');
   }
 }
 
-step('Tune gradle.properties for memory cleanup');
+step('Tune gradle.properties for build memory headroom');
 {
   const original = readFileSync(gradleProps, 'utf8');
+  // Expo SDK 54 + Kotlin 2.x compiles need real headroom; the Expo template's
+  // 2 GB Gradle heap with the Kotlin compiler running in-process OOMs on
+  // :expo-modules-core:compileReleaseKotlin. Give Gradle 6 GB and put Kotlin
+  // in its own daemon with 3 GB so a compile blow-up doesn't take the whole
+  // build down with it.
   const additions = [
-    ['org.gradle.jvmargs', '-Xmx6g -XX:MaxMetaspaceSize=1g'],
-    ['kotlin.daemon.jvmargs', '-Xmx2g'],
-    ['kotlin.compiler.execution.strategy', 'in-process'],
+    ['org.gradle.jvmargs', '-Xmx6144m -XX:MaxMetaspaceSize=1g -Dfile.encoding=UTF-8'],
+    ['kotlin.daemon.jvmargs', '-Xmx3g -XX:MaxMetaspaceSize=512m'],
+    ['kotlin.compiler.execution.strategy', 'daemon'],
   ];
   let patched = original;
   for (const [key, value] of additions) {
@@ -133,8 +137,7 @@ step('Build release APK (./gradlew assembleRelease)');
 {
   const androidDir = resolve(mobileRoot, 'android');
   const gradleCmd = process.platform === 'win32' ? resolve(androidDir, 'gradlew.bat') : './gradlew';
-  // expo-constants' createExpoConfig task requires NODE_ENV to resolve app.config.
-  run(gradleCmd, ['assembleRelease'], { cwd: androidDir, env: { ...process.env, NODE_ENV: 'production' } });
+  run(gradleCmd, ['assembleRelease'], { cwd: androidDir });
 }
 
 if (!existsSync(apkPath)) {

@@ -6,12 +6,12 @@
   <div class="m-4 rounded border border-red-300 bg-red-50 p-2 text-sm text-red-800">{{ e }}</div>
 }
 
-<div class="flex flex-col gap-4">
-  <section class="border-b pb-4">
+<div class="flex flex-col gap-4 lg:flex-row lg:items-start">
+  <section class="lg:w-1/3 lg:shrink-0 lg:border-r">
     <app-url-list-editor [urls]="urls()" [scraping]="scraping()" (urlsChange)="onUrlsChange($event)" (scrape)="onScrape()" />
   </section>
 
-  <section>
+  <section class="grow">
     <app-review-table
       [tracks]="tracks()"
       [matching]="matching()"

@@ -120,7 +120,6 @@ export class SetlistImporterService {
       const albums = await this.dbService.albums({
         where: { Band: { Name: { contains: artist } } },
         orderBy: { Year: 'asc' },
-        take: 1000,
       });
 
       return albums.map((a) => ({ id: a.AlbumId, name: a.Name ?? '', folder: a.Folder }));
