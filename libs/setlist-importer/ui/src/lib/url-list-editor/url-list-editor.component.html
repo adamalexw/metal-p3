@@ -1,0 +1,48 @@
+<div class="flex flex-col gap-2 p-4">
+  <div class="flex items-center gap-2">
+    <mat-form-field class="grow" floatLabel="auto">
+      <mat-label>setlist.fm URL</mat-label>
+      <input
+        matInput
+        type="url"
+        placeholder="https://www.setlist.fm/setlist/..."
+        [value]="draft()"
+        (input)="draft.set($any($event.target).value)"
+        (keydown.enter)="onAdd()"
+        (paste)="onPaste($event)"
+      />
+    </mat-form-field>
+    <button type="button" mat-stroked-button (click)="onAdd()">Add</button>
+  </div>
+
+  @if (urls().length) {
+    <ul class="flex flex-col gap-1">
+      @for (url of urls(); track url) {
+        <li class="flex items-center gap-2 rounded border px-2 py-1">
+          <span class="grow truncate text-sm">{{ url }}</span>
+          <button type="button" mat-icon-button title="remove" (click)="onRemove(url)">
+            <mat-icon>close</mat-icon>
+          </button>
+        </li>
+      }
+    </ul>
+  } @else {
+    <div class="flex items-center gap-2 text-sm opacity-70">
+      <mat-icon>info</mat-icon>
+      <span>Paste one or more setlist.fm URLs (one per line) to get started.</span>
+    </div>
+  }
+
+  <div class="mt-2 flex items-center gap-2">
+    <button type="button" mat-flat-button color="primary" [disabled]="!canScrape()" (click)="scrape.emit()">
+      @if (scraping()) {
+        <span>Scraping…</span>
+      } @else {
+        <span>Scrape & match</span>
+      }
+    </button>
+    @if (urls().length) {
+      <button type="button" mat-button (click)="onClear()">Clear</button>
+    }
+  </div>
+</div>
