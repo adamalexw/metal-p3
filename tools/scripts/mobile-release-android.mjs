@@ -18,6 +18,7 @@ const apkPath = resolve(mobileRoot, 'android', 'app', 'build', 'outputs', 'apk',
 
 const skipPrebuild = process.argv.includes('--no-prebuild');
 
+
 const JVM17_PIN_MARKER = "// Pin every subproject's Kotlin compile to JVM 17";
 const JVM17_PIN = `
 // Pin every subproject's Kotlin compile to JVM 17 so libraries that don't pin
@@ -104,7 +105,8 @@ step('Tune gradle.properties for memory cleanup');
 {
   const original = readFileSync(gradleProps, 'utf8');
   const additions = [
-    ['kotlin.daemon.jvmargs', '-Xmx1g'],
+    ['org.gradle.jvmargs', '-Xmx6g -XX:MaxMetaspaceSize=1g'],
+    ['kotlin.daemon.jvmargs', '-Xmx2g'],
     ['kotlin.compiler.execution.strategy', 'in-process'],
   ];
   let patched = original;
@@ -131,7 +133,8 @@ step('Build release APK (./gradlew assembleRelease)');
 {
   const androidDir = resolve(mobileRoot, 'android');
   const gradleCmd = process.platform === 'win32' ? resolve(androidDir, 'gradlew.bat') : './gradlew';
-  run(gradleCmd, ['assembleRelease'], { cwd: androidDir });
+  // expo-constants' createExpoConfig task requires NODE_ENV to resolve app.config.
+  run(gradleCmd, ['assembleRelease'], { cwd: androidDir, env: { ...process.env, NODE_ENV: 'production' } });
 }
 
 if (!existsSync(apkPath)) {
