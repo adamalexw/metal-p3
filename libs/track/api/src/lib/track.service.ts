@@ -141,7 +141,7 @@ export class TrackService {
   }
 
   private persistLrcSidecar(track: TrackDto): void {
-    if (track.syncedLyrics === undefined) return;
+    if (track.syncedLyrics === undefined || track.syncedLyrics === null) return;
 
     const lrcPath = this.getLrcSidecarPath(track.fullPath);
 
