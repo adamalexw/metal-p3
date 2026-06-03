@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { Pencil, Trash2 } from 'lucide-react-native';
+import { ListPlus, Pencil, Play, Shuffle, Trash2 } from 'lucide-react-native';
 import { useEffect, useMemo, useState } from 'react';
 import { Text, View } from 'react-native';
 import Animated, {
@@ -9,12 +9,14 @@ import Animated, {
   useSharedValue,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { MetalP3Player } from '../../../modules/metalp3-player';
 import ConfirmDeleteSheet from '../../../src/components/ConfirmDeleteSheet';
 import ContextMenuSheet from '../../../src/components/ContextMenuSheet';
 import LibraryHeader, { LibraryHeaderSpacer } from '../../../src/components/LibraryHeader';
 import BlurredBackdrop from '../../../src/components/BlurredBackdrop';
 import { MINI_PLAYER_HEIGHT } from '../../../src/components/MiniPlayer';
 import PlaylistTile from '../../../src/components/PlaylistTile';
+import { getLibraryTracks } from '../../../src/lib/library-cache';
 import {
   Playlist,
   deletePlaylist,
@@ -22,9 +24,12 @@ import {
   loadPlaylists,
   subscribe,
 } from '../../../src/lib/playlist-store';
-import { startPlaylist } from '../../../src/lib/start-playlist';
+import { shuffled } from '../../../src/lib/shuffle';
+import { resolvePlaylistTracks, startPlaylist } from '../../../src/lib/start-playlist';
+import { toQueueItem } from '../../../src/lib/to-queue-item';
 import { tw } from '../../../src/lib/tw';
 import { useNowPlayingState } from '../../../src/lib/useNowPlayingState';
+import { prefetchArtworkTheme } from '../../../src/theme/useArtworkTheme';
 
 type PlaylistRow =
   | { kind: 'pair'; key: string; left: Playlist; right: Playlist }
@@ -75,14 +80,68 @@ export default function PlaylistsListScreen() {
     return subscribe(() => setPlaylists([...getPlaylists()]));
   }, []);
 
-  const openPlaylist = async (playlist: Playlist) => {
+  const openPlaylist = (playlist: Playlist) => {
     setStartError(null);
+    router.push(`/(tabs)/playlists/${encodeURIComponent(playlist.id)}` as never);
+  };
+
+  const playPlaylist = async (playlist: Playlist) => {
+    setStartError(null);
+    try {
+      await MetalP3Player.setShuffle(false);
+    } catch (err) {
+      console.warn('PlaylistsListScreen: failed to disable shuffle', err);
+    }
     const result = await startPlaylist(playlist.id);
     if (result.ok) {
       router.push('/(tabs)/player' as never);
       return;
     }
     setStartError(messageForReason(result.reason, playlist.name, result.message));
+  };
+
+  const shufflePlaylist = async (playlist: Playlist) => {
+    setStartError(null);
+    const library = getLibraryTracks();
+    if (library.length === 0) {
+      setStartError(messageForReason('empty-library', playlist.name));
+      return;
+    }
+    const tracks = resolvePlaylistTracks(playlist, library);
+    if (tracks.length === 0) {
+      setStartError(messageForReason('empty-playlist', playlist.name));
+      return;
+    }
+    const ordered = shuffled(tracks);
+    prefetchArtworkTheme(ordered[0]?.uri);
+    try {
+      await MetalP3Player.setQueueAsync(ordered.map(toQueueItem), 0, 0);
+      await MetalP3Player.setShuffle(true);
+      await MetalP3Player.play();
+    } catch (err) {
+      setStartError(messageForReason('error', playlist.name, err instanceof Error ? err.message : String(err)));
+      return;
+    }
+    router.push('/(tabs)/player' as never);
+  };
+
+  const addPlaylistToQueue = async (playlist: Playlist) => {
+    setStartError(null);
+    const library = getLibraryTracks();
+    if (library.length === 0) {
+      setStartError(messageForReason('empty-library', playlist.name));
+      return;
+    }
+    const tracks = resolvePlaylistTracks(playlist, library);
+    if (tracks.length === 0) {
+      setStartError(messageForReason('empty-playlist', playlist.name));
+      return;
+    }
+    try {
+      await MetalP3Player.addToQueueAsync(tracks.map(toQueueItem));
+    } catch (err) {
+      setStartError(messageForReason('error', playlist.name, err instanceof Error ? err.message : String(err)));
+    }
   };
 
   const confirmDelete = async () => {
@@ -153,12 +212,12 @@ export default function PlaylistsListScreen() {
               <>
                 <PlaylistTile
                   playlist={item.left}
-                  onPress={() => void openPlaylist(item.left)}
+                  onPress={() => openPlaylist(item.left)}
                   onLongPress={() => setContextPlaylist(item.left)}
                 />
                 <PlaylistTile
                   playlist={item.right}
-                  onPress={() => void openPlaylist(item.right)}
+                  onPress={() => openPlaylist(item.right)}
                   onLongPress={() => setContextPlaylist(item.right)}
                 />
               </>
@@ -166,7 +225,7 @@ export default function PlaylistsListScreen() {
               <>
                 <PlaylistTile
                   playlist={item.item}
-                  onPress={() => void openPlaylist(item.item)}
+                  onPress={() => openPlaylist(item.item)}
                   onLongPress={() => setContextPlaylist(item.item)}
                 />
                 <View style={tw`flex-1 mx-1`} />
@@ -191,6 +250,27 @@ export default function PlaylistsListScreen() {
         items={
           contextPlaylist
             ? [
+                {
+                  key: 'play',
+                  label: 'Play',
+                  icon: Play,
+                  onPress: () => void playPlaylist(contextPlaylist),
+                  testID: `playlist-context-play-${contextPlaylist.id}`,
+                },
+                {
+                  key: 'shuffle',
+                  label: 'Shuffle',
+                  icon: Shuffle,
+                  onPress: () => void shufflePlaylist(contextPlaylist),
+                  testID: `playlist-context-shuffle-${contextPlaylist.id}`,
+                },
+                {
+                  key: 'add-to-queue',
+                  label: 'Add to queue',
+                  icon: ListPlus,
+                  onPress: () => void addPlaylistToQueue(contextPlaylist),
+                  testID: `playlist-context-add-to-queue-${contextPlaylist.id}`,
+                },
                 {
                   key: 'edit',
                   label: 'Edit playlist',

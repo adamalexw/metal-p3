@@ -296,14 +296,14 @@ export default function LibraryScreen() {
             ? [
                 {
                   key: 'play',
-                  label: 'Play album',
+                  label: 'Play',
                   icon: Play,
                   onPress: () => void playAlbum(contextAlbum),
                   testID: `album-context-play-${contextAlbum.key}`,
                 },
                 {
                   key: 'shuffle',
-                  label: 'Play album on shuffle',
+                  label: 'Shuffle',
                   icon: Shuffle,
                   onPress: () => void shuffleAlbum(contextAlbum),
                   testID: `album-context-shuffle-${contextAlbum.key}`,
