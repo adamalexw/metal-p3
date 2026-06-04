@@ -10,7 +10,7 @@ import { MetalP3Player } from '../../modules/metalp3-player';
 import { MINI_PLAYER_HEIGHT } from '../../src/components/MiniPlayer';
 import { toFlagEmoji } from '../../src/lib/country-flag';
 import { formatAlbumDuration, formatTrackDuration } from '../../src/lib/group-tracks-by-album';
-import { findAlbumGroup, subscribe as subscribeLibrary } from '../../src/lib/library-cache';
+import { useLibraryAlbumGroup } from '../../src/lib/library-cache';
 import { shuffled } from '../../src/lib/shuffle';
 import { toQueueItem } from '../../src/lib/to-queue-item';
 import AddToPlaylistSheet from '../../src/components/AddToPlaylistSheet';
@@ -28,8 +28,7 @@ export default function AlbumDetailScreen() {
   const router = useRouter();
   const rawKey = typeof params.key === 'string' ? params.key : '';
   const albumKey = decodeURIComponent(rawKey);
-  const [, forceTick] = useState(0);
-  const group = findAlbumGroup(albumKey);
+  const group = useLibraryAlbumGroup(albumKey);
   const insets = useSafeAreaInsets();
   const nowPlaying = useNowPlayingState();
   const theme = useArtworkTheme(group?.representativeUri ?? null);
@@ -45,8 +44,6 @@ export default function AlbumDetailScreen() {
   const [deleteBusy, setDeleteBusy] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const swipeableRefs = useRef(new Map<string, Swipeable>());
-
-  useEffect(() => subscribeLibrary(() => forceTick((n) => n + 1)), []);
 
   useEffect(() => {
     if (!group && rawKey) {

@@ -24,7 +24,7 @@ import { PlayerProgressBar } from '../../src/components/PlayerProgressBar';
 import QueueSheet from '../../src/components/QueueSheet';
 import { withAlpha } from '../../src/lib/color';
 import { toFlagEmoji } from '../../src/lib/country-flag';
-import { findAlbumGroup, getLibraryTracks, subscribe as subscribeLibrary } from '../../src/lib/library-cache';
+import { useLibraryAlbumGroup, useLibraryTracks } from '../../src/lib/library-cache';
 import { shuffled } from '../../src/lib/shuffle';
 import { useLyrics } from '../../src/lib/useLyrics';
 import { useNowPlayingState } from '../../src/lib/useNowPlayingState';
@@ -42,9 +42,6 @@ export default function PlayerScreen() {
   const state = useNowPlayingState();
   const [showLyrics, setShowLyrics] = useState(false);
   const [queueOpen, setQueueOpen] = useState(false);
-  const [libraryTick, setLibraryTick] = useState(0);
-
-  useEffect(() => subscribeLibrary(() => setLibraryTick((n) => n + 1)), []);
 
   const current = state?.current;
   const isPlaying = state?.isPlaying ?? false;
@@ -75,21 +72,18 @@ export default function PlayerScreen() {
     return `${band}|${album}`;
   }, [current?.albumArtist, current?.artist, current?.album]);
 
+  const albumGroup = useLibraryAlbumGroup(albumKey);
+  const tracks = useLibraryTracks();
+
   const genre = useMemo(() => {
-    if (albumKey) {
-      const group = findAlbumGroup(albumKey);
-      if (group?.genre) return group.genre;
-    }
+    if (albumGroup?.genre) return albumGroup.genre;
     const id = current?.id;
     const uri = current?.uri;
-    const tracks = getLibraryTracks();
     const track =
       (id ? tracks.find((t) => t.id === id) : null) ??
       (uri ? tracks.find((t) => t.uri === uri) : null);
     return track?.genre ?? null;
-    // libraryTick: re-runs when the external library cache populates/changes.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [albumKey, current?.id, current?.uri, libraryTick]);
+  }, [albumGroup, tracks, current?.id, current?.uri]);
 
   const headerSubtitle = useMemo(() => {
     const band = current?.artist ?? current?.albumArtist ?? '';
