@@ -1,8 +1,9 @@
 import { BlurView } from 'expo-blur';
+import { Image } from 'expo-image';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { Play, Shuffle } from 'lucide-react-native';
 import { useEffect, useRef, useState } from 'react';
-import { FlatList, Image, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
+import { FlatList, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Swipeable } from 'react-native-gesture-handler';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MetalP3Player } from '../../modules/metalp3-player';
@@ -161,8 +162,10 @@ export default function AlbumDetailScreen() {
                 <Image
                   source={{ uri: artUri }}
                   style={StyleSheet.absoluteFill}
-                  resizeMode="cover"
+                  contentFit="cover"
                   blurRadius={10}
+                  cachePolicy="memory-disk"
+                  recyclingKey={artUri}
                 />
                 <BlurView intensity={35} tint="dark" style={StyleSheet.absoluteFill} />
                 <View style={[StyleSheet.absoluteFill, tw`bg-black/30`]} />
@@ -175,7 +178,14 @@ export default function AlbumDetailScreen() {
 
       {artUri ? (
         <View style={StyleSheet.absoluteFill} pointerEvents="none" testID="album-detail-backdrop">
-          <Image source={{ uri: artUri }} style={StyleSheet.absoluteFill} resizeMode="cover" blurRadius={10} />
+          <Image
+            source={{ uri: artUri }}
+            style={StyleSheet.absoluteFill}
+            contentFit="cover"
+            blurRadius={10}
+            cachePolicy="memory-disk"
+            recyclingKey={artUri}
+          />
           <BlurView intensity={35} tint="dark" style={StyleSheet.absoluteFill} />
           <View style={[StyleSheet.absoluteFill, tw`bg-black/30`]} />
         </View>
@@ -192,7 +202,14 @@ export default function AlbumDetailScreen() {
               testID="album-detail-artwork"
             >
               {artUri ? (
-                <Image source={{ uri: artUri }} style={tw`w-full h-full`} resizeMode="cover" />
+                <Image
+                  source={{ uri: artUri }}
+                  style={tw`w-full h-full`}
+                  contentFit="cover"
+                  cachePolicy="memory-disk"
+                  recyclingKey={artUri}
+                  transition={120}
+                />
               ) : (
                 <View style={tw`w-full h-full bg-[#222]`} />
               )}

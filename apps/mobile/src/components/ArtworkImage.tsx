@@ -1,5 +1,5 @@
-import { useEffect, useRef } from 'react';
-import { Animated, type ImageStyle, type StyleProp } from 'react-native';
+import { Image, type ImageContentFit, type ImageStyle } from 'expo-image';
+import { type StyleProp } from 'react-native';
 
 interface ArtworkImageProps {
   uri: string | null;
@@ -9,10 +9,19 @@ interface ArtworkImageProps {
   testID?: string;
 }
 
+const TRANSITION_MS = 220;
+
+const RESIZE_TO_FIT: Record<NonNullable<ArtworkImageProps['resizeMode']>, ImageContentFit> = {
+  cover: 'cover',
+  contain: 'contain',
+  stretch: 'fill',
+  center: 'scale-down',
+};
+
 /**
- * Crossfades into the new artwork as it becomes available so the player
- * doesn't snap from placeholder → image. Each unique uri animates in once
- * (cached uris start fully visible).
+ * Crossfades into the new artwork via expo-image's built-in transition,
+ * sharing its memory+disk cache with every other artwork instance in the app.
+ * Each unique uri animates in once; cached uris start fully visible.
  */
 export default function ArtworkImage({
   uri,
@@ -21,33 +30,17 @@ export default function ArtworkImage({
   blurRadius,
   testID,
 }: ArtworkImageProps) {
-  const opacity = useRef(new Animated.Value(uri ? 1 : 0)).current;
-  const lastUri = useRef<string | null>(uri);
-
-  useEffect(() => {
-    if (!uri) {
-      opacity.setValue(0);
-      lastUri.current = null;
-      return;
-    }
-    if (uri === lastUri.current) return;
-    lastUri.current = uri;
-    opacity.setValue(0);
-    Animated.timing(opacity, {
-      toValue: 1,
-      duration: 220,
-      useNativeDriver: true,
-    }).start();
-  }, [uri, opacity]);
-
   if (!uri) return null;
 
   return (
-    <Animated.Image
+    <Image
       source={{ uri }}
-      style={[style, { opacity }]}
-      resizeMode={resizeMode}
+      style={style}
+      contentFit={RESIZE_TO_FIT[resizeMode]}
+      transition={TRANSITION_MS}
       blurRadius={blurRadius}
+      cachePolicy="memory-disk"
+      recyclingKey={uri}
       testID={testID}
     />
   );

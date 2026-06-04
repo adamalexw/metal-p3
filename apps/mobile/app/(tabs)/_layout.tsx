@@ -2,7 +2,8 @@ import { DrawerContentScrollView, DrawerItemList, type DrawerContentComponentPro
 import { BlurView } from 'expo-blur';
 import { Drawer } from 'expo-router/drawer';
 import { Disc3, ListMusic, Music4 } from 'lucide-react-native';
-import { Image, StyleSheet, View } from 'react-native';
+import { Image } from 'expo-image';
+import { StyleSheet, View } from 'react-native';
 import { tw } from '../../src/lib/tw';
 import { useNowPlayingState } from '../../src/lib/useNowPlayingState';
 
@@ -16,7 +17,7 @@ function DrawerContent(props: DrawerContentComponentProps) {
           <Image
             source={require('../../assets/images/splash-icon.png')}
             style={tw`w-56 h-56`}
-            resizeMode="contain"
+            contentFit="contain"
           />
         </View>
         <DrawerItemList {...props} />

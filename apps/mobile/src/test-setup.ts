@@ -16,6 +16,11 @@ jest.mock('@shopify/flash-list', () => {
   return { __esModule: true, FlashList: FlatList };
 });
 
+jest.mock('expo-image', () => {
+  const { Image } = require('react-native');
+  return { __esModule: true, Image };
+});
+
 jest.mock('react-native-reanimated', () => {
   const RN = require('react-native');
   const { View, FlatList, Text, Image } = RN;

@@ -2,7 +2,8 @@ import { DrawerActions } from '@react-navigation/native';
 import { BlurView } from 'expo-blur';
 import { useNavigation } from 'expo-router';
 import { Menu } from 'lucide-react-native';
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Image } from 'expo-image';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated, {
   Extrapolation,
   interpolate,
@@ -111,7 +112,7 @@ export default function LibraryHeader({ title, stats, topInset, scrollY }: Props
           <Image
             source={require('../../assets/images/splash-icon.png')}
             style={tw`w-20 h-20`}
-            resizeMode="contain"
+            contentFit="contain"
           />
         </Animated.View>
       </Animated.View>

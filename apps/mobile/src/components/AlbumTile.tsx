@@ -1,5 +1,6 @@
+import { Image } from 'expo-image';
 import { memo, useCallback, useRef } from 'react';
-import { Image, Pressable, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import Animated, {
   FadeInUp,
   useAnimatedStyle,
@@ -71,7 +72,14 @@ function AlbumTileImpl({ group, index = 0, onPress, onLongPress }: AlbumTileProp
           ]}
         >
           {artUri ? (
-            <Image source={{ uri: artUri }} style={tw`w-full h-full`} resizeMode="cover" />
+            <Image
+              source={{ uri: artUri }}
+              style={tw`w-full h-full`}
+              contentFit="cover"
+              cachePolicy="memory-disk"
+              recyclingKey={artUri}
+              transition={120}
+            />
           ) : (
             <View style={tw`w-full h-full bg-[#222]`} />
           )}

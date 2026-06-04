@@ -1,8 +1,9 @@
+import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import { ChevronLeft, Pencil, Play, Shuffle } from 'lucide-react-native';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import DraggableFlatList, {
   type RenderItemParams,
   ScaleDecorator,
@@ -409,7 +410,14 @@ function PlaylistTrackRow({
         testID={`playlist-detail-track-art-${track.id}`}
       >
         {artUri ? (
-          <Image source={{ uri: artUri }} style={tw`w-full h-full`} resizeMode="cover" />
+          <Image
+            source={{ uri: artUri }}
+            style={tw`w-full h-full`}
+            contentFit="cover"
+            cachePolicy="memory-disk"
+            recyclingKey={artUri}
+            transition={120}
+          />
         ) : null}
       </View>
       <View style={tw`flex-1 pr-2`}>

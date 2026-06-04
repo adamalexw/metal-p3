@@ -1,7 +1,8 @@
 import { BlurView } from 'expo-blur';
 import { Disc3, GripVertical, Trash2, Volume2, X } from 'lucide-react-native';
 import { useRef } from 'react';
-import { Image, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Image } from 'expo-image';
 import DraggableFlatList, {
   type RenderItemParams,
   ScaleDecorator,
@@ -233,7 +234,14 @@ function QueueRow({ item, isActive, isCurrent, theme, drag, onPress }: QueueRowP
         testID={`queue-row-art-${item.id}`}
       >
         {artUri ? (
-          <Image source={{ uri: artUri }} style={tw`w-full h-full`} resizeMode="cover" />
+          <Image
+            source={{ uri: artUri }}
+            style={tw`w-full h-full`}
+            contentFit="cover"
+            cachePolicy="memory-disk"
+            recyclingKey={artUri}
+            transition={120}
+          />
         ) : (
           <Disc3
             size={22}

@@ -1,5 +1,6 @@
 import { BlurView } from 'expo-blur';
-import { Image, StyleSheet, View } from 'react-native';
+import { Image } from 'expo-image';
+import { StyleSheet, View } from 'react-native';
 import { tw } from '../lib/tw';
 
 /**
@@ -20,7 +21,7 @@ export default function BlurredBackdrop() {
         <Image
           source={require('../../assets/images/library-backdrop.png')}
           style={tw`w-[140%] h-[140%]`}
-          resizeMode="cover"
+          contentFit="cover"
           blurRadius={18}
         />
       </View>
