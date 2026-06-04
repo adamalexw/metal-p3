@@ -1,10 +1,10 @@
+import { FlashList } from '@shopify/flash-list';
 import { useRouter } from 'expo-router';
 import { ListPlus, Play, Shuffle, Trash2 } from 'lucide-react-native';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, AppState, Pressable, Text, View } from 'react-native';
 import Animated, {
   FadeIn,
-  FadeInUp,
   useAnimatedScrollHandler,
   useSharedValue,
 } from 'react-native-reanimated';
@@ -29,27 +29,11 @@ import { tw } from '../../src/lib/tw';
 import { useNowPlayingState } from '../../src/lib/useNowPlayingState';
 import { prefetchArtworkTheme } from '../../src/theme/useArtworkTheme';
 
-type AlbumRow =
-  | { kind: 'pair'; key: string; left: AlbumGroup; right: AlbumGroup }
-  | { kind: 'wide'; key: string; item: AlbumGroup };
-
-function buildRows(albums: AlbumGroup[]): AlbumRow[] {
-  const rows: AlbumRow[] = [];
-  let i = 0;
-  while (i < albums.length) {
-    const isLast = i === albums.length - 1;
-    if (isLast && (albums.length % 2 === 1)) {
-      rows.push({ kind: 'wide', key: albums[i].key, item: albums[i] });
-      i += 1;
-    } else {
-      rows.push({ kind: 'pair', key: `${albums[i].key}|${albums[i + 1].key}`, left: albums[i], right: albums[i + 1] });
-      i += 2;
-    }
-  }
-  return rows;
-}
+const AnimatedFlashList = Animated.createAnimatedComponent(FlashList<AlbumGroup>);
 
 type Status = 'idle' | 'checking' | 'denied' | 'loading' | 'ready' | 'error';
+
+const keyExtractor = (group: AlbumGroup) => group.key;
 
 export default function LibraryScreen() {
   const router = useRouter();
@@ -202,12 +186,22 @@ export default function LibraryScreen() {
     setDeleteError(null);
   };
 
-  const rows = useMemo(() => buildRows(albums), [albums]);
-
   const scrollY = useSharedValue(0);
   const onScroll = useAnimatedScrollHandler((e) => {
     scrollY.value = e.contentOffset.y;
   });
+
+  const renderItem = useCallback(
+    ({ item, index }: { item: AlbumGroup; index: number }) => (
+      <AlbumTile
+        group={item}
+        index={index}
+        onPress={openAlbum}
+        onLongPress={handleLongPressAlbum}
+      />
+    ),
+    [openAlbum, handleLongPressAlbum],
+  );
 
   return (
     <View style={tw`flex-1 bg-black`}>
@@ -238,44 +232,16 @@ export default function LibraryScreen() {
 
       {status === 'ready' ? (
         <>
-          <Animated.FlatList
+          <AnimatedFlashList
             style={tw`flex-1`}
-            data={rows}
-            keyExtractor={(r) => r.key}
+            data={albums}
+            keyExtractor={keyExtractor}
+            numColumns={2}
             onScroll={onScroll}
             scrollEventThrottle={16}
             ListHeaderComponent={<LibraryHeaderSpacer topInset={insets.top} />}
-          contentContainerStyle={[tw`px-3`, { paddingBottom: insets.bottom + 24 + miniPlayerPad }]}
-            renderItem={({ item, index }) => (
-              <Animated.View
-                entering={FadeInUp.duration(280).delay(Math.min(index * 25, 400))}
-                style={tw`flex-row`}
-              >
-                {item.kind === 'pair' ? (
-                  <>
-                    <AlbumTile
-                      group={item.left}
-                      onPress={() => openAlbum(item.left)}
-                      onLongPress={() => handleLongPressAlbum(item.left)}
-                    />
-                    <AlbumTile
-                      group={item.right}
-                      onPress={() => openAlbum(item.right)}
-                      onLongPress={() => handleLongPressAlbum(item.right)}
-                    />
-                  </>
-                ) : (
-                  <>
-                    <AlbumTile
-                      group={item.item}
-                      onPress={() => openAlbum(item.item)}
-                      onLongPress={() => handleLongPressAlbum(item.item)}
-                    />
-                    <View style={tw`flex-1 mx-1`} />
-                  </>
-                )}
-              </Animated.View>
-            )}
+            contentContainerStyle={{ paddingHorizontal: 12, paddingBottom: insets.bottom + 24 + miniPlayerPad }}
+            renderItem={renderItem}
           />
           <LibraryHeader
             title="Library"
