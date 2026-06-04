@@ -124,19 +124,20 @@ export class ApplyLyricsShellComponent implements OnInit {
             ?.filter((maTrack) => maTrack.hasLyrics && !maTrack.lyricsLoading)
             .forEach((maTrack, i) => {
               const localTrack = this.matchLocalTrack(tracks ?? [], maTrack);
-              if (!localTrack) return;
               setTimeout(
                 () =>
                   this.store.dispatch(
-                    TrackActions.getSyncedLyrics({
-                      id,
-                      localTrackId: localTrack.id,
-                      maTrackId: maTrack.id,
-                      artist: album.artist ?? '',
-                      track: localTrack.title ?? maTrack.title ?? '',
-                      album: album.album ?? '',
-                      durationSeconds: localTrack.duration,
-                    }),
+                    localTrack
+                      ? TrackActions.getSyncedLyrics({
+                          id,
+                          localTrackId: localTrack.id,
+                          maTrackId: maTrack.id,
+                          artist: album.artist ?? '',
+                          track: localTrack.title ?? maTrack.title ?? '',
+                          album: album.album ?? '',
+                          durationSeconds: localTrack.duration,
+                        })
+                      : TrackActions.getLyrics({ id, trackId: maTrack.id }),
                   ),
                 i * 3000,
               );

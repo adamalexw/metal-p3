@@ -69,6 +69,7 @@ export class MetalArchivesService {
     const browser = await puppeteer.launch({
       headless: false,
       targetFilter: (target) => target.type() !== 'other',
+      args: ['--window-position=-32000,-32000', '--window-size=800,600'],
     });
     const defaultPage = (await browser.pages())[0]; // <-- bypasses Cloudflare
 

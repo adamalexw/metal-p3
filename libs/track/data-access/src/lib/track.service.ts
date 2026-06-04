@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { API, ApplyLyrics } from '@metal-p3/album/domain';
-import { AlbumDto, MetalArchivesAlbumTrack, RenameTrack, TrackDto } from '@metal-p3/api-interfaces';
+import { AlbumDto, MetalArchivesAlbumTrack, RenameTrack, TrackDto, TransferPlaylistRequest } from '@metal-p3/api-interfaces';
 import { Observable } from 'rxjs';
 
 @Injectable({
@@ -38,11 +38,13 @@ export class TrackService {
     return this.http.get(`${this.albumUrl}/getLyrics?trackId=${trackId}`, { responseType: 'text' });
   }
 
-  getSyncedLyrics(params: { artist: string; track: string; album: string; durationSeconds?: number }): Observable<{ syncedLyrics: string | null; plainLyrics: string | null; instrumental: boolean } | null> {
+  getSyncedLyrics(params: {
+    artist: string;
+    track: string;
+    album: string;
+    durationSeconds?: number;
+  }): Observable<{ syncedLyrics: string | null; plainLyrics: string | null; instrumental: boolean } | null> {
     const query = new URLSearchParams({ artist: params.artist, track: params.track, album: params.album });
-    if (params.durationSeconds && params.durationSeconds > 0) {
-      query.set('duration', String(Math.round(params.durationSeconds)));
-    }
     return this.http.get<{ syncedLyrics: string | null; plainLyrics: string | null; instrumental: boolean } | null>(`${this.api}maintenance/lyrics/synced?${query.toString()}`);
   }
 
@@ -56,6 +58,10 @@ export class TrackService {
 
   transferTrack(file: string): Observable<void> {
     return this.http.get<void>(`${this.baseUrl}/transferTrack?file=${encodeURIComponent(file)}`);
+  }
+
+  transferPlaylist(request: TransferPlaylistRequest): Observable<void> {
+    return this.http.post<void>(`${this.baseUrl}/transferPlaylist`, request);
   }
 
   playTrack(file: string): Observable<Blob> {

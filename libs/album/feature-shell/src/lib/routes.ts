@@ -14,4 +14,8 @@ export const routes: Routes = [
     loadChildren: () => import('@metal-p3/maintenance').then((m) => m.MAINTENANCE_ROUTES),
     providers: [provideState(maintenanceFeature), provideEffects(MaintenanceEffects)],
   },
+  {
+    path: 'setlist-importer',
+    loadChildren: () => import('@metal-p3/setlist-importer').then((m) => m.SETLIST_IMPORTER_ROUTES),
+  },
 ];

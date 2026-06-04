@@ -185,6 +185,30 @@ export async function removeTrackFromPlaylist(
   notify();
 }
 
+export async function setPlaylistTracks(
+  playlistId: string,
+  trackIds: string[],
+): Promise<void> {
+  const idx = playlists.findIndex((p) => p.id === playlistId);
+  if (idx === -1) throw new Error(`Playlist ${playlistId} not found.`);
+  const existing = playlists[idx];
+  const seen = new Set<string>();
+  const deduped: string[] = [];
+  for (const id of trackIds) {
+    if (typeof id !== 'string') continue;
+    if (seen.has(id)) continue;
+    seen.add(id);
+    deduped.push(id);
+  }
+  const same = deduped.length === existing.trackIds.length
+    && deduped.every((id, i) => id === existing.trackIds[i]);
+  if (same) return;
+  const updated: Playlist = { ...existing, trackIds: deduped, updatedAt: Date.now() };
+  playlists = [...playlists.slice(0, idx), updated, ...playlists.slice(idx + 1)];
+  await persist();
+  notify();
+}
+
 export async function reorderPlaylistTracks(
   playlistId: string,
   fromIndex: number,
@@ -243,6 +267,62 @@ export function setActivePlaylistId(id: string | null): void {
 
 export function getActivePlaylistId(): string | null {
   return activePlaylistId;
+}
+
+export interface ImportedPlaylist {
+  name: string;
+  trackIds: string[];
+}
+
+/**
+ * Pull any playlist manifests pushed from the desktop app via ADB,
+ * resolved to MediaStore IDs by the native module, and merge them into
+ * the JS-owned playlist store. Same-named playlists are replaced in
+ * place so the desktop is the source of truth for that name.
+ *
+ * Best-effort: if the native module isn't available (Jest, iOS) it
+ * resolves to no-op.
+ */
+export async function reconcileImportedPlaylists(): Promise<void> {
+  let imported: ImportedPlaylist[] = [];
+  try {
+    const mod: { MetalP3Player?: { importPlaylistManifests?: () => Promise<ImportedPlaylist[]> } } =
+      require('../../modules/metalp3-player');
+    const fn = mod?.MetalP3Player?.importPlaylistManifests;
+    if (!fn) return;
+    imported = (await fn()) ?? [];
+  } catch (err) {
+    if (process.env.JEST_WORKER_ID === undefined) {
+      console.warn('playlist-store: importPlaylistManifests failed', err);
+    }
+    return;
+  }
+
+  if (!imported.length) return;
+  if (!loaded) await loadPlaylists();
+
+  for (const entry of imported) {
+    const name = entry?.name?.trim();
+    if (!name) continue;
+    const trackIds = Array.isArray(entry.trackIds)
+      ? entry.trackIds.filter((id): id is string => typeof id === 'string')
+      : [];
+    if (!trackIds.length) continue;
+
+    const existing = playlists.find((p) => p.name.toLowerCase() === name.toLowerCase());
+    if (existing) {
+      await setPlaylistTracks(existing.id, trackIds);
+    } else {
+      try {
+        const created = await createPlaylist(name);
+        await setPlaylistTracks(created.id, trackIds);
+      } catch (err) {
+        if (process.env.JEST_WORKER_ID === undefined) {
+          console.warn(`playlist-store: failed to create imported playlist "${name}"`, err);
+        }
+      }
+    }
+  }
 }
 
 export function _resetForTests(): void {

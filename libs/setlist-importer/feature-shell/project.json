@@ -1,0 +1,22 @@
+{
+  "name": "setlist-importer-feature-shell",
+  "$schema": "..\\..\\..\\node_modules\\nx\\schemas\\project-schema.json",
+  "projectType": "library",
+  "sourceRoot": "libs/setlist-importer/feature-shell/src",
+  "prefix": "app",
+  "tags": ["scope:setlist-importer", "type:feature-shell"],
+  "targets": {
+    "test": {
+      "outputs": ["{workspaceRoot}/coverage/libs/setlist-importer/feature-shell", "{workspaceRoot}\\coverage\\libs\\setlist-importer\\feature-shell"],
+      "options": {
+        "passWithNoTests": true
+      },
+      "configurations": {
+        "ci": {
+          "ci": true,
+          "coverage": true
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "name": "setlist-importer-domain",
+  "$schema": "..\\..\\..\\node_modules\\nx\\schemas\\project-schema.json",
+  "projectType": "library",
+  "sourceRoot": "libs/setlist-importer/domain/src",
+  "prefix": "app",
+  "tags": [],
+  "targets": {
+    "test": {
+      "outputs": ["{workspaceRoot}/coverage/libs/setlist-importer/domain", "{workspaceRoot}\\coverage\\libs\\setlist-importer\\domain"],
+      "options": {
+        "passWithNoTests": true
+      },
+      "configurations": {
+        "ci": {
+          "ci": true,
+          "coverage": true
+        }
+      }
+    }
+  }
+}

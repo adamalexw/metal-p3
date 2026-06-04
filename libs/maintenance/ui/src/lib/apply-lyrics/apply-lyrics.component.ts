@@ -25,6 +25,7 @@ export class ApplyLyricsComponent {
   maTracks = input<MetalArchivesAlbumTrack[] | null | undefined>([]);
   maTracksLoading = input<boolean | null>(false);
   lyricsLoading = input<boolean | null>(false);
+  lyricsExpected = input<boolean | null>(false);
   lyricsLoadingProgress = input<number | null>(0);
   applyingProgress = input<number | null>(0);
   applying = input<boolean | null>(false);

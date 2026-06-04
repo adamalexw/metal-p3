@@ -100,12 +100,21 @@ step('Override react.root → workspace root in app/build.gradle');
   }
 }
 
-step('Tune gradle.properties for memory cleanup');
+step('Tune gradle.properties for build memory headroom');
 {
   const original = readFileSync(gradleProps, 'utf8');
+  // Expo SDK 54 + Kotlin 2.x compiles need headroom, but the Expo template's
+  // 2 GB Gradle heap OOMs on :expo-modules-core:compileReleaseKotlin. 4 GB for
+  // Gradle + 2 GB for an out-of-process Kotlin daemon is enough to finish the
+  // build without starving the OS into swap. Disable Gradle's parallel project
+  // execution and cap workers at 2 so a release build doesn't flatline the
+  // machine.
   const additions = [
-    ['kotlin.daemon.jvmargs', '-Xmx1g'],
-    ['kotlin.compiler.execution.strategy', 'in-process'],
+    ['org.gradle.jvmargs', '-Xmx4g -XX:MaxMetaspaceSize=1g -Dfile.encoding=UTF-8'],
+    ['kotlin.daemon.jvmargs', '-Xmx2g -XX:MaxMetaspaceSize=512m'],
+    ['kotlin.compiler.execution.strategy', 'daemon'],
+    ['org.gradle.workers.max', '2'],
+    ['org.gradle.parallel', 'false'],
   ];
   let patched = original;
   for (const [key, value] of additions) {
