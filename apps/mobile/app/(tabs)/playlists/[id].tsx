@@ -1,7 +1,7 @@
 import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import Animated, { FadeIn } from 'react-native-reanimated';
-import { ChevronLeft, Pencil, Play, Shuffle } from 'lucide-react-native';
+import { ChevronLeft, Play, Shuffle } from 'lucide-react-native';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import DraggableFlatList, {
@@ -342,20 +342,6 @@ function DetailHeader({ insetTop, title, onBack, onEdit }: DetailHeaderProps) {
       >
         {title}
       </Text>
-      <View style={tw`w-12 h-12 items-center justify-center`}>
-        {onEdit ? (
-          <Pressable
-            onPress={onEdit}
-            hitSlop={12}
-            style={tw`w-12 h-12 items-center justify-center`}
-            testID="playlist-detail-edit"
-            accessibilityRole="button"
-            accessibilityLabel="Edit playlist"
-          >
-            <Pencil size={20} color="#fff" strokeWidth={2.25} strokeLinecap="square" />
-          </Pressable>
-        ) : null}
-      </View>
     </View>
   );
 }

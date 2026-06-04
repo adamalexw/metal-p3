@@ -1,4 +1,3 @@
-import { BlurView } from 'expo-blur';
 import { Image } from 'expo-image';
 import { StyleSheet, View } from 'react-native';
 import { tw } from '../lib/tw';
