@@ -217,13 +217,7 @@ export default function PlaylistDetailScreen() {
             <View
               style={[
                 tw`w-[220px] h-[220px] rounded-lg overflow-hidden bg-[#222] mb-4`,
-                {
-                  shadowColor: '#000',
-                  shadowOpacity: 0.5,
-                  shadowRadius: 10,
-                  shadowOffset: { width: 0, height: 6 },
-                  elevation: 6,
-                },
+                { boxShadow: '0 6px 10px rgba(0, 0, 0, 0.5)' },
               ]}
               testID="playlist-detail-artwork"
             >

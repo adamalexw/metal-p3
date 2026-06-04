@@ -278,11 +278,7 @@ export default function PlayerScreen() {
                 {
                   width: artSize,
                   height: artSize,
-                  shadowColor: '#000',
-                  shadowOpacity: 0.5,
-                  shadowRadius: 18,
-                  shadowOffset: { width: 0, height: 8 },
-                  elevation: 12,
+                  boxShadow: '0 8px 18px rgba(0, 0, 0, 0.5)',
                 },
               ]}
               testID="player-art"
@@ -451,11 +447,7 @@ function PrimaryBtn({
         tw`w-[88px] h-[88px] items-center justify-center rounded-full`,
         {
           backgroundColor: theme.accent,
-          shadowColor: '#000',
-          shadowOpacity: 0.45,
-          shadowRadius: 12,
-          shadowOffset: { width: 0, height: 6 },
-          elevation: 10,
+          boxShadow: '0 6px 12px rgba(0, 0, 0, 0.45)',
         },
       ]}
       onPress={onPress}

@@ -85,13 +85,7 @@ function AlbumTileImpl({ group, index = 0, onPress, onLongPress }: AlbumTileProp
           <View
             style={[
               tw`w-full aspect-square rounded-md overflow-hidden bg-[#222]`,
-              {
-                shadowColor: '#000',
-                shadowOpacity: 0.5,
-                shadowRadius: 10,
-                shadowOffset: { width: 0, height: 6 },
-                elevation: 6,
-              },
+              { boxShadow: '0 6px 10px rgba(0, 0, 0, 0.5)' },
             ]}
           >
             {artUri ? (

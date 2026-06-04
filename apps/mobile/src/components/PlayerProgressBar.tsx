@@ -222,11 +222,7 @@ export function PlayerProgressBar({
                 borderRadius: THUMB_SIZE / 2,
                 top: (HIT_HEIGHT - THUMB_SIZE) / 2,
                 backgroundColor: filledColor,
-                shadowColor: '#000',
-                shadowOpacity: 0.3,
-                shadowRadius: 3,
-                shadowOffset: { width: 0, height: 1 },
-                elevation: 3,
+                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.3)',
               },
               thumbStyle,
             ]}

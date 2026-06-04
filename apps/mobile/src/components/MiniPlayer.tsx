@@ -45,11 +45,7 @@ export default function MiniPlayer() {
             borderWidth: StyleSheet.hairlineWidth,
             backgroundColor: withAlpha(theme.surface, 0.92),
             borderColor: withAlpha(theme.foreground, 0.08),
-            shadowColor: '#000',
-            shadowOpacity: 0.4,
-            shadowRadius: 12,
-            shadowOffset: { width: 0, height: 4 },
-            elevation: 8,
+            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.4)',
           },
         ]}
         testID="mini-player"
