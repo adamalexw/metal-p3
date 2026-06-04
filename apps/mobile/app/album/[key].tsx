@@ -1,16 +1,20 @@
 import { BlurView } from 'expo-blur';
+import { Image } from 'expo-image';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
-import { Play, Shuffle } from 'lucide-react-native';
-import { useEffect, useRef, useState } from 'react';
-import { FlatList, Image, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
-import { Swipeable } from 'react-native-gesture-handler';
+import { Play, Shuffle, Trash2 } from 'lucide-react-native';
+import { createRef, useEffect, useRef, useState, type RefObject } from 'react';
+import { FlatList, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
+import ReanimatedSwipeable, {
+  type SwipeableMethods,
+} from 'react-native-gesture-handler/ReanimatedSwipeable';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MetalP3Player } from '../../modules/metalp3-player';
 import { MINI_PLAYER_HEIGHT } from '../../src/components/MiniPlayer';
 import { toFlagEmoji } from '../../src/lib/country-flag';
 import { formatAlbumDuration, formatTrackDuration } from '../../src/lib/group-tracks-by-album';
-import { findAlbumGroup, subscribe as subscribeLibrary } from '../../src/lib/library-cache';
+import { useLibraryAlbumGroup } from '../../src/lib/library-cache';
 import { shuffled } from '../../src/lib/shuffle';
+import { ICON_STROKE } from '../../src/theme/icons';
 import { toQueueItem } from '../../src/lib/to-queue-item';
 import AddToPlaylistSheet from '../../src/components/AddToPlaylistSheet';
 import ConfirmDeleteSheet from '../../src/components/ConfirmDeleteSheet';
@@ -27,8 +31,7 @@ export default function AlbumDetailScreen() {
   const router = useRouter();
   const rawKey = typeof params.key === 'string' ? params.key : '';
   const albumKey = decodeURIComponent(rawKey);
-  const [, forceTick] = useState(0);
-  const group = findAlbumGroup(albumKey);
+  const group = useLibraryAlbumGroup(albumKey);
   const insets = useSafeAreaInsets();
   const nowPlaying = useNowPlayingState();
   const theme = useArtworkTheme(group?.representativeUri ?? null);
@@ -43,9 +46,15 @@ export default function AlbumDetailScreen() {
   const [pendingDeleteTrack, setPendingDeleteTrack] = useState<Track | null>(null);
   const [deleteBusy, setDeleteBusy] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
-  const swipeableRefs = useRef(new Map<string, Swipeable>());
+  const swipeableRefs = useRef(new Map<string, RefObject<SwipeableMethods | null>>());
 
-  useEffect(() => subscribeLibrary(() => forceTick((n) => n + 1)), []);
+  const refForRow = (id: string) => {
+    const existing = swipeableRefs.current.get(id);
+    if (existing) return existing;
+    const ref = createRef<SwipeableMethods | null>();
+    swipeableRefs.current.set(id, ref);
+    return ref;
+  };
 
   useEffect(() => {
     if (!group && rawKey) {
@@ -123,7 +132,7 @@ export default function AlbumDetailScreen() {
     setPendingDeleteTrack(null);
     setDeleteError(null);
     if (id) {
-      swipeableRefs.current.get(id)?.close();
+      swipeableRefs.current.get(id)?.current?.close();
     }
   };
 
@@ -161,8 +170,10 @@ export default function AlbumDetailScreen() {
                 <Image
                   source={{ uri: artUri }}
                   style={StyleSheet.absoluteFill}
-                  resizeMode="cover"
+                  contentFit="cover"
                   blurRadius={10}
+                  cachePolicy="memory-disk"
+                  recyclingKey={artUri}
                 />
                 <BlurView intensity={35} tint="dark" style={StyleSheet.absoluteFill} />
                 <View style={[StyleSheet.absoluteFill, tw`bg-black/30`]} />
@@ -175,7 +186,14 @@ export default function AlbumDetailScreen() {
 
       {artUri ? (
         <View style={StyleSheet.absoluteFill} pointerEvents="none" testID="album-detail-backdrop">
-          <Image source={{ uri: artUri }} style={StyleSheet.absoluteFill} resizeMode="cover" blurRadius={10} />
+          <Image
+            source={{ uri: artUri }}
+            style={StyleSheet.absoluteFill}
+            contentFit="cover"
+            blurRadius={10}
+            cachePolicy="memory-disk"
+            recyclingKey={artUri}
+          />
           <BlurView intensity={35} tint="dark" style={StyleSheet.absoluteFill} />
           <View style={[StyleSheet.absoluteFill, tw`bg-black/30`]} />
         </View>
@@ -192,7 +210,14 @@ export default function AlbumDetailScreen() {
               testID="album-detail-artwork"
             >
               {artUri ? (
-                <Image source={{ uri: artUri }} style={tw`w-full h-full`} resizeMode="cover" />
+                <Image
+                  source={{ uri: artUri }}
+                  style={tw`w-full h-full`}
+                  contentFit="cover"
+                  cachePolicy="memory-disk"
+                  recyclingKey={artUri}
+                  transition={120}
+                />
               ) : (
                 <View style={tw`w-full h-full bg-[#222]`} />
               )}
@@ -331,11 +356,8 @@ export default function AlbumDetailScreen() {
             </Pressable>
           );
           return (
-            <Swipeable
-              ref={(ref) => {
-                if (ref) swipeableRefs.current.set(item.id, ref);
-                else swipeableRefs.current.delete(item.id);
-              }}
+            <ReanimatedSwipeable
+              ref={refForRow(item.id)}
               testID={`album-track-swipe-${item.id}`}
               renderRightActions={() => (
                 <Pressable
@@ -345,14 +367,14 @@ export default function AlbumDetailScreen() {
                   accessibilityRole="button"
                   accessibilityLabel={`Delete ${item.title ?? 'track'}`}
                 >
-                  <Text style={tw`text-white text-sm font-bold tracking-[0.4px]`}>Delete</Text>
+                  <Trash2 size={22} color="#fff" strokeWidth={ICON_STROKE} strokeLinecap="square" />
                 </Pressable>
               )}
               rightThreshold={48}
               overshootRight={false}
             >
               {row}
-            </Swipeable>
+            </ReanimatedSwipeable>
           );
         }}
       />

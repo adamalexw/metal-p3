@@ -1,3 +1,4 @@
+import { useMemo, useSyncExternalStore } from 'react';
 import type { Track } from '../../modules/metalp3-media/src/MetalP3Media.types';
 import { groupTracksByAlbum, type AlbumGroup } from './group-tracks-by-album';
 
@@ -58,4 +59,22 @@ export function removeTracksByIds(ids: string[]): AlbumGroup[] {
   cachedGroups = groupTracksByAlbum(next);
   notify();
   return cachedGroups;
+}
+
+/**
+ * Subscribe to the album-groups snapshot. Component re-renders when the
+ * cache repopulates or a delete propagates. The snapshot reference is stable
+ * between cache writes, satisfying useSyncExternalStore's tearing guarantees.
+ */
+export function useLibraryAlbumGroups(): AlbumGroup[] {
+  return useSyncExternalStore(subscribe, getAlbumGroups, getAlbumGroups);
+}
+
+export function useLibraryTracks(): Track[] {
+  return useSyncExternalStore(subscribe, getLibraryTracks, getLibraryTracks);
+}
+
+export function useLibraryAlbumGroup(key: string | null | undefined): AlbumGroup | undefined {
+  const groups = useLibraryAlbumGroups();
+  return useMemo(() => (key ? groups.find((g) => g.key === key) : undefined), [groups, key]);
 }

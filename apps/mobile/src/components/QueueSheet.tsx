@@ -1,19 +1,23 @@
 import { BlurView } from 'expo-blur';
 import { Disc3, GripVertical, Trash2, Volume2, X } from 'lucide-react-native';
-import { useRef } from 'react';
-import { Image, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import { createRef, memo, useMemo, useRef, type RefObject } from 'react';
+import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Image } from 'expo-image';
 import DraggableFlatList, {
   type RenderItemParams,
   ScaleDecorator,
 } from 'react-native-draggable-flatlist';
-import { GestureHandlerRootView, Swipeable } from 'react-native-gesture-handler';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import ReanimatedSwipeable, {
+  type SwipeableMethods,
+} from 'react-native-gesture-handler/ReanimatedSwipeable';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MetalP3Player, type QueueItem } from '../../modules/metalp3-player';
 import { withAlpha } from '../lib/color';
 import { formatTrackDuration } from '../lib/group-tracks-by-album';
 import { tw } from '../lib/tw';
-import { useTrackArtwork } from '../lib/useTrackArtwork';
+import { useQueueArtwork } from '../lib/useTrackArtwork';
 import { ICON_STROKE } from '../theme/icons';
 import type { ArtworkTheme } from '../theme/types';
 
@@ -30,7 +34,20 @@ interface Props {
 export default function QueueSheet({ visible, onClose, queue, currentIndex, theme }: Props) {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const swipeRefs = useRef(new Map<string, Swipeable>());
+  const swipeRefs = useRef(new Map<string, RefObject<SwipeableMethods | null>>());
+
+  const refForRow = (rowKey: string) => {
+    const existing = swipeRefs.current.get(rowKey);
+    if (existing) return existing;
+    const ref = createRef<SwipeableMethods | null>();
+    swipeRefs.current.set(rowKey, ref);
+    return ref;
+  };
+
+  // Resolve artwork once at the parent so each visible row can take a
+  // primitive prop and skip the per-row useTrackArtwork hook + cache lookup.
+  const queueUris = useMemo(() => queue.map((q) => q.uri), [queue]);
+  const artwork = useQueueArtwork(queueUris);
 
   const onDragEnd = ({ from, to }: { from: number; to: number }) => {
     if (from === to) return;
@@ -58,11 +75,8 @@ export default function QueueSheet({ visible, onClose, queue, currentIndex, them
     const rowKey = `${item.id}-${index}`;
     return (
       <ScaleDecorator>
-        <Swipeable
-          ref={(ref) => {
-            if (ref) swipeRefs.current.set(rowKey, ref);
-            else swipeRefs.current.delete(rowKey);
-          }}
+        <ReanimatedSwipeable
+          ref={refForRow(rowKey)}
           friction={2}
           rightThreshold={48}
           overshootRight={false}
@@ -70,7 +84,7 @@ export default function QueueSheet({ visible, onClose, queue, currentIndex, them
           renderRightActions={() => (
             <Pressable
               onPress={() => {
-                swipeRefs.current.get(rowKey)?.close();
+                swipeRefs.current.get(rowKey)?.current?.close();
                 removeIndex(index);
               }}
               style={tw`bg-[#ff3b30] justify-center items-center px-6 min-w-[88px]`}
@@ -83,14 +97,18 @@ export default function QueueSheet({ visible, onClose, queue, currentIndex, them
           )}
         >
           <QueueRow
-            item={item}
+            id={item.id}
+            title={item.title ?? null}
+            subtitle={item.artist ?? item.albumArtist ?? null}
+            durationMs={item.durationMs ?? null}
+            artUri={artwork.get(item.uri) ?? null}
             isActive={isActive}
             isCurrent={isCurrent}
             theme={theme}
             drag={drag}
             onPress={() => playIndex(index)}
           />
-        </Swipeable>
+        </ReanimatedSwipeable>
       </ScaleDecorator>
     );
   };
@@ -186,7 +204,11 @@ export default function QueueSheet({ visible, onClose, queue, currentIndex, them
 }
 
 interface QueueRowProps {
-  item: QueueItem;
+  id: string;
+  title: string | null;
+  subtitle: string | null;
+  durationMs: number | null;
+  artUri: string | null;
   isActive: boolean;
   isCurrent: boolean;
   theme: ArtworkTheme;
@@ -194,11 +216,20 @@ interface QueueRowProps {
   onPress: () => void;
 }
 
-function QueueRow({ item, isActive, isCurrent, theme, drag, onPress }: QueueRowProps) {
-  const artUri = useTrackArtwork(item.uri);
+const QueueRow = memo(function QueueRow({
+  id,
+  title,
+  subtitle,
+  durationMs,
+  artUri,
+  isActive,
+  isCurrent,
+  theme,
+  drag,
+  onPress,
+}: QueueRowProps) {
   const titleColor = isCurrent ? theme.accent : theme.foreground;
   const subColor = isCurrent ? theme.accent : theme.mutedForeground;
-  const subtitle = item.artist ?? item.albumArtist ?? '';
   const rowBg = isActive
     ? withAlpha(theme.foreground, 0.08)
     : isCurrent
@@ -219,7 +250,7 @@ function QueueRow({ item, isActive, isCurrent, theme, drag, onPress }: QueueRowP
           borderBottomColor: withAlpha(theme.foreground, 0.06),
         },
       ]}
-      testID={`queue-row-${item.id}`}
+      testID={`queue-row-${id}`}
     >
       <View
         style={[
@@ -230,10 +261,17 @@ function QueueRow({ item, isActive, isCurrent, theme, drag, onPress }: QueueRowP
             backgroundColor: withAlpha(theme.surface, 0.7),
           },
         ]}
-        testID={`queue-row-art-${item.id}`}
+        testID={`queue-row-art-${id}`}
       >
         {artUri ? (
-          <Image source={{ uri: artUri }} style={tw`w-full h-full`} resizeMode="cover" />
+          <Image
+            source={{ uri: artUri }}
+            style={tw`w-full h-full`}
+            contentFit="cover"
+            cachePolicy="memory-disk"
+            recyclingKey={artUri}
+            transition={120}
+          />
         ) : (
           <Disc3
             size={22}
@@ -262,7 +300,7 @@ function QueueRow({ item, isActive, isCurrent, theme, drag, onPress }: QueueRowP
           ]}
           numberOfLines={1}
         >
-          {item.title ?? 'Unknown title'}
+          {title ?? 'Unknown title'}
         </Text>
         {subtitle ? (
           <Text style={[tw`text-xs mt-0.5`, { color: subColor }]} numberOfLines={1}>
@@ -270,21 +308,21 @@ function QueueRow({ item, isActive, isCurrent, theme, drag, onPress }: QueueRowP
           </Text>
         ) : null}
       </View>
-      {typeof item.durationMs === 'number' && item.durationMs > 0 ? (
+      {typeof durationMs === 'number' && durationMs > 0 ? (
         <Text
           style={[
             tw`text-[13px] mr-2`,
             { color: subColor, fontVariant: ['tabular-nums'] },
           ]}
         >
-          {formatTrackDuration(item.durationMs)}
+          {formatTrackDuration(durationMs)}
         </Text>
       ) : null}
       <Pressable
         onPressIn={drag}
         hitSlop={12}
         style={tw`w-10 h-10 items-center justify-center`}
-        testID={`queue-handle-${item.id}`}
+        testID={`queue-handle-${id}`}
         accessibilityRole="button"
         accessibilityLabel="Drag to reorder"
       >
@@ -297,4 +335,4 @@ function QueueRow({ item, isActive, isCurrent, theme, drag, onPress }: QueueRowP
       </Pressable>
     </Pressable>
   );
-}
+});

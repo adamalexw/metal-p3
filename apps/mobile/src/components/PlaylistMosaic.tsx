@@ -1,6 +1,7 @@
+import { Image } from 'expo-image';
 import { ListMusic } from 'lucide-react-native';
 import { useEffect, useMemo, useState } from 'react';
-import { Image, View } from 'react-native';
+import { View } from 'react-native';
 import { getLibraryTracks } from '../lib/library-cache';
 import type { Playlist } from '../lib/playlist-store';
 import { resolvePlaylistTracks } from '../lib/start-playlist';
@@ -83,14 +84,30 @@ export default function PlaylistMosaic({ playlist, emptyIconSize = 42 }: Playlis
   }
 
   if (distinct.length < 4) {
-    return <Image source={{ uri: distinct[0] }} style={tw`w-full h-full`} resizeMode="cover" />;
+    return (
+      <Image
+        source={{ uri: distinct[0] }}
+        style={tw`w-full h-full`}
+        contentFit="cover"
+        cachePolicy="memory-disk"
+        recyclingKey={distinct[0]}
+        transition={120}
+      />
+    );
   }
 
   return (
     <View style={tw`w-full h-full flex-row flex-wrap`}>
       {distinct.slice(0, 4).map((uri, idx) => (
         <View key={`${uri}-${idx}`} style={tw`w-1/2 h-1/2`}>
-          <Image source={{ uri }} style={tw`w-full h-full`} resizeMode="cover" />
+          <Image
+            source={{ uri }}
+            style={tw`w-full h-full`}
+            contentFit="cover"
+            cachePolicy="memory-disk"
+            recyclingKey={uri}
+            transition={120}
+          />
         </View>
       ))}
     </View>

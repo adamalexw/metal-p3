@@ -2,7 +2,8 @@ import { DrawerActions } from '@react-navigation/native';
 import { BlurView } from 'expo-blur';
 import { useNavigation } from 'expo-router';
 import { Menu } from 'lucide-react-native';
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Image } from 'expo-image';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated, {
   Extrapolation,
   interpolate,
@@ -13,6 +14,7 @@ import { tw } from '../lib/tw';
 
 const HEADER_MAX = 132;
 const HEADER_MIN = 64;
+const COLLAPSE_RANGE = HEADER_MAX - HEADER_MIN;
 export const LIBRARY_HEADER_MAX_HEIGHT = HEADER_MAX;
 export const LIBRARY_HEADER_MIN_HEIGHT = HEADER_MIN;
 
@@ -26,68 +28,95 @@ interface Props {
 export default function LibraryHeader({ title, stats, topInset, scrollY }: Props) {
   const navigation = useNavigation();
 
-  const containerStyle = useAnimatedStyle(() => {
-    const collapse = interpolate(scrollY.value, [0, HEADER_MAX - HEADER_MIN], [0, 1], Extrapolation.CLAMP);
-    return {
-      height: HEADER_MAX - collapse * (HEADER_MAX - HEADER_MIN) + topInset,
-      paddingTop: topInset,
-    };
+  // Inner content row slides up as the user scrolls — visual equivalent of the
+  // old animated-height collapse, but transform-only so we don't relayout each
+  // frame. Container stays at its full HEADER_MAX height; touches pass through
+  // the now-transparent lower band via pointerEvents="box-none".
+  const innerStyle = useAnimatedStyle(() => {
+    const collapse = interpolate(scrollY.value, [0, COLLAPSE_RANGE], [0, 1], Extrapolation.CLAMP);
+    return { transform: [{ translateY: -collapse * (COLLAPSE_RANGE / 2) }] };
   });
 
   const logoStyle = useAnimatedStyle(() => {
-    const t = interpolate(scrollY.value, [0, HEADER_MAX - HEADER_MIN], [1, 0.55], Extrapolation.CLAMP);
+    const t = interpolate(scrollY.value, [0, COLLAPSE_RANGE], [1, 0.55], Extrapolation.CLAMP);
     return { transform: [{ scale: t }] };
   });
 
   const surfaceStyle = useAnimatedStyle(() => {
-    const opacity = interpolate(scrollY.value, [0, HEADER_MAX - HEADER_MIN], [0, 1], Extrapolation.CLAMP);
+    const opacity = interpolate(scrollY.value, [0, COLLAPSE_RANGE], [0, 1], Extrapolation.CLAMP);
     return { opacity };
   });
 
   return (
-    <Animated.View
+    <View
       style={[
-        tw`flex-row items-center px-2`,
-        { position: 'absolute', top: 0, left: 0, right: 0, zIndex: 10 },
-        containerStyle,
+        {
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          zIndex: 10,
+          height: HEADER_MAX + topInset,
+        },
       ]}
+      pointerEvents="box-none"
       testID="library-header"
     >
+      {/* Surface fills only the collapsed-header band so list content below it
+          stays visible behind the transparent lower portion. */}
       <Animated.View
-        style={[StyleSheet.absoluteFill, surfaceStyle]}
+        style={[
+          { position: 'absolute', top: 0, left: 0, right: 0, height: HEADER_MIN + topInset },
+          surfaceStyle,
+        ]}
         pointerEvents="none"
       >
         <BlurView intensity={40} tint="dark" style={StyleSheet.absoluteFill} />
         <View style={[StyleSheet.absoluteFill, tw`bg-black/55`]} />
       </Animated.View>
-      <Pressable
-        onPress={() => navigation.dispatch(DrawerActions.openDrawer())}
-        style={tw`w-10 h-10 items-center justify-center mr-2`}
-        hitSlop={8}
-        testID="library-menu-toggle"
-        accessibilityRole="button"
-        accessibilityLabel="Open menu"
+
+      <Animated.View
+        style={[
+          tw`flex-row items-center px-2`,
+          {
+            position: 'absolute',
+            top: topInset,
+            left: 0,
+            right: 0,
+            height: HEADER_MAX,
+          },
+          innerStyle,
+        ]}
       >
-        <Menu size={24} color="#ffffff" strokeWidth={2.25} strokeLinecap="square" />
-      </Pressable>
-      <View style={tw`flex-1`}>
-        <Text style={tw`text-white text-2xl font-extrabold`} numberOfLines={1}>
-          {title}
-        </Text>
-        {stats ? (
-          <Text style={tw`text-[#bbb] text-xs mt-0.5`} numberOfLines={1}>
-            {stats}
+        <Pressable
+          onPress={() => navigation.dispatch(DrawerActions.openDrawer())}
+          style={tw`w-10 h-10 items-center justify-center mr-2`}
+          hitSlop={8}
+          testID="library-menu-toggle"
+          accessibilityRole="button"
+          accessibilityLabel="Open menu"
+        >
+          <Menu size={24} color="#ffffff" strokeWidth={2.25} strokeLinecap="square" />
+        </Pressable>
+        <View style={tw`flex-1`}>
+          <Text style={tw`text-white text-2xl font-extrabold`} numberOfLines={1}>
+            {title}
           </Text>
-        ) : null}
-      </View>
-      <Animated.View style={[tw`ml-3`, logoStyle]}>
-        <Image
-          source={require('../../assets/images/splash-icon.png')}
-          style={tw`w-20 h-20`}
-          resizeMode="contain"
-        />
+          {stats ? (
+            <Text style={tw`text-[#bbb] text-xs mt-0.5`} numberOfLines={1}>
+              {stats}
+            </Text>
+          ) : null}
+        </View>
+        <Animated.View style={[tw`ml-3`, logoStyle]}>
+          <Image
+            source={require('../../assets/images/splash-icon.png')}
+            style={tw`w-20 h-20`}
+            contentFit="contain"
+          />
+        </Animated.View>
       </Animated.View>
-    </Animated.View>
+    </View>
   );
 }
 

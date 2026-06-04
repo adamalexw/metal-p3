@@ -1,18 +1,32 @@
+import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import Animated, { FadeIn } from 'react-native-reanimated';
-import { ChevronLeft, Pencil, Play, Shuffle } from 'lucide-react-native';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ChevronLeft, Play, Shuffle, Trash2 } from 'lucide-react-native';
+import {
+  createRef,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type RefObject,
+} from 'react';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import DraggableFlatList, {
   type RenderItemParams,
   ScaleDecorator,
 } from 'react-native-draggable-flatlist';
+import ReanimatedSwipeable, {
+  type SwipeableMethods,
+} from 'react-native-gesture-handler/ReanimatedSwipeable';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MetalP3Player } from '../../../modules/metalp3-player';
 import type { Track } from '../../../modules/metalp3-media/src/MetalP3Media.types';
 import BlurredBackdrop from '../../../src/components/BlurredBackdrop';
+import ConfirmDeleteSheet from '../../../src/components/ConfirmDeleteSheet';
 import { MINI_PLAYER_HEIGHT } from '../../../src/components/MiniPlayer';
 import PlaylistMosaic from '../../../src/components/PlaylistMosaic';
+import { deleteTracksAndPropagate } from '../../../src/lib/delete-tracks';
 import { formatAlbumDuration, formatTrackDuration } from '../../../src/lib/group-tracks-by-album';
 import { getLibraryTracks, subscribe as subscribeLibrary } from '../../../src/lib/library-cache';
 import {
@@ -26,6 +40,7 @@ import {
 } from '../../../src/lib/playlist-store';
 import { shuffled } from '../../../src/lib/shuffle';
 import { resolvePlaylistTracks } from '../../../src/lib/start-playlist';
+import { ICON_STROKE } from '../../../src/theme/icons';
 import { toQueueItem } from '../../../src/lib/to-queue-item';
 import { tw } from '../../../src/lib/tw';
 import { useTrackArtwork } from '../../../src/lib/useTrackArtwork';
@@ -43,7 +58,19 @@ export default function PlaylistDetailScreen() {
   const [playlist, setPlaylist] = useState<Playlist | null>(() => getPlaylist(playlistId) ?? null);
   const [loading, setLoading] = useState(!playlist);
   const [startError, setStartError] = useState<string | null>(null);
+  const [pendingDeleteTrack, setPendingDeleteTrack] = useState<Track | null>(null);
+  const [deleteBusy, setDeleteBusy] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const lastTrackIdsRef = useRef<string>(playlist ? playlist.trackIds.join('|') : '');
+  const swipeableRefs = useRef(new Map<string, RefObject<SwipeableMethods | null>>());
+
+  const refForRow = (id: string) => {
+    const existing = swipeableRefs.current.get(id);
+    if (existing) return existing;
+    const ref = createRef<SwipeableMethods | null>();
+    swipeableRefs.current.set(id, ref);
+    return ref;
+  };
 
   const nowPlaying = useNowPlayingState();
   const playingTrackId = nowPlaying?.current?.id ?? null;
@@ -162,6 +189,40 @@ export default function PlaylistDetailScreen() {
     router.push('/(tabs)/player' as never);
   };
 
+  const requestDeleteTrack = (track: Track) => {
+    setDeleteError(null);
+    setPendingDeleteTrack(track);
+  };
+
+  const confirmDeleteTrack = async () => {
+    if (!pendingDeleteTrack || deleteBusy) return;
+    setDeleteBusy(true);
+    setDeleteError(null);
+    try {
+      const outcome = await deleteTracksAndPropagate([pendingDeleteTrack]);
+      if (outcome.deletedIds.length === 0) {
+        setDeleteError('Delete was cancelled or failed.');
+        setDeleteBusy(false);
+        return;
+      }
+      setPendingDeleteTrack(null);
+      setDeleteBusy(false);
+    } catch (err) {
+      setDeleteError(err instanceof Error ? err.message : String(err));
+      setDeleteBusy(false);
+    }
+  };
+
+  const cancelDeleteTrack = () => {
+    if (deleteBusy) return;
+    const id = pendingDeleteTrack?.id;
+    setPendingDeleteTrack(null);
+    setDeleteError(null);
+    if (id) {
+      swipeableRefs.current.get(id)?.current?.close();
+    }
+  };
+
   if (!loading && !playlist) {
     return (
       <View style={tw`flex-1 bg-black`}>
@@ -216,13 +277,7 @@ export default function PlaylistDetailScreen() {
             <View
               style={[
                 tw`w-[220px] h-[220px] rounded-lg overflow-hidden bg-[#222] mb-4`,
-                {
-                  shadowColor: '#000',
-                  shadowOpacity: 0.5,
-                  shadowRadius: 10,
-                  shadowOffset: { width: 0, height: 6 },
-                  elevation: 6,
-                },
+                { boxShadow: '0 6px 10px rgba(0, 0, 0, 0.5)' },
               ]}
               testID="playlist-detail-artwork"
             >
@@ -298,18 +353,54 @@ export default function PlaylistDetailScreen() {
           </Text>
         }
         renderItem={({ item, drag, isActive, getIndex }: RenderItemParams<Track>) => (
-          <PlaylistTrackRow
-            track={item}
-            isPlaying={playingTrackId === item.id}
-            accent={theme.accent}
-            isActive={isActive}
-            onPress={() => {
-              const idx = getIndex();
-              if (typeof idx === 'number') void playFrom(idx);
-            }}
-            onLongPress={drag}
-          />
+          <ScaleDecorator>
+            <ReanimatedSwipeable
+              ref={refForRow(item.id)}
+              testID={`playlist-detail-track-swipe-${item.id}`}
+              renderRightActions={() => (
+                <Pressable
+                  style={tw`bg-[#ff3b30] justify-center items-center px-6 min-w-[96px]`}
+                  onPress={() => requestDeleteTrack(item)}
+                  testID={`playlist-detail-track-delete-action-${item.id}`}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Delete ${item.title ?? 'track'}`}
+                >
+                  <Trash2 size={22} color="#fff" strokeWidth={ICON_STROKE} strokeLinecap="square" />
+                </Pressable>
+              )}
+              rightThreshold={48}
+              overshootRight={false}
+              enabled={!isActive}
+            >
+              <PlaylistTrackRow
+                track={item}
+                isPlaying={playingTrackId === item.id}
+                accent={theme.accent}
+                isActive={isActive}
+                onPress={() => {
+                  const idx = getIndex();
+                  if (typeof idx === 'number') void playFrom(idx);
+                }}
+                onLongPress={drag}
+              />
+            </ReanimatedSwipeable>
+          </ScaleDecorator>
         )}
+      />
+
+      <ConfirmDeleteSheet
+        visible={pendingDeleteTrack !== null}
+        title="Delete track?"
+        message={
+          pendingDeleteTrack
+            ? `"${pendingDeleteTrack.title ?? 'This track'}" will be permanently removed from your device.`
+            : ''
+        }
+        confirmLabel="Delete"
+        busy={deleteBusy}
+        error={deleteError}
+        onConfirm={() => void confirmDeleteTrack()}
+        onCancel={cancelDeleteTrack}
       />
     </View>
   );
@@ -347,20 +438,6 @@ function DetailHeader({ insetTop, title, onBack, onEdit }: DetailHeaderProps) {
       >
         {title}
       </Text>
-      <View style={tw`w-12 h-12 items-center justify-center`}>
-        {onEdit ? (
-          <Pressable
-            onPress={onEdit}
-            hitSlop={12}
-            style={tw`w-12 h-12 items-center justify-center`}
-            testID="playlist-detail-edit"
-            accessibilityRole="button"
-            accessibilityLabel="Edit playlist"
-          >
-            <Pencil size={20} color="#fff" strokeWidth={2.25} strokeLinecap="square" />
-          </Pressable>
-        ) : null}
-      </View>
     </View>
   );
 }
@@ -387,29 +464,35 @@ function PlaylistTrackRow({
   const subtitle = subtitleParts.join(' — ');
 
   return (
-    <ScaleDecorator>
-      <Pressable
-        style={[
-          tw`flex-row items-center py-2.5 px-4 border-b border-white/[0.08]`,
-          {
-            borderBottomWidth: StyleSheet.hairlineWidth,
-            backgroundColor: isActive ? 'rgba(255,255,255,0.08)' : 'transparent',
-          },
-        ]}
-        onPress={onPress}
-        onLongPress={onLongPress}
-        delayLongPress={250}
-        disabled={isActive}
-        testID={`playlist-detail-track-${track.id}`}
-        accessibilityRole="button"
-        accessibilityLabel={track.title ?? 'Unknown title'}
-      >
+    <Pressable
+      style={[
+        tw`flex-row items-center py-2.5 px-4 border-b border-white/[0.08]`,
+        {
+          borderBottomWidth: StyleSheet.hairlineWidth,
+          backgroundColor: isActive ? 'rgba(255,255,255,0.08)' : 'transparent',
+        },
+      ]}
+      onPress={onPress}
+      onLongPress={onLongPress}
+      delayLongPress={250}
+      disabled={isActive}
+      testID={`playlist-detail-track-${track.id}`}
+      accessibilityRole="button"
+      accessibilityLabel={track.title ?? 'Unknown title'}
+    >
       <View
         style={tw`w-12 h-12 rounded overflow-hidden bg-[#222] mr-3`}
         testID={`playlist-detail-track-art-${track.id}`}
       >
         {artUri ? (
-          <Image source={{ uri: artUri }} style={tw`w-full h-full`} resizeMode="cover" />
+          <Image
+            source={{ uri: artUri }}
+            style={tw`w-full h-full`}
+            contentFit="cover"
+            cachePolicy="memory-disk"
+            recyclingKey={artUri}
+            transition={120}
+          />
         ) : null}
       </View>
       <View style={tw`flex-1 pr-2`}>
@@ -439,8 +522,7 @@ function PlaylistTrackRow({
       <Text style={[tw`text-[#bbb] text-[13px]`, { fontVariant: ['tabular-nums'] }]}>
         {formatTrackDuration(track.durationMs)}
       </Text>
-      </Pressable>
-    </ScaleDecorator>
+    </Pressable>
   );
 }
 
