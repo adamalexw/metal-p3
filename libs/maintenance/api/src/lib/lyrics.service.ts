@@ -2,6 +2,7 @@ import { MetalArchivesAlbumTrack } from '@metal-p3/api-interfaces';
 import { LyricsHistoryDto } from '@metal-p3/maintenance/domain';
 import { LyricsHistory, Prisma } from '@metal-p3/prisma/client';
 import { AlbumWithLyricsHistory, DbService, LyricsHistoryWithAlbum } from '@metal-p3/shared/database';
+import { LrcLibParams, LrcLibResult, LrcLibService } from '@metal-p3/shared/lrclib';
 import { MetalArchivesService } from '@metal-p3/shared/metal-archives';
 import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
 import { catchError, concatMap, finalize, from, map, Observable, of, Subject, takeUntil, tap, throwError, toArray } from 'rxjs';
@@ -14,8 +15,13 @@ export class LyricsService {
   constructor(
     private readonly dbService: DbService,
     private readonly metalArchivesService: MetalArchivesService,
+    private readonly lrcLibService: LrcLibService,
     private readonly maintenanceGateway: MaintenanceGateway,
   ) {}
+
+  getSynced(params: LrcLibParams): Observable<LrcLibResult | null> {
+    return this.lrcLibService.getSyncedLyrics(params);
+  }
 
   getHistory(): Observable<LyricsHistoryDto[]> {
     return from(this.dbService.lyricsHistory()).pipe(map((albums) => albums.map((album) => this.lyricsHistoryToDto(album, album.LyricsHistory?.[0]))));

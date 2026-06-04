@@ -6,6 +6,7 @@ import type {
   Lyrics,
   PermissionStatus,
   ScanOptions,
+  SyncedLyrics,
   Track,
   TrackExtras,
   TrackTags,
@@ -21,6 +22,7 @@ interface NativeModule {
   getTrackAsync(uri: string): Promise<TrackTags | null>;
   getArtworkAsync(uri: string): Promise<Artwork | null>;
   getLyricsAsync(uri: string): Promise<Lyrics | null>;
+  getSyncedLyricsAsync(uri: string): Promise<SyncedLyrics | null>;
   getExtrasAsync(uri: string): Promise<TrackExtras | null>;
   deleteTracksAsync(uris: string[]): Promise<DeleteTracksResult>;
   deleteAlbumFolderAsync(audioUris: string[]): Promise<DeleteTracksResult>;
@@ -53,6 +55,7 @@ export const MetalP3Media = {
   getTrackAsync: (uri: string) => native.getTrackAsync(uri),
   getArtworkAsync: (uri: string) => native.getArtworkAsync(uri),
   getLyricsAsync: (uri: string) => native.getLyricsAsync(uri),
+  getSyncedLyricsAsync: (uri: string) => native.getSyncedLyricsAsync(uri),
   getExtrasAsync: (uri: string) => native.getExtrasAsync(uri),
   deleteTracksAsync: (uris: string[]) => native.deleteTracksAsync(uris),
   deleteAlbumFolderAsync: (audioUris: string[]) => native.deleteAlbumFolderAsync(audioUris),

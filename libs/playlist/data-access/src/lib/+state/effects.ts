@@ -4,6 +4,7 @@ import { PlaylistItem } from '@metal-p3/player/domain';
 import { playlistItemToDto } from '@metal-p3/player/util';
 import { PlaylistDto } from '@metal-p3/playlist/domain';
 import { ErrorService } from '@metal-p3/shared/error';
+import { NotificationService } from '@metal-p3/shared/feedback';
 import { nonNullable } from '@metal-p3/shared/utils';
 import { TrackService } from '@metal-p3/track/data-access';
 import { Track } from '@metal-p3/track/domain';
@@ -14,7 +15,7 @@ import { Store } from '@ngrx/store';
 import { catchError, concatMap, filter, forkJoin, map, Observable, of, tap } from 'rxjs';
 import { PlaylistService } from '../playlist.service';
 import { PlaylistActions } from './actions';
-import { selectActivePlaylistId, selectPlaylistById } from './selectors';
+import { selectActivePlaylist, selectActivePlaylistId, selectPlaylistById } from './selectors';
 
 @Injectable()
 export class PlaylistEffects {
@@ -24,6 +25,7 @@ export class PlaylistEffects {
   private readonly trackService = inject(TrackService);
   private readonly playerService = inject(PlayerService);
   private readonly errorService = inject(ErrorService);
+  private readonly notificationService = inject(NotificationService);
 
   loadPlaylists$ = createEffect(() => {
     return this.actions$.pipe(
@@ -142,13 +144,48 @@ export class PlaylistEffects {
   transfer$ = createEffect(() => {
     return this.actions$.pipe(
       ofType(PlaylistActions.transfer),
-      concatLatestFrom(() => this.store.select(selectPlaylist).pipe(nonNullable())),
-      concatMap(([_, tracks]) => {
+      concatLatestFrom(() => [this.store.select(selectPlaylist).pipe(nonNullable()), this.store.select(selectActivePlaylist)]),
+      concatMap(([_, tracks, activePlaylist]) => {
         const tracks$ = tracks.map((track) => this.trackService.transferTrack(track.fullPath));
 
-        return forkJoin(tracks$);
+        return forkJoin(tracks$).pipe(
+          concatMap(() => {
+            if (!activePlaylist?.name) {
+              return of(PlaylistActions.transferComplete());
+            }
+
+            return this.trackService
+              .transferPlaylist({
+                name: activePlaylist.name,
+                playlistId: activePlaylist.id,
+                tracks: tracks.map((track, index) => ({ fullPath: track.fullPath || '', index })),
+              })
+              .pipe(
+                map(() => PlaylistActions.transferComplete()),
+                catchError((error) => of(PlaylistActions.transferError({ error: this.errorService.getError(error) }))),
+              );
+          }),
+          catchError((error) => of(PlaylistActions.transferError({ error: this.errorService.getError(error) }))),
+        );
       }),
-      map(() => PlaylistActions.transferComplete()),
     );
   });
+
+  notifyTransfer$ = createEffect(
+    () =>
+      this.actions$.pipe(
+        ofType(PlaylistActions.transferComplete),
+        tap(() => this.notificationService.showComplete('Playlist transferred')),
+      ),
+    { dispatch: false },
+  );
+
+  notifyTransferError$ = createEffect(
+    () =>
+      this.actions$.pipe(
+        ofType(PlaylistActions.transferError),
+        tap(({ error }) => this.notificationService.showError(error, 'Transfer Playlist')),
+      ),
+    { dispatch: false },
+  );
 }

@@ -20,5 +20,6 @@ export const PlaylistActions = createActionGroup({
     'Delete Error': props<{ error: string }>(),
     Transfer: emptyProps(),
     'Transfer Complete': emptyProps(),
+    'Transfer Error': props<{ error: string }>(),
   },
 });

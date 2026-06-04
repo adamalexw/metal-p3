@@ -1,11 +1,12 @@
 import { inject, Injectable } from '@angular/core';
 import { BASE_PATH } from '@metal-p3/album/domain';
 import { ErrorService } from '@metal-p3/shared/error';
+import { NotificationService } from '@metal-p3/shared/feedback';
 import { TrackService } from '@metal-p3/track/data-access';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { concatLatestFrom } from '@ngrx/operators';
 import { Store } from '@ngrx/store';
-import { catchError, concatMap, EMPTY, map, mergeMap, of } from 'rxjs';
+import { buffer, catchError, concatMap, debounceTime, EMPTY, filter, map, mergeMap, of, tap, timeout } from 'rxjs';
 import { TrackActions } from './actions';
 import { selectTrack } from './selectors';
 
@@ -16,6 +17,7 @@ export class TrackEffects {
   private readonly store = inject(Store);
   private readonly basePath = inject(BASE_PATH);
   private readonly errorService = inject(ErrorService);
+  private readonly notificationService = inject(NotificationService);
 
   getTracks$ = createEffect(() => {
     return this.actions$.pipe(
@@ -79,10 +81,36 @@ export class TrackEffects {
       ofType(TrackActions.getLyrics),
       mergeMap(({ id, trackId }) =>
         this.service.getLyrics(trackId).pipe(
+          timeout(60_000),
           map((lyrics) => TrackActions.getLyricsSuccess({ id, trackId, lyrics })),
           catchError((error) => of(TrackActions.getLyricsError({ id, trackId, error: this.errorService.getError(error) }))),
         ),
       ),
+    );
+  });
+
+  getSyncedLyrics$ = createEffect(() => {
+    return this.actions$.pipe(
+      ofType(TrackActions.getSyncedLyrics),
+      mergeMap(({ id, localTrackId, maTrackId, artist, track, album, durationSeconds }) =>
+        this.service.getSyncedLyrics({ artist, track, album, durationSeconds }).pipe(
+          timeout(20_000),
+          map((result) => {
+            if (result?.syncedLyrics && !result.instrumental) {
+              return TrackActions.getSyncedLyricsSuccess({ id, localTrackId, maTrackId, syncedLyrics: result.syncedLyrics });
+            }
+            return TrackActions.getSyncedLyricsMiss({ id, localTrackId, maTrackId });
+          }),
+          catchError(() => of(TrackActions.getSyncedLyricsMiss({ id, localTrackId, maTrackId }))),
+        ),
+      ),
+    );
+  });
+
+  syncedLyricsFallback$ = createEffect(() => {
+    return this.actions$.pipe(
+      ofType(TrackActions.getSyncedLyricsMiss),
+      map(({ id, maTrackId }) => TrackActions.getLyrics({ id, trackId: maTrackId })),
     );
   });
 
@@ -126,4 +154,36 @@ export class TrackEffects {
       ),
     );
   });
+
+  notifySaveTracks$ = createEffect(
+    () => {
+      return this.actions$.pipe(
+        ofType(TrackActions.saveTracksSuccess),
+        tap(() => this.notificationService.showComplete('Lyrics applied')),
+      );
+    },
+    { dispatch: false },
+  );
+
+  notifyTransferBatch$ = createEffect(
+    () => {
+      const transferEnd$ = this.actions$.pipe(ofType(TrackActions.transferTrackSuccess, TrackActions.transferTrackError));
+      return transferEnd$.pipe(
+        buffer(transferEnd$.pipe(debounceTime(500))),
+        filter((batch) => batch.length > 0),
+        tap((batch) => {
+          const errors = batch.filter((a) => a.type === TrackActions.transferTrackError.type).length;
+          const successes = batch.length - errors;
+          if (errors === 0) {
+            this.notificationService.showComplete(`Transferred ${successes} track${successes === 1 ? '' : 's'}`);
+          } else if (successes === 0) {
+            this.notificationService.showError(`Failed to transfer ${errors} track${errors === 1 ? '' : 's'}`, 'Transfer');
+          } else {
+            this.notificationService.showError(`Transferred ${successes}, failed ${errors}`, 'Transfer');
+          }
+        }),
+      );
+    },
+    { dispatch: false },
+  );
 }

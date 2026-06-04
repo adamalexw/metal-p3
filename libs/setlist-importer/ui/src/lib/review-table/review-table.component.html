@@ -1,0 +1,80 @@
+<div class="flex flex-col gap-2 p-4">
+  @if (matching()) {
+    <div class="flex items-center gap-2 text-sm">
+      <mat-icon>hourglass_top</mat-icon>
+      <span>Matching tracks against your library…</span>
+    </div>
+  }
+
+  @if (!matching() && tracks().length === 0) {
+    <div class="flex items-center gap-2 text-sm opacity-70">
+      <mat-icon>info</mat-icon>
+      <span>Scrape some setlists to populate this list.</span>
+    </div>
+  }
+
+  @if (tracks().length) {
+    <div class="flex flex-wrap items-center gap-3">
+      <mat-chip-set>
+        <mat-chip [highlighted]="filter() === 'all'" (click)="setFilter('all')">All ({{ tracks().length }})</mat-chip>
+        <mat-chip [highlighted]="filter() === 'matched'" (click)="setFilter('matched')">Matched ({{ matchedCount() }})</mat-chip>
+        <mat-chip [highlighted]="filter() === 'missing'" (click)="setFilter('missing')">Missing ({{ missingCount() }})</mat-chip>
+      </mat-chip-set>
+
+      <div class="ml-auto flex items-center gap-2 text-sm">
+        <span>{{ selectedCount() }} selected</span>
+        <button type="button" mat-button (click)="setAllSelection.emit(true)">Select all matched</button>
+        <button type="button" mat-button (click)="setAllSelection.emit(false)">Deselect all</button>
+      </div>
+    </div>
+
+    <table class="w-full table-auto text-sm">
+      <thead class="text-left">
+        <tr>
+          <th class="w-10"></th>
+          <th>Status</th>
+          <th>Artist</th>
+          <th>Track</th>
+          <th>Album (hinted)</th>
+          <th>Matched album</th>
+          <th>File path</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (track of visible(); track track.key) {
+          <tr class="border-t" [class.opacity-60]="track.status === 'missing'">
+            <td>
+              <mat-checkbox [checked]="track.selected" [disabled]="track.status === 'missing'" (change)="toggleSelection.emit(track.key)" />
+            </td>
+            <td>
+              @if (track.status === 'matched') {
+                <mat-icon class="text-green-600" title="found in your library">check_circle</mat-icon>
+              } @else {
+                <mat-icon class="text-amber-600" title="not in your library">help</mat-icon>
+              }
+            </td>
+            <td>{{ track.artist }}</td>
+            <td>{{ track.title }}</td>
+            <td>{{ track.hintedAlbum || '—' }}</td>
+            <td>{{ track.match?.albumName || '—' }}</td>
+            <td class="max-w-md truncate" [title]="track.match?.fullPath">{{ track.match?.fullPath || '' }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+
+    <div class="mt-4 flex items-center gap-2 border-t pt-4">
+      <mat-form-field class="grow" floatLabel="auto">
+        <mat-label>Playlist name</mat-label>
+        <input matInput type="text" [value]="playlistName()" (input)="playlistName.set($any($event.target).value)" />
+      </mat-form-field>
+      <button type="button" mat-flat-button color="primary" [disabled]="!canCreate()" (click)="onCreatePlaylist()">
+        @if (creating()) {
+          <span>Creating…</span>
+        } @else {
+          <span>Create playlist ({{ selectedCount() }})</span>
+        }
+      </button>
+    </div>
+  }
+</div>

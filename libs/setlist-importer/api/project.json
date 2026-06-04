@@ -1,0 +1,21 @@
+{
+  "name": "setlist-importer-api",
+  "$schema": "..\\..\\..\\node_modules\\nx\\schemas\\project-schema.json",
+  "sourceRoot": "libs/setlist-importer/api/src",
+  "projectType": "library",
+  "tags": ["scope:setlist-importer", "type:api"],
+  "targets": {
+    "test": {
+      "outputs": ["{workspaceRoot}/coverage/libs/setlist-importer/api", "{workspaceRoot}/coverage/libs/setlist-importer/api"],
+      "options": {
+        "passWithNoTests": true
+      },
+      "configurations": {
+        "ci": {
+          "ci": true,
+          "coverage": true
+        }
+      }
+    }
+  }
+}
