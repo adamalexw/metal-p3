@@ -1,10 +1,16 @@
-import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
-import { Pencil, Play, Shuffle } from 'lucide-react-native';
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { FlatList, Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import Animated, { FadeIn } from 'react-native-reanimated';
+import { ChevronLeft, Pencil, Play, Shuffle } from 'lucide-react-native';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import DraggableFlatList, {
+  type RenderItemParams,
+  ScaleDecorator,
+} from 'react-native-draggable-flatlist';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MetalP3Player } from '../../../modules/metalp3-player';
 import type { Track } from '../../../modules/metalp3-media/src/MetalP3Media.types';
+import BlurredBackdrop from '../../../src/components/BlurredBackdrop';
 import { MINI_PLAYER_HEIGHT } from '../../../src/components/MiniPlayer';
 import PlaylistMosaic from '../../../src/components/PlaylistMosaic';
 import { formatAlbumDuration, formatTrackDuration } from '../../../src/lib/group-tracks-by-album';
@@ -15,6 +21,7 @@ import {
   getPlaylist,
   loadPlaylists,
   setActivePlaylistId,
+  setPlaylistTracks,
   subscribe as subscribePlaylists,
 } from '../../../src/lib/playlist-store';
 import { shuffled } from '../../../src/lib/shuffle';
@@ -23,9 +30,7 @@ import { toQueueItem } from '../../../src/lib/to-queue-item';
 import { tw } from '../../../src/lib/tw';
 import { useTrackArtwork } from '../../../src/lib/useTrackArtwork';
 import { useNowPlayingState } from '../../../src/lib/useNowPlayingState';
-import { prefetchArtworkTheme } from '../../../src/theme/useArtworkTheme';
-
-const ACCENT = '#1f6feb';
+import { prefetchArtworkTheme, useArtworkTheme } from '../../../src/theme/useArtworkTheme';
 
 export default function PlaylistDetailScreen() {
   const params = useLocalSearchParams<{ id: string }>();
@@ -46,6 +51,15 @@ export default function PlaylistDetailScreen() {
   const listBottomPad = hasMiniPlayer
     ? insets.bottom + 24 + MINI_PLAYER_HEIGHT + 16
     : insets.bottom + 24;
+
+  const themeSeedUri = useMemo(
+    () =>
+      playlist
+        ? resolvePlaylistTracks(playlist, getLibraryTracks())[0]?.uri ?? null
+        : null,
+    [playlist],
+  );
+  const theme = useArtworkTheme(themeSeedUri);
 
   useEffect(() => {
     let cancelled = false;
@@ -110,6 +124,27 @@ export default function PlaylistDetailScreen() {
     router.push('/(tabs)/player' as never);
   };
 
+  const onDragEnd = useCallback(
+    ({ data }: { data: Track[] }) => {
+      if (!playlist) return;
+      const reorderedVisibleIds = data.map((t) => t.id);
+      const visibleSet = new Set(reorderedVisibleIds);
+      let cursor = 0;
+      const next = playlist.trackIds.map((id) => {
+        if (!visibleSet.has(id)) return id;
+        const replacement = reorderedVisibleIds[cursor];
+        cursor += 1;
+        return replacement;
+      });
+      const same =
+        next.length === playlist.trackIds.length
+        && next.every((id, i) => id === playlist.trackIds[i]);
+      if (same) return;
+      void setPlaylistTracks(playlist.id, next);
+    },
+    [playlist],
+  );
+
   const playShuffled = async () => {
     if (tracks.length === 0) return;
     const ordered = shuffled(tracks);
@@ -130,8 +165,10 @@ export default function PlaylistDetailScreen() {
   if (!loading && !playlist) {
     return (
       <View style={tw`flex-1 bg-black`}>
-        <Stack.Screen
-          options={{ title: 'Playlist', headerShown: true, headerStyle: { backgroundColor: '#000' }, headerTintColor: '#fff' }}
+        <DetailHeader
+          insetTop={insets.top}
+          title="Playlist"
+          onBack={() => router.back()}
         />
         <Text style={tw`text-[#aaa] text-center mt-12 px-6`} testID="playlist-missing">
           Playlist not found.
@@ -147,35 +184,35 @@ export default function PlaylistDetailScreen() {
 
   return (
     <View style={tw`flex-1 bg-black`}>
-      <Stack.Screen
-        options={{
-          title: playlist?.name ?? 'Playlist',
-          headerShown: true,
-          headerStyle: { backgroundColor: '#000' },
-          headerTintColor: '#fff',
-          headerRight: () =>
-            playlist ? (
-              <Pressable
-                onPress={() =>
-                  router.push(`/(tabs)/playlists/${encodeURIComponent(playlist.id)}/edit` as never)
-                }
-                style={tw`px-2 py-1`}
-                testID="playlist-detail-edit"
-                accessibilityRole="button"
-                accessibilityLabel="Edit playlist"
-              >
-                <Pencil size={20} color="#fff" strokeWidth={2.25} strokeLinecap="square" />
-              </Pressable>
-            ) : null,
-        }}
+      <Animated.View
+        entering={FadeIn.duration(600)}
+        style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+        pointerEvents="none"
+      >
+        <BlurredBackdrop />
+      </Animated.View>
+      <DetailHeader
+        insetTop={insets.top}
+        title={playlist?.name ?? 'Playlist'}
+        onBack={() => router.back()}
+        onEdit={
+          playlist
+            ? () =>
+                router.push(
+                  `/(tabs)/playlists/${encodeURIComponent(playlist.id)}/edit` as never,
+                )
+            : undefined
+        }
       />
 
-      <FlatList<Track>
+      <DraggableFlatList<Track>
         data={tracks}
         keyExtractor={(t) => t.id}
+        onDragEnd={onDragEnd}
+        activationDistance={12}
         contentContainerStyle={{ paddingBottom: listBottomPad }}
         ListHeaderComponent={
-          <View style={[tw`px-4 pb-6 items-center`, { paddingTop: insets.top + 24 }]}>
+          <View style={[tw`px-4 pb-6 items-center`, { paddingTop: insets.top + 72 }]}>
             <View
               style={[
                 tw`w-[220px] h-[220px] rounded-lg overflow-hidden bg-[#222] mb-4`,
@@ -208,7 +245,7 @@ export default function PlaylistDetailScreen() {
               <Pressable
                 style={[
                   tw`flex-row items-center justify-center gap-2 py-2.5 px-5 rounded-full min-w-[130px]`,
-                  { backgroundColor: ACCENT, opacity: tracks.length === 0 ? 0.4 : 1 },
+                  { backgroundColor: theme.accent, opacity: tracks.length === 0 ? 0.4 : 1 },
                 ]}
                 disabled={tracks.length === 0}
                 onPress={() => void playFrom(0)}
@@ -218,20 +255,24 @@ export default function PlaylistDetailScreen() {
               >
                 <Play
                   size={20}
-                  color="#fff"
-                  fill="#fff"
+                  color={theme.accentForeground}
+                  fill={theme.accentForeground}
                   strokeWidth={2.5}
                   strokeLinecap="square"
                 />
-                <Text style={tw`text-sm font-bold tracking-[0.4px] text-white`}>Play</Text>
+                <Text
+                  style={[tw`text-sm font-bold tracking-[0.4px]`, { color: theme.accentForeground }]}
+                >
+                  Play
+                </Text>
               </Pressable>
               <Pressable
                 style={[
                   tw`flex-row items-center justify-center gap-2 py-2.5 px-5 rounded-full min-w-[130px]`,
                   {
                     borderWidth: 1.5,
-                    backgroundColor: '#1a1a1a',
-                    borderColor: ACCENT,
+                    backgroundColor: theme.surface,
+                    borderColor: theme.accent,
                     opacity: tracks.length === 0 ? 0.4 : 1,
                   },
                 ]}
@@ -241,8 +282,8 @@ export default function PlaylistDetailScreen() {
                 accessibilityRole="button"
                 accessibilityLabel="Shuffle playlist"
               >
-                <Shuffle size={20} color={ACCENT} strokeWidth={2.5} strokeLinecap="square" />
-                <Text style={[tw`text-sm font-bold tracking-[0.4px]`, { color: ACCENT }]}>
+                <Shuffle size={20} color={theme.accent} strokeWidth={2.5} strokeLinecap="square" />
+                <Text style={[tw`text-sm font-bold tracking-[0.4px]`, { color: theme.accent }]}>
                   Shuffle
                 </Text>
               </Pressable>
@@ -256,11 +297,17 @@ export default function PlaylistDetailScreen() {
               : 'This playlist is empty. Long-press a track in the library to add one.'}
           </Text>
         }
-        renderItem={({ item, index }) => (
+        renderItem={({ item, drag, isActive, getIndex }: RenderItemParams<Track>) => (
           <PlaylistTrackRow
             track={item}
             isPlaying={playingTrackId === item.id}
-            onPress={() => void playFrom(index)}
+            accent={theme.accent}
+            isActive={isActive}
+            onPress={() => {
+              const idx = getIndex();
+              if (typeof idx === 'number') void playFrom(idx);
+            }}
+            onLongPress={drag}
           />
         )}
       />
@@ -268,28 +315,95 @@ export default function PlaylistDetailScreen() {
   );
 }
 
+interface DetailHeaderProps {
+  insetTop: number;
+  title: string;
+  onBack: () => void;
+  onEdit?: () => void;
+}
+
+function DetailHeader({ insetTop, title, onBack, onEdit }: DetailHeaderProps) {
+  return (
+    <View
+      style={[
+        tw`absolute left-0 right-0 z-10 flex-row items-center px-1`,
+        { top: insetTop, height: 48 },
+      ]}
+      pointerEvents="box-none"
+    >
+      <Pressable
+        onPress={onBack}
+        hitSlop={12}
+        style={tw`w-12 h-12 items-center justify-center`}
+        testID="playlist-detail-back"
+        accessibilityRole="button"
+        accessibilityLabel="Back"
+      >
+        <ChevronLeft size={28} color="#fff" strokeWidth={2.25} strokeLinecap="square" />
+      </Pressable>
+      <Text
+        style={tw`flex-1 text-white text-base font-semibold text-center px-2`}
+        numberOfLines={1}
+      >
+        {title}
+      </Text>
+      <View style={tw`w-12 h-12 items-center justify-center`}>
+        {onEdit ? (
+          <Pressable
+            onPress={onEdit}
+            hitSlop={12}
+            style={tw`w-12 h-12 items-center justify-center`}
+            testID="playlist-detail-edit"
+            accessibilityRole="button"
+            accessibilityLabel="Edit playlist"
+          >
+            <Pencil size={20} color="#fff" strokeWidth={2.25} strokeLinecap="square" />
+          </Pressable>
+        ) : null}
+      </View>
+    </View>
+  );
+}
+
 interface PlaylistTrackRowProps {
   track: Track;
   isPlaying: boolean;
+  accent: string;
+  isActive: boolean;
   onPress: () => void;
+  onLongPress: () => void;
 }
 
-function PlaylistTrackRow({ track, isPlaying, onPress }: PlaylistTrackRowProps) {
+function PlaylistTrackRow({
+  track,
+  isPlaying,
+  accent,
+  isActive,
+  onPress,
+  onLongPress,
+}: PlaylistTrackRowProps) {
   const artUri = useTrackArtwork(track.uri);
   const subtitleParts = [track.artist ?? track.albumArtist, track.album].filter(Boolean);
   const subtitle = subtitleParts.join(' — ');
 
   return (
-    <Pressable
-      style={[
-        tw`flex-row items-center py-2.5 px-4 border-b border-white/[0.08]`,
-        { borderBottomWidth: StyleSheet.hairlineWidth },
-      ]}
-      onPress={onPress}
-      testID={`playlist-detail-track-${track.id}`}
-      accessibilityRole="button"
-      accessibilityLabel={track.title ?? 'Unknown title'}
-    >
+    <ScaleDecorator>
+      <Pressable
+        style={[
+          tw`flex-row items-center py-2.5 px-4 border-b border-white/[0.08]`,
+          {
+            borderBottomWidth: StyleSheet.hairlineWidth,
+            backgroundColor: isActive ? 'rgba(255,255,255,0.08)' : 'transparent',
+          },
+        ]}
+        onPress={onPress}
+        onLongPress={onLongPress}
+        delayLongPress={250}
+        disabled={isActive}
+        testID={`playlist-detail-track-${track.id}`}
+        accessibilityRole="button"
+        accessibilityLabel={track.title ?? 'Unknown title'}
+      >
       <View
         style={tw`w-12 h-12 rounded overflow-hidden bg-[#222] mr-3`}
         testID={`playlist-detail-track-art-${track.id}`}
@@ -302,7 +416,7 @@ function PlaylistTrackRow({ track, isPlaying, onPress }: PlaylistTrackRowProps) 
         <Text
           style={[
             tw`text-[15px]`,
-            isPlaying ? { color: ACCENT, fontWeight: '600' } : { color: '#fff' },
+            isPlaying ? { color: accent, fontWeight: '600' } : { color: '#fff' },
           ]}
           numberOfLines={1}
         >
@@ -319,13 +433,14 @@ function PlaylistTrackRow({ track, isPlaying, onPress }: PlaylistTrackRowProps) 
           style={tw`mr-2`}
           testID={`playlist-detail-track-playing-indicator-${track.id}`}
         >
-          <Play size={14} color={ACCENT} fill={ACCENT} />
+          <Play size={14} color={accent} fill={accent} />
         </View>
       ) : null}
       <Text style={[tw`text-[#bbb] text-[13px]`, { fontVariant: ['tabular-nums'] }]}>
         {formatTrackDuration(track.durationMs)}
       </Text>
-    </Pressable>
+      </Pressable>
+    </ScaleDecorator>
   );
 }
 

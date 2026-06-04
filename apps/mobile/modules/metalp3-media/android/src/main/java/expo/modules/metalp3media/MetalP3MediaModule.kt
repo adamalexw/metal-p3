@@ -22,7 +22,11 @@ import expo.modules.kotlin.modules.ModuleDefinition
 
 class MetalP3MediaModule : Module() {
 
-  private data class PendingDelete(val uris: List<String>, val promise: Promise)
+  private data class PendingDelete(
+    val uris: List<String>,
+    val promise: Promise,
+    val absoluteFolderPaths: Set<String> = emptySet(),
+  )
 
   private val pendingDeletes = mutableMapOf<Int, PendingDelete>()
   private var nextDeleteRequestCode = 0x4D44 // 'MD'
@@ -100,6 +104,13 @@ class MetalP3MediaModule : Module() {
     OnActivityResult { _, payload ->
       val pending = pendingDeletes.remove(payload.requestCode) ?: return@OnActivityResult
       if (payload.resultCode == Activity.RESULT_OK) {
+        // The OS confirmed the file deletions. Try to drop the now-empty
+        // folder shells too — MediaStore can't do this, but a direct
+        // File.delete() works as long as we have write access and the
+        // folder is genuinely empty.
+        for (path in pending.absoluteFolderPaths) {
+          runCatching { java.io.File(path).delete() }
+        }
         pending.promise.resolve(
           mapOf(
             "deletedUris" to pending.uris,
@@ -201,6 +212,8 @@ class MetalP3MediaModule : Module() {
       return
     }
 
+    val absoluteFolderPaths = resolveAbsoluteFolderPaths(folderPaths)
+
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
       val activity = appContext.currentActivity
       if (activity == null) {
@@ -217,7 +230,7 @@ class MetalP3MediaModule : Module() {
         val requestCode = nextDeleteRequestCode++
         // Report only the audio URIs back as "deleted" so the JS layer can
         // reconcile the library cache; the extra files are byproducts.
-        pendingDeletes[requestCode] = PendingDelete(audioUris, promise)
+        pendingDeletes[requestCode] = PendingDelete(audioUris, promise, absoluteFolderPaths)
         activity.startIntentSenderForResult(
           pendingIntent.intentSender,
           requestCode,
@@ -246,6 +259,9 @@ class MetalP3MediaModule : Module() {
       } catch (_: Throwable) {
         if (uriString in audioSet) failedAudio += uriString
       }
+    }
+    for (path in absoluteFolderPaths) {
+      runCatching { java.io.File(path).delete() }
     }
     promise.resolve(mapOf("deletedUris" to deletedAudio, "failedUris" to failedAudio))
   }
@@ -280,17 +296,19 @@ class MetalP3MediaModule : Module() {
   }
 
   /**
-   * Query MediaStore.Files for every row whose `RELATIVE_PATH` matches one of
-   * the given folders. Returns content:// URIs across all media types
-   * (audio, image, video, downloads, …).
+   * Collect content URIs for every file in the given folders, queried from
+   * each typed MediaStore collection separately. We can't use
+   * `MediaStore.Files` here because `MediaStore.createDeleteRequest` rejects
+   * Files-collection URIs with "All requested items must be Media items".
    */
   private fun collectFolderFileUris(folders: Set<String>): List<String> {
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q || folders.isEmpty()) return emptyList()
     val out = mutableListOf<String>()
-    val collection = MediaStore.Files.getContentUri(MediaStore.VOLUME_EXTERNAL)
-    // RELATIVE_PATH in MediaStore typically ends with a trailing slash. Match
-    // both with and without it, plus a LIKE fallback for nested folders the
-    // user might consider "the same album folder".
+    val typedCollections = listOf(
+      MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+      MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+      MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
+    )
     val orClauses = mutableListOf<String>()
     val args = mutableListOf<String>()
     for (folder in folders) {
@@ -300,20 +318,38 @@ class MetalP3MediaModule : Module() {
       args += folder
     }
     val selection = orClauses.joinToString(" OR ")
-    ctx.contentResolver.query(
-      collection,
-      arrayOf(MediaStore.MediaColumns._ID),
-      selection,
-      args.toTypedArray(),
-      null,
-    )?.use { c ->
-      val idIdx = c.getColumnIndexOrThrow(MediaStore.MediaColumns._ID)
-      while (c.moveToNext()) {
-        val id = c.getLong(idIdx)
-        out += ContentUris.withAppendedId(collection, id).toString()
+    for (collection in typedCollections) {
+      ctx.contentResolver.query(
+        collection,
+        arrayOf(MediaStore.MediaColumns._ID),
+        selection,
+        args.toTypedArray(),
+        null,
+      )?.use { c ->
+        val idIdx = c.getColumnIndexOrThrow(MediaStore.MediaColumns._ID)
+        while (c.moveToNext()) {
+          val id = c.getLong(idIdx)
+          out += ContentUris.withAppendedId(collection, id).toString()
+        }
       }
     }
     return out
+  }
+
+  /**
+   * Resolve relative MediaStore paths (e.g. `Music/Mastodon/Leviathan`) to
+   * absolute filesystem paths under the primary external storage volume so
+   * we can `File.delete()` the empty folder shell after MediaStore drops
+   * the files. The paths returned aren't guaranteed to exist or be
+   * deletable — callers should swallow failures.
+   */
+  private fun resolveAbsoluteFolderPaths(relativeFolders: Set<String>): Set<String> {
+    if (relativeFolders.isEmpty()) return emptySet()
+    val externalRoot = android.os.Environment.getExternalStorageDirectory()?.absolutePath
+      ?: return emptySet()
+    return relativeFolders
+      .map { rel -> "$externalRoot/${rel.trim('/')}" }
+      .toSet()
   }
 
   private val ctx get() = appContext.reactContext
