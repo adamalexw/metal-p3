@@ -153,7 +153,9 @@ export class FileSystemService {
     const fullPath = join(basePath, folder);
     if (!existsSync(fullPath)) return false;
     return this.getFiles(fullPath).some((file) => {
-      if (extname(file).toLowerCase() === '.mp3') return false;
+      const ext = extname(file).toLowerCase();
+      if (ext === '.mp3') return false;
+      if (ext === '.lrc') return false;
       if (coverPattern.test(file)) return false;
       // Treat non-ASCII jpeg filenames (e.g. Сover.jpg with Cyrillic С) as cover variants, not extra files
       // eslint-disable-next-line no-control-regex

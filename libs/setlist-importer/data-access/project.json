@@ -1,0 +1,22 @@
+{
+  "name": "setlist-importer-data-access",
+  "$schema": "..\\..\\..\\node_modules\\nx\\schemas\\project-schema.json",
+  "projectType": "library",
+  "sourceRoot": "libs/setlist-importer/data-access/src",
+  "prefix": "app",
+  "tags": ["scope:setlist-importer", "type:data-access"],
+  "targets": {
+    "test": {
+      "outputs": ["{workspaceRoot}/coverage/libs/setlist-importer/data-access", "{workspaceRoot}\\coverage\\libs\\setlist-importer\\data-access"],
+      "options": {
+        "passWithNoTests": true
+      },
+      "configurations": {
+        "ci": {
+          "ci": true,
+          "coverage": true
+        }
+      }
+    }
+  }
+}

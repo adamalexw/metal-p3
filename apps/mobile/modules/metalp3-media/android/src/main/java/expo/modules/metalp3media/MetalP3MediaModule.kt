@@ -22,7 +22,11 @@ import expo.modules.kotlin.modules.ModuleDefinition
 
 class MetalP3MediaModule : Module() {
 
-  private data class PendingDelete(val uris: List<String>, val promise: Promise)
+  private data class PendingDelete(
+    val uris: List<String>,
+    val promise: Promise,
+    val absoluteFolderPaths: Set<String> = emptySet(),
+  )
 
   private val pendingDeletes = mutableMapOf<Int, PendingDelete>()
   private var nextDeleteRequestCode = 0x4D44 // 'MD'
@@ -79,6 +83,11 @@ class MetalP3MediaModule : Module() {
       readLyrics(uri)
     }
 
+    AsyncFunction("getSyncedLyricsAsync") { uri: String ->
+      requirePermission()
+      readSyncedLyrics(uri)
+    }
+
     AsyncFunction("getExtrasAsync") { uri: String ->
       requirePermission()
       readExtras(uri)
@@ -95,6 +104,13 @@ class MetalP3MediaModule : Module() {
     OnActivityResult { _, payload ->
       val pending = pendingDeletes.remove(payload.requestCode) ?: return@OnActivityResult
       if (payload.resultCode == Activity.RESULT_OK) {
+        // The OS confirmed the file deletions. Try to drop the now-empty
+        // folder shells too — MediaStore can't do this, but a direct
+        // File.delete() works as long as we have write access and the
+        // folder is genuinely empty.
+        for (path in pending.absoluteFolderPaths) {
+          runCatching { java.io.File(path).delete() }
+        }
         pending.promise.resolve(
           mapOf(
             "deletedUris" to pending.uris,
@@ -196,6 +212,8 @@ class MetalP3MediaModule : Module() {
       return
     }
 
+    val absoluteFolderPaths = resolveAbsoluteFolderPaths(folderPaths)
+
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
       val activity = appContext.currentActivity
       if (activity == null) {
@@ -212,7 +230,7 @@ class MetalP3MediaModule : Module() {
         val requestCode = nextDeleteRequestCode++
         // Report only the audio URIs back as "deleted" so the JS layer can
         // reconcile the library cache; the extra files are byproducts.
-        pendingDeletes[requestCode] = PendingDelete(audioUris, promise)
+        pendingDeletes[requestCode] = PendingDelete(audioUris, promise, absoluteFolderPaths)
         activity.startIntentSenderForResult(
           pendingIntent.intentSender,
           requestCode,
@@ -241,6 +259,9 @@ class MetalP3MediaModule : Module() {
       } catch (_: Throwable) {
         if (uriString in audioSet) failedAudio += uriString
       }
+    }
+    for (path in absoluteFolderPaths) {
+      runCatching { java.io.File(path).delete() }
     }
     promise.resolve(mapOf("deletedUris" to deletedAudio, "failedUris" to failedAudio))
   }
@@ -275,17 +296,19 @@ class MetalP3MediaModule : Module() {
   }
 
   /**
-   * Query MediaStore.Files for every row whose `RELATIVE_PATH` matches one of
-   * the given folders. Returns content:// URIs across all media types
-   * (audio, image, video, downloads, …).
+   * Collect content URIs for every file in the given folders, queried from
+   * each typed MediaStore collection separately. We can't use
+   * `MediaStore.Files` here because `MediaStore.createDeleteRequest` rejects
+   * Files-collection URIs with "All requested items must be Media items".
    */
   private fun collectFolderFileUris(folders: Set<String>): List<String> {
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q || folders.isEmpty()) return emptyList()
     val out = mutableListOf<String>()
-    val collection = MediaStore.Files.getContentUri(MediaStore.VOLUME_EXTERNAL)
-    // RELATIVE_PATH in MediaStore typically ends with a trailing slash. Match
-    // both with and without it, plus a LIKE fallback for nested folders the
-    // user might consider "the same album folder".
+    val typedCollections = listOf(
+      MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+      MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+      MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
+    )
     val orClauses = mutableListOf<String>()
     val args = mutableListOf<String>()
     for (folder in folders) {
@@ -295,20 +318,38 @@ class MetalP3MediaModule : Module() {
       args += folder
     }
     val selection = orClauses.joinToString(" OR ")
-    ctx.contentResolver.query(
-      collection,
-      arrayOf(MediaStore.MediaColumns._ID),
-      selection,
-      args.toTypedArray(),
-      null,
-    )?.use { c ->
-      val idIdx = c.getColumnIndexOrThrow(MediaStore.MediaColumns._ID)
-      while (c.moveToNext()) {
-        val id = c.getLong(idIdx)
-        out += ContentUris.withAppendedId(collection, id).toString()
+    for (collection in typedCollections) {
+      ctx.contentResolver.query(
+        collection,
+        arrayOf(MediaStore.MediaColumns._ID),
+        selection,
+        args.toTypedArray(),
+        null,
+      )?.use { c ->
+        val idIdx = c.getColumnIndexOrThrow(MediaStore.MediaColumns._ID)
+        while (c.moveToNext()) {
+          val id = c.getLong(idIdx)
+          out += ContentUris.withAppendedId(collection, id).toString()
+        }
       }
     }
     return out
+  }
+
+  /**
+   * Resolve relative MediaStore paths (e.g. `Music/Mastodon/Leviathan`) to
+   * absolute filesystem paths under the primary external storage volume so
+   * we can `File.delete()` the empty folder shell after MediaStore drops
+   * the files. The paths returned aren't guaranteed to exist or be
+   * deletable — callers should swallow failures.
+   */
+  private fun resolveAbsoluteFolderPaths(relativeFolders: Set<String>): Set<String> {
+    if (relativeFolders.isEmpty()) return emptySet()
+    val externalRoot = android.os.Environment.getExternalStorageDirectory()?.absolutePath
+      ?: return emptySet()
+    return relativeFolders
+      .map { rel -> "$externalRoot/${rel.trim('/')}" }
+      .toSet()
   }
 
   private val ctx get() = appContext.reactContext
@@ -644,6 +685,105 @@ class MetalP3MediaModule : Module() {
       ((b[offset + 1].toInt() and 0xFF) shl 16) or
       ((b[offset + 2].toInt() and 0xFF) shl 8) or
       (b[offset + 3].toInt() and 0xFF)
+  }
+
+  // ---- synchronised lyrics (.lrc sidecar) ---------------------------------
+
+  /**
+   * Look up a sibling .lrc file for the given audio URI and parse its timed
+   * lines. Returns { lines: [{startMs, text}, ...] } sorted by startMs, or
+   * null when no sidecar exists, the file is unreadable, or it contains no
+   * valid timed lines.
+   */
+  private fun readSyncedLyrics(uriString: String): Map<String, Any?>? {
+    val audioUri = try { Uri.parse(uriString) } catch (_: Throwable) { return null }
+    val (relativePath, displayName) = lookupAudioMetadata(audioUri) ?: return null
+    val stem = displayName.substringBeforeLast('.', displayName)
+    val lrcUri = findSidecarUri(relativePath, "$stem.lrc") ?: return null
+
+    val text = try {
+      ctx.contentResolver.openInputStream(lrcUri)?.use { input ->
+        input.readBytes().toString(Charsets.UTF_8)
+      }
+    } catch (_: Throwable) {
+      null
+    } ?: return null
+
+    val lines = parseLrc(text)
+    return if (lines.isEmpty()) null else mapOf("lines" to lines)
+  }
+
+  private fun lookupAudioMetadata(audioUri: Uri): Pair<String, String>? {
+    return try {
+      ctx.contentResolver.query(
+        audioUri,
+        arrayOf(MediaStore.MediaColumns.RELATIVE_PATH, MediaStore.MediaColumns.DISPLAY_NAME),
+        null, null, null,
+      )?.use { c ->
+        if (!c.moveToFirst()) return null
+        val rel = c.getStringOrNull(c.getColumnIndex(MediaStore.MediaColumns.RELATIVE_PATH)) ?: return null
+        val name = c.getStringOrNull(c.getColumnIndex(MediaStore.MediaColumns.DISPLAY_NAME)) ?: return null
+        rel to name
+      }
+    } catch (_: Throwable) {
+      null
+    }
+  }
+
+  private fun findSidecarUri(relativePath: String, lrcDisplayName: String): Uri? {
+    val collection = MediaStore.Files.getContentUri(MediaStore.VOLUME_EXTERNAL)
+    val folderWithSlash = if (relativePath.endsWith('/')) relativePath else "$relativePath/"
+    val folderWithout = folderWithSlash.trimEnd('/')
+
+    return try {
+      ctx.contentResolver.query(
+        collection,
+        arrayOf(MediaStore.MediaColumns._ID),
+        "(${MediaStore.MediaColumns.RELATIVE_PATH} = ? OR ${MediaStore.MediaColumns.RELATIVE_PATH} = ?) AND ${MediaStore.MediaColumns.DISPLAY_NAME} = ?",
+        arrayOf(folderWithSlash, folderWithout, lrcDisplayName),
+        null,
+      )?.use { c ->
+        if (!c.moveToFirst()) return null
+        val idIdx = c.getColumnIndexOrThrow(MediaStore.MediaColumns._ID)
+        val id = c.getLong(idIdx)
+        ContentUris.withAppendedId(collection, id)
+      }
+    } catch (_: Throwable) {
+      null
+    }
+  }
+
+  private val lrcTimestampLine = Regex("""\[(\d{1,2}):(\d{2})(?:[.:](\d{1,3}))?]""")
+  private val lrcMetadataLine = Regex("""^\[(?:ar|ti|al|au|by|length|offset|re|tool|ve):""", RegexOption.IGNORE_CASE)
+
+  private fun parseLrc(text: String): List<Map<String, Any?>> {
+    val out = mutableListOf<Pair<Int, String>>()
+    text.split('\n').forEach { rawLine ->
+      val line = rawLine.trimEnd('\r')
+      if (line.isBlank()) return@forEach
+      if (lrcMetadataLine.containsMatchIn(line.trimStart())) return@forEach
+
+      val matches = lrcTimestampLine.findAll(line).toList()
+      if (matches.isEmpty()) return@forEach
+
+      val tail = line.substring(matches.last().range.last + 1).trim()
+      matches.forEach { m ->
+        val mins = m.groupValues[1].toIntOrNull() ?: return@forEach
+        val secs = m.groupValues[2].toIntOrNull() ?: return@forEach
+        val fracRaw = m.groupValues.getOrNull(3) ?: ""
+        val fracMs = when {
+          fracRaw.isEmpty() -> 0
+          fracRaw.length == 1 -> fracRaw.toInt() * 100
+          fracRaw.length == 2 -> fracRaw.toInt() * 10
+          else -> fracRaw.take(3).toInt()
+        }
+        val startMs = ((mins * 60) + secs) * 1000 + fracMs
+        out += startMs to tail
+      }
+    }
+    return out
+      .sortedBy { it.first }
+      .map { (start, txt) -> mapOf("startMs" to start, "text" to txt) }
   }
 
   // ---- extras (country / metal archives url) ------------------------------

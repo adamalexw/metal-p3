@@ -1,6 +1,6 @@
-@if (tracksLoading() || maTracksLoading() || lyricsLoading() || lyricsLoadingProgress()) {
+@if (tracksLoading() || maTracksLoading() || lyricsLoading() || lyricsExpected()) {
   <div class="flex flex-col gap-4">
-    <mat-progress-bar class="w-full" [mode]="lyricsLoadingProgress() ? 'determinate' : 'indeterminate'" [value]="lyricsLoadingProgress()" />
+    <mat-progress-bar class="w-full" [mode]="lyricsLoading() || lyricsExpected() ? 'determinate' : 'indeterminate'" [value]="lyricsLoadingProgress()" />
     <h3 class="mb-3 ml-3 text-xl text-white">Loading Lyrics</h3>
   </div>
 } @else {
@@ -33,7 +33,10 @@
     <ng-container matColumnDef="title">
       <mat-header-cell *matHeaderCellDef>Track</mat-header-cell>
       <mat-cell *matCellDef="let element">
-        {{ element.title }}
+        <span>{{ element.title }}</span>
+        @if (element.lyricsSource === 'synced') {
+          <span class="ml-2 rounded bg-emerald-700 px-2 py-0.5 text-xs text-white uppercase">Synced</span>
+        }
       </mat-cell>
     </ng-container>
 

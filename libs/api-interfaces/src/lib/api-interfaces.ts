@@ -45,6 +45,7 @@ export interface TrackBase {
   bitrate?: number;
   duration?: number;
   lyrics?: string;
+  syncedLyrics?: string;
 }
 
 type WithoutNull<T> = { [K in keyof T]: Exclude<T[K], null> };
@@ -107,6 +108,17 @@ export interface RenameFolder {
 export interface RenameTrack {
   fullPath: string;
   file: string;
+}
+
+export interface TransferPlaylistTrackRequest {
+  fullPath: string;
+  index: number;
+}
+
+export interface TransferPlaylistRequest {
+  name: string;
+  playlistId?: number | string;
+  tracks: TransferPlaylistTrackRequest[];
 }
 
 export const ALBUM_ADDED = 'albumAdded';

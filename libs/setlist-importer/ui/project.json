@@ -1,0 +1,22 @@
+{
+  "name": "setlist-importer-ui",
+  "$schema": "..\\..\\..\\node_modules\\nx\\schemas\\project-schema.json",
+  "projectType": "library",
+  "sourceRoot": "libs/setlist-importer/ui/src",
+  "prefix": "app",
+  "tags": ["scope:setlist-importer", "type:ui"],
+  "targets": {
+    "test": {
+      "outputs": ["{workspaceRoot}/coverage/libs/setlist-importer/ui", "{workspaceRoot}\\coverage\\libs\\setlist-importer\\ui"],
+      "options": {
+        "passWithNoTests": true
+      },
+      "configurations": {
+        "ci": {
+          "ci": true,
+          "coverage": true
+        }
+      }
+    }
+  }
+}

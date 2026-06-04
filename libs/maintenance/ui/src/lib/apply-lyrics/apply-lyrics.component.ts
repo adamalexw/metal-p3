@@ -25,6 +25,7 @@ export class ApplyLyricsComponent {
   maTracks = input<MetalArchivesAlbumTrack[] | null | undefined>([]);
   maTracksLoading = input<boolean | null>(false);
   lyricsLoading = input<boolean | null>(false);
+  lyricsExpected = input<boolean | null>(false);
   lyricsLoadingProgress = input<number | null>(0);
   applyingProgress = input<number | null>(0);
   applying = input<boolean | null>(false);
@@ -75,19 +76,21 @@ export class ApplyLyricsComponent {
   }
 
   private mapApplyLyrics(track: Track, maTracks: MetalArchivesAlbumTrack[]): ApplyLyrics {
+    const lyricsSource = track.lyricsSource ?? (track.syncedLyrics ? 'synced' : null);
+
     let maTrack = maTracks.find((item) => item.title?.toLowerCase() === track.title?.toLowerCase());
 
     if (maTrack) {
-      return { ...track, maTrack, selected: true };
+      return { ...track, maTrack, lyricsSource, selected: true };
     }
 
     maTrack = maTracks.find((item) => Number(item.trackNumber) === Number(track.trackNumber));
 
     if (maTrack) {
-      return { ...track, maTrack };
+      return { ...track, maTrack, lyricsSource, selected: !!track.syncedLyrics };
     }
 
-    return { ...track, maTrack: maTracks[0] };
+    return { ...track, maTrack: maTracks[0], lyricsSource, selected: !!track.syncedLyrics };
   }
 
   onApply() {

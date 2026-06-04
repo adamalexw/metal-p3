@@ -14,6 +14,7 @@ import com.google.common.util.concurrent.MoreExecutors
 import expo.modules.kotlin.exception.CodedException
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
+import expo.modules.metalp3player.auto.PlaylistManifestImporter
 import expo.modules.metalp3player.auto.PlaylistStore
 
 class MetalP3PlayerModule : Module() {
@@ -128,6 +129,14 @@ class MetalP3PlayerModule : Module() {
       val ctx = appContext.reactContext
         ?: throw CodedException("E_NO_CONTEXT", "React context unavailable", null)
       PlaylistStore.write(ctx, json)
+    }
+
+    AsyncFunction("importPlaylistManifestsAsync") {
+      val ctx = appContext.reactContext
+        ?: throw CodedException("E_NO_CONTEXT", "React context unavailable", null)
+      PlaylistManifestImporter.importAll(ctx).map { entry ->
+        mapOf("name" to entry.name, "trackIds" to entry.trackIds)
+      }
     }
   }
 

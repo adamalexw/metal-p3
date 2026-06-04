@@ -1,6 +1,17 @@
-<button type="button" (click)="onSave()" mat-icon-button>
-  <mat-icon>save</mat-icon>
-</button>
-<mat-form-field>
-  <textarea [(ngModel)]="lyrics" matInput></textarea>
-</mat-form-field>
+@if (source === 'synced') {
+  <button aria-label="Close" type="button" (click)="onSave()" mat-icon-button>
+    <mat-icon>close</mat-icon>
+  </button>
+  @if (lyrics.trim()) {
+    <pre class="m-3 font-sans text-base leading-relaxed whitespace-pre-wrap">{{ lyrics }}</pre>
+  } @else {
+    <p class="m-3 text-gray-500 italic">No lyrics</p>
+  }
+} @else {
+  <button aria-label="Save" type="button" (click)="onSave()" mat-icon-button>
+    <mat-icon>save</mat-icon>
+  </button>
+  <mat-form-field>
+    <textarea [(ngModel)]="lyrics" matInput></textarea>
+  </mat-form-field>
+}

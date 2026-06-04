@@ -21,6 +21,11 @@ export interface NowPlaying {
   artworkUri: string | null;
 }
 
+export interface ImportedPlaylistManifest {
+  name: string;
+  trackIds: string[];
+}
+
 export interface PlaybackState {
   ready: boolean;
   isPlaying: boolean;
