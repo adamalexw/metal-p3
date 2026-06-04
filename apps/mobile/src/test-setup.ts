@@ -156,10 +156,6 @@ jest.mock('react-native-reanimated', () => {
     ZoomIn: stubEntering,
     Extrapolation: { CLAMP: 'clamp', EXTEND: 'extend', IDENTITY: 'identity' },
     interpolate: () => 0,
-    runOnJS:
-      <T extends (..._args: unknown[]) => unknown>(fn: T) =>
-      (...args: Parameters<T>) =>
-        fn(...args),
     useSharedValue: (v: unknown) => ({ value: v }),
     useAnimatedStyle: () => ({}),
     useAnimatedScrollHandler: () => () => undefined,
@@ -167,6 +163,18 @@ jest.mock('react-native-reanimated', () => {
     withTiming: (v: unknown) => v,
   };
 });
+
+jest.mock('react-native-worklets', () => ({
+  __esModule: true,
+  runOnJS:
+    <T extends (..._args: unknown[]) => unknown>(fn: T) =>
+    (...args: Parameters<T>) =>
+      fn(...args),
+  runOnUI: <T extends (..._args: unknown[]) => unknown>(fn: T) => fn,
+  scheduleOnRN:
+    <T extends (..._args: unknown[]) => unknown>(fn: T, ...args: Parameters<T>) =>
+      fn(...args),
+}));
 
 if (typeof global.structuredClone === 'undefined') {
   global.structuredClone = (object) => JSON.parse(JSON.stringify(object));

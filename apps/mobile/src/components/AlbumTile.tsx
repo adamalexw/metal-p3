@@ -5,11 +5,11 @@ import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
   FadeInUp,
   interpolate,
-  runOnJS,
   useAnimatedStyle,
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
+import { runOnJS } from 'react-native-worklets';
 import type { AlbumGroup } from '../lib/group-tracks-by-album';
 import { formatAlbumDuration } from '../lib/group-tracks-by-album';
 import { tw } from '../lib/tw';

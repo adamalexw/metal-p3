@@ -4,11 +4,11 @@ import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
   FadeInUp,
   interpolate,
-  runOnJS,
   useAnimatedStyle,
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
+import { runOnJS } from 'react-native-worklets';
 import type { Playlist } from '../lib/playlist-store';
 import { tw } from '../lib/tw';
 import PlaylistMosaic from './PlaylistMosaic';
