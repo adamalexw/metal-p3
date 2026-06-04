@@ -1,5 +1,7 @@
+import { memo, useCallback, useRef } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import Animated, {
+  FadeInUp,
   useAnimatedStyle,
   useSharedValue,
   withSpring,
@@ -9,31 +11,46 @@ import { tw } from '../lib/tw';
 import PlaylistMosaic from './PlaylistMosaic';
 
 const PRESS_SPRING = { damping: 18, stiffness: 320, mass: 0.6 };
+const ENTRY_DURATION = 280;
+const ENTRY_DELAY_STEP = 25;
+const ENTRY_DELAY_MAX = 400;
 
 interface PlaylistTileProps {
   playlist: Playlist;
-  onPress: () => void;
-  onLongPress?: () => void;
+  index?: number;
+  onPress: (playlist: Playlist) => void;
+  onLongPress?: (playlist: Playlist) => void;
 }
 
-export default function PlaylistTile({ playlist, onPress, onLongPress }: PlaylistTileProps) {
+function PlaylistTileImpl({ playlist, index = 0, onPress, onLongPress }: PlaylistTileProps) {
   const scale = useSharedValue(1);
   const animatedStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
+
+  const hasEntered = useRef(false);
+  const entering = hasEntered.current
+    ? undefined
+    : FadeInUp.duration(ENTRY_DURATION).delay(Math.min(index * ENTRY_DELAY_STEP, ENTRY_DELAY_MAX));
+  hasEntered.current = true;
+
+  const handlePress = useCallback(() => onPress(playlist), [onPress, playlist]);
+  const handleLongPress = useCallback(() => onLongPress?.(playlist), [onLongPress, playlist]);
+  const handlePressIn = useCallback(() => {
+    scale.value = withSpring(0.94, PRESS_SPRING);
+  }, [scale]);
+  const handlePressOut = useCallback(() => {
+    scale.value = withSpring(1, PRESS_SPRING);
+  }, [scale]);
 
   const trackCount = playlist.trackIds.length;
   const meta = `${trackCount} ${trackCount === 1 ? 'track' : 'tracks'}`;
 
   return (
-    <Animated.View style={[tw`flex-1 mx-1 mb-4`, animatedStyle]}>
+    <Animated.View entering={entering} style={[tw`flex-1 mx-1 mb-4`, animatedStyle]}>
       <Pressable
-        onPress={onPress}
-        onLongPress={onLongPress}
-        onPressIn={() => {
-          scale.value = withSpring(0.94, PRESS_SPRING);
-        }}
-        onPressOut={() => {
-          scale.value = withSpring(1, PRESS_SPRING);
-        }}
+        onPress={handlePress}
+        onLongPress={onLongPress ? handleLongPress : undefined}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
         testID={`playlist-tile-${playlist.id}`}
         accessibilityRole="button"
         accessibilityLabel={`${playlist.name}, ${meta}`}
@@ -62,3 +79,6 @@ export default function PlaylistTile({ playlist, onPress, onLongPress }: Playlis
     </Animated.View>
   );
 }
+
+const PlaylistTile = memo(PlaylistTileImpl);
+export default PlaylistTile;

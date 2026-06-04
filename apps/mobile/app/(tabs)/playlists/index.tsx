@@ -1,10 +1,10 @@
+import { FlashList } from '@shopify/flash-list';
 import { useRouter } from 'expo-router';
 import { ListPlus, Pencil, Play, Shuffle, Trash2 } from 'lucide-react-native';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Text, View } from 'react-native';
 import Animated, {
   FadeIn,
-  FadeInUp,
   useAnimatedScrollHandler,
   useSharedValue,
 } from 'react-native-reanimated';
@@ -32,30 +32,9 @@ import { tw } from '../../../src/lib/tw';
 import { useNowPlayingState } from '../../../src/lib/useNowPlayingState';
 import { prefetchArtworkTheme } from '../../../src/theme/useArtworkTheme';
 
-type PlaylistRow =
-  | { kind: 'pair'; key: string; left: Playlist; right: Playlist }
-  | { kind: 'wide'; key: string; item: Playlist };
+const AnimatedFlashList = Animated.createAnimatedComponent(FlashList<Playlist>);
 
-function buildRows(playlists: Playlist[]): PlaylistRow[] {
-  const rows: PlaylistRow[] = [];
-  let i = 0;
-  while (i < playlists.length) {
-    const isLast = i === playlists.length - 1;
-    if (isLast && playlists.length % 2 === 1) {
-      rows.push({ kind: 'wide', key: playlists[i].id, item: playlists[i] });
-      i += 1;
-    } else {
-      rows.push({
-        kind: 'pair',
-        key: `${playlists[i].id}|${playlists[i + 1].id}`,
-        left: playlists[i],
-        right: playlists[i + 1],
-      });
-      i += 2;
-    }
-  }
-  return rows;
-}
+const keyExtractor = (playlist: Playlist) => playlist.id;
 
 function formatPlaylistStats(playlists: Playlist[]): string | null {
   if (playlists.length === 0) return null;
@@ -82,10 +61,17 @@ export default function PlaylistsListScreen() {
     return subscribe(() => setPlaylists([...getPlaylists()]));
   }, []);
 
-  const openPlaylist = (playlist: Playlist) => {
-    setStartError(null);
-    router.push(`/(tabs)/playlists/${encodeURIComponent(playlist.id)}` as never);
-  };
+  const openPlaylist = useCallback(
+    (playlist: Playlist) => {
+      setStartError(null);
+      router.push(`/(tabs)/playlists/${encodeURIComponent(playlist.id)}` as never);
+    },
+    [router],
+  );
+
+  const handleLongPressPlaylist = useCallback((playlist: Playlist) => {
+    setContextPlaylist(playlist);
+  }, []);
 
   const playPlaylist = async (playlist: Playlist) => {
     setStartError(null);
@@ -203,12 +189,22 @@ export default function PlaylistsListScreen() {
     setError(null);
   };
 
-  const rows = useMemo(() => buildRows(playlists), [playlists]);
-
   const scrollY = useSharedValue(0);
   const onScroll = useAnimatedScrollHandler((e) => {
     scrollY.value = e.contentOffset.y;
   });
+
+  const renderItem = useCallback(
+    ({ item, index }: { item: Playlist; index: number }) => (
+      <PlaylistTile
+        playlist={item}
+        index={index}
+        onPress={openPlaylist}
+        onLongPress={handleLongPressPlaylist}
+      />
+    ),
+    [openPlaylist, handleLongPressPlaylist],
+  );
 
   return (
     <View style={tw`flex-1 bg-black`}>
@@ -229,10 +225,11 @@ export default function PlaylistsListScreen() {
         </Text>
       ) : null}
 
-      <Animated.FlatList
+      <AnimatedFlashList
         style={tw`flex-1`}
-        data={rows}
-        keyExtractor={(r) => r.key}
+        data={playlists}
+        keyExtractor={keyExtractor}
+        numColumns={2}
         onScroll={onScroll}
         scrollEventThrottle={16}
         ListHeaderComponent={<LibraryHeaderSpacer topInset={insets.top} />}
@@ -241,37 +238,8 @@ export default function PlaylistsListScreen() {
             No playlists yet. Long-press a track to add it to a new playlist.
           </Text>
         }
-        contentContainerStyle={[tw`px-3`, { paddingBottom: insets.bottom + 24 + miniPlayerPad }]}
-        renderItem={({ item, index }) => (
-          <Animated.View
-            entering={FadeInUp.duration(280).delay(Math.min(index * 25, 400))}
-            style={tw`flex-row`}
-          >
-            {item.kind === 'pair' ? (
-              <>
-                <PlaylistTile
-                  playlist={item.left}
-                  onPress={() => openPlaylist(item.left)}
-                  onLongPress={() => setContextPlaylist(item.left)}
-                />
-                <PlaylistTile
-                  playlist={item.right}
-                  onPress={() => openPlaylist(item.right)}
-                  onLongPress={() => setContextPlaylist(item.right)}
-                />
-              </>
-            ) : (
-              <>
-                <PlaylistTile
-                  playlist={item.item}
-                  onPress={() => openPlaylist(item.item)}
-                  onLongPress={() => setContextPlaylist(item.item)}
-                />
-                <View style={tw`flex-1 mx-1`} />
-              </>
-            )}
-          </Animated.View>
-        )}
+        contentContainerStyle={{ paddingHorizontal: 12, paddingBottom: insets.bottom + 24 + miniPlayerPad }}
+        renderItem={renderItem}
       />
 
       <LibraryHeader

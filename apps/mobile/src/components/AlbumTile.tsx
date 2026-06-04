@@ -1,5 +1,7 @@
+import { memo, useCallback, useRef } from 'react';
 import { Image, Pressable, Text, View } from 'react-native';
 import Animated, {
+  FadeInUp,
   useAnimatedStyle,
   useSharedValue,
   withSpring,
@@ -11,31 +13,47 @@ import { useTrackArtwork } from '../lib/useTrackArtwork';
 
 interface AlbumTileProps {
   group: AlbumGroup;
-  onPress: () => void;
-  onLongPress?: () => void;
+  index?: number;
+  onPress: (group: AlbumGroup) => void;
+  onLongPress?: (group: AlbumGroup) => void;
 }
 
 const PRESS_SPRING = { damping: 18, stiffness: 320, mass: 0.6 };
+const ENTRY_DURATION = 280;
+const ENTRY_DELAY_STEP = 25;
+const ENTRY_DELAY_MAX = 400;
 
-export default function AlbumTile({ group, onPress, onLongPress }: AlbumTileProps) {
+function AlbumTileImpl({ group, index = 0, onPress, onLongPress }: AlbumTileProps) {
   const artUri = useTrackArtwork(group.representativeUri);
   const scale = useSharedValue(1);
 
   const animatedStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
 
+  // Entry animation runs once per tile lifetime — re-renders shouldn't re-fade.
+  const hasEntered = useRef(false);
+  const entering = hasEntered.current
+    ? undefined
+    : FadeInUp.duration(ENTRY_DURATION).delay(Math.min(index * ENTRY_DELAY_STEP, ENTRY_DELAY_MAX));
+  hasEntered.current = true;
+
+  const handlePress = useCallback(() => onPress(group), [onPress, group]);
+  const handleLongPress = useCallback(() => onLongPress?.(group), [onLongPress, group]);
+  const handlePressIn = useCallback(() => {
+    scale.value = withSpring(0.94, PRESS_SPRING);
+  }, [scale]);
+  const handlePressOut = useCallback(() => {
+    scale.value = withSpring(1, PRESS_SPRING);
+  }, [scale]);
+
   const meta = `${group.trackCount} ${group.trackCount === 1 ? 'song' : 'songs'} · ${formatAlbumDuration(group.totalDurationMs)}`;
 
   return (
-    <Animated.View style={[tw`flex-1 mx-1 mb-4`, animatedStyle]}>
+    <Animated.View entering={entering} style={[tw`flex-1 mx-1 mb-4`, animatedStyle]}>
       <Pressable
-        onPress={onPress}
-        onLongPress={onLongPress}
-        onPressIn={() => {
-          scale.value = withSpring(0.94, PRESS_SPRING);
-        }}
-        onPressOut={() => {
-          scale.value = withSpring(1, PRESS_SPRING);
-        }}
+        onPress={handlePress}
+        onLongPress={onLongPress ? handleLongPress : undefined}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
         testID={`album-tile-${group.key}`}
         accessibilityRole="button"
         accessibilityLabel={`${group.albumName} by ${group.bandName}, ${meta}`}
@@ -76,3 +94,6 @@ export default function AlbumTile({ group, onPress, onLongPress }: AlbumTileProp
     </Animated.View>
   );
 }
+
+const AlbumTile = memo(AlbumTileImpl);
+export default AlbumTile;

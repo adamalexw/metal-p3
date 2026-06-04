@@ -51,7 +51,8 @@
     "twrnc": "*",
     "@react-navigation/elements": "*",
     "@react-navigation/drawer": "*",
-    "@react-navigation/native": "*"
+    "@react-navigation/native": "*",
+    "@shopify/flash-list": "*"
   },
   "devDependencies": {}
 }

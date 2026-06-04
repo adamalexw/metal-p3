@@ -11,6 +11,11 @@ jest.mock('expo-blur', () => {
   return { __esModule: true, BlurView: View };
 });
 
+jest.mock('@shopify/flash-list', () => {
+  const { FlatList } = require('react-native');
+  return { __esModule: true, FlashList: FlatList };
+});
+
 jest.mock('react-native-reanimated', () => {
   const RN = require('react-native');
   const { View, FlatList, Text, Image } = RN;
@@ -32,6 +37,7 @@ jest.mock('react-native-reanimated', () => {
     Image,
     FadeIn: stubEntering,
     FadeInDown: stubEntering,
+    FadeInUp: stubEntering,
     ZoomIn: stubEntering,
     Extrapolation: { CLAMP: 'clamp', EXTEND: 'extend', IDENTITY: 'identity' },
     interpolate: () => 0,
