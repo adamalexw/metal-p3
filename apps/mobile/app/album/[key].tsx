@@ -1,7 +1,7 @@
 import { BlurView } from 'expo-blur';
 import { Image } from 'expo-image';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
-import { Play, Shuffle } from 'lucide-react-native';
+import { Play, Shuffle, Trash2 } from 'lucide-react-native';
 import { createRef, useEffect, useRef, useState, type RefObject } from 'react';
 import { FlatList, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 import ReanimatedSwipeable, {
@@ -14,6 +14,7 @@ import { toFlagEmoji } from '../../src/lib/country-flag';
 import { formatAlbumDuration, formatTrackDuration } from '../../src/lib/group-tracks-by-album';
 import { useLibraryAlbumGroup } from '../../src/lib/library-cache';
 import { shuffled } from '../../src/lib/shuffle';
+import { ICON_STROKE } from '../../src/theme/icons';
 import { toQueueItem } from '../../src/lib/to-queue-item';
 import AddToPlaylistSheet from '../../src/components/AddToPlaylistSheet';
 import ConfirmDeleteSheet from '../../src/components/ConfirmDeleteSheet';
@@ -366,7 +367,7 @@ export default function AlbumDetailScreen() {
                   accessibilityRole="button"
                   accessibilityLabel={`Delete ${item.title ?? 'track'}`}
                 >
-                  <Text style={tw`text-white text-sm font-bold tracking-[0.4px]`}>Delete</Text>
+                  <Trash2 size={22} color="#fff" strokeWidth={ICON_STROKE} strokeLinecap="square" />
                 </Pressable>
               )}
               rightThreshold={48}
