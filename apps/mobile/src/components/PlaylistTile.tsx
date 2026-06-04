@@ -1,16 +1,19 @@
-import { memo, useCallback, useRef } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { memo, useMemo, useRef } from 'react';
+import { Text, View } from 'react-native';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
   FadeInUp,
+  interpolate,
+  runOnJS,
   useAnimatedStyle,
   useSharedValue,
-  withSpring,
+  withTiming,
 } from 'react-native-reanimated';
 import type { Playlist } from '../lib/playlist-store';
 import { tw } from '../lib/tw';
 import PlaylistMosaic from './PlaylistMosaic';
 
-const PRESS_SPRING = { damping: 18, stiffness: 320, mass: 0.6 };
+const PRESS_TIMING = { duration: 120 };
 const ENTRY_DURATION = 280;
 const ENTRY_DELAY_STEP = 25;
 const ENTRY_DELAY_MAX = 400;
@@ -23,8 +26,10 @@ interface PlaylistTileProps {
 }
 
 function PlaylistTileImpl({ playlist, index = 0, onPress, onLongPress }: PlaylistTileProps) {
-  const scale = useSharedValue(1);
-  const animatedStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
+  const pressed = useSharedValue(0);
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: interpolate(pressed.value, [0, 1], [1, 0.94]) }],
+  }));
 
   const hasEntered = useRef(false);
   const entering = hasEntered.current
@@ -32,50 +37,66 @@ function PlaylistTileImpl({ playlist, index = 0, onPress, onLongPress }: Playlis
     : FadeInUp.duration(ENTRY_DURATION).delay(Math.min(index * ENTRY_DELAY_STEP, ENTRY_DELAY_MAX));
   hasEntered.current = true;
 
-  const handlePress = useCallback(() => onPress(playlist), [onPress, playlist]);
-  const handleLongPress = useCallback(() => onLongPress?.(playlist), [onLongPress, playlist]);
-  const handlePressIn = useCallback(() => {
-    scale.value = withSpring(0.94, PRESS_SPRING);
-  }, [scale]);
-  const handlePressOut = useCallback(() => {
-    scale.value = withSpring(1, PRESS_SPRING);
-  }, [scale]);
+  const gesture = useMemo(() => {
+    const tap = Gesture.Tap()
+      .onBegin(() => {
+        'worklet';
+        pressed.value = withTiming(1, PRESS_TIMING);
+      })
+      .onFinalize(() => {
+        'worklet';
+        pressed.value = withTiming(0, PRESS_TIMING);
+      })
+      .onEnd(() => {
+        'worklet';
+        runOnJS(onPress)(playlist);
+      });
+
+    if (!onLongPress) return tap;
+
+    const longPress = Gesture.LongPress()
+      .minDuration(350)
+      .onStart(() => {
+        'worklet';
+        runOnJS(onLongPress)(playlist);
+      });
+
+    return Gesture.Race(longPress, tap);
+  }, [playlist, onPress, onLongPress, pressed]);
 
   const trackCount = playlist.trackIds.length;
   const meta = `${trackCount} ${trackCount === 1 ? 'track' : 'tracks'}`;
 
   return (
     <Animated.View entering={entering} style={[tw`flex-1 mx-1 mb-4`, animatedStyle]}>
-      <Pressable
-        onPress={handlePress}
-        onLongPress={onLongPress ? handleLongPress : undefined}
-        onPressIn={handlePressIn}
-        onPressOut={handlePressOut}
-        testID={`playlist-tile-${playlist.id}`}
-        accessibilityRole="button"
-        accessibilityLabel={`${playlist.name}, ${meta}`}
-      >
+      <GestureDetector gesture={gesture}>
         <View
-          style={[
-            tw`w-full aspect-square rounded-md overflow-hidden bg-[#222]`,
-            {
-              shadowColor: '#000',
-              shadowOpacity: 0.5,
-              shadowRadius: 10,
-              shadowOffset: { width: 0, height: 6 },
-              elevation: 6,
-            },
-          ]}
+          testID={`playlist-tile-${playlist.id}`}
+          accessibilityRole="button"
+          accessibilityLabel={`${playlist.name}, ${meta}`}
         >
-          <PlaylistMosaic playlist={playlist} />
+          <View
+            style={[
+              tw`w-full aspect-square rounded-md overflow-hidden bg-[#222]`,
+              {
+                shadowColor: '#000',
+                shadowOpacity: 0.5,
+                shadowRadius: 10,
+                shadowOffset: { width: 0, height: 6 },
+                elevation: 6,
+              },
+            ]}
+          >
+            <PlaylistMosaic playlist={playlist} />
+          </View>
+          <Text style={tw`text-white text-sm font-semibold mt-2`} numberOfLines={1}>
+            {playlist.name}
+          </Text>
+          <Text style={tw`text-[#bbb] text-xs mt-0.5`} numberOfLines={1}>
+            {meta}
+          </Text>
         </View>
-        <Text style={tw`text-white text-sm font-semibold mt-2`} numberOfLines={1}>
-          {playlist.name}
-        </Text>
-        <Text style={tw`text-[#bbb] text-xs mt-0.5`} numberOfLines={1}>
-          {meta}
-        </Text>
-      </Pressable>
+      </GestureDetector>
     </Animated.View>
   );
 }

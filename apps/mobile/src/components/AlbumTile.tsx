@@ -1,11 +1,14 @@
 import { Image } from 'expo-image';
-import { memo, useCallback, useRef } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { memo, useMemo, useRef } from 'react';
+import { Text, View } from 'react-native';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
   FadeInUp,
+  interpolate,
+  runOnJS,
   useAnimatedStyle,
   useSharedValue,
-  withSpring,
+  withTiming,
 } from 'react-native-reanimated';
 import type { AlbumGroup } from '../lib/group-tracks-by-album';
 import { formatAlbumDuration } from '../lib/group-tracks-by-album';
@@ -19,16 +22,21 @@ interface AlbumTileProps {
   onLongPress?: (group: AlbumGroup) => void;
 }
 
-const PRESS_SPRING = { damping: 18, stiffness: 320, mass: 0.6 };
+const PRESS_TIMING = { duration: 120 };
 const ENTRY_DURATION = 280;
 const ENTRY_DELAY_STEP = 25;
 const ENTRY_DELAY_MAX = 400;
 
 function AlbumTileImpl({ group, index = 0, onPress, onLongPress }: AlbumTileProps) {
   const artUri = useTrackArtwork(group.representativeUri);
-  const scale = useSharedValue(1);
 
-  const animatedStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
+  // pressed is the *state* (0 = idle, 1 = pressed). Visual scale is derived
+  // via interpolate so we can change the curve without rewriting handlers.
+  const pressed = useSharedValue(0);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: interpolate(pressed.value, [0, 1], [1, 0.94]) }],
+  }));
 
   // Entry animation runs once per tile lifetime — re-renders shouldn't re-fade.
   const hasEntered = useRef(false);
@@ -37,68 +45,84 @@ function AlbumTileImpl({ group, index = 0, onPress, onLongPress }: AlbumTileProp
     : FadeInUp.duration(ENTRY_DURATION).delay(Math.min(index * ENTRY_DELAY_STEP, ENTRY_DELAY_MAX));
   hasEntered.current = true;
 
-  const handlePress = useCallback(() => onPress(group), [onPress, group]);
-  const handleLongPress = useCallback(() => onLongPress?.(group), [onLongPress, group]);
-  const handlePressIn = useCallback(() => {
-    scale.value = withSpring(0.94, PRESS_SPRING);
-  }, [scale]);
-  const handlePressOut = useCallback(() => {
-    scale.value = withSpring(1, PRESS_SPRING);
-  }, [scale]);
+  const gesture = useMemo(() => {
+    const tap = Gesture.Tap()
+      .onBegin(() => {
+        'worklet';
+        pressed.value = withTiming(1, PRESS_TIMING);
+      })
+      .onFinalize(() => {
+        'worklet';
+        pressed.value = withTiming(0, PRESS_TIMING);
+      })
+      .onEnd(() => {
+        'worklet';
+        runOnJS(onPress)(group);
+      });
+
+    if (!onLongPress) return tap;
+
+    const longPress = Gesture.LongPress()
+      .minDuration(350)
+      .onStart(() => {
+        'worklet';
+        runOnJS(onLongPress)(group);
+      });
+
+    return Gesture.Race(longPress, tap);
+  }, [group, onPress, onLongPress, pressed]);
 
   const meta = `${group.trackCount} ${group.trackCount === 1 ? 'song' : 'songs'} · ${formatAlbumDuration(group.totalDurationMs)}`;
 
   return (
     <Animated.View entering={entering} style={[tw`flex-1 mx-1 mb-4`, animatedStyle]}>
-      <Pressable
-        onPress={handlePress}
-        onLongPress={onLongPress ? handleLongPress : undefined}
-        onPressIn={handlePressIn}
-        onPressOut={handlePressOut}
-        testID={`album-tile-${group.key}`}
-        accessibilityRole="button"
-        accessibilityLabel={`${group.albumName} by ${group.bandName}, ${meta}`}
-      >
+      <GestureDetector gesture={gesture}>
         <View
-          style={[
-            tw`w-full aspect-square rounded-md overflow-hidden bg-[#222]`,
-            {
-              shadowColor: '#000',
-              shadowOpacity: 0.5,
-              shadowRadius: 10,
-              shadowOffset: { width: 0, height: 6 },
-              elevation: 6,
-            },
-          ]}
+          testID={`album-tile-${group.key}`}
+          accessibilityRole="button"
+          accessibilityLabel={`${group.albumName} by ${group.bandName}, ${meta}`}
         >
-          {artUri ? (
-            <Image
-              source={{ uri: artUri }}
-              style={tw`w-full h-full`}
-              contentFit="cover"
-              cachePolicy="memory-disk"
-              recyclingKey={artUri}
-              transition={120}
-            />
-          ) : (
-            <View style={tw`w-full h-full bg-[#222]`} />
-          )}
-        </View>
-        <Text style={tw`text-white text-sm font-semibold mt-2`} numberOfLines={1}>
-          {group.albumName}
-        </Text>
-        <Text style={tw`text-[#ddd] text-[13px] mt-0.5`} numberOfLines={1}>
-          {group.bandName}
-        </Text>
-        {group.genre ? (
-          <Text style={tw`text-[#bbb] text-xs mt-0.5`} numberOfLines={1}>
-            {group.genre}
+          <View
+            style={[
+              tw`w-full aspect-square rounded-md overflow-hidden bg-[#222]`,
+              {
+                shadowColor: '#000',
+                shadowOpacity: 0.5,
+                shadowRadius: 10,
+                shadowOffset: { width: 0, height: 6 },
+                elevation: 6,
+              },
+            ]}
+          >
+            {artUri ? (
+              <Image
+                source={{ uri: artUri }}
+                style={tw`w-full h-full`}
+                contentFit="cover"
+                cachePolicy="memory-disk"
+                recyclingKey={artUri}
+                transition={120}
+              />
+            ) : (
+              <View style={tw`w-full h-full bg-[#222]`} />
+            )}
+          </View>
+          <Text style={tw`text-white text-sm font-semibold mt-2`} numberOfLines={1}>
+            {group.albumName}
           </Text>
-        ) : null}
-        <Text style={tw`text-[#bbb] text-xs mt-0.5`} numberOfLines={1}>
-          {meta}
-        </Text>
-      </Pressable>
+          <Text style={tw`text-[#ddd] text-[13px] mt-0.5`} numberOfLines={1}>
+            {group.bandName}
+          </Text>
+          {group.genre ? (
+            <Text style={tw`text-[#bbb] text-xs mt-0.5`} numberOfLines={1}>
+              {group.genre}
+            </Text>
+          ) : null}
+          <Text style={tw`text-[#bbb] text-xs mt-0.5`} numberOfLines={1}>
+            {meta}
+          </Text>
+        </View>
+      </GestureDetector>
     </Animated.View>
   );
 }
