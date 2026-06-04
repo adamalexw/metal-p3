@@ -145,7 +145,7 @@ export default function AddToPlaylistSheet({ visible, trackId, onClose }: AddToP
                   onPress={() => setMode('create')}
                   testID="add-to-playlist-new"
                 >
-                  <Text style={tw`text-[#1f6feb] text-[15px] font-semibold`}>+ New playlist…</Text>
+                  <Text style={tw`text-[#ff453a] text-[15px] font-semibold`}>+ New playlist…</Text>
                 </Pressable>
                 {error ? <Text style={tw`text-[#ff6b6b] mt-1 mb-2`}>{error}</Text> : null}
               </>
