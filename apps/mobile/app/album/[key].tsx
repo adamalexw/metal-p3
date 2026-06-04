@@ -2,9 +2,11 @@ import { BlurView } from 'expo-blur';
 import { Image } from 'expo-image';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { Play, Shuffle } from 'lucide-react-native';
-import { useEffect, useRef, useState } from 'react';
+import { createRef, useEffect, useRef, useState, type RefObject } from 'react';
 import { FlatList, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
-import { Swipeable } from 'react-native-gesture-handler';
+import ReanimatedSwipeable, {
+  type SwipeableMethods,
+} from 'react-native-gesture-handler/ReanimatedSwipeable';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MetalP3Player } from '../../modules/metalp3-player';
 import { MINI_PLAYER_HEIGHT } from '../../src/components/MiniPlayer';
@@ -43,7 +45,15 @@ export default function AlbumDetailScreen() {
   const [pendingDeleteTrack, setPendingDeleteTrack] = useState<Track | null>(null);
   const [deleteBusy, setDeleteBusy] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
-  const swipeableRefs = useRef(new Map<string, Swipeable>());
+  const swipeableRefs = useRef(new Map<string, RefObject<SwipeableMethods | null>>());
+
+  const refForRow = (id: string) => {
+    const existing = swipeableRefs.current.get(id);
+    if (existing) return existing;
+    const ref = createRef<SwipeableMethods | null>();
+    swipeableRefs.current.set(id, ref);
+    return ref;
+  };
 
   useEffect(() => {
     if (!group && rawKey) {
@@ -121,7 +131,7 @@ export default function AlbumDetailScreen() {
     setPendingDeleteTrack(null);
     setDeleteError(null);
     if (id) {
-      swipeableRefs.current.get(id)?.close();
+      swipeableRefs.current.get(id)?.current?.close();
     }
   };
 
@@ -345,11 +355,8 @@ export default function AlbumDetailScreen() {
             </Pressable>
           );
           return (
-            <Swipeable
-              ref={(ref) => {
-                if (ref) swipeableRefs.current.set(item.id, ref);
-                else swipeableRefs.current.delete(item.id);
-              }}
+            <ReanimatedSwipeable
+              ref={refForRow(item.id)}
               testID={`album-track-swipe-${item.id}`}
               renderRightActions={() => (
                 <Pressable
@@ -366,7 +373,7 @@ export default function AlbumDetailScreen() {
               overshootRight={false}
             >
               {row}
-            </Swipeable>
+            </ReanimatedSwipeable>
           );
         }}
       />

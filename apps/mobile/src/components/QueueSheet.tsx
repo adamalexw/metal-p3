@@ -1,13 +1,16 @@
 import { BlurView } from 'expo-blur';
 import { Disc3, GripVertical, Trash2, Volume2, X } from 'lucide-react-native';
-import { memo, useMemo, useRef } from 'react';
+import { createRef, memo, useMemo, useRef, type RefObject } from 'react';
 import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Image } from 'expo-image';
 import DraggableFlatList, {
   type RenderItemParams,
   ScaleDecorator,
 } from 'react-native-draggable-flatlist';
-import { GestureHandlerRootView, Swipeable } from 'react-native-gesture-handler';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import ReanimatedSwipeable, {
+  type SwipeableMethods,
+} from 'react-native-gesture-handler/ReanimatedSwipeable';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MetalP3Player, type QueueItem } from '../../modules/metalp3-player';
@@ -31,7 +34,15 @@ interface Props {
 export default function QueueSheet({ visible, onClose, queue, currentIndex, theme }: Props) {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const swipeRefs = useRef(new Map<string, Swipeable>());
+  const swipeRefs = useRef(new Map<string, RefObject<SwipeableMethods | null>>());
+
+  const refForRow = (rowKey: string) => {
+    const existing = swipeRefs.current.get(rowKey);
+    if (existing) return existing;
+    const ref = createRef<SwipeableMethods | null>();
+    swipeRefs.current.set(rowKey, ref);
+    return ref;
+  };
 
   // Resolve artwork once at the parent so each visible row can take a
   // primitive prop and skip the per-row useTrackArtwork hook + cache lookup.
@@ -64,11 +75,8 @@ export default function QueueSheet({ visible, onClose, queue, currentIndex, them
     const rowKey = `${item.id}-${index}`;
     return (
       <ScaleDecorator>
-        <Swipeable
-          ref={(ref) => {
-            if (ref) swipeRefs.current.set(rowKey, ref);
-            else swipeRefs.current.delete(rowKey);
-          }}
+        <ReanimatedSwipeable
+          ref={refForRow(rowKey)}
           friction={2}
           rightThreshold={48}
           overshootRight={false}
@@ -76,7 +84,7 @@ export default function QueueSheet({ visible, onClose, queue, currentIndex, them
           renderRightActions={() => (
             <Pressable
               onPress={() => {
-                swipeRefs.current.get(rowKey)?.close();
+                swipeRefs.current.get(rowKey)?.current?.close();
                 removeIndex(index);
               }}
               style={tw`bg-[#ff3b30] justify-center items-center px-6 min-w-[88px]`}
@@ -100,7 +108,7 @@ export default function QueueSheet({ visible, onClose, queue, currentIndex, them
             drag={drag}
             onPress={() => playIndex(index)}
           />
-        </Swipeable>
+        </ReanimatedSwipeable>
       </ScaleDecorator>
     );
   };

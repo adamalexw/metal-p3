@@ -21,6 +21,26 @@ jest.mock('expo-image', () => {
   return { __esModule: true, Image };
 });
 
+jest.mock('react-native-gesture-handler/ReanimatedSwipeable', () => {
+  const React = require('react');
+  const { View } = require('react-native');
+  const ReanimatedSwipeable = React.forwardRef((props, ref) => {
+    React.useImperativeHandle(ref, () => ({
+      close: () => undefined,
+      openLeft: () => undefined,
+      openRight: () => undefined,
+      reset: () => undefined,
+    }));
+    return React.createElement(
+      View,
+      { testID: props.testID },
+      props.children,
+      props.renderRightActions ? props.renderRightActions() : null,
+    );
+  });
+  return { __esModule: true, default: ReanimatedSwipeable };
+});
+
 jest.mock('react-native-gesture-handler', () => {
   const React = require('react');
   const { Pressable, View } = require('react-native');
