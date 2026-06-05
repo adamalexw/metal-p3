@@ -106,6 +106,74 @@ export class PlayerShellComponent implements OnInit {
 
   ngOnInit(): void {
     this.listenToAudioEvents();
+    this.setupMediaSession();
+  }
+
+  /**
+   * Wire the browser MediaSession API so the hardware media keys (play/pause,
+   * next, previous) drive the player even when the window doesn't have focus —
+   * Chromium/Edge deliver these to the page in the background. As a bonus it
+   * surfaces the current track in the OS media overlay / lock screen.
+   *
+   * Only the dedicated transport keys are bound; no letter chords are claimed.
+   */
+  private setupMediaSession(): void {
+    if (!('mediaSession' in navigator)) {
+      return;
+    }
+
+    const mediaSession = navigator.mediaSession;
+
+    mediaSession.setActionHandler('play', () => this.onPlay());
+    mediaSession.setActionHandler('pause', () => this.onPause());
+    mediaSession.setActionHandler('nexttrack', () => this.onNext());
+    mediaSession.setActionHandler('previoustrack', () => this.onMediaPrevious());
+
+    combineLatest([this.activeItem$, this.cover$])
+      .pipe(
+        tap(([item, cover]) => {
+          if (!item) {
+            mediaSession.metadata = null;
+            mediaSession.playbackState = 'none';
+            return;
+          }
+
+          mediaSession.metadata = new MediaMetadata({
+            title: item.title ?? '',
+            artist: item.artist ?? '',
+            album: item.album ?? '',
+            artwork: cover ? [{ src: cover }] : [],
+          });
+          mediaSession.playbackState = item.playing ? 'playing' : item.paused ? 'paused' : 'none';
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe();
+
+    this.destroyRef.onDestroy(() => {
+      (['play', 'pause', 'nexttrack', 'previoustrack'] as const).forEach((action) => mediaSession.setActionHandler(action, null));
+      mediaSession.metadata = null;
+      mediaSession.playbackState = 'none';
+    });
+  }
+
+  /**
+   * Mirrors the on-screen previous button: restart the current track if we're
+   * more than 10s in (or already on the first track), otherwise step back.
+   */
+  private onMediaPrevious(): void {
+    this.isFirstItemPlaying$
+      .pipe(
+        take(1),
+        tap((isFirst) => {
+          if (this.audioElement.currentTime > 10 || isFirst) {
+            this.onSeekTo(0);
+          } else {
+            this.onPrevious();
+          }
+        }),
+      )
+      .subscribe();
   }
 
   onPlayItem(id: string) {
