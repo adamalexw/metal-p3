@@ -15,7 +15,9 @@ export async function loadTrackArtwork(uri: string): Promise<string | null> {
   if (existing) return existing;
   const promise = MetalP3Media.getArtworkAsync(uri)
     .then((art) => {
-      const value = art ? `data:${art.mimeType};base64,${art.base64}` : null;
+      // file:// URI (not a data: URI) so expo-image disk-caches it and can
+      // reload after the OS evicts its memory bitmap on lock/unlock.
+      const value = art ? art.fileUri : null;
       ARTWORK_CACHE.set(uri, value);
       return value;
     })

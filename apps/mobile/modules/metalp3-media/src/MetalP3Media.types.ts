@@ -35,7 +35,12 @@ export interface TrackTags {
 }
 
 export interface Artwork {
-  base64: string;
+  /**
+   * `file://` URI to the extracted artwork, spilled to the app cache dir.
+   * A file (not a `data:` base64 URI) so expo-image can disk-cache it and
+   * reload it after the OS evicts the in-memory bitmap on lock/unlock.
+   */
+  fileUri: string;
   mimeType: string;
   byteLength: number;
 }

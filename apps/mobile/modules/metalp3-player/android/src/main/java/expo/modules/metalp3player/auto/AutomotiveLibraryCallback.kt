@@ -77,9 +77,11 @@ class AutomotiveLibraryCallback(private val context: Context) :
     controller: MediaSession.ControllerInfo,
     mediaItems: MutableList<MediaItem>,
   ): ListenableFuture<MutableList<MediaItem>> {
-    val resolved = mediaItems.mapNotNull { incoming ->
-      val id = incoming.mediaId.takeIf { it.isNotBlank() } ?: return@mapNotNull null
-      trackItemFor(id)
+    val resolved = mediaItems.flatMap { incoming ->
+      val id = incoming.mediaId.takeIf { it.isNotBlank() } ?: return@flatMap emptyList()
+      // A "Shuffle" row expands to the whole album/playlist in random order;
+      // a normal row resolves to its single track.
+      shuffledQueueFor(id) ?: listOfNotNull(trackItemFor(id))
     }.toMutableList()
     return Futures.immediateFuture(resolved)
   }
@@ -116,6 +118,12 @@ class AutomotiveLibraryCallback(private val context: Context) :
       return Expansion(rehydrated, safeIndex)
     }
     val tappedId = incoming[0].mediaId
+    // Tapping a "Shuffle" row builds the full album/playlist queue in random
+    // order and starts at the top. ExoPlayer plays this pre-shuffled list in
+    // place, so no shuffle-mode flag is needed on the session.
+    shuffledQueueFor(tappedId)?.let { shuffled ->
+      if (shuffled.isNotEmpty()) return Expansion(shuffled.toMutableList(), 0)
+    }
     val trackId = tappedId.removePrefix(Ids.TRACK_PREFIX).toLongOrNull()
       ?: return Expansion(mutableListOf(trackItemFor(tappedId) ?: incoming[0]), 0)
     val track = MediaStoreLibrary.trackById(context, trackId)
@@ -127,6 +135,24 @@ class AutomotiveLibraryCallback(private val context: Context) :
     val items = albumTracks.map(::trackItem).toMutableList()
     val idx = albumTracks.indexOfFirst { it.id == track.id }.coerceAtLeast(0)
     return Expansion(items, idx)
+  }
+
+  /**
+   * If [mediaId] is a "Shuffle" row, return the album/playlist's tracks in a
+   * random order ready to enqueue; null for any other id.
+   */
+  private fun shuffledQueueFor(mediaId: String): List<MediaItem>? = when {
+    mediaId.startsWith(Ids.SHUFFLE_ALBUM_PREFIX) -> {
+      val albumId = mediaId.removePrefix(Ids.SHUFFLE_ALBUM_PREFIX).toLongOrNull() ?: return null
+      MediaStoreLibrary.tracksForAlbum(context, albumId).shuffled().map(::trackItem)
+    }
+    mediaId.startsWith(Ids.SHUFFLE_PLAYLIST_PREFIX) -> {
+      val pid = mediaId.removePrefix(Ids.SHUFFLE_PLAYLIST_PREFIX)
+      val pl = PlaylistStore.byId(context, pid) ?: return null
+      pl.trackIds.mapNotNull { tid -> MediaStoreLibrary.trackById(context, tid) }
+        .shuffled().map(::trackItem)
+    }
+    else -> null
   }
 
   // ---- tree building -------------------------------------------------------
@@ -146,7 +172,9 @@ class AutomotiveLibraryCallback(private val context: Context) :
     }
     parentId.startsWith(Ids.ALBUM_PREFIX) -> {
       val albumId = parentId.removePrefix(Ids.ALBUM_PREFIX).toLongOrNull() ?: return null
-      MediaStoreLibrary.tracksForAlbum(context, albumId).map(::trackItem)
+      val tracks = MediaStoreLibrary.tracksForAlbum(context, albumId)
+      if (tracks.isEmpty()) emptyList()
+      else listOf(shuffleItem(Ids.shuffleAlbum(albumId), tracks.first())) + tracks.map(::trackItem)
     }
     parentId == Ids.CAT_PLAYLISTS -> PlaylistStore.list(context).map { pl ->
       browsable(
@@ -160,7 +188,9 @@ class AutomotiveLibraryCallback(private val context: Context) :
     parentId.startsWith(Ids.PLAYLIST_PREFIX) -> {
       val pid = parentId.removePrefix(Ids.PLAYLIST_PREFIX)
       val pl = PlaylistStore.byId(context, pid) ?: return emptyList()
-      pl.trackIds.mapNotNull { tid -> MediaStoreLibrary.trackById(context, tid) }.map(::trackItem)
+      val tracks = pl.trackIds.mapNotNull { tid -> MediaStoreLibrary.trackById(context, tid) }
+      if (tracks.isEmpty()) emptyList()
+      else listOf(shuffleItem(Ids.shufflePlaylist(pid), tracks.first())) + tracks.map(::trackItem)
     }
     else -> null
   }
@@ -169,6 +199,18 @@ class AutomotiveLibraryCallback(private val context: Context) :
     mediaId == Ids.ROOT -> rootItem()
     mediaId == Ids.CAT_ALBUMS -> albumsCategoryItem()
     mediaId == Ids.CAT_PLAYLISTS -> playlistsCategoryItem()
+    mediaId.startsWith(Ids.SHUFFLE_ALBUM_PREFIX) -> {
+      val albumId = mediaId.removePrefix(Ids.SHUFFLE_ALBUM_PREFIX).toLongOrNull() ?: return null
+      val first = MediaStoreLibrary.tracksForAlbum(context, albumId).firstOrNull() ?: return null
+      shuffleItem(mediaId, first)
+    }
+    mediaId.startsWith(Ids.SHUFFLE_PLAYLIST_PREFIX) -> {
+      val pid = mediaId.removePrefix(Ids.SHUFFLE_PLAYLIST_PREFIX)
+      val pl = PlaylistStore.byId(context, pid) ?: return null
+      val first = pl.trackIds.firstNotNullOfOrNull { tid -> MediaStoreLibrary.trackById(context, tid) }
+        ?: return null
+      shuffleItem(mediaId, first)
+    }
     mediaId.startsWith(Ids.TRACK_PREFIX) -> trackItemFor(mediaId)
     mediaId.startsWith(Ids.ALBUM_PREFIX) -> {
       val albumId = mediaId.removePrefix(Ids.ALBUM_PREFIX).toLongOrNull() ?: return null
@@ -196,22 +238,16 @@ class AutomotiveLibraryCallback(private val context: Context) :
   }
 
   /**
-   * Playlists browse root. The CATEGORY_LIST_ITEM hint tells AA to render
-   * each playlist as a larger artwork-led row (single line of text, square
-   * tile on the leading edge) rather than the default thumbnail-list row,
-   * giving the album art more visual presence on the page.
+   * Playlists browse root. Uses the same grid content-style as Albums so each
+   * playlist renders as a 2-column artwork tile with a title/subtitle caption,
+   * matching the Library / Albums browse layout.
    */
   private fun playlistsCategoryItem(): MediaItem = browsable(
     id = Ids.CAT_PLAYLISTS,
     title = "Playlists",
     subtitle = null,
     mediaType = MediaMetadata.MEDIA_TYPE_FOLDER_PLAYLISTS,
-    extras = Bundle().apply {
-      putInt(
-        MediaConstants.EXTRAS_KEY_CONTENT_STYLE_BROWSABLE,
-        MediaConstants.EXTRAS_VALUE_CONTENT_STYLE_CATEGORY_LIST_ITEM,
-      )
-    },
+    extras = gridStyleExtras(),
   )
 
   /** Use the artwork of the first resolvable track as the playlist tile. */
@@ -254,6 +290,23 @@ class AutomotiveLibraryCallback(private val context: Context) :
     val trackId = mediaId.removePrefix(Ids.TRACK_PREFIX).toLongOrNull() ?: return null
     val track = MediaStoreLibrary.trackById(context, trackId) ?: return null
     return trackItem(track)
+  }
+
+  /**
+   * A playable "Shuffle" row pinned to the top of an album/playlist track list.
+   * Tapping it routes through [shuffledQueueFor] (via onAddMediaItems /
+   * onSetMediaItems), which expands [shuffleId] into the full shuffled queue.
+   * Reuses the first track's artwork so the row reads as part of the set.
+   */
+  private fun shuffleItem(shuffleId: String, representative: MediaStoreLibrary.Track): MediaItem {
+    val metadata = MediaMetadata.Builder()
+      .setTitle("Shuffle")
+      .setArtworkUri(MediaStoreLibrary.albumArtUri(representative.albumId))
+      .setIsBrowsable(false)
+      .setIsPlayable(true)
+      .setMediaType(MediaMetadata.MEDIA_TYPE_MUSIC)
+      .build()
+    return MediaItem.Builder().setMediaId(shuffleId).setMediaMetadata(metadata).build()
   }
 
   private fun trackItem(track: MediaStoreLibrary.Track): MediaItem {
@@ -304,8 +357,12 @@ class AutomotiveLibraryCallback(private val context: Context) :
     const val ALBUM_PREFIX = "metalp3:album:"
     const val PLAYLIST_PREFIX = "metalp3:playlist:"
     const val TRACK_PREFIX = "metalp3:track:"
+    const val SHUFFLE_ALBUM_PREFIX = "metalp3:shuffle:album:"
+    const val SHUFFLE_PLAYLIST_PREFIX = "metalp3:shuffle:playlist:"
     fun album(id: Long) = "$ALBUM_PREFIX$id"
     fun playlist(id: String) = "$PLAYLIST_PREFIX$id"
     fun track(id: Long) = "$TRACK_PREFIX$id"
+    fun shuffleAlbum(id: Long) = "$SHUFFLE_ALBUM_PREFIX$id"
+    fun shufflePlaylist(id: String) = "$SHUFFLE_PLAYLIST_PREFIX$id"
   }
 }
