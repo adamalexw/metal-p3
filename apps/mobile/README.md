@@ -29,7 +29,7 @@ A native Android music player for your local library, built with Expo + React Na
 Scans `MediaStore.Audio`, reads tags via `MediaMetadataRetriever`, exposes:
 
 - `scanAudioAsync({ minDurationMs })` — full library snapshot.
-- `getArtworkAsync(uri)` — embedded artwork as a `data:` URI (cached on the JS side via `useTrackArtwork`).
+- `getArtworkAsync(uri)` — extracts embedded artwork to a cache-dir file and returns its `file://` URI (cached on the JS side via `useTrackArtwork`). A file, not a `data:` URI, so expo-image can disk-cache it and survive the OS evicting the in-memory bitmap on lock/unlock.
 - `addMediaChangedListener` — `ContentObserver`-backed signal so the library refreshes when files are transferred or scanned.
 - Permission flow + delete-and-propagate helpers used by track / album / playlist removal.
 

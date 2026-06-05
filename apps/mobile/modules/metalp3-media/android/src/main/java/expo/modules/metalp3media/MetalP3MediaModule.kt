@@ -12,7 +12,6 @@ import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.provider.MediaStore
-import android.util.Base64
 import androidx.core.content.ContextCompat
 import androidx.core.database.getStringOrNull
 import expo.modules.kotlin.Promise
@@ -524,14 +523,28 @@ class MetalP3MediaModule : Module() {
     }
   }
 
+  /**
+   * Extract embedded artwork and spill it to a file in the app cache dir,
+   * returning a stable `file://` URI rather than the raw bytes.
+   *
+   * Why a file and not a `data:` base64 URI: expo-image (Glide) only keeps
+   * data URIs in its in-memory bitmap cache — it never writes them to disk.
+   * When the device locks, Android trims the backgrounded app's memory and
+   * evicts that bitmap, so on unlock the artwork can't be reloaded and the
+   * UI falls back to its placeholder. A file URI is disk-cached and re-read
+   * transparently after a memory eviction, so the artwork survives lock/
+   * unlock. It also keeps multi-hundred-KB base64 blobs off the JS bridge.
+   */
   private fun readArtwork(uriString: String): Map<String, Any?>? {
     val r = MediaMetadataRetriever()
     return try {
       r.setDataSource(ctx, Uri.parse(uriString))
       val bytes = r.embeddedPicture ?: return null
+      val mimeType = r.extractMetadata(MediaMetadataRetriever.METADATA_KEY_MIMETYPE) ?: "image/jpeg"
+      val file = cacheArtworkFile(uriString, bytes, mimeType)
       mapOf(
-        "base64" to Base64.encodeToString(bytes, Base64.NO_WRAP),
-        "mimeType" to (r.extractMetadata(MediaMetadataRetriever.METADATA_KEY_MIMETYPE) ?: "image/jpeg"),
+        "fileUri" to Uri.fromFile(file).toString(),
+        "mimeType" to mimeType,
         "byteLength" to bytes.size,
       )
     } catch (_: Throwable) {
@@ -539,6 +552,28 @@ class MetalP3MediaModule : Module() {
     } finally {
       r.release()
     }
+  }
+
+  /**
+   * Write artwork bytes to a deterministic path under the cache dir, keyed by
+   * the source URI. Reuses an existing file when it's already the right size
+   * so repeated loads of the same track don't rewrite it. The OS is free to
+   * clear the cache dir under storage pressure; the next load re-creates it.
+   */
+  private fun cacheArtworkFile(sourceUri: String, bytes: ByteArray, mimeType: String): java.io.File {
+    val dir = java.io.File(ctx.cacheDir, "metalp3-artwork").apply { mkdirs() }
+    val ext = when {
+      mimeType.contains("png") -> "png"
+      mimeType.contains("webp") -> "webp"
+      else -> "jpg"
+    }
+    // hashCode() can be negative; toUInt() keeps the name filesystem-safe.
+    val name = "art_${sourceUri.hashCode().toUInt()}.$ext"
+    val file = java.io.File(dir, name)
+    if (!file.exists() || file.length() != bytes.size.toLong()) {
+      file.writeBytes(bytes)
+    }
+    return file
   }
 
   @Suppress("unused")

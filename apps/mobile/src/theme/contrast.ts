@@ -58,24 +58,80 @@ export function clampLuminanceDown(color: Rgb, targetLuminance: number): Rgb {
   return current;
 }
 
+/** RGB (0-255) -> HSL (h,s,l all 0-1). */
+export function rgbToHsl({ r, g, b }: Rgb): { h: number; s: number; l: number } {
+  const rn = r / 255;
+  const gn = g / 255;
+  const bn = b / 255;
+  const max = Math.max(rn, gn, bn);
+  const min = Math.min(rn, gn, bn);
+  const l = (max + min) / 2;
+  const d = max - min;
+  let h = 0;
+  let s = 0;
+  if (d !== 0) {
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    switch (max) {
+      case rn:
+        h = (gn - bn) / d + (gn < bn ? 6 : 0);
+        break;
+      case gn:
+        h = (bn - rn) / d + 2;
+        break;
+      default:
+        h = (rn - gn) / d + 4;
+    }
+    h /= 6;
+  }
+  return { h, s, l };
+}
+
+/** HSL (h,s,l all 0-1) -> RGB (0-255). */
+export function hslToRgb({ h, s, l }: { h: number; s: number; l: number }): Rgb {
+  if (s === 0) {
+    const v = l * 255;
+    return { r: v, g: v, b: v };
+  }
+  const hue2rgb = (p: number, q: number, t: number): number => {
+    let tt = t;
+    if (tt < 0) tt += 1;
+    if (tt > 1) tt -= 1;
+    if (tt < 1 / 6) return p + (q - p) * 6 * tt;
+    if (tt < 1 / 2) return q;
+    if (tt < 2 / 3) return p + (q - p) * (2 / 3 - tt) * 6;
+    return p;
+  };
+  const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+  const p = 2 * l - q;
+  return {
+    r: hue2rgb(p, q, h + 1 / 3) * 255,
+    g: hue2rgb(p, q, h) * 255,
+    b: hue2rgb(p, q, h - 1 / 3) * 255,
+  };
+}
+
 /**
- * Lighten `color` toward white until its contrast against `bg` meets `minRatio`.
- * Preserves hue (instead of falling back to plain white). Returns white if even
- * full mixing can't reach the target.
+ * Lighten `color` until its contrast against `bg` meets `minRatio`, raising
+ * HSL lightness while holding hue and saturation. This preserves the source
+ * color's character — a deep red stays red instead of washing out toward the
+ * grey/white that mixing toward white produces. Most album art is colorful
+ * but dark, so the accent seed is a deep swatch that would otherwise need to
+ * mix almost all the way to white to clear the contrast bar, collapsing the
+ * play button / progress fill to white. Returns white only if even full
+ * lightness can't reach the target.
  */
 export function lightenForContrast(color: Rgb, bg: Rgb, minRatio: number): Rgb {
-  const white = { r: 255, g: 255, b: 255 };
   if (contrastRatio(color, bg) >= minRatio) return color;
-  let lo = 0;
+  const { h, s } = rgbToHsl(color);
+  let lo = rgbToHsl(color).l;
   let hi = 1;
-  let current = color;
-  for (let i = 0; i < 12; i++) {
+  for (let i = 0; i < 16; i++) {
     const t = (lo + hi) / 2;
-    current = mix(color, white, t);
-    if (contrastRatio(current, bg) >= minRatio) hi = t;
+    if (contrastRatio(hslToRgb({ h, s, l: t }), bg) >= minRatio) hi = t;
     else lo = t;
   }
-  return contrastRatio(current, bg) >= minRatio ? current : white;
+  const current = hslToRgb({ h, s, l: hi });
+  return contrastRatio(current, bg) >= minRatio ? current : { r: 255, g: 255, b: 255 };
 }
 
 /**
