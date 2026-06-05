@@ -1,8 +1,11 @@
 import { Image, type ImageContentFit, type ImageStyle } from 'expo-image';
 import { type StyleProp } from 'react-native';
+import { evictArtworkTheme } from '../theme/useArtworkTheme';
+import { resetArtworkRetry } from '../lib/useTrackArtwork';
 
 interface ArtworkImageProps {
   uri: string | null;
+  trackUri?: string | null;
   style?: StyleProp<ImageStyle>;
   resizeMode?: 'cover' | 'contain' | 'stretch' | 'center';
   blurRadius?: number;
@@ -25,6 +28,7 @@ const RESIZE_TO_FIT: Record<NonNullable<ArtworkImageProps['resizeMode']>, ImageC
  */
 export default function ArtworkImage({
   uri,
+  trackUri,
   style,
   resizeMode = 'cover',
   blurRadius,
@@ -42,6 +46,16 @@ export default function ArtworkImage({
       cachePolicy="memory-disk"
       recyclingKey={uri}
       testID={testID}
+      onLoad={() => {
+        if (trackUri) {
+          resetArtworkRetry(trackUri);
+        }
+      }}
+      onError={() => {
+        if (trackUri) {
+          evictArtworkTheme(trackUri);
+        }
+      }}
     />
   );
 }

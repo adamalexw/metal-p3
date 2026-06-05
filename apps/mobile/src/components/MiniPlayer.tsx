@@ -71,6 +71,7 @@ export default function MiniPlayer() {
             />
             <ArtworkImage
               uri={theme.artworkDataUri}
+              trackUri={current.uri}
               style={tw`absolute inset-0 w-full h-full`}
               resizeMode="cover"
             />

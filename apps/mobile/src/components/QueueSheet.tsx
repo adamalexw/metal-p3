@@ -17,7 +17,7 @@ import { MetalP3Player, type QueueItem } from '../../modules/metalp3-player';
 import { withAlpha } from '../lib/color';
 import { formatTrackDuration } from '../lib/group-tracks-by-album';
 import { tw } from '../lib/tw';
-import { useQueueArtwork } from '../lib/useTrackArtwork';
+import { useQueueArtwork, evictTrackArtwork, resetArtworkRetry } from '../lib/useTrackArtwork';
 import { ICON_STROKE } from '../theme/icons';
 import type { ArtworkTheme } from '../theme/types';
 
@@ -102,6 +102,7 @@ export default function QueueSheet({ visible, onClose, queue, currentIndex, them
             subtitle={item.artist ?? item.albumArtist ?? null}
             durationMs={item.durationMs ?? null}
             artUri={artwork.get(item.uri) ?? null}
+            trackUri={item.uri}
             isActive={isActive}
             isCurrent={isCurrent}
             theme={theme}
@@ -209,6 +210,7 @@ interface QueueRowProps {
   subtitle: string | null;
   durationMs: number | null;
   artUri: string | null;
+  trackUri?: string | null;
   isActive: boolean;
   isCurrent: boolean;
   theme: ArtworkTheme;
@@ -222,6 +224,7 @@ const QueueRow = memo(function QueueRow({
   subtitle,
   durationMs,
   artUri,
+  trackUri,
   isActive,
   isCurrent,
   theme,
@@ -271,6 +274,16 @@ const QueueRow = memo(function QueueRow({
             cachePolicy="memory-disk"
             recyclingKey={artUri}
             transition={120}
+            onLoad={() => {
+              if (trackUri) {
+                resetArtworkRetry(trackUri);
+              }
+            }}
+            onError={() => {
+              if (trackUri) {
+                evictTrackArtwork(trackUri);
+              }
+            }}
           />
         ) : (
           <Disc3

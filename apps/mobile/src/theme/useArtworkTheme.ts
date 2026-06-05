@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { getColors } from 'react-native-image-colors';
 import type { AndroidImageColors } from 'react-native-image-colors/build/types';
-import { loadTrackArtwork } from '../lib/useTrackArtwork';
+import { loadTrackArtwork, evictTrackArtwork } from '../lib/useTrackArtwork';
 import {
   bestMonoFor,
   clampLuminanceDown,
@@ -109,6 +109,23 @@ export function prefetchArtworkTheme(trackUri: string | null | undefined): void 
   });
 }
 
+const THEME_LISTENERS = new Set<(uri: string) => void>();
+
+export function subscribeTheme(listener: (uri: string) => void): () => void {
+  THEME_LISTENERS.add(listener);
+  return () => {
+    THEME_LISTENERS.delete(listener);
+  };
+}
+
+export function evictArtworkTheme(trackUri: string): void {
+  THEME_CACHE.delete(trackUri);
+  evictTrackArtwork(trackUri);
+  for (const listener of THEME_LISTENERS) {
+    listener(trackUri);
+  }
+}
+
 export function useArtworkTheme(trackUri: string | null | undefined): ArtworkTheme {
   const [theme, setTheme] = useState<ArtworkTheme>(() => {
     if (!trackUri) return DEFAULT_THEME;
@@ -121,21 +138,34 @@ export function useArtworkTheme(trackUri: string | null | undefined): ArtworkThe
       return;
     }
 
-    const cached = THEME_CACHE.get(trackUri);
-    if (cached) {
-      setTheme(cached);
-      return;
+    let cancelled = false;
+    const update = () => {
+      if (!cancelled) {
+        setTheme(THEME_CACHE.get(trackUri) ?? DEFAULT_THEME);
+      }
+    };
+
+    if (!THEME_CACHE.has(trackUri)) {
+      setTheme((t) => ({ ...t, loading: true }));
+      void loadArtworkTheme(trackUri).then(() => {
+        update();
+      });
+    } else {
+      update();
     }
 
-    let cancelled = false;
-    setTheme((t) => ({ ...t, loading: true }));
-
-    void loadArtworkTheme(trackUri).then((next) => {
-      if (!cancelled) setTheme(next);
+    const unsubscribe = subscribeTheme((evictedUri) => {
+      if (evictedUri === trackUri && !cancelled) {
+        setTheme((t) => ({ ...t, loading: true }));
+        void loadArtworkTheme(trackUri).then(() => {
+          update();
+        });
+      }
     });
 
     return () => {
       cancelled = true;
+      unsubscribe();
     };
   }, [trackUri]);
 
