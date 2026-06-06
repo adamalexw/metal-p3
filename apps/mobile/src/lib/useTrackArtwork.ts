@@ -3,6 +3,34 @@ import { MetalP3Media } from '../../modules/metalp3-media';
 
 const ARTWORK_CACHE = new Map<string, string | null>();
 const INFLIGHT = new Map<string, Promise<string | null>>();
+const LISTENERS = new Set<(uri: string) => void>();
+const RETRIES = new Map<string, number>();
+
+export function subscribeArtwork(listener: (uri: string) => void): () => void {
+  LISTENERS.add(listener);
+  return () => {
+    LISTENERS.delete(listener);
+  };
+}
+
+export function evictTrackArtwork(uri: string): void {
+  const count = RETRIES.get(uri) ?? 0;
+  if (count >= 2) {
+    console.warn(`evictTrackArtwork: max retries reached for ${uri}, giving up.`);
+    return;
+  }
+  RETRIES.set(uri, count + 1);
+
+  ARTWORK_CACHE.delete(uri);
+  INFLIGHT.delete(uri);
+  for (const listener of LISTENERS) {
+    listener(uri);
+  }
+}
+
+export function resetArtworkRetry(uri: string): void {
+  RETRIES.delete(uri);
+}
 
 export function getCachedTrackArtwork(uri: string | null | undefined): string | null {
   if (!uri) return null;
@@ -47,17 +75,33 @@ export function useTrackArtwork(uri: string | null | undefined): string | null {
       setDataUri(null);
       return;
     }
-    const cached = getCachedTrackArtwork(uri);
-    if (cached !== null || ARTWORK_CACHE.has(uri)) {
-      setDataUri(cached);
-      return;
-    }
+
     let cancelled = false;
-    void loadTrackArtwork(uri).then((value) => {
-      if (!cancelled) setDataUri(value);
+    const update = () => {
+      if (!cancelled) {
+        setDataUri(getCachedTrackArtwork(uri));
+      }
+    };
+
+    if (!ARTWORK_CACHE.has(uri)) {
+      void loadTrackArtwork(uri).then(() => {
+        update();
+      });
+    } else {
+      update();
+    }
+
+    const unsubscribe = subscribeArtwork((evictedUri) => {
+      if (evictedUri === uri && !cancelled) {
+        void loadTrackArtwork(uri).then(() => {
+          update();
+        });
+      }
     });
+
     return () => {
       cancelled = true;
+      unsubscribe();
     };
   }, [uri]);
 
@@ -67,6 +111,8 @@ export function useTrackArtwork(uri: string | null | undefined): string | null {
 export function _resetForTests(): void {
   ARTWORK_CACHE.clear();
   INFLIGHT.clear();
+  RETRIES.clear();
+  LISTENERS.clear();
 }
 
 /**
@@ -90,40 +136,51 @@ export function useQueueArtwork(uris: ReadonlyArray<string>): Map<string, string
 
   useEffect(() => {
     let cancelled = false;
-    // Seed from the cache up-front so any uri the cache already knows about
-    // shows immediately, then fire loads only for the unresolved ones.
-    const next = new Map<string, string | null>();
-    const toLoad: string[] = [];
-    for (const u of uniqueUris) {
-      if (ARTWORK_CACHE.has(u)) {
-        next.set(u, ARTWORK_CACHE.get(u) ?? null);
-      } else {
-        next.set(u, null);
-        toLoad.push(u);
-      }
-    }
-    setResolved(next);
 
-    if (toLoad.length === 0) return;
-    void Promise.all(
-      toLoad.map((u) => loadTrackArtwork(u).then((value) => ({ u, value }))),
-    ).then((results) => {
+    const update = () => {
       if (cancelled) return;
-      setResolved((prev) => {
-        let changed = false;
-        const merged = new Map(prev);
-        for (const { u, value } of results) {
-          if (merged.get(u) !== value) {
-            merged.set(u, value);
-            changed = true;
-          }
+      const next = new Map<string, string | null>();
+      const toLoad: string[] = [];
+      for (const u of uniqueUris) {
+        if (ARTWORK_CACHE.has(u)) {
+          next.set(u, ARTWORK_CACHE.get(u) ?? null);
+        } else {
+          next.set(u, null);
+          toLoad.push(u);
         }
-        return changed ? merged : prev;
+      }
+      setResolved(next);
+
+      if (toLoad.length === 0) return;
+      void Promise.all(
+        toLoad.map((u) => loadTrackArtwork(u).then((value) => ({ u, value }))),
+      ).then((results) => {
+        if (cancelled) return;
+        setResolved((prev) => {
+          let changed = false;
+          const merged = new Map(prev);
+          for (const { u, value } of results) {
+            if (merged.get(u) !== value) {
+              merged.set(u, value);
+              changed = true;
+            }
+          }
+          return changed ? merged : prev;
+        });
       });
+    };
+
+    update();
+
+    const unsubscribe = subscribeArtwork((evictedUri) => {
+      if (uniqueUris.includes(evictedUri)) {
+        update();
+      }
     });
 
     return () => {
       cancelled = true;
+      unsubscribe();
     };
   }, [uniqueUris]);
 

@@ -536,6 +536,24 @@ class MetalP3MediaModule : Module() {
    * unlock. It also keeps multi-hundred-KB base64 blobs off the JS bridge.
    */
   private fun readArtwork(uriString: String): Map<String, Any?>? {
+    try {
+      val dir = java.io.File(ctx.filesDir, "metalp3-artwork")
+      val hash = uriString.hashCode().toUInt()
+      val existingFile = dir.listFiles()?.firstOrNull { it.name.startsWith("art_$hash.") }
+      if (existingFile != null && existingFile.exists()) {
+        val mimeType = when (existingFile.extension) {
+          "png" -> "image/png"
+          "webp" -> "image/webp"
+          else -> "image/jpeg"
+        }
+        return mapOf(
+          "fileUri" to Uri.fromFile(existingFile).toString(),
+          "mimeType" to mimeType,
+          "byteLength" to existingFile.length(),
+        )
+      }
+    } catch (_: Throwable) {}
+
     val r = MediaMetadataRetriever()
     return try {
       r.setDataSource(ctx, Uri.parse(uriString))
@@ -555,13 +573,12 @@ class MetalP3MediaModule : Module() {
   }
 
   /**
-   * Write artwork bytes to a deterministic path under the cache dir, keyed by
+   * Write artwork bytes to a deterministic path under the persistent files dir, keyed by
    * the source URI. Reuses an existing file when it's already the right size
-   * so repeated loads of the same track don't rewrite it. The OS is free to
-   * clear the cache dir under storage pressure; the next load re-creates it.
+   * so repeated loads of the same track don't rewrite it.
    */
   private fun cacheArtworkFile(sourceUri: String, bytes: ByteArray, mimeType: String): java.io.File {
-    val dir = java.io.File(ctx.cacheDir, "metalp3-artwork").apply { mkdirs() }
+    val dir = java.io.File(ctx.filesDir, "metalp3-artwork").apply { mkdirs() }
     val ext = when {
       mimeType.contains("png") -> "png"
       mimeType.contains("webp") -> "webp"

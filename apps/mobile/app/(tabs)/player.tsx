@@ -134,6 +134,7 @@ export default function PlayerScreen() {
         <View style={StyleSheet.absoluteFill} pointerEvents="none" testID="player-backdrop">
           <ArtworkImage
             uri={theme.artworkDataUri}
+            trackUri={current?.uri}
             style={StyleSheet.absoluteFill}
             resizeMode="cover"
             blurRadius={10}
@@ -296,7 +297,12 @@ export default function PlayerScreen() {
                   strokeLinecap="square"
                 />
               </View>
-              <ArtworkImage uri={theme.artworkDataUri} style={tw`w-full h-full`} resizeMode="cover" />
+              <ArtworkImage
+                uri={theme.artworkDataUri}
+                trackUri={current?.uri}
+                style={tw`w-full h-full`}
+                resizeMode="cover"
+              />
             </View>
             <View style={tw`flex-1 items-center justify-center self-stretch px-2`}>
               <Text

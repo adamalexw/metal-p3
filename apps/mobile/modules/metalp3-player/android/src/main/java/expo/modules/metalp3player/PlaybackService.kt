@@ -87,6 +87,18 @@ class PlaybackService : MediaLibraryService() {
     player.addListener(object : Player.Listener {
       override fun onEvents(p: Player, events: Player.Events) {
         publishWidgetSnapshot()
+        if (events.containsAny(
+            Player.EVENT_MEDIA_ITEM_TRANSITION,
+            Player.EVENT_PLAYLIST_METADATA_CHANGED,
+            Player.EVENT_TIMELINE_CHANGED,
+            Player.EVENT_SHUFFLE_MODE_ENABLED_CHANGED,
+            Player.EVENT_REPEAT_MODE_CHANGED,
+            Player.EVENT_PLAY_WHEN_READY_CHANGED,
+            Player.EVENT_PLAYBACK_STATE_CHANGED,
+            Player.EVENT_POSITION_DISCONTINUITY
+          )) {
+          PlaybackStateStore.persist(applicationContext, p)
+        }
       }
 
       override fun onPlaybackStateChanged(state: Int) {
@@ -98,6 +110,8 @@ class PlaybackService : MediaLibraryService() {
         }
       }
     })
+    // Restore state if available
+    PlaybackStateStore.restore(applicationContext, player)
     publishWidgetSnapshot()
   }
 
@@ -109,11 +123,13 @@ class PlaybackService : MediaLibraryService() {
   }
 
   override fun onDestroy() {
+    val cur = PlaybackService_BridgeSnapshot.read(applicationContext)
+    PlaybackService_BridgeSnapshot.publish(cur.copy(isPlaying = false), applicationContext)
+    WidgetRenderer.renderAll(applicationContext)
+
     librarySession.release()
     player.release()
     artworkExecutor.shutdownNow()
-    PlaybackService_BridgeSnapshot.publish(WidgetSnapshot.EMPTY)
-    WidgetRenderer.renderAll(applicationContext)
     super.onDestroy()
   }
 
@@ -141,7 +157,7 @@ class PlaybackService : MediaLibraryService() {
     }
 
     val keepArtwork = artworkUri != null && artworkUri == lastArtworkUri
-    val prev = PlaybackService_BridgeSnapshot.read()
+    val prev = PlaybackService_BridgeSnapshot.read(applicationContext)
 
     PlaybackService_BridgeSnapshot.publish(
       WidgetSnapshot(
@@ -161,7 +177,8 @@ class PlaybackService : MediaLibraryService() {
         foreground = if (keepArtwork) prev.foreground else WidgetSnapshot.EMPTY.foreground,
         mutedForeground = if (keepArtwork) prev.mutedForeground else WidgetSnapshot.EMPTY.mutedForeground,
         accent = if (keepArtwork) prev.accent else WidgetSnapshot.EMPTY.accent,
-      )
+      ),
+      applicationContext
     )
     WidgetRenderer.renderAll(applicationContext)
 
@@ -184,7 +201,7 @@ class PlaybackService : MediaLibraryService() {
         // typically 1500px+ and silently fails to inflate. Cap both copies.
         val widgetArt = bmp?.let { downsample(it, 192) }?.let { roundCorners(it, 18f) }
         val blurred = bmp?.let { downsample(it, 128) }
-        val cur = PlaybackService_BridgeSnapshot.read()
+        val cur = PlaybackService_BridgeSnapshot.read(applicationContext)
         PlaybackService_BridgeSnapshot.publish(
           cur.copy(
             artwork = widgetArt,
@@ -192,7 +209,8 @@ class PlaybackService : MediaLibraryService() {
             foreground = fg,
             mutedForeground = muted,
             accent = accent,
-          )
+          ),
+          applicationContext
         )
         WidgetRenderer.renderAll(applicationContext)
       }
@@ -261,24 +279,39 @@ class PlaybackService : MediaLibraryService() {
     }
   }
 
-  private fun decodeArtwork(uri: String): Bitmap? = try {
-    val retriever = MediaMetadataRetriever()
-    retriever.use {
-      it.setDataSource(applicationContext, android.net.Uri.parse(uri))
-      val pic = it.embeddedPicture
-      if (pic == null) {
-        Log.i(TAG, "decodeArtwork: no embedded picture for $uri")
-        null
-      } else {
+  private fun decodeArtwork(uri: String): Bitmap? {
+    try {
+      val hash = uri.hashCode().toUInt()
+      val dir = java.io.File(applicationContext.filesDir, "metalp3-artwork")
+      val existingFile = dir.listFiles()?.firstOrNull { it.name.startsWith("art_$hash.") }
+      if (existingFile != null && existingFile.exists()) {
         val opts = BitmapFactory.Options().apply { inPreferredConfig = Bitmap.Config.ARGB_8888 }
-        val bmp = BitmapFactory.decodeByteArray(pic, 0, pic.size, opts)
-        Log.i(TAG, "decodeArtwork: ${pic.size}B -> bmp=${bmp?.width}x${bmp?.height}")
-        bmp
+        val bmp = BitmapFactory.decodeFile(existingFile.absolutePath, opts)
+        if (bmp != null) return bmp
       }
+    } catch (t: Throwable) {
+      Log.w(TAG, "decodeArtwork: failed to load from persistent cache for $uri", t)
     }
-  } catch (t: Throwable) {
-    Log.w(TAG, "decodeArtwork(uri=$uri) failed: ${t.message}")
-    null
+
+    return try {
+      val retriever = MediaMetadataRetriever()
+      retriever.use {
+        it.setDataSource(applicationContext, android.net.Uri.parse(uri))
+        val pic = it.embeddedPicture
+        if (pic == null) {
+          Log.i(TAG, "decodeArtwork: no embedded picture for $uri")
+          null
+        } else {
+          val opts = BitmapFactory.Options().apply { inPreferredConfig = Bitmap.Config.ARGB_8888 }
+          val bmp = BitmapFactory.decodeByteArray(pic, 0, pic.size, opts)
+          Log.i(TAG, "decodeArtwork: ${pic.size}B -> bmp=${bmp?.width}x${bmp?.height}")
+          bmp
+        }
+      }
+    } catch (t: Throwable) {
+      Log.w(TAG, "decodeArtwork(uri=$uri) failed: ${t.message}")
+      null
+    }
   }
 
   /**
@@ -381,6 +414,21 @@ private class LockscreenBitmapLoader(
   }
 
   private fun loadFromUri(uri: Uri): Bitmap? {
+    // Check our persistent filesDir first to bypass content URI permission constraints
+    try {
+      val uriString = uri.toString()
+      val hash = uriString.hashCode().toUInt()
+      val dir = java.io.File(context.filesDir, "metalp3-artwork")
+      val existingFile = dir.listFiles()?.firstOrNull { it.name.startsWith("art_$hash.") }
+      if (existingFile != null && existingFile.exists()) {
+        val opts = BitmapFactory.Options().apply { inPreferredConfig = Bitmap.Config.ARGB_8888 }
+        val bmp = BitmapFactory.decodeFile(existingFile.absolutePath, opts)
+        if (bmp != null) return bmp
+      }
+    } catch (t: Throwable) {
+      Log.w("LockscreenBitmapLoader", "Failed to load from persistent cache", t)
+    }
+
     // 1. Try as a plain image (handles MediaStore album-art URIs like
     //    content://media/external/audio/albumart/<id>, http/file URIs, etc.).
     val asImage = runCatching {

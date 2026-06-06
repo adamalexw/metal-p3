@@ -13,7 +13,7 @@ import { runOnJS } from 'react-native-worklets';
 import type { AlbumGroup } from '../lib/group-tracks-by-album';
 import { formatAlbumDuration } from '../lib/group-tracks-by-album';
 import { tw } from '../lib/tw';
-import { useTrackArtwork } from '../lib/useTrackArtwork';
+import { useTrackArtwork, evictTrackArtwork, resetArtworkRetry } from '../lib/useTrackArtwork';
 
 interface AlbumTileProps {
   group: AlbumGroup;
@@ -96,6 +96,16 @@ function AlbumTileImpl({ group, index = 0, onPress, onLongPress }: AlbumTileProp
                 cachePolicy="memory-disk"
                 recyclingKey={artUri}
                 transition={120}
+                onLoad={() => {
+                  if (group.representativeUri) {
+                    resetArtworkRetry(group.representativeUri);
+                  }
+                }}
+                onError={() => {
+                  if (group.representativeUri) {
+                    evictTrackArtwork(group.representativeUri);
+                  }
+                }}
               />
             ) : (
               <View style={tw`w-full h-full bg-[#222]`} />

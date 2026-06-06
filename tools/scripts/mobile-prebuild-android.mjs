@@ -7,6 +7,9 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 const repoRoot = resolve(import.meta.dirname, '..', '..');
+
+// Prevent OOM errors in spawned Node/Metro bundler processes by raising memory limits
+process.env.NODE_OPTIONS = process.env.NODE_OPTIONS || '--max-old-space-size=2048';
 const buildGradlePath = resolve(repoRoot, 'apps', 'mobile', 'android', 'build.gradle');
 
 const JVM17_PIN_MARKER = '// Pin every subproject\'s Kotlin compile to JVM 17';
