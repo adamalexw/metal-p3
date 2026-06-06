@@ -195,11 +195,15 @@ object WidgetRenderer {
  */
 internal object PlaybackService_BridgeSnapshot {
   @Volatile private var current: WidgetSnapshot? = null
+  private val writeExecutor = java.util.concurrent.Executors.newSingleThreadExecutor()
 
   fun publish(snapshot: WidgetSnapshot, context: Context? = null) {
     current = snapshot
     if (context != null) {
-      persist(context, snapshot)
+      val appCtx = context.applicationContext
+      writeExecutor.execute {
+        persist(appCtx, snapshot)
+      }
     }
   }
 

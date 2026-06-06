@@ -19,6 +19,27 @@ internal object PlaybackStateStore {
 
   private const val TAG = "PlaybackStateStore"
 
+  private val executor = java.util.concurrent.Executors.newSingleThreadExecutor()
+
+  private data class QueueItemState(
+    val id: String,
+    val uri: String?,
+    val title: String?,
+    val artist: String?,
+    val album: String?,
+    val albumArtist: String?,
+    val artworkUri: String?,
+    val durationMs: Long?
+  )
+
+  private data class PlaybackStateData(
+    val queue: List<QueueItemState>,
+    val index: Int,
+    val position: Long,
+    val repeatMode: Int,
+    val shuffle: Boolean
+  )
+
   fun persist(context: Context, player: Player) {
     try {
       val itemCount = player.mediaItemCount
@@ -27,23 +48,22 @@ internal object PlaybackStateStore {
         return
       }
 
-      val queueArray = JSONArray()
+      val queue = ArrayList<QueueItemState>(itemCount)
       for (i in 0 until itemCount) {
         val item = player.getMediaItemAt(i)
-        val obj = JSONObject().apply {
-          put("id", item.mediaId)
-          put("uri", item.localConfiguration?.uri?.toString())
-          val md = item.mediaMetadata
-          put("title", md.title?.toString())
-          put("artist", md.artist?.toString())
-          put("album", md.albumTitle?.toString())
-          put("albumArtist", md.albumArtist?.toString())
-          put("artworkUri", md.artworkUri?.toString())
-          if (md.durationMs != null) {
-            put("durationMs", md.durationMs)
-          }
-        }
-        queueArray.put(obj)
+        val md = item.mediaMetadata
+        queue.add(
+          QueueItemState(
+            id = item.mediaId,
+            uri = item.localConfiguration?.uri?.toString(),
+            title = md.title?.toString(),
+            artist = md.artist?.toString() ?: md.albumArtist?.toString(),
+            album = md.albumTitle?.toString(),
+            albumArtist = md.albumArtist?.toString(),
+            artworkUri = md.artworkUri?.toString(),
+            durationMs = md.durationMs
+          )
+        )
       }
 
       val index = player.currentMediaItemIndex
@@ -51,13 +71,39 @@ internal object PlaybackStateStore {
       val repeatMode = player.repeatMode
       val shuffle = player.shuffleModeEnabled
 
-      context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().apply {
-        putString(KEY_QUEUE, queueArray.toString())
-        putInt(KEY_INDEX, index)
-        putLong(KEY_POSITION, position)
-        putInt(KEY_REPEAT_MODE, repeatMode)
-        putBoolean(KEY_SHUFFLE, shuffle)
-      }.apply()
+      val stateData = PlaybackStateData(queue, index, position, repeatMode, shuffle)
+      val appCtx = context.applicationContext
+
+      executor.execute {
+        try {
+          val queueArray = JSONArray()
+          for (item in stateData.queue) {
+            val obj = JSONObject().apply {
+              put("id", item.id)
+              put("uri", item.uri)
+              put("title", item.title)
+              put("artist", item.artist)
+              put("album", item.album)
+              put("albumArtist", item.albumArtist)
+              put("artworkUri", item.artworkUri)
+              if (item.durationMs != null) {
+                put("durationMs", item.durationMs)
+              }
+            }
+            queueArray.put(obj)
+          }
+
+          appCtx.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().apply {
+            putString(KEY_QUEUE, queueArray.toString())
+            putInt(KEY_INDEX, stateData.index)
+            putLong(KEY_POSITION, stateData.position)
+            putInt(KEY_REPEAT_MODE, stateData.repeatMode)
+            putBoolean(KEY_SHUFFLE, stateData.shuffle)
+          }.apply()
+        } catch (e: Exception) {
+          Log.w(TAG, "Failed to persist playback state in background", e)
+        }
+      }
     } catch (e: Exception) {
       Log.w(TAG, "Failed to persist playback state", e)
     }
