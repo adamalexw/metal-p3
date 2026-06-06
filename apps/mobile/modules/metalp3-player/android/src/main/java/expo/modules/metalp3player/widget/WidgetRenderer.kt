@@ -5,10 +5,14 @@ import android.appwidget.AppWidgetManager
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.util.Log
 import android.widget.RemoteViews
 import expo.modules.metalp3player.R
+import java.io.File
+import java.io.FileOutputStream
 
 object WidgetRenderer {
 
@@ -19,7 +23,7 @@ object WidgetRenderer {
   }
 
   fun render(ctx: Context, mgr: AppWidgetManager, ids: IntArray) {
-    val views = build(ctx, PlaybackService_BridgeSnapshot.read())
+    val views = build(ctx, PlaybackService_BridgeSnapshot.read(ctx))
     for (id in ids) mgr.updateAppWidget(id, views)
   }
 
@@ -190,7 +194,125 @@ object WidgetRenderer {
  * (avoids accidentally bringing the service into memory just to read state).
  */
 internal object PlaybackService_BridgeSnapshot {
-  @Volatile private var current: WidgetSnapshot = WidgetSnapshot.EMPTY
-  fun publish(snapshot: WidgetSnapshot) { current = snapshot }
-  fun read(): WidgetSnapshot = current
+  @Volatile private var current: WidgetSnapshot? = null
+
+  fun publish(snapshot: WidgetSnapshot, context: Context? = null) {
+    current = snapshot
+    if (context != null) {
+      persist(context, snapshot)
+    }
+  }
+
+  fun read(context: Context): WidgetSnapshot {
+    var cur = current
+    if (cur != null) return cur
+    synchronized(this) {
+      cur = current
+      if (cur != null) return cur!!
+      cur = load(context)
+      current = cur
+      return cur!!
+    }
+  }
+
+  private fun persist(context: Context, snap: WidgetSnapshot) {
+    try {
+      val prefs = context.getSharedPreferences("metalp3_widget_snapshot", Context.MODE_PRIVATE)
+      prefs.edit().apply {
+        putString("title", snap.title)
+        putString("artist", snap.artist)
+        putString("album", snap.album)
+        putBoolean("isPlaying", snap.isPlaying)
+        putBoolean("hasQueue", snap.hasQueue)
+        putInt("queueIndex", snap.queueIndex)
+        putInt("queueCount", snap.queueCount)
+        putBoolean("shuffle", snap.shuffle)
+        putString("repeatMode", snap.repeatMode)
+        putBoolean("canSkipNext", snap.canSkipNext)
+        putBoolean("canSkipPrev", snap.canSkipPrev)
+        putInt("foreground", snap.foreground)
+        putInt("mutedForeground", snap.mutedForeground)
+        putInt("accent", snap.accent)
+      }.apply()
+
+      saveBitmap(context, "widget_art.png", snap.artwork)
+      saveBitmap(context, "widget_art_blurred.png", snap.artworkBlurred)
+    } catch (e: Exception) {
+      Log.w("MetalP3Widget", "Failed to persist widget snapshot", e)
+    }
+  }
+
+  private fun load(context: Context): WidgetSnapshot {
+    try {
+      val prefs = context.getSharedPreferences("metalp3_widget_snapshot", Context.MODE_PRIVATE)
+      if (!prefs.contains("hasQueue")) {
+        return WidgetSnapshot.EMPTY
+      }
+      val title = prefs.getString("title", null)
+      val artist = prefs.getString("artist", null)
+      val album = prefs.getString("album", null)
+      val isPlaying = prefs.getBoolean("isPlaying", false)
+      val hasQueue = prefs.getBoolean("hasQueue", false)
+      val queueIndex = prefs.getInt("queueIndex", -1)
+      val queueCount = prefs.getInt("queueCount", 0)
+      val shuffle = prefs.getBoolean("shuffle", false)
+      val repeatMode = prefs.getString("repeatMode", "off") ?: "off"
+      val canSkipNext = prefs.getBoolean("canSkipNext", false)
+      val canSkipPrev = prefs.getBoolean("canSkipPrev", false)
+      val foreground = prefs.getInt("foreground", WidgetSnapshot.EMPTY.foreground)
+      val mutedForeground = prefs.getInt("mutedForeground", WidgetSnapshot.EMPTY.mutedForeground)
+      val accent = prefs.getInt("accent", WidgetSnapshot.EMPTY.accent)
+
+      val artwork = loadBitmap(context, "widget_art.png")
+      val artworkBlurred = loadBitmap(context, "widget_art_blurred.png")
+
+      return WidgetSnapshot(
+        title = title,
+        artist = artist,
+        album = album,
+        isPlaying = isPlaying,
+        hasQueue = hasQueue,
+        artwork = artwork,
+        artworkBlurred = artworkBlurred,
+        queueIndex = queueIndex,
+        queueCount = queueCount,
+        shuffle = shuffle,
+        repeatMode = repeatMode,
+        canSkipNext = canSkipNext,
+        canSkipPrev = canSkipPrev,
+        foreground = foreground,
+        mutedForeground = mutedForeground,
+        accent = accent,
+      )
+    } catch (e: Exception) {
+      Log.w("MetalP3Widget", "Failed to load widget snapshot", e)
+      return WidgetSnapshot.EMPTY
+    }
+  }
+
+  private fun saveBitmap(context: Context, name: String, bmp: Bitmap?) {
+    val file = File(context.cacheDir, name)
+    if (bmp == null) {
+      if (file.exists()) file.delete()
+      return
+    }
+    try {
+      FileOutputStream(file).use { out ->
+        bmp.compress(Bitmap.CompressFormat.PNG, 100, out)
+      }
+    } catch (e: Exception) {
+      Log.w("MetalP3Widget", "Failed to save bitmap $name", e)
+    }
+  }
+
+  private fun loadBitmap(context: Context, name: String): Bitmap? {
+    val file = File(context.cacheDir, name)
+    if (!file.exists()) return null
+    return try {
+      BitmapFactory.decodeFile(file.absolutePath)
+    } catch (e: Exception) {
+      Log.w("MetalP3Widget", "Failed to load bitmap $name", e)
+      null
+    }
+  }
 }

@@ -10,6 +10,9 @@ import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 const repoRoot = resolve(import.meta.dirname, '..', '..');
+
+// Prevent OOM errors in spawned Node/Metro bundler processes by raising memory limits
+process.env.NODE_OPTIONS = process.env.NODE_OPTIONS || '--max-old-space-size=2048';
 const mobileRoot = resolve(repoRoot, 'apps', 'mobile');
 const rootBuildGradle = resolve(mobileRoot, 'android', 'build.gradle');
 const appBuildGradle = resolve(mobileRoot, 'android', 'app', 'build.gradle');
@@ -110,8 +113,8 @@ step('Tune gradle.properties for build memory headroom');
   // execution and cap workers at 2 so a release build doesn't flatline the
   // machine.
   const additions = [
-    ['org.gradle.jvmargs', '-Xmx4g -XX:MaxMetaspaceSize=1g -Dfile.encoding=UTF-8'],
-    ['kotlin.daemon.jvmargs', '-Xmx2g -XX:MaxMetaspaceSize=512m'],
+    ['org.gradle.jvmargs', '-Xmx3g -XX:MaxMetaspaceSize=512m -Dfile.encoding=UTF-8'],
+    ['kotlin.daemon.jvmargs', '-Xmx1.5g -XX:MaxMetaspaceSize=256m'],
     ['kotlin.compiler.execution.strategy', 'daemon'],
     ['org.gradle.workers.max', '2'],
     ['org.gradle.parallel', 'false'],
