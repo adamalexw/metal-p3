@@ -14,6 +14,7 @@ import androidx.media3.session.MediaSession
 import com.google.common.collect.ImmutableList
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
+import java.util.concurrent.Callable
 
 /**
  * MediaLibrarySession callback that exposes the on-device music library to
@@ -34,6 +35,8 @@ import com.google.common.util.concurrent.ListenableFuture
 class AutomotiveLibraryCallback(private val context: Context) :
   MediaLibraryService.MediaLibrarySession.Callback {
 
+  private val queryExecutor = java.util.concurrent.Executors.newSingleThreadExecutor()
+
   override fun onGetLibraryRoot(
     session: MediaLibraryService.MediaLibrarySession,
     browser: MediaSession.ControllerInfo,
@@ -47,9 +50,14 @@ class AutomotiveLibraryCallback(private val context: Context) :
     browser: MediaSession.ControllerInfo,
     mediaId: String,
   ): ListenableFuture<LibraryResult<MediaItem>> {
-    val item = resolveItem(mediaId)
-      ?: return Futures.immediateFuture(LibraryResult.ofError(LibraryResult.RESULT_ERROR_BAD_VALUE))
-    return Futures.immediateFuture(LibraryResult.ofItem(item, null))
+    return Futures.submit(Callable {
+      val item = resolveItem(mediaId)
+      if (item != null) {
+        LibraryResult.ofItem(item, null)
+      } else {
+        LibraryResult.ofError(LibraryResult.RESULT_ERROR_BAD_VALUE)
+      }
+    }, queryExecutor)
   }
 
   override fun onGetChildren(
@@ -60,12 +68,17 @@ class AutomotiveLibraryCallback(private val context: Context) :
     pageSize: Int,
     params: MediaLibraryService.LibraryParams?,
   ): ListenableFuture<LibraryResult<ImmutableList<MediaItem>>> {
-    val all = childrenOf(parentId)
-      ?: return Futures.immediateFuture(LibraryResult.ofError(LibraryResult.RESULT_ERROR_BAD_VALUE))
-    val from = page * pageSize
-    val slice = if (from >= all.size) emptyList()
-      else all.subList(from, minOf(from + pageSize, all.size))
-    return Futures.immediateFuture(LibraryResult.ofItemList(ImmutableList.copyOf(slice), params))
+    return Futures.submit(Callable {
+      val all = childrenOf(parentId)
+      if (all == null) {
+        LibraryResult.ofError(LibraryResult.RESULT_ERROR_BAD_VALUE)
+      } else {
+        val from = page * pageSize
+        val slice = if (from >= all.size) emptyList()
+          else all.subList(from, minOf(from + pageSize, all.size))
+        LibraryResult.ofItemList(ImmutableList.copyOf(slice), params)
+      }
+    }, queryExecutor)
   }
 
   /**
@@ -77,13 +90,15 @@ class AutomotiveLibraryCallback(private val context: Context) :
     controller: MediaSession.ControllerInfo,
     mediaItems: MutableList<MediaItem>,
   ): ListenableFuture<MutableList<MediaItem>> {
-    val resolved = mediaItems.flatMap { incoming ->
-      val id = incoming.mediaId.takeIf { it.isNotBlank() } ?: return@flatMap emptyList()
-      // A "Shuffle" row expands to the whole album/playlist in random order;
-      // a normal row resolves to its single track.
-      shuffledQueueFor(id) ?: listOfNotNull(trackItemFor(id))
-    }.toMutableList()
-    return Futures.immediateFuture(resolved)
+    return Futures.submit(Callable {
+      val resolved = mediaItems.flatMap { incoming ->
+        val id = incoming.mediaId.takeIf { it.isNotBlank() } ?: return@flatMap emptyList()
+        // A "Shuffle" row expands to the whole album/playlist in random order;
+        // a normal row resolves to its single track.
+        shuffledQueueFor(id) ?: listOfNotNull(trackItemFor(id))
+      }.toMutableList()
+      resolved
+    }, queryExecutor)
   }
 
   /**
@@ -98,14 +113,14 @@ class AutomotiveLibraryCallback(private val context: Context) :
     startIndex: Int,
     startPositionMs: Long,
   ): ListenableFuture<MediaSession.MediaItemsWithStartPosition> {
-    val expanded = expandToAlbum(mediaItems, startIndex)
-    return Futures.immediateFuture(
+    return Futures.submit(Callable {
+      val expanded = expandToAlbum(mediaItems, startIndex)
       MediaSession.MediaItemsWithStartPosition(
         expanded.items,
         expanded.startIndex,
         startPositionMs,
       )
-    )
+    }, queryExecutor)
   }
 
   private data class Expansion(val items: MutableList<MediaItem>, val startIndex: Int)

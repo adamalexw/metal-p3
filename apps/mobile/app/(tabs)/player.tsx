@@ -362,6 +362,30 @@ export default function PlayerScreen() {
                   {genre ?? ''}
                 </Text>
               ) : null}
+              {queueLength > 0 && currentIndex >= 0 ? (
+                <View
+                  style={[
+                    tw`mt-2 px-3 py-0.5 rounded-full border`,
+                    {
+                      backgroundColor: theme.surface,
+                      borderColor: withAlpha(theme.foreground, 0.1),
+                    },
+                  ]}
+                  testID="player-track-indicator"
+                >
+                  <Text
+                    style={[
+                      tw`text-xs font-semibold`,
+                      {
+                        color: theme.accent,
+                        fontVariant: ['tabular-nums'],
+                      },
+                    ]}
+                  >
+                    {currentIndex + 1} / {queueLength}
+                  </Text>
+                </View>
+              ) : null}
             </View>
           </View>
         )}

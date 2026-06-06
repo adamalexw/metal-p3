@@ -77,7 +77,7 @@ export function PlayerProgressBar({
     if (scrubbing) return;
     if (!isPlaying || durationMs <= 0) return;
     const startedAt = Date.now();
-    const baseMs = positionMs;
+    const baseMs = position.value;
     const id = setInterval(() => {
       const elapsed = Date.now() - startedAt;
       const next = Math.min(baseMs + elapsed, durationMs);
@@ -149,15 +149,17 @@ export function PlayerProgressBar({
   };
   const onResponderRelease = () => {
     const ms = scrubMsRef.current;
-    isScrubbing.value = false;
-    setScrubbing(false);
     if (ms != null) {
+      position.value = ms;
+      setDisplaySec(secOf(ms));
       try {
         onSeek(ms);
       } catch {
         // swallow — next stateChanged will reconcile
       }
     }
+    isScrubbing.value = false;
+    setScrubbing(false);
     scrubMsRef.current = null;
   };
   const onResponderTerminate = () => {
@@ -205,6 +207,7 @@ export function PlayerProgressBar({
         onResponderTerminationRequest={onResponderTerminationRequest}
       >
         <View
+          pointerEvents="none"
           style={[
             tw`overflow-hidden`,
             { height: TRACK_HEIGHT, borderRadius: TRACK_HEIGHT / 2, backgroundColor: trackColor },
@@ -214,6 +217,7 @@ export function PlayerProgressBar({
         </View>
         {enabled ? (
           <Animated.View
+            pointerEvents="none"
             style={[
               tw`absolute`,
               {
