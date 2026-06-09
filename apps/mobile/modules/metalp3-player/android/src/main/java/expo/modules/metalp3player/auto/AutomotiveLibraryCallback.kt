@@ -139,15 +139,42 @@ class AutomotiveLibraryCallback(private val context: Context) :
     shuffledQueueFor(tappedId)?.let { shuffled ->
       if (shuffled.isNotEmpty()) return Expansion(shuffled.toMutableList(), 0)
     }
-    val trackId = tappedId.removePrefix(Ids.TRACK_PREFIX).toLongOrNull()
-      ?: return Expansion(mutableListOf(trackItemFor(tappedId) ?: incoming[0]), 0)
+    val trackId = if (tappedId.contains(":track:")) {
+      tappedId.substringAfter(":track:").toLongOrNull()
+    } else {
+      tappedId.removePrefix(Ids.TRACK_PREFIX).toLongOrNull()
+    } ?: return Expansion(mutableListOf(trackItemFor(tappedId) ?: incoming[0]), 0)
+
     val track = MediaStoreLibrary.trackById(context, trackId)
       ?: return Expansion(mutableListOf(trackItemFor(tappedId) ?: incoming[0]), 0)
-    val albumTracks = MediaStoreLibrary.tracksForAlbum(context, track.albumId)
-    if (albumTracks.isEmpty()) {
-      return Expansion(mutableListOf(trackItem(track)), 0)
+
+    val playlistId = if (tappedId.startsWith(Ids.PLAYLIST_PREFIX) && tappedId.contains(":track:")) {
+      tappedId.substringBefore(":track:").removePrefix(Ids.PLAYLIST_PREFIX)
+    } else null
+
+    if (playlistId != null) {
+      val pl = PlaylistStore.byId(context, playlistId)
+      if (pl != null) {
+        val playlistTracks = pl.trackIds.mapNotNull { tid -> MediaStoreLibrary.trackById(context, tid) }
+        if (playlistTracks.isNotEmpty()) {
+          val items = playlistTracks.map { trackItem(it, playlistId = playlistId) }.toMutableList()
+          val idx = playlistTracks.indexOfFirst { it.id == track.id }.coerceAtLeast(0)
+          return Expansion(items, idx)
+        }
+      }
     }
-    val items = albumTracks.map(::trackItem).toMutableList()
+
+    val albumId = if (tappedId.startsWith(Ids.ALBUM_PREFIX) && tappedId.contains(":track:")) {
+      tappedId.substringBefore(":track:").removePrefix(Ids.ALBUM_PREFIX).toLongOrNull()
+    } else {
+      track.albumId
+    } ?: track.albumId
+
+    val albumTracks = MediaStoreLibrary.tracksForAlbum(context, albumId)
+    if (albumTracks.isEmpty()) {
+      return Expansion(mutableListOf(trackItem(track, albumId = albumId)), 0)
+    }
+    val items = albumTracks.map { trackItem(it, albumId = albumId) }.toMutableList()
     val idx = albumTracks.indexOfFirst { it.id == track.id }.coerceAtLeast(0)
     return Expansion(items, idx)
   }
@@ -189,7 +216,9 @@ class AutomotiveLibraryCallback(private val context: Context) :
       val albumId = parentId.removePrefix(Ids.ALBUM_PREFIX).toLongOrNull() ?: return null
       val tracks = MediaStoreLibrary.tracksForAlbum(context, albumId)
       if (tracks.isEmpty()) emptyList()
-      else listOf(shuffleItem(Ids.shuffleAlbum(albumId), tracks.first())) + tracks.map(::trackItem)
+      else listOf(shuffleItem(Ids.shuffleAlbum(albumId), tracks.first())) + tracks.map { track ->
+        trackItem(track, albumId = albumId)
+      }
     }
     parentId == Ids.CAT_PLAYLISTS -> PlaylistStore.list(context).map { pl ->
       browsable(
@@ -205,7 +234,9 @@ class AutomotiveLibraryCallback(private val context: Context) :
       val pl = PlaylistStore.byId(context, pid) ?: return emptyList()
       val tracks = pl.trackIds.mapNotNull { tid -> MediaStoreLibrary.trackById(context, tid) }
       if (tracks.isEmpty()) emptyList()
-      else listOf(shuffleItem(Ids.shufflePlaylist(pid), tracks.first())) + tracks.map(::trackItem)
+      else listOf(shuffleItem(Ids.shufflePlaylist(pid), tracks.first())) + tracks.map { track ->
+        trackItem(track, playlistId = pid)
+      }
     }
     else -> null
   }
@@ -214,6 +245,7 @@ class AutomotiveLibraryCallback(private val context: Context) :
     mediaId == Ids.ROOT -> rootItem()
     mediaId == Ids.CAT_ALBUMS -> albumsCategoryItem()
     mediaId == Ids.CAT_PLAYLISTS -> playlistsCategoryItem()
+    mediaId.contains(":track:") -> trackItemFor(mediaId)
     mediaId.startsWith(Ids.SHUFFLE_ALBUM_PREFIX) -> {
       val albumId = mediaId.removePrefix(Ids.SHUFFLE_ALBUM_PREFIX).toLongOrNull() ?: return null
       val first = MediaStoreLibrary.tracksForAlbum(context, albumId).firstOrNull() ?: return null
@@ -226,7 +258,6 @@ class AutomotiveLibraryCallback(private val context: Context) :
         ?: return null
       shuffleItem(mediaId, first)
     }
-    mediaId.startsWith(Ids.TRACK_PREFIX) -> trackItemFor(mediaId)
     mediaId.startsWith(Ids.ALBUM_PREFIX) -> {
       val albumId = mediaId.removePrefix(Ids.ALBUM_PREFIX).toLongOrNull() ?: return null
       val album = MediaStoreLibrary.listAlbums(context).firstOrNull { it.id == albumId } ?: return null
@@ -302,9 +333,21 @@ class AutomotiveLibraryCallback(private val context: Context) :
   }
 
   private fun trackItemFor(mediaId: String): MediaItem? {
-    val trackId = mediaId.removePrefix(Ids.TRACK_PREFIX).toLongOrNull() ?: return null
+    val trackId = if (mediaId.contains(":track:")) {
+      mediaId.substringAfter(":track:").toLongOrNull()
+    } else {
+      mediaId.removePrefix(Ids.TRACK_PREFIX).toLongOrNull()
+    } ?: return null
     val track = MediaStoreLibrary.trackById(context, trackId) ?: return null
-    return trackItem(track)
+
+    val playlistId = if (mediaId.startsWith(Ids.PLAYLIST_PREFIX) && mediaId.contains(":track:")) {
+      mediaId.substringBefore(":track:").removePrefix(Ids.PLAYLIST_PREFIX)
+    } else null
+    val albumId = if (mediaId.startsWith(Ids.ALBUM_PREFIX) && mediaId.contains(":track:")) {
+      mediaId.substringBefore(":track:").removePrefix(Ids.ALBUM_PREFIX).toLongOrNull()
+    } else null
+
+    return trackItem(track, albumId = albumId, playlistId = playlistId)
   }
 
   /**
@@ -324,7 +367,7 @@ class AutomotiveLibraryCallback(private val context: Context) :
     return MediaItem.Builder().setMediaId(shuffleId).setMediaMetadata(metadata).build()
   }
 
-  private fun trackItem(track: MediaStoreLibrary.Track): MediaItem {
+  private fun trackItem(track: MediaStoreLibrary.Track, albumId: Long? = null, playlistId: String? = null): MediaItem {
     val metadata = MediaMetadata.Builder()
       .setTitle(track.title)
       .setArtist(track.artist)
@@ -335,8 +378,13 @@ class AutomotiveLibraryCallback(private val context: Context) :
       .setMediaType(MediaMetadata.MEDIA_TYPE_MUSIC)
       .setDurationMs(track.durationMs)
       .build()
+    val mediaId = when {
+      playlistId != null -> Ids.playlistTrack(playlistId, track.id)
+      albumId != null -> Ids.albumTrack(albumId, track.id)
+      else -> Ids.track(track.id)
+    }
     return MediaItem.Builder()
-      .setMediaId(Ids.track(track.id))
+      .setMediaId(mediaId)
       .setUri(track.uri)
       .setMediaMetadata(metadata)
       .build()
@@ -379,5 +427,7 @@ class AutomotiveLibraryCallback(private val context: Context) :
     fun track(id: Long) = "$TRACK_PREFIX$id"
     fun shuffleAlbum(id: Long) = "$SHUFFLE_ALBUM_PREFIX$id"
     fun shufflePlaylist(id: String) = "$SHUFFLE_PLAYLIST_PREFIX$id"
+    fun playlistTrack(playlistId: String, trackId: Long) = "$PLAYLIST_PREFIX$playlistId:track:$trackId"
+    fun albumTrack(albumId: Long, trackId: Long) = "$ALBUM_PREFIX$albumId:track:$trackId"
   }
 }
