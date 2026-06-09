@@ -263,7 +263,7 @@ export default function PlayerScreen() {
                   style={[
                     tw`text-lg font-semibold text-center`,
                     { lineHeight: 28 },
-                    withShadow(theme.accent),
+                    withShadow('#ffffff'),
                   ]}
                 >
                   {lyrics.text}
