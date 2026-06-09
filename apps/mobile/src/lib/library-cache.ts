@@ -1,4 +1,6 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useMemo, useSyncExternalStore } from 'react';
+import { MetalP3Media } from '../../modules/metalp3-media';
 import type { Track } from '../../modules/metalp3-media/src/MetalP3Media.types';
 import { groupTracksByAlbum, type AlbumGroup } from './group-tracks-by-album';
 
@@ -18,9 +20,59 @@ function notify(): void {
   }
 }
 
+export async function initializeLibraryCache(): Promise<void> {
+  try {
+    const raw = await AsyncStorage.getItem('metalp3:library_tracks:v1');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        cachedTracks = parsed;
+        cachedGroups = groupTracksByAlbum(parsed);
+        notify();
+      }
+    }
+  } catch (err) {
+    console.warn('library-cache: failed to initialize cache', err);
+  }
+}
+
+async function verifyAndClearLibraryCache(): Promise<void> {
+  const currentTracks = [...cachedTracks];
+  if (currentTracks.length === 0) return;
+
+  const checkCount = Math.min(3, currentTracks.length);
+  let anyExists = false;
+  for (let i = 0; i < checkCount; i++) {
+    try {
+      const exists = await MetalP3Media.checkTrackExistsAsync(currentTracks[i].uri);
+      if (exists) {
+        anyExists = true;
+        break;
+      }
+    } catch (err) {
+      console.warn('library-cache: verification check failed', err);
+    }
+  }
+
+  if (!anyExists) {
+    console.warn('library-cache: none of the verified cached tracks exist. Clearing library cache.');
+    clearLibraryCache();
+  } else {
+    console.log('library-cache: cached tracks still exist on device. Keeping library intact.');
+  }
+}
+
 export function setLibraryTracks(tracks: Track[]): AlbumGroup[] {
+  if (tracks.length === 0 && cachedTracks.length > 0) {
+    void verifyAndClearLibraryCache();
+    return cachedGroups;
+  }
+
   cachedTracks = tracks;
   cachedGroups = groupTracksByAlbum(tracks);
+  void AsyncStorage.setItem('metalp3:library_tracks:v1', JSON.stringify(tracks)).catch((err) => {
+    console.warn('library-cache: failed to persist tracks', err);
+  });
   notify();
   return cachedGroups;
 }
@@ -40,6 +92,9 @@ export function findAlbumGroup(key: string): AlbumGroup | undefined {
 export function clearLibraryCache(): void {
   cachedTracks = [];
   cachedGroups = [];
+  void AsyncStorage.removeItem('metalp3:library_tracks:v1').catch((err) => {
+    console.warn('library-cache: failed to remove persisted tracks', err);
+  });
   notify();
 }
 

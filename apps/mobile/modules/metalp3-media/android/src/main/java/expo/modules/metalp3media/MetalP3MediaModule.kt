@@ -77,6 +77,17 @@ class MetalP3MediaModule : Module() {
       readArtwork(uri)
     }
 
+    AsyncFunction("checkTrackExistsAsync") { uri: String ->
+      requirePermission()
+      try {
+        ctx.contentResolver.openAssetFileDescriptor(Uri.parse(uri), "r")?.use {
+          true
+        } ?: false
+      } catch (_: Throwable) {
+        false
+      }
+    }
+
     AsyncFunction("getLyricsAsync") { uri: String ->
       requirePermission()
       readLyrics(uri)
@@ -452,13 +463,14 @@ class MetalP3MediaModule : Module() {
       append(MediaStore.Audio.Media.TRACK)
       if (limit > 0) append(" LIMIT $limit")
     }
-    ctx.contentResolver.query(
+    val cursor = ctx.contentResolver.query(
       MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
       projection(),
       selection,
       args,
       sort,
-    )?.use { c ->
+    ) ?: throw CodedException("E_QUERY_FAILED", "MediaStore query returned null", null)
+    cursor.use { c ->
       val idIdx = c.getColumnIndexOrThrow(MediaStore.Audio.Media._ID)
       val titleIdx = c.getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE)
       val artistIdx = c.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST)
@@ -555,18 +567,18 @@ class MetalP3MediaModule : Module() {
     } catch (_: Throwable) {}
 
     val r = MediaMetadataRetriever()
-    return try {
+    try {
       r.setDataSource(ctx, Uri.parse(uriString))
       val bytes = r.embeddedPicture ?: return null
       val mimeType = r.extractMetadata(MediaMetadataRetriever.METADATA_KEY_MIMETYPE) ?: "image/jpeg"
       val file = cacheArtworkFile(uriString, bytes, mimeType)
-      mapOf(
+      return mapOf(
         "fileUri" to Uri.fromFile(file).toString(),
         "mimeType" to mimeType,
         "byteLength" to bytes.size,
       )
-    } catch (_: Throwable) {
-      null
+    } catch (e: Throwable) {
+      throw e
     } finally {
       r.release()
     }
