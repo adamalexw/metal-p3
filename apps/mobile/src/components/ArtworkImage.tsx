@@ -44,7 +44,6 @@ export default function ArtworkImage({
       transition={TRANSITION_MS}
       blurRadius={blurRadius}
       cachePolicy="memory-disk"
-      recyclingKey={uri}
       testID={testID}
       onLoad={() => {
         if (trackUri) {

@@ -127,10 +127,24 @@ export function evictArtworkTheme(trackUri: string): void {
 }
 
 export function useArtworkTheme(trackUri: string | null | undefined): ArtworkTheme {
+  const [prevTrackUri, setPrevTrackUri] = useState<string | null | undefined>(trackUri);
   const [theme, setTheme] = useState<ArtworkTheme>(() => {
     if (!trackUri) return DEFAULT_THEME;
     return THEME_CACHE.get(trackUri) ?? DEFAULT_THEME;
   });
+
+  let currentTheme = theme;
+  if (trackUri !== prevTrackUri) {
+    setPrevTrackUri(trackUri);
+    const cached = trackUri ? THEME_CACHE.get(trackUri) : null;
+    if (cached) {
+      currentTheme = cached;
+      setTheme(cached);
+    } else {
+      currentTheme = trackUri ? { ...theme, loading: true } : DEFAULT_THEME;
+      setTheme(currentTheme);
+    }
+  }
 
   useEffect(() => {
     if (!trackUri) {
@@ -169,5 +183,5 @@ export function useArtworkTheme(trackUri: string | null | undefined): ArtworkThe
     };
   }, [trackUri]);
 
-  return theme;
+  return currentTheme;
 }
