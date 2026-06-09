@@ -111,6 +111,21 @@ describe('setlist-importer-helpers', () => {
       expect(result.tracks[0]).toMatchObject({ title: 'Intro', hintedAlbum: undefined });
     });
 
+    it('extracts artist name correctly when headline contains links for both artist and venue', () => {
+      const html = `
+        <html><body>
+          <div class="setlistHeadline">
+            <h1>
+              <strong><a href="/setlists/sanguisugabogg">Sanguisugabogg</a> Setlist</strong>
+              <span>at <a href="/venue/x">Kulttempel, Oberhausen, Germany</a></span>
+            </h1>
+          </div>
+        </body></html>
+      `;
+      const result = parseSetlistHtml(html, sourceUrl);
+      expect(result.artist).toBe('Sanguisugabogg');
+    });
+
     it('returns an empty track list when no songs are present', () => {
       const html = `<html><body><div class="setlistHeadline"><h1>Empty</h1></div></body></html>`;
       const result = parseSetlistHtml(html, sourceUrl);
