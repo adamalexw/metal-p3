@@ -216,7 +216,7 @@ class AutomotiveLibraryCallback(private val context: Context) :
       val albumId = parentId.removePrefix(Ids.ALBUM_PREFIX).toLongOrNull() ?: return null
       val tracks = MediaStoreLibrary.tracksForAlbum(context, albumId)
       if (tracks.isEmpty()) emptyList()
-      else listOf(shuffleItem(Ids.shuffleAlbum(albumId), tracks.first())) + tracks.map { track ->
+      else listOf(shuffleItem(Ids.shuffleAlbum(albumId))) + tracks.map { track ->
         trackItem(track, albumId = albumId)
       }
     }
@@ -234,7 +234,7 @@ class AutomotiveLibraryCallback(private val context: Context) :
       val pl = PlaylistStore.byId(context, pid) ?: return emptyList()
       val tracks = pl.trackIds.mapNotNull { tid -> MediaStoreLibrary.trackById(context, tid) }
       if (tracks.isEmpty()) emptyList()
-      else listOf(shuffleItem(Ids.shufflePlaylist(pid), tracks.first())) + tracks.map { track ->
+      else listOf(shuffleItem(Ids.shufflePlaylist(pid))) + tracks.map { track ->
         trackItem(track, playlistId = pid)
       }
     }
@@ -248,15 +248,11 @@ class AutomotiveLibraryCallback(private val context: Context) :
     mediaId.contains(":track:") -> trackItemFor(mediaId)
     mediaId.startsWith(Ids.SHUFFLE_ALBUM_PREFIX) -> {
       val albumId = mediaId.removePrefix(Ids.SHUFFLE_ALBUM_PREFIX).toLongOrNull() ?: return null
-      val first = MediaStoreLibrary.tracksForAlbum(context, albumId).firstOrNull() ?: return null
-      shuffleItem(mediaId, first)
+      shuffleItem(mediaId)
     }
     mediaId.startsWith(Ids.SHUFFLE_PLAYLIST_PREFIX) -> {
       val pid = mediaId.removePrefix(Ids.SHUFFLE_PLAYLIST_PREFIX)
-      val pl = PlaylistStore.byId(context, pid) ?: return null
-      val first = pl.trackIds.firstNotNullOfOrNull { tid -> MediaStoreLibrary.trackById(context, tid) }
-        ?: return null
-      shuffleItem(mediaId, first)
+      shuffleItem(mediaId)
     }
     mediaId.startsWith(Ids.ALBUM_PREFIX) -> {
       val albumId = mediaId.removePrefix(Ids.ALBUM_PREFIX).toLongOrNull() ?: return null
@@ -354,12 +350,13 @@ class AutomotiveLibraryCallback(private val context: Context) :
    * A playable "Shuffle" row pinned to the top of an album/playlist track list.
    * Tapping it routes through [shuffledQueueFor] (via onAddMediaItems /
    * onSetMediaItems), which expands [shuffleId] into the full shuffled queue.
-   * Reuses the first track's artwork so the row reads as part of the set.
+   * Uses a custom shuffle icon for high contrast and consistency.
    */
-  private fun shuffleItem(shuffleId: String, representative: MediaStoreLibrary.Track): MediaItem {
+  private fun shuffleItem(shuffleId: String): MediaItem {
+    val shuffleIconUri = Uri.parse("android.resource://${context.packageName}/drawable/metalp3_auto_ic_shuffle")
     val metadata = MediaMetadata.Builder()
       .setTitle("Shuffle")
-      .setArtworkUri(MediaStoreLibrary.albumArtUri(representative.albumId))
+      .setArtworkUri(shuffleIconUri)
       .setIsBrowsable(false)
       .setIsPlayable(true)
       .setMediaType(MediaMetadata.MEDIA_TYPE_MUSIC)
