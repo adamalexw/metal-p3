@@ -20,7 +20,7 @@ export class DbService {
 
     return this.prisma.album.findMany({
       skip,
-      take: +(take || 0),
+      take: (take ?? 10),
       cursor,
       where,
       orderBy,
