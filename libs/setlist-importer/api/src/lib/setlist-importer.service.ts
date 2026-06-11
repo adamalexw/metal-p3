@@ -30,7 +30,7 @@ export class SetlistImporterService {
         out.push(setlist);
       } catch (error) {
         this.logger.error(`Failed to scrape setlist ${url}: ${error}`);
-        out.push({ id: url, url, artist: '', tracks: [] });
+        out.push({ id: url, url, artist: '', tracks: [], error: error instanceof Error ? error.message : String(error) });
       }
     }
 

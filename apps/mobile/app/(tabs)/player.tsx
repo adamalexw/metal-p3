@@ -263,7 +263,7 @@ export default function PlayerScreen() {
                   style={[
                     tw`text-lg font-semibold text-center`,
                     { lineHeight: 28 },
-                    withShadow(theme.accent),
+                    withShadow('#ffffff'),
                   ]}
                 >
                   {lyrics.text}
@@ -284,19 +284,21 @@ export default function PlayerScreen() {
               ]}
               testID="player-art"
             >
-              <View
-                style={[
-                  tw`absolute inset-0 items-center justify-center`,
-                  { backgroundColor: theme.surface },
-                ]}
-              >
-                <Skull
-                  size={140}
-                  color={theme.mutedForeground}
-                  strokeWidth={ICON_STROKE}
-                  strokeLinecap="square"
-                />
-              </View>
+              {!theme.artworkDataUri && (
+                <View
+                  style={[
+                    tw`absolute inset-0 items-center justify-center`,
+                    { backgroundColor: theme.surface },
+                  ]}
+                >
+                  <Skull
+                    size={140}
+                    color={theme.mutedForeground}
+                    strokeWidth={ICON_STROKE}
+                    strokeLinecap="square"
+                  />
+                </View>
+              )}
               <ArtworkImage
                 uri={theme.artworkDataUri}
                 trackUri={current?.uri}

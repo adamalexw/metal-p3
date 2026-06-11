@@ -11,6 +11,7 @@ export interface ImportedSetlist {
   date?: string;
   venue?: string;
   tracks: ImportedTrack[];
+  error?: string;
 }
 
 export interface ResolvedTrackMatch {

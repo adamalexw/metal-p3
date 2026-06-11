@@ -91,7 +91,8 @@ export function SyncedLyricsView({
                 tw`text-center text-lg`,
                 {
                   lineHeight: LINE_HEIGHT,
-                  color: isActive ? theme.accent : theme.mutedForeground,
+                  color: '#ffffff',
+                  opacity: isActive ? 1.0 : 0.5,
                   fontWeight: isActive ? '700' : '400',
                   textShadowColor: 'rgba(0,0,0,0.7)',
                   textShadowOffset: { width: 0, height: 1 },

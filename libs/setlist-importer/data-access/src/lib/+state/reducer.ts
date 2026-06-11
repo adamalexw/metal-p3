@@ -30,7 +30,19 @@ export const setlistImporterFeature = {
     initialState,
     on(SetlistImporterActions.setUrls, (state, { urls }): SetlistImporterState => ({ ...state, urls })),
     on(SetlistImporterActions.scrape, (state): SetlistImporterState => ({ ...state, scraping: true, error: undefined })),
-    on(SetlistImporterActions.scrapeSuccess, (state, { setlists }): SetlistImporterState => ({ ...state, scraping: false, setlists, tracks: [] })),
+    on(
+      SetlistImporterActions.scrapeSuccess,
+      (state, { setlists }): SetlistImporterState => {
+        const firstError = setlists.find((s) => s.error)?.error;
+        return {
+          ...state,
+          scraping: false,
+          setlists,
+          tracks: [],
+          error: firstError || undefined,
+        };
+      },
+    ),
     on(SetlistImporterActions.scrapeError, (state, { error }): SetlistImporterState => ({ ...state, scraping: false, error })),
     on(SetlistImporterActions.match, (state): SetlistImporterState => ({ ...state, matching: true, error: undefined })),
     on(SetlistImporterActions.matchSuccess, (state, { tracks }): SetlistImporterState => ({ ...state, matching: false, tracks })),

@@ -49,8 +49,8 @@ export async function loadTrackArtwork(uri: string): Promise<string | null> {
       ARTWORK_CACHE.set(uri, value);
       return value;
     })
-    .catch(() => {
-      ARTWORK_CACHE.set(uri, null);
+    .catch((err) => {
+      console.warn(`loadTrackArtwork: failed to fetch artwork for ${uri}`, err);
       return null;
     })
     .finally(() => {

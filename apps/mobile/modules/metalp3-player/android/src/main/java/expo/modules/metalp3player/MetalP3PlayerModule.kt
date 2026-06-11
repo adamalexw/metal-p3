@@ -183,10 +183,16 @@ class MetalP3PlayerModule : Module() {
       .build()
   }
 
-  // Auto's media tree prefixes track ids ("metalp3:track:<n>"). JS uses the bare
+  // Auto's media tree prefixes track ids ("metalp3:track:<n>", "metalp3:playlist:<pid>:track:<n>"). JS uses the bare
   // MediaStore id, so strip the prefix when reporting state to JS.
-  private fun stripTrackPrefix(id: String?): String? =
-    id?.removePrefix("metalp3:track:")
+  private fun stripTrackPrefix(id: String?): String? {
+    if (id == null) return null
+    val lastTrackIdx = id.lastIndexOf("track:")
+    if (lastTrackIdx != -1) {
+      return id.substring(lastTrackIdx + 6)
+    }
+    return id.removePrefix("metalp3:track:")
+  }
 
   private fun snapshotState(): Map<String, Any?> {
     val c = controller ?: return mapOf(

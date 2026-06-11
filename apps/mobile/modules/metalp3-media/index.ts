@@ -26,6 +26,7 @@ interface NativeModule {
   getExtrasAsync(uri: string): Promise<TrackExtras | null>;
   deleteTracksAsync(uris: string[]): Promise<DeleteTracksResult>;
   deleteAlbumFolderAsync(audioUris: string[]): Promise<DeleteTracksResult>;
+  checkTrackExistsAsync(uri: string): Promise<boolean>;
   addListener(eventName: 'mediaChanged', listener: () => void): EventSubscription;
 }
 
@@ -59,6 +60,7 @@ export const MetalP3Media = {
   getExtrasAsync: (uri: string) => native.getExtrasAsync(uri),
   deleteTracksAsync: (uris: string[]) => native.deleteTracksAsync(uris),
   deleteAlbumFolderAsync: (audioUris: string[]) => native.deleteAlbumFolderAsync(audioUris),
+  checkTrackExistsAsync: (uri: string) => native.checkTrackExistsAsync(uri),
   addMediaChangedListener: (listener: () => void) =>
     native.addListener('mediaChanged', listener),
 };

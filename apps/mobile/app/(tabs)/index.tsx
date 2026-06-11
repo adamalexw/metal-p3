@@ -22,7 +22,13 @@ import BlurredBackdrop from '../../src/components/BlurredBackdrop';
 import { MINI_PLAYER_HEIGHT } from '../../src/components/MiniPlayer';
 import { deleteTracksAndPropagate } from '../../src/lib/delete-tracks';
 import type { AlbumGroup } from '../../src/lib/group-tracks-by-album';
-import { setLibraryTracks, subscribe as subscribeLibrary, getAlbumGroups } from '../../src/lib/library-cache';
+import {
+  setLibraryTracks,
+  subscribe as subscribeLibrary,
+  getAlbumGroups,
+  initializeLibraryCache,
+  getLibraryTracks,
+} from '../../src/lib/library-cache';
 import { shuffled } from '../../src/lib/shuffle';
 import { toQueueItem } from '../../src/lib/to-queue-item';
 import { tw } from '../../src/lib/tw';
@@ -54,21 +60,37 @@ export default function LibraryScreen() {
     setStatus('checking');
     setError(null);
     try {
+      await initializeLibraryCache();
+      const existing = getLibraryTracks();
+      if (existing.length > 0) {
+        setAlbums(getAlbumGroups());
+        setStatus('ready');
+      }
+
       const granted = (await MetalP3Media.getPermissionsAsync()).granted
         || (await MetalP3Media.requestPermissionsAsync()).granted;
       if (!granted) {
-        setStatus('denied');
+        if (existing.length === 0) {
+          setStatus('denied');
+        }
         return;
       }
-      setStatus('loading');
+
+      if (existing.length === 0) {
+        setStatus('loading');
+      }
       scanInFlight.current = true;
       const result = await MetalP3Media.scanAudioAsync({ minDurationMs: 10_000 });
       const groups = setLibraryTracks(result);
       setAlbums(groups);
       setStatus('ready');
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
-      setStatus('error');
+      if (getLibraryTracks().length === 0) {
+        setError(e instanceof Error ? e.message : String(e));
+        setStatus('error');
+      } else {
+        console.warn('LibraryScreen: initial scan failed, showing cached library', e);
+      }
     } finally {
       scanInFlight.current = false;
     }

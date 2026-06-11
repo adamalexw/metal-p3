@@ -63,12 +63,14 @@ export default function MiniPlayer() {
               { backgroundColor: theme.surface },
             ]}
           >
-            <Disc3
-              size={32}
-              color={theme.mutedForeground}
-              strokeWidth={ICON_STROKE}
-              strokeLinecap="square"
-            />
+            {!theme.artworkDataUri && (
+              <Disc3
+                size={32}
+                color={theme.mutedForeground}
+                strokeWidth={ICON_STROKE}
+                strokeLinecap="square"
+              />
+            )}
             <ArtworkImage
               uri={theme.artworkDataUri}
               trackUri={current.uri}
