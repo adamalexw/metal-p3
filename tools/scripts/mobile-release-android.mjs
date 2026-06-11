@@ -175,7 +175,7 @@ const target = online[0];
 if (online.length > 1) {
   console.log(`  multiple devices online (${online.join(', ')}); installing on ${target}`);
 }
-run('adb', ['-s', target, 'install', '-r', apkPath]);
+run('adb', ['-s', target, 'install', '-r', '-i', 'com.android.vending', apkPath]);
 
 step('Stop Gradle daemons (free JVM memory)');
 {
