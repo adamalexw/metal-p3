@@ -59,8 +59,8 @@ export class ApplyLyricsComponent {
       const tracks = this.tracks();
       const maTracks = this.maTracks();
 
-      if (tracks?.length && maTracks?.length) {
-        this.mapDataSource(tracks, maTracks);
+      if (tracks?.length) {
+        this.mapDataSource(tracks, maTracks ?? []);
       }
     });
   }
@@ -70,13 +70,16 @@ export class ApplyLyricsComponent {
   }
 
   private mapDataSource(tracks: Track[], maTracks: MetalArchivesAlbumTrack[]) {
-    if (tracks && maTracks) {
-      this.dataSource = tracks.map((track) => this.mapApplyLyrics(track, maTracks));
-    }
+    this.dataSource = tracks.map((track) => this.mapApplyLyrics(track, maTracks));
   }
 
   private mapApplyLyrics(track: Track, maTracks: MetalArchivesAlbumTrack[]): ApplyLyrics {
     const lyricsSource = track.lyricsSource ?? (track.syncedLyrics ? 'synced' : null);
+
+    // No metal-archives tracklist (album without an MA url): lyrics come straight from LrcLib on the local track.
+    if (!maTracks.length) {
+      return { ...track, lyricsSource, selected: !!track.syncedLyrics || (lyricsSource === 'plain' && !!track.lyrics) };
+    }
 
     let maTrack = maTracks.find((item) => item.title?.toLowerCase() === track.title?.toLowerCase());
 

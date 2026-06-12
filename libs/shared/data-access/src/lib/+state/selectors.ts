@@ -3,6 +3,10 @@ import { selectAlbum, selectAlbumState } from './album/selectors';
 import { selectCurrentRoute } from './router.selectors';
 import { selectMaTracks, selectTrackCount, selectTracks } from './track/selectors';
 
+// Albums without a metal-archives url drive lyrics from the local mp3 tracks via LrcLib,
+// so the lyrics progress signals are computed from local tracks instead of metal-archives tracks.
+const albumUsesLocalLyrics = (albumUrl: string | undefined | null): boolean => !albumUrl;
+
 export * from './album/selectors';
 export * from './band/selectors';
 export * from './cover/selectors';
@@ -24,12 +28,26 @@ export const selectTrackRenamingCount = createSelector(selectTracks, (tracks) =>
 export const selectTrackRenaming = createSelector(selectTrackRenamingCount, (tracks) => tracks > 0);
 export const selectTrackRenamingProgress = createSelector(selectTrackCount, selectTrackRenamingCount, (total, progress) => getProgress(total || 0, progress));
 
-export const selectLyricsInFlightCount = createSelector(selectMaTracks, (tracks) => tracks?.filter((track) => track.lyricsLoading)?.length || 0);
+export const selectLyricsInFlightCount = createSelector(selectAlbum, selectMaTracks, selectTracks, (album, maTracks, tracks) =>
+  albumUsesLocalLyrics(album?.albumUrl)
+    ? tracks?.filter((track) => track.lyricsLoading)?.length || 0
+    : maTracks?.filter((track) => track.lyricsLoading)?.length || 0,
+);
 export const selectLyricsLoading = createSelector(selectLyricsInFlightCount, (inFlight) => inFlight > 0);
-export const selectLyricsExpectedTotal = createSelector(selectMaTracks, (tracks) => tracks?.filter((track) => track.hasLyrics)?.length || 0);
-export const selectLyricsCompletedCount = createSelector(selectMaTracks, (tracks) => tracks?.filter((track) => track.hasLyrics && track.lyrics != null)?.length || 0);
+export const selectLyricsExpectedTotal = createSelector(selectAlbum, selectMaTracks, selectTracks, (album, maTracks, tracks) =>
+  albumUsesLocalLyrics(album?.albumUrl) ? tracks?.length || 0 : maTracks?.filter((track) => track.hasLyrics)?.length || 0,
+);
+export const selectLyricsCompletedCount = createSelector(selectAlbum, selectMaTracks, selectTracks, (album, maTracks, tracks) =>
+  albumUsesLocalLyrics(album?.albumUrl)
+    ? tracks?.filter((track) => track.lyricsChecked)?.length || 0
+    : maTracks?.filter((track) => track.hasLyrics && track.lyrics != null)?.length || 0,
+);
 export const selectLyricsLoadingProgress = createSelector(selectLyricsExpectedTotal, selectLyricsCompletedCount, (total, completed) => (total === 0 ? 0 : Math.floor((completed / total) * 100)));
-export const selectLyricsExpected = createSelector(selectMaTracks, (tracks) => tracks?.some((track) => track.hasLyrics && track.lyrics == null && !track.lyricsLoading) ?? false);
+export const selectLyricsExpected = createSelector(selectAlbum, selectMaTracks, selectTracks, (album, maTracks, tracks) =>
+  albumUsesLocalLyrics(album?.albumUrl)
+    ? (tracks?.some((track) => !track.lyricsChecked && !track.lyricsLoading) ?? false)
+    : (maTracks?.some((track) => track.hasLyrics && track.lyrics == null && !track.lyricsLoading) ?? false),
+);
 
 const getProgress = (total: number, progress: number): number => {
   if (total === 0 || progress === 0) {

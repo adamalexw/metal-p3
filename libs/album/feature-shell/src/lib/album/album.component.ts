@@ -222,6 +222,12 @@ export class AlbumShellComponent implements OnInit {
   }
 
   onLyrics(id: number, url: string): void {
+    // Album without a metal-archives url: skip the MA tracklist fetch, the lyrics screen drives LrcLib from local tracks.
+    if (!url) {
+      this.router.navigate(['maintenance', 'lyrics', id]);
+      return;
+    }
+
     const maTracks$ = this.getMaTracks(id, url);
 
     maTracks$

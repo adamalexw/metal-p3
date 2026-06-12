@@ -115,6 +115,26 @@ export class TrackEffects {
     );
   });
 
+  // For albums without a metal-archives url: drive lyrics from the local mp3 tracks via LrcLib.
+  // Prefer synced lyrics, fall back to LrcLib plain lyrics, otherwise miss.
+  getLocalLyrics$ = createEffect(() => {
+    return this.actions$.pipe(
+      ofType(TrackActions.getLocalLyrics),
+      mergeMap(({ id, localTrackId, artist, track, album, durationSeconds }) =>
+        this.service.getSyncedLyrics({ artist, track, album, durationSeconds }).pipe(
+          timeout(20_000),
+          map((result) => {
+            if (result && !result.instrumental && (result.syncedLyrics || result.plainLyrics)) {
+              return TrackActions.getLocalLyricsSuccess({ id, localTrackId, syncedLyrics: result.syncedLyrics, plainLyrics: result.plainLyrics });
+            }
+            return TrackActions.getLocalLyricsMiss({ id, localTrackId });
+          }),
+          catchError(() => of(TrackActions.getLocalLyricsMiss({ id, localTrackId }))),
+        ),
+      ),
+    );
+  });
+
   renameTrack$ = createEffect(() => {
     return this.actions$.pipe(
       ofType(TrackActions.renameTrack),
