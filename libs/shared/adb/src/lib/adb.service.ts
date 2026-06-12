@@ -20,6 +20,8 @@ export interface PlaylistManifest {
   tracks: PlaylistManifestTrack[];
 }
 
+const MOBILE_PACKAGE = 'com.metalp3.mobile';
+
 const execFileAsync = promisify(execFile);
 
 @Injectable()
@@ -124,6 +126,10 @@ export class AdbService {
         devices.map(async (device: Device) => {
           const deviceClient = this.client.getDevice(device.id);
           await this.push(deviceClient, tempPath, dest);
+          // Nudge the app to the foreground so it reconciles the manifest now
+          // rather than on its next app-focus. Best-effort — a failure here
+          // doesn't fail the transfer; the app will still pick it up later.
+          await this.wakeMobileApp(deviceClient);
         }),
       );
     } catch (err: unknown) {
@@ -148,6 +154,18 @@ export class AdbService {
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-+|-+$/g, '');
+  }
+
+  private async wakeMobileApp(deviceClient: ReturnType<ReturnType<typeof Adb.createClient>['getDevice']>): Promise<void> {
+    try {
+      // monkey launches the package's main/launcher activity without us needing
+      // to know its fully-qualified class name. If the app is already open this
+      // brings it to the foreground, which fires its app-focus reconcile.
+      await deviceClient.shell(`monkey -p ${MOBILE_PACKAGE} -c android.intent.category.LAUNCHER 1`);
+    } catch (err) {
+      // Best-effort: device asleep, app not installed, monkey unavailable, etc.
+      console.warn('Could not wake mobile app after manifest transfer:', err instanceof Error ? err.message : err);
+    }
   }
 
   private async push(deviceClient: ReturnType<ReturnType<typeof Adb.createClient>['getDevice']>, src: string, dest: string): Promise<void> {

@@ -1,5 +1,5 @@
 import { EventSubscription, requireNativeModule } from 'expo-modules-core';
-import type { ImportedPlaylistManifest, PlaybackState, QueueItem, RepeatMode } from './src/MetalP3Player.types';
+import type { ImportManifestsResult, PlaybackState, QueueItem, RepeatMode } from './src/MetalP3Player.types';
 
 export * from './src/MetalP3Player.types';
 
@@ -21,7 +21,7 @@ interface NativeModule {
   clearQueueAsync(): Promise<void>;
   getStateAsync(): Promise<PlaybackState>;
   setPlaylistsAsync(json: string): Promise<void>;
-  importPlaylistManifestsAsync(): Promise<ImportedPlaylistManifest[]>;
+  importPlaylistManifestsAsync(): Promise<ImportManifestsResult>;
   addListener(eventName: 'stateChanged', listener: (state: PlaybackState) => void): EventSubscription;
 }
 
@@ -47,7 +47,7 @@ export const MetalP3Player = {
   clearQueue: () => native.clearQueueAsync(),
   getStateAsync: () => native.getStateAsync(),
   setPlaylists: (json: string) => native.setPlaylistsAsync(json),
-  importPlaylistManifests: () => native.importPlaylistManifestsAsync(),
+  importPlaylistManifests: (): Promise<ImportManifestsResult> => native.importPlaylistManifestsAsync(),
   addStateListener: (listener: (state: PlaybackState) => void) =>
     native.addListener('stateChanged', listener),
 };
