@@ -1,6 +1,5 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { ChangeDetectionStrategy, Component, OnInit, inject, output } from '@angular/core';
-import { ControlContainer, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { ChangeDetectionStrategy, Component, inject, input, output } from '@angular/core';
+import { FieldTree, FormField } from '@angular/forms/signals';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -14,52 +13,19 @@ import { CountryFlagPipe } from '@metal-p3/shared/utils';
 import { WA_WINDOW } from '@ng-web-apis/common';
 
 @Component({
-  imports: [
-    CountryFlagPipe,
-    FormsModule,
-    MatButtonModule,
-    MatCheckboxModule,
-    MatFormFieldModule,
-    MatIconModule,
-    MatInputModule,
-    MatProgressBarModule,
-    ReactiveFormsModule,
-    RouterModule,
-    TitleCaseDirective,
-  ],
+  imports: [CountryFlagPipe, FormField, MatButtonModule, MatCheckboxModule, MatFormFieldModule, MatIconModule, MatInputModule, MatProgressBarModule, RouterModule, TitleCaseDirective],
   selector: 'app-album-form',
   templateUrl: './album-form.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class AlbumFormComponent implements OnInit {
-  private readonly controlContainer = inject(ControlContainer);
+export class AlbumFormComponent {
   private readonly windowRef = inject(WA_WINDOW);
+
+  readonly field = input.required<FieldTree<AlbumDetailsForm>>();
 
   readonly lyricsPriority = output<void>();
   readonly findBandProps = output<string>();
   readonly identifyBand = output<void>();
-
-  get albumUrl(): string | undefined {
-    return this.form.controls.albumUrl.value;
-  }
-
-  get artistUrl(): string | undefined {
-    return this.form.controls.artistUrl.value;
-  }
-
-  get hasLyrics(): boolean {
-    return this.form.controls.hasLyrics.value ?? false;
-  }
-
-  get country(): string | undefined {
-    return this.form.controls.country.value;
-  }
-
-  protected form!: FormGroup<AlbumDetailsForm>;
-
-  ngOnInit(): void {
-    this.form = this.controlContainer.control!.get('details') as FormGroup<AlbumDetailsForm>;
-  }
 
   openLink(url: string) {
     this.windowRef.open(url, '_blank');

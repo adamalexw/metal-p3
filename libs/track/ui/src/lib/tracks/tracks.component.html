@@ -10,60 +10,60 @@
   <table [dataSource]="dataSource" [trackBy]="trackByFn" mat-table>
     <ng-container matColumnDef="trackNumber">
       <th *matHeaderCellDef mat-header-cell>#</th>
-      <td *matCellDef="let element" class="!p-0 !py-1 !pl-1" [formGroup]="element" mat-cell>
+      <td *matCellDef="let element" class="p-0! py-1! pl-1!" mat-cell>
         <mat-form-field class="w-full" floatLabel="auto">
-          <input matInput placeholder="No." formControlName="trackNumber" required />
+          <input [formField]="element.trackNumber" matInput placeholder="No." />
         </mat-form-field>
       </td>
     </ng-container>
 
     <ng-container matColumnDef="title">
       <th *matHeaderCellDef mat-header-cell>Track</th>
-      <td *matCellDef="let element" class="!p-0 !pl-2" [formGroup]="element" mat-cell>
-        <mat-form-field class="w-full" [matTooltip]="element.get('fullPath')?.value" floatLabel="auto" matTooltipPosition="above">
-          <input matInput placeholder="Title" formControlName="title" required appTitleCase />
+      <td *matCellDef="let element" class="p-0! pl-2!" mat-cell>
+        <mat-form-field class="w-full" [matTooltip]="element().value().fullPath" floatLabel="auto" matTooltipPosition="above">
+          <input [formField]="element.title" matInput placeholder="Title" appTitleCase />
         </mat-form-field>
       </td>
     </ng-container>
 
     <ng-container matColumnDef="duration">
       <th *matHeaderCellDef mat-header-cell>Duration</th>
-      <td *matCellDef="let element" [formGroup]="element" mat-cell>
-        {{ element.get('duration')?.value | time }}
+      <td *matCellDef="let element" mat-cell>
+        {{ element().value().duration | time }}
       </td>
     </ng-container>
 
     <ng-container matColumnDef="bitrate">
       <th *matHeaderCellDef mat-header-cell>Bitrate</th>
-      <td *matCellDef="let element" [formGroup]="element" mat-cell>
-        {{ element.get('bitrate')?.value | bitrate }}
+      <td *matCellDef="let element" mat-cell>
+        {{ element().value().bitrate | bitrate }}
       </td>
     </ng-container>
 
     <ng-container matColumnDef="actions">
       <th *matHeaderCellDef mat-header-cell>Actions</th>
-      <td *matCellDef="let element; let i = index" [formGroup]="element" mat-cell>
+      <td *matCellDef="let element; let i = index" mat-cell>
         <button aria-label="Example icon-button with a menu" type="button" [matMenuTriggerFor]="menu" mat-icon-button>
           <mat-icon>more_vert</mat-icon>
         </button>
         <mat-menu #menu="matMenu">
-          <button type="button" class="!hidden lg:!flex" (click)="transferTrack.emit(element.get('id')?.value)" mat-menu-item>
+          <button type="button" class="hidden! lg:flex!" (click)="transferTrack.emit(element().value().id)" mat-menu-item>
             <mat-icon>adb</mat-icon>
             <span>Transfer</span>
           </button>
-          <button type="button" (click)="viewLyrics(i, element.get('lyrics')?.value, element.get('syncedLyrics')?.value)" mat-menu-item>
+          <button type="button" (click)="viewLyrics(i, element().value().lyrics, element().value().syncedLyrics)" mat-menu-item>
             <mat-icon>article</mat-icon>
             <span>Lyrics</span>
           </button>
-          <button type="button" (click)="onPlayTrack(element.get('id')?.value)" mat-menu-item>
+          <button type="button" (click)="onPlayTrack(element().value().id)" mat-menu-item>
             <mat-icon>play_arrow</mat-icon>
             <span>Play</span>
           </button>
-          <button type="button" (click)="onAddTrackToPlaylist(element.get('id')?.value)" mat-menu-item>
+          <button type="button" (click)="onAddTrackToPlaylist(element().value().id)" mat-menu-item>
             <mat-icon>playlist_add</mat-icon>
             <span>Add To Playlist</span>
           </button>
-          <button type="button" [itemName]="element.get('title').value" (click)="$event.stopPropagation()" (confirmResult)="onDelete($event, element.get('id')?.value)" mat-menu-item appConfirmDelete>
+          <button type="button" [itemName]="element().value().title" (click)="$event.stopPropagation()" (confirmResult)="onDelete($event, element().value().id)" mat-menu-item appConfirmDelete>
             <mat-icon>delete</mat-icon>
             <span>Delete</span>
           </button>

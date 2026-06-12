@@ -1,7 +1,13 @@
-<form class="flex w-full flex-col gap-2" [formGroup]="form" autocomplete="off">
+<form class="flex w-full flex-col gap-2" autocomplete="off">
+  @let artistUrl = field().artistUrl().value();
+  @let albumUrl = field().albumUrl().value();
+  @let country = field().country().value();
+  @let ignore = field().ignore().value();
+  @let hasLyrics = field().hasLyrics().value();
+
   <mat-form-field class="w-full">
     <mat-label>Band</mat-label>
-    <input matInput formControlName="artist" appTitleCase />
+    <input [formField]="field().artist" matInput appTitleCase />
     <button type="button" [attr.aria-label]="'Identify band'" (click)="identifyBand.emit()" mat-icon-button matSuffix>
       <mat-icon>manage_search</mat-icon>
     </button>
@@ -9,12 +15,12 @@
 
   <mat-form-field class="w-full">
     <mat-label>Album</mat-label>
-    <input matInput formControlName="album" appTitleCase />
+    <input [formField]="field().album" matInput appTitleCase />
   </mat-form-field>
 
   <mat-form-field class="w-full">
     <mat-label>Genre</mat-label>
-    <input matInput formControlName="genre" />
+    <input [formField]="field().genre" matInput />
     @if (artistUrl) {
       <button type="button" [attr.aria-label]="'Get country'" (click)="getBandProps(artistUrl)" mat-icon-button matSuffix>
         <mat-icon>music_note</mat-icon>
@@ -24,13 +30,13 @@
 
   <mat-form-field class="w-full">
     <mat-label>Country</mat-label>
-    <input matInput formControlName="country" />
+    <input [formField]="field().country" matInput />
     @let flagCode = country | countryFlag;
     @if (flagCode) {
       <span class="flex items-center px-2" matSuffix>
-        <span [class]="'fi fi-' + flagCode" [title]="country!"></span>
+        <span [class]="'fi fi-' + flagCode" [title]="country"></span>
       </span>
-    } @else if (country?.toLowerCase() === 'international') {
+    } @else if (country.toLowerCase() === 'international') {
       <mat-icon class="text-sm" matSuffix title="International">language</mat-icon>
     } @else if (artistUrl) {
       <button type="button" [attr.aria-label]="'Get country'" (click)="getBandProps(artistUrl)" mat-icon-button matSuffix>
@@ -39,10 +45,10 @@
     }
   </mat-form-field>
 
-  @if (!form.controls.ignore.value) {
+  @if (!ignore) {
     <mat-form-field class="w-full">
       <mat-label>Album Url</mat-label>
-      <input type="url" matInput formControlName="albumUrl" />
+      <input type="url" [formField]="field().albumUrl" matInput />
       @if (albumUrl) {
         <button type="button" [attr.aria-label]="'View album url'" (click)="openLink(albumUrl)" mat-icon-button matSuffix>
           <mat-icon>link</mat-icon>
@@ -52,7 +58,7 @@
 
     <mat-form-field class="w-full">
       <mat-label>Artist Url</mat-label>
-      <input type="url" matInput formControlName="artistUrl" />
+      <input type="url" [formField]="field().artistUrl" matInput />
       @if (artistUrl) {
         <button type="button" [attr.aria-label]="'View artist url'" (click)="openLink(artistUrl)" mat-icon-button matSuffix>
           <mat-icon>link</mat-icon>
@@ -62,21 +68,21 @@
   }
 
   <div class="flex w-full flex-row items-center justify-between">
-    <mat-form-field class="w-17.75">
+    <mat-form-field class="w-24">
       <mat-label>Year</mat-label>
-      <input matInput formControlName="year" />
+      <input type="number" [formField]="field().year" matInput />
     </mat-form-field>
     @if (!albumUrl) {
       <div>
-        <mat-checkbox formControlName="ignore"> Ignore Metal Archives </mat-checkbox>
+        <mat-checkbox [formField]="field().ignore"> Ignore Metal Archives </mat-checkbox>
       </div>
     }
   </div>
 
   <div class="flex flex-row items-center gap-6">
-    <mat-checkbox formControlName="played"> Played </mat-checkbox>
-    <mat-checkbox formControlName="transferred"> Transferred </mat-checkbox>
-    <mat-checkbox formControlName="hasLyrics"> Lyrics </mat-checkbox>
+    <mat-checkbox [formField]="field().played"> Played </mat-checkbox>
+    <mat-checkbox [formField]="field().transferred"> Transferred </mat-checkbox>
+    <mat-checkbox [formField]="field().hasLyrics"> Lyrics </mat-checkbox>
 
     @if (!hasLyrics) {
       <div class="flex items-center">

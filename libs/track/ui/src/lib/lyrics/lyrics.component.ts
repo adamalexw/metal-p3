@@ -1,5 +1,5 @@
-import { ChangeDetectionStrategy, Component, OnInit, inject } from '@angular/core';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { MAT_BOTTOM_SHEET_DATA, MatBottomSheetModule, MatBottomSheetRef } from '@angular/material/bottom-sheet';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -25,7 +25,7 @@ export function stripLrcTimestamps(text: string): string {
 }
 
 @Component({
-  imports: [FormsModule, ReactiveFormsModule, MatFormFieldModule, MatButtonModule, MatIconModule, MatInputModule, MatBottomSheetModule],
+  imports: [FormsModule, MatFormFieldModule, MatButtonModule, MatIconModule, MatInputModule, MatBottomSheetModule],
   selector: 'app-lyrics',
   templateUrl: './lyrics.component.html',
   styleUrls: ['./lyrics.component.scss'],
@@ -34,24 +34,18 @@ export function stripLrcTimestamps(text: string): string {
   },
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class LyricsComponent implements OnInit {
+export class LyricsComponent {
   private readonly bottomSheetRef = inject(MatBottomSheetRef<LyricsComponent>);
   private readonly data: LyricsSheetData = inject(MAT_BOTTOM_SHEET_DATA);
 
-  lyrics = '';
-  source: LyricsSheetSource = 'plain';
-
-  ngOnInit(): void {
-    this.source = this.data.source ?? 'plain';
-    const raw = this.data.text ?? '';
-    this.lyrics = this.source === 'synced' ? stripLrcTimestamps(raw) : raw;
-  }
+  protected readonly source: LyricsSheetSource = this.data.source ?? 'plain';
+  protected readonly lyrics = signal(this.source === 'synced' ? stripLrcTimestamps(this.data.text ?? '') : (this.data.text ?? ''));
 
   onSave() {
     if (this.source === 'synced') {
       this.bottomSheetRef.dismiss();
       return;
     }
-    this.bottomSheetRef.dismiss(this.lyrics);
+    this.bottomSheetRef.dismiss(this.lyrics());
   }
 }

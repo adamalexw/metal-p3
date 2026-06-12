@@ -1,19 +1,18 @@
-import { Directive, HostListener, inject } from '@angular/core';
-import { NgControl } from '@angular/forms';
+import { Directive, ElementRef, HostListener, inject } from '@angular/core';
 
 @Directive({
   standalone: true,
   selector: 'input[appTitleCase]',
 })
 export class TitleCaseDirective {
-  private ngControl = inject(NgControl);
+  private readonly el = inject<ElementRef<HTMLInputElement>>(ElementRef);
 
   @HostListener('keyup', ['$event'])
   onKeyUp(event: KeyboardEvent): void {
     if ((event.altKey || event.metaKey) && event.key == 't') {
-      if (this.ngControl?.control) {
-        this.ngControl.control.setValue(this.toTitleCase(this.ngControl.control.value));
-      }
+      const input = this.el.nativeElement;
+      input.value = this.toTitleCase(input.value);
+      input.dispatchEvent(new Event('input', { bubbles: true }));
     }
   }
 

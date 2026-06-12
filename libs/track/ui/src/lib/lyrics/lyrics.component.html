@@ -2,8 +2,8 @@
   <button aria-label="Close" type="button" (click)="onSave()" mat-icon-button>
     <mat-icon>close</mat-icon>
   </button>
-  @if (lyrics.trim()) {
-    <pre class="m-3 font-sans text-base leading-relaxed whitespace-pre-wrap">{{ lyrics }}</pre>
+  @if (lyrics().trim()) {
+    <pre class="m-3 font-sans text-base leading-relaxed whitespace-pre-wrap">{{ lyrics() }}</pre>
   } @else {
     <p class="m-3 text-gray-500 italic">No lyrics</p>
   }
