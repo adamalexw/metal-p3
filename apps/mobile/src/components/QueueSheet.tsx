@@ -1,6 +1,6 @@
 import { BlurView } from 'expo-blur';
 import { Disc3, GripVertical, Trash2, Volume2, X } from 'lucide-react-native';
-import { createRef, memo, useMemo, useRef, type RefObject } from 'react';
+import { createRef, memo, useMemo, useRef, useState, type RefObject } from 'react';
 import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Image } from 'expo-image';
 import DraggableFlatList, {
@@ -17,7 +17,7 @@ import { MetalP3Player, type QueueItem } from '../../modules/metalp3-player';
 import { withAlpha } from '../lib/color';
 import { formatTrackDuration } from '../lib/group-tracks-by-album';
 import { tw } from '../lib/tw';
-import { useQueueArtwork, evictTrackArtwork, resetArtworkRetry } from '../lib/useTrackArtwork';
+import { useQueueArtwork } from '../lib/useTrackArtwork';
 import { ICON_STROKE } from '../theme/icons';
 import type { ArtworkTheme } from '../theme/types';
 
@@ -102,7 +102,6 @@ export default function QueueSheet({ visible, onClose, queue, currentIndex, them
             subtitle={item.artist ?? item.albumArtist ?? null}
             durationMs={item.durationMs ?? null}
             artUri={artwork.get(item.uri) ?? null}
-            trackUri={item.uri}
             isActive={isActive}
             isCurrent={isCurrent}
             theme={theme}
@@ -210,7 +209,6 @@ interface QueueRowProps {
   subtitle: string | null;
   durationMs: number | null;
   artUri: string | null;
-  trackUri?: string | null;
   isActive: boolean;
   isCurrent: boolean;
   theme: ArtworkTheme;
@@ -224,13 +222,21 @@ const QueueRow = memo(function QueueRow({
   subtitle,
   durationMs,
   artUri,
-  trackUri,
   isActive,
   isCurrent,
   theme,
   drag,
   onPress,
 }: QueueRowProps) {
+  // Bump `retry` to remount this row's <Image> after a transient decode
+  // failure (re-attempts the same uri); reset when the row recycles a new uri.
+  const [retry, setRetry] = useState(0);
+  const lastUri = useRef(artUri);
+  if (lastUri.current !== artUri) {
+    lastUri.current = artUri;
+    if (retry !== 0) setRetry(0);
+  }
+
   const titleColor = isCurrent ? theme.accent : theme.foreground;
   const subColor = isCurrent ? theme.accent : theme.mutedForeground;
   const rowBg = isActive
@@ -268,22 +274,14 @@ const QueueRow = memo(function QueueRow({
       >
         {artUri ? (
           <Image
+            key={`${artUri}:${retry}`}
             source={{ uri: artUri }}
             style={tw`w-full h-full`}
             contentFit="cover"
             cachePolicy="memory-disk"
             recyclingKey={artUri}
             transition={120}
-            onLoad={() => {
-              if (trackUri) {
-                resetArtworkRetry(trackUri);
-              }
-            }}
-            onError={() => {
-              if (trackUri) {
-                evictTrackArtwork(trackUri);
-              }
-            }}
+            onError={() => setRetry((r) => (r < 2 ? r + 1 : r))}
           />
         ) : (
           <Disc3

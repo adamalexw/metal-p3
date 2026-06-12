@@ -274,30 +274,36 @@ export interface ImportedPlaylist {
   trackIds: string[];
 }
 
-/**
- * Pull any playlist manifests pushed from the desktop app via ADB,
- * resolved to MediaStore IDs by the native module, and merge them into
- * the JS-owned playlist store. Same-named playlists are replaced in
- * place so the desktop is the source of truth for that name.
- *
- * Best-effort: if the native module isn't available (Jest, iOS) it
- * resolves to no-op.
- */
-export async function reconcileImportedPlaylists(): Promise<void> {
-  let imported: ImportedPlaylist[] = [];
+interface ImportManifestsResult {
+  imported: ImportedPlaylist[];
+  pending: number;
+}
+
+// When a manifest's MP3s have been pushed but MediaScanner hasn't indexed them
+// yet, the native importer reports them as `pending` and leaves them on disk.
+// Rather than wait for the next app-foreground, retry on a short backoff so a
+// transfer into an already-open app lands within a few seconds.
+const RECONCILE_RETRY_DELAYS_MS = [1000, 3000, 6000];
+
+let reconcileRetryHandle: ReturnType<typeof setTimeout> | null = null;
+
+function importManifestsOnce(): Promise<ImportManifestsResult> | null {
+  let fn: (() => Promise<ImportManifestsResult>) | undefined;
   try {
-    const mod: { MetalP3Player?: { importPlaylistManifests?: () => Promise<ImportedPlaylist[]> } } =
+    const mod: { MetalP3Player?: { importPlaylistManifests?: () => Promise<ImportManifestsResult> } } =
       require('../../modules/metalp3-player');
-    const fn = mod?.MetalP3Player?.importPlaylistManifests;
-    if (!fn) return;
-    imported = (await fn()) ?? [];
+    fn = mod?.MetalP3Player?.importPlaylistManifests;
   } catch (err) {
     if (process.env.JEST_WORKER_ID === undefined) {
-      console.warn('playlist-store: importPlaylistManifests failed', err);
+      console.warn('playlist-store: importPlaylistManifests unavailable', err);
     }
-    return;
+    return null;
   }
+  if (!fn) return null;
+  return fn();
+}
 
+async function mergeImported(imported: ImportedPlaylist[]): Promise<void> {
   if (!imported.length) return;
   if (!loaded) await loadPlaylists();
 
@@ -325,10 +331,62 @@ export async function reconcileImportedPlaylists(): Promise<void> {
   }
 }
 
+/**
+ * Pull any playlist manifests pushed from the desktop app via ADB,
+ * resolved to MediaStore IDs by the native module, and merge them into
+ * the JS-owned playlist store. Same-named playlists are replaced in
+ * place so the desktop is the source of truth for that name.
+ *
+ * If the native importer reports manifests still pending (their tracks
+ * aren't indexed yet), this schedules bounded retries on a short backoff
+ * so a transfer is picked up promptly without waiting for the next
+ * app-foreground.
+ *
+ * Best-effort: if the native module isn't available (Jest, iOS) it
+ * resolves to no-op.
+ *
+ * @param attempt internal — retry index into RECONCILE_RETRY_DELAYS_MS.
+ */
+export async function reconcileImportedPlaylists(attempt = 0): Promise<void> {
+  // A fresh reconcile (e.g. app-foreground) supersedes any scheduled retry.
+  if (attempt === 0 && reconcileRetryHandle) {
+    clearTimeout(reconcileRetryHandle);
+    reconcileRetryHandle = null;
+  }
+
+  const pendingCall = importManifestsOnce();
+  if (!pendingCall) return;
+
+  let result: ImportManifestsResult;
+  try {
+    result = (await pendingCall) ?? { imported: [], pending: 0 };
+  } catch (err) {
+    if (process.env.JEST_WORKER_ID === undefined) {
+      console.warn('playlist-store: importPlaylistManifests failed', err);
+    }
+    return;
+  }
+
+  await mergeImported(result.imported ?? []);
+
+  // Schedule a retry only while tracks remain unindexed and we have backoff left.
+  if (result.pending > 0 && attempt < RECONCILE_RETRY_DELAYS_MS.length) {
+    if (reconcileRetryHandle) clearTimeout(reconcileRetryHandle);
+    reconcileRetryHandle = setTimeout(() => {
+      reconcileRetryHandle = null;
+      void reconcileImportedPlaylists(attempt + 1);
+    }, RECONCILE_RETRY_DELAYS_MS[attempt]);
+  }
+}
+
 export function _resetForTests(): void {
   playlists = [];
   loaded = false;
   loadPromise = null;
   activePlaylistId = null;
   listeners.clear();
+  if (reconcileRetryHandle) {
+    clearTimeout(reconcileRetryHandle);
+    reconcileRetryHandle = null;
+  }
 }

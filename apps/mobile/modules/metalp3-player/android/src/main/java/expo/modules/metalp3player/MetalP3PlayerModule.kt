@@ -134,9 +134,13 @@ class MetalP3PlayerModule : Module() {
     AsyncFunction("importPlaylistManifestsAsync") {
       val ctx = appContext.reactContext
         ?: throw CodedException("E_NO_CONTEXT", "React context unavailable", null)
-      PlaylistManifestImporter.importAll(ctx).map { entry ->
-        mapOf("name" to entry.name, "trackIds" to entry.trackIds)
-      }
+      val result = PlaylistManifestImporter.importAll(ctx)
+      mapOf(
+        "imported" to result.imported.map { entry ->
+          mapOf("name" to entry.name, "trackIds" to entry.trackIds)
+        },
+        "pending" to result.pending,
+      )
     }
   }
 

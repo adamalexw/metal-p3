@@ -26,6 +26,13 @@ export interface ImportedPlaylistManifest {
   trackIds: string[];
 }
 
+export interface ImportManifestsResult {
+  /** Manifests fully resolved this pass (removed from disk). */
+  imported: ImportedPlaylistManifest[];
+  /** Manifests still on disk awaiting MediaStore indexing; >0 means retry shortly. */
+  pending: number;
+}
+
 export interface PlaybackState {
   ready: boolean;
   isPlaying: boolean;

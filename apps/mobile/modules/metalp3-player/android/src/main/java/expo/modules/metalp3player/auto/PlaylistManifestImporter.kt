@@ -32,18 +32,37 @@ internal object PlaylistManifestImporter {
 
   data class Imported(val name: String, val trackIds: List<String>)
 
-  fun importAll(ctx: Context): List<Imported> {
-    val dir = manifestDir(ctx) ?: return emptyList()
-    if (!dir.exists() || !dir.isDirectory) return emptyList()
+  /**
+   * @param imported manifests fully resolved this pass (and removed from disk)
+   * @param pending  manifests still on disk whose tracks aren't all indexed yet —
+   *                 a non-zero value tells the caller to retry shortly rather than
+   *                 wait for the next app-foreground.
+   */
+  data class Result(val imported: List<Imported>, val pending: Int)
+
+  fun importAll(ctx: Context): Result {
+    val dir = manifestDir(ctx) ?: return Result(emptyList(), 0)
+    if (!dir.exists() || !dir.isDirectory) return Result(emptyList(), 0)
     val files = dir.listFiles { f -> f.isFile && f.name.endsWith(".json", ignoreCase = true) }
-      ?: return emptyList()
+      ?: return Result(emptyList(), 0)
 
     val out = ArrayList<Imported>(files.size)
+    var pending = 0
     for (file in files) {
-      val parsed = parse(file) ?: continue
+      val parsed = parse(file)
+      if (parsed == null) {
+        // Malformed/empty manifest will never resolve — delete it so it can't
+        // wedge the retry loop into spinning forever.
+        try {
+          file.delete()
+        } catch (_: Throwable) {
+        }
+        continue
+      }
       val resolved = resolveTracks(ctx, parsed.tracks)
       if (resolved == null) {
-        // Some tracks not yet indexed; keep the manifest for next pass.
+        // Some tracks not yet indexed; keep the manifest for a later pass.
+        pending++
         continue
       }
       out += Imported(parsed.name, resolved)
@@ -53,7 +72,7 @@ internal object PlaylistManifestImporter {
         // best effort — duplicate import next time is harmless (same name → in-place replace)
       }
     }
-    return out
+    return Result(out, pending)
   }
 
   private fun manifestDir(ctx: Context): File? {

@@ -108,3 +108,45 @@ describe('AdbService.transferFile', () => {
     expect(pushMock).toHaveBeenCalledTimes(2);
   });
 });
+
+describe('AdbService.transferPlaylistManifest', () => {
+  let service: AdbService;
+  const fileSystem = {} as unknown as FileSystemService;
+
+  beforeEach(() => {
+    pushMock.mockReset();
+    shellMock.mockReset().mockResolvedValue(undefined);
+    getDeviceMock.mockReset().mockReturnValue({ push: pushMock, shell: shellMock });
+    listDevicesMock.mockReset().mockResolvedValue([{ id: 'device-1', type: 'device' }]);
+
+    const transfer = new FakeTransfer();
+    pushMock.mockImplementation(() => {
+      transfer.endAfterTick();
+      return Promise.resolve(transfer);
+    });
+
+    service = new AdbService(fileSystem);
+  });
+
+  const manifest = {
+    version: 1 as const,
+    name: 'Road Trip',
+    transferredAt: 0,
+    tracks: [{ index: 0, relativePath: 'Band/01 - Track.mp3' }],
+  };
+
+  it('pushes the manifest then wakes the app to foreground', async () => {
+    await service.transferPlaylistManifest(manifest);
+
+    expect(pushMock).toHaveBeenCalledTimes(1);
+    expect(pushMock.mock.calls[0][1]).toContain('road-trip.json');
+    expect(shellMock).toHaveBeenCalledTimes(1);
+    expect(shellMock.mock.calls[0][0]).toContain('monkey -p com.metalp3.mobile');
+  });
+
+  it('still resolves when the wake nudge fails', async () => {
+    shellMock.mockRejectedValue(new Error('device asleep'));
+    await expect(service.transferPlaylistManifest(manifest)).resolves.toBeUndefined();
+    expect(pushMock).toHaveBeenCalledTimes(1);
+  });
+});

@@ -21,7 +21,17 @@ jest.mock('@react-native-async-storage/async-storage', () => {
   };
 });
 
+jest.mock(
+  '../../modules/metalp3-player',
+  () => ({
+    __esModule: true,
+    MetalP3Player: { importPlaylistManifests: jest.fn() },
+  }),
+  { virtual: true },
+);
+
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { MetalP3Player } from '../../modules/metalp3-player';
 import {
   PLAYLIST_STORAGE_KEY,
   _resetForTests,
@@ -33,6 +43,7 @@ import {
   getPlaylist,
   getPlaylists,
   loadPlaylists,
+  reconcileImportedPlaylists,
   removeTrackFromPlaylist,
   removeTrackIdsFromAllPlaylists,
   renamePlaylist,
@@ -49,11 +60,13 @@ interface MockedStorage {
 }
 
 const mocked = AsyncStorage as unknown as MockedStorage;
+const mockImportPlaylistManifests = MetalP3Player.importPlaylistManifests as jest.Mock;
 
 beforeEach(async () => {
   mocked.__store.clear();
   mocked.setItem.mockClear();
   mocked.getItem.mockClear();
+  mockImportPlaylistManifests.mockReset();
   _resetForTests();
 });
 
@@ -239,5 +252,99 @@ describe('playlist-store', () => {
 
     expect(getPlaylist(a.id)?.trackIds).toEqual(['t1']);
     expect(getPlaylist(b.id)?.trackIds).toEqual(['t3']);
+  });
+});
+
+describe('reconcileImportedPlaylists', () => {
+  beforeEach(() => {
+    jest.useFakeTimers();
+  });
+
+  afterEach(() => {
+    jest.clearAllTimers();
+    jest.useRealTimers();
+  });
+
+  it('merges a fully-resolved manifest into the store', async () => {
+    mockImportPlaylistManifests.mockResolvedValueOnce({
+      imported: [{ name: 'From Desktop', trackIds: ['10', '11'] }],
+      pending: 0,
+    });
+
+    await reconcileImportedPlaylists();
+
+    const pl = getPlaylists().find((p) => p.name === 'From Desktop');
+    expect(pl?.trackIds).toEqual(['10', '11']);
+    // No pending manifests → no retry scheduled.
+    expect(mockImportPlaylistManifests).toHaveBeenCalledTimes(1);
+  });
+
+  it('replaces a same-named playlist in place (desktop is source of truth)', async () => {
+    await loadPlaylists();
+    const existing = await createPlaylist('Shared');
+    await addTrackToPlaylist(existing.id, 'old');
+
+    mockImportPlaylistManifests.mockResolvedValueOnce({
+      imported: [{ name: 'shared', trackIds: ['new-1', 'new-2'] }],
+      pending: 0,
+    });
+
+    await reconcileImportedPlaylists();
+
+    expect(getPlaylists()).toHaveLength(1);
+    expect(getPlaylist(existing.id)?.trackIds).toEqual(['new-1', 'new-2']);
+  });
+
+  it('retries on a backoff while manifests remain pending, then stops once resolved', async () => {
+    mockImportPlaylistManifests
+      .mockResolvedValueOnce({ imported: [], pending: 1 })
+      .mockResolvedValueOnce({ imported: [], pending: 1 })
+      .mockResolvedValueOnce({ imported: [{ name: 'Late', trackIds: ['7'] }], pending: 0 });
+
+    await reconcileImportedPlaylists();
+    expect(mockImportPlaylistManifests).toHaveBeenCalledTimes(1);
+
+    // First retry after 1s.
+    await jest.advanceTimersByTimeAsync(1000);
+    expect(mockImportPlaylistManifests).toHaveBeenCalledTimes(2);
+
+    // Second retry after 3s more.
+    await jest.advanceTimersByTimeAsync(3000);
+    expect(mockImportPlaylistManifests).toHaveBeenCalledTimes(3);
+
+    // Resolved on the third pass → no further retries.
+    await jest.advanceTimersByTimeAsync(6000);
+    expect(mockImportPlaylistManifests).toHaveBeenCalledTimes(3);
+    expect(getPlaylists().find((p) => p.name === 'Late')?.trackIds).toEqual(['7']);
+  });
+
+  it('gives up after exhausting the retry budget', async () => {
+    mockImportPlaylistManifests.mockResolvedValue({ imported: [], pending: 1 });
+
+    await reconcileImportedPlaylists();
+    await jest.advanceTimersByTimeAsync(1000);
+    await jest.advanceTimersByTimeAsync(3000);
+    await jest.advanceTimersByTimeAsync(6000);
+    // 1 initial + 3 retries, then stop.
+    expect(mockImportPlaylistManifests).toHaveBeenCalledTimes(4);
+    await jest.advanceTimersByTimeAsync(60000);
+    expect(mockImportPlaylistManifests).toHaveBeenCalledTimes(4);
+  });
+
+  it('a fresh reconcile cancels a scheduled retry', async () => {
+    mockImportPlaylistManifests
+      .mockResolvedValueOnce({ imported: [], pending: 1 })
+      .mockResolvedValueOnce({ imported: [{ name: 'Fresh', trackIds: ['1'] }], pending: 0 });
+
+    await reconcileImportedPlaylists();
+    expect(mockImportPlaylistManifests).toHaveBeenCalledTimes(1);
+
+    // A new top-level reconcile (e.g. app foreground) supersedes the pending retry.
+    await reconcileImportedPlaylists();
+    expect(mockImportPlaylistManifests).toHaveBeenCalledTimes(2);
+
+    // The originally-scheduled 1s retry must have been cancelled.
+    await jest.advanceTimersByTimeAsync(10000);
+    expect(mockImportPlaylistManifests).toHaveBeenCalledTimes(2);
   });
 });

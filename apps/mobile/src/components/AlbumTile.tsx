@@ -1,5 +1,5 @@
 import { Image } from 'expo-image';
-import { memo, useMemo, useRef } from 'react';
+import { memo, useMemo, useRef, useState } from 'react';
 import { Text, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
@@ -13,7 +13,7 @@ import { runOnJS } from 'react-native-worklets';
 import type { AlbumGroup } from '../lib/group-tracks-by-album';
 import { formatAlbumDuration } from '../lib/group-tracks-by-album';
 import { tw } from '../lib/tw';
-import { useTrackArtwork, evictTrackArtwork, resetArtworkRetry } from '../lib/useTrackArtwork';
+import { useTrackArtwork } from '../lib/useTrackArtwork';
 
 interface AlbumTileProps {
   group: AlbumGroup;
@@ -29,6 +29,16 @@ const ENTRY_DELAY_MAX = 400;
 
 function AlbumTileImpl({ group, index = 0, onPress, onLongPress }: AlbumTileProps) {
   const artUri = useTrackArtwork(group.representativeUri);
+
+  // A transient decode failure (common when scrolling fast) shouldn't blank the
+  // tile permanently. Bumping `retry` remounts just this <Image> to re-attempt
+  // the same uri, bounded to 2 tries. Reset when the cell recycles to a new uri.
+  const [retry, setRetry] = useState(0);
+  const lastUri = useRef(artUri);
+  if (lastUri.current !== artUri) {
+    lastUri.current = artUri;
+    if (retry !== 0) setRetry(0);
+  }
 
   // pressed is the *state* (0 = idle, 1 = pressed). Visual scale is derived
   // via interpolate so we can change the curve without rewriting handlers.
@@ -90,22 +100,14 @@ function AlbumTileImpl({ group, index = 0, onPress, onLongPress }: AlbumTileProp
           >
             {artUri ? (
               <Image
+                key={`${artUri}:${retry}`}
                 source={{ uri: artUri }}
                 style={tw`w-full h-full`}
                 contentFit="cover"
                 cachePolicy="memory-disk"
                 recyclingKey={artUri}
                 transition={120}
-                onLoad={() => {
-                  if (group.representativeUri) {
-                    resetArtworkRetry(group.representativeUri);
-                  }
-                }}
-                onError={() => {
-                  if (group.representativeUri) {
-                    evictTrackArtwork(group.representativeUri);
-                  }
-                }}
+                onError={() => setRetry((r) => (r < 2 ? r + 1 : r))}
               />
             ) : (
               <View style={tw`w-full h-full bg-[#222]`} />

@@ -1,11 +1,12 @@
 import { inject, Injectable } from '@angular/core';
 import { PlaylistDto } from '@metal-p3/playlist/domain';
-import { PlaylistService } from '@metal-p3/playlist/data-access';
+import { PlaylistActions, PlaylistService } from '@metal-p3/playlist/data-access';
 import { ErrorService } from '@metal-p3/shared/error';
+import { NotificationService } from '@metal-p3/shared/feedback';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { concatLatestFrom } from '@ngrx/operators';
 import { Store } from '@ngrx/store';
-import { catchError, concatMap, map, of } from 'rxjs';
+import { catchError, concatMap, map, of, tap } from 'rxjs';
 import { SetlistImporterService } from '../setlist-importer.service';
 import { SetlistImporterActions } from './actions';
 import { selectSetlistImporterSetlists, selectSetlistImporterTracks, selectSetlistImporterUrls } from './selectors';
@@ -17,6 +18,7 @@ export class SetlistImporterEffects {
   private readonly service = inject(SetlistImporterService);
   private readonly playlistService = inject(PlaylistService);
   private readonly errorService = inject(ErrorService);
+  private readonly notificationService = inject(NotificationService);
 
   scrape$ = createEffect(() => {
     return this.actions$.pipe(
@@ -71,4 +73,31 @@ export class SetlistImporterEffects {
       ),
     );
   });
+
+  addToPlaylistState$ = createEffect(() => {
+    return this.actions$.pipe(
+      ofType(SetlistImporterActions.createPlaylistSuccess),
+      map(({ playlist }) => PlaylistActions.createSuccess({ playlist })),
+    );
+  });
+
+  notifyCreatePlaylistSuccess$ = createEffect(
+    () => {
+      return this.actions$.pipe(
+        ofType(SetlistImporterActions.createPlaylistSuccess),
+        tap(({ playlist }) => this.notificationService.showComplete(`Playlist "${playlist.name}" created`)),
+      );
+    },
+    { dispatch: false },
+  );
+
+  notifyCreatePlaylistError$ = createEffect(
+    () => {
+      return this.actions$.pipe(
+        ofType(SetlistImporterActions.createPlaylistError),
+        tap(({ error }) => this.notificationService.showError(error, 'Create Playlist')),
+      );
+    },
+    { dispatch: false },
+  );
 }
