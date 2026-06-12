@@ -17,10 +17,10 @@
     <button type="button" [disabled]="gettingMaTracks()" (click)="maTracks.emit()" mat-icon-button title="MA Track Names">
       <mat-icon title="ma tracks">format_list_numbered</mat-icon>
     </button>
-    <button type="button" [disabled]="lyricsLoading()" (click)="lyrics.emit()" mat-icon-button title="Lyrics">
-      <mat-icon title="lyrics">article</mat-icon>
-    </button>
   }
+  <button type="button" [disabled]="lyricsLoading()" (click)="lyrics.emit()" mat-icon-button title="Lyrics">
+    <mat-icon title="lyrics">article</mat-icon>
+  </button>
   <button type="button" (click)="refreshTracks.emit()" mat-icon-button title="Refresh Tracks">
     <mat-icon title="refresh">refresh</mat-icon>
   </button>

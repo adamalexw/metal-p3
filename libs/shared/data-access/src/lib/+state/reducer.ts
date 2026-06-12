@@ -276,6 +276,56 @@ export const albumsFeature = createFeature({
           state,
         ),
     ),
+    on(
+      TrackActions.getLocalLyrics,
+      (state, { id, localTrackId }): AlbumState =>
+        albumAdapter.mapOne(
+          {
+            id,
+            map: (album) => ({
+              ...album,
+              tracks: trackAdapter.updateOne({ id: localTrackId, changes: { lyricsLoading: true } }, album.tracks),
+            }),
+          },
+          state,
+        ),
+    ),
+    on(
+      TrackActions.getLocalLyricsSuccess,
+      (state, { id, localTrackId, syncedLyrics, plainLyrics }): AlbumState =>
+        albumAdapter.mapOne(
+          {
+            id,
+            map: (album) => ({
+              ...album,
+              tracks: trackAdapter.updateOne(
+                {
+                  id: localTrackId,
+                  changes: syncedLyrics
+                    ? { syncedLyrics, lyricsSource: 'synced', lyricsLoading: false, lyricsChecked: true }
+                    : { lyrics: plainLyrics ?? undefined, lyricsSource: 'plain', lyricsLoading: false, lyricsChecked: true },
+                },
+                album.tracks,
+              ),
+            }),
+          },
+          state,
+        ),
+    ),
+    on(
+      TrackActions.getLocalLyricsMiss,
+      (state, { id, localTrackId }): AlbumState =>
+        albumAdapter.mapOne(
+          {
+            id,
+            map: (album) => ({
+              ...album,
+              tracks: trackAdapter.updateOne({ id: localTrackId, changes: { lyricsLoading: false, lyricsChecked: true } }, album.tracks),
+            }),
+          },
+          state,
+        ),
+    ),
     on(TrackActions.getMetalArchivesTracks, (state, { id }): AlbumState => albumAdapter.updateOne({ id, changes: { gettingMaTracks: true } }, state)),
     on(
       TrackActions.getMetalArchivesTracksSuccess,

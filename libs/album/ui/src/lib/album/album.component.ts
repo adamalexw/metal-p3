@@ -318,9 +318,8 @@ export class AlbumComponent {
   }
 
   onLyrics() {
-    if (this.albumUrl.value) {
-      this.lyrics.emit({ id: this.albumId(), url: this.albumUrl.value });
-    }
+    // Albums without a metal-archives url still get lyrics via LrcLib using the local tracks.
+    this.lyrics.emit({ id: this.albumId(), url: this.albumUrl.value ?? '' });
   }
 
   onRenameFolder() {

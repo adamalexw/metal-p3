@@ -115,6 +115,7 @@ export class ApplyLyricsShellComponent implements OnInit {
       )
       .subscribe();
 
+    // Album has a metal-archives url: drive lyrics from the metal-archives tracklist.
     combineLatest([this.maTracks$, this.tracks$, this.album$.pipe(nonNullable())])
       .pipe(
         filter(([maTracks, tracks]) => !!maTracks?.length && !!tracks?.length),
@@ -148,6 +149,36 @@ export class ApplyLyricsShellComponent implements OnInit {
       )
       .subscribe();
 
+    // Album has no metal-archives url: drive lyrics from the local mp3 tracks via LrcLib.
+    combineLatest([this.tracks$, this.album$.pipe(nonNullable())])
+      .pipe(
+        filter(([tracks, album]) => !album.albumUrl && !!tracks?.length),
+        withLatestFrom(this.albumId$),
+        tap(([[tracks, album], id]) => {
+          (tracks ?? [])
+            .filter((track) => !track.lyricsLoading && !track.lyricsChecked)
+            .forEach((track, i) => {
+              setTimeout(
+                () =>
+                  this.store.dispatch(
+                    TrackActions.getLocalLyrics({
+                      id,
+                      localTrackId: track.id,
+                      artist: album.artist ?? track.artist ?? '',
+                      track: track.title ?? '',
+                      album: album.album ?? track.album ?? '',
+                      durationSeconds: track.duration,
+                    }),
+                  ),
+                i * 3000,
+              );
+            });
+        }),
+        take(1),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe();
+
     combineLatest([album$, this.cover$])
       .pipe(
         filter(([album, cover]) => !album.cover && !cover),
@@ -161,12 +192,16 @@ export class ApplyLyricsShellComponent implements OnInit {
 
   onApply(id: number, lyrics: ApplyLyrics[]) {
     const tracksToSave = lyrics
-      .filter((track) => track.syncedLyrics || track.maTrack?.lyrics)
+      .filter((track) => track.syncedLyrics || track.maTrack?.lyrics || (track.lyricsSource === 'plain' && track.lyrics))
       .map((track) => {
         if (track.syncedLyrics) {
           return { ...track };
         }
-        return { ...track, lyrics: this.formatLyrics(track.maTrack!.lyrics!) };
+        if (track.maTrack?.lyrics) {
+          return { ...track, lyrics: this.formatLyrics(track.maTrack.lyrics) };
+        }
+        // Local (no metal-archives url) plain lyrics already live on track.lyrics from LrcLib
+        return { ...track };
       });
 
     if (tracksToSave.length) {

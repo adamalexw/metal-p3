@@ -13,6 +13,8 @@ export interface Track extends TrackDto {
   trackDeletionError?: string;
   playlistItemId?: number;
   lyricsSource?: TrackLyricsSource | null;
+  lyricsLoading?: boolean;
+  lyricsChecked?: boolean;
 }
 
 export type TracksForm = {
