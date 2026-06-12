@@ -1,6 +1,6 @@
-import { ChangeDetectionStrategy, Component, effect, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input, linkedSignal, output } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { FormControl, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
@@ -9,10 +9,10 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { RouterModule } from '@angular/router';
 import { SearchRequest } from '@metal-p3/api-interfaces';
-import { debounceTime, distinctUntilChanged, tap } from 'rxjs';
+import { Subject, debounceTime, distinctUntilChanged, tap } from 'rxjs';
 
 @Component({
-  imports: [FormsModule, ReactiveFormsModule, MatToolbarModule, RouterModule, MatInputModule, MatButtonModule, MatIconModule, MatMenuModule, MatProgressBarModule],
+  imports: [FormsModule, MatToolbarModule, RouterModule, MatInputModule, MatButtonModule, MatIconModule, MatMenuModule, MatProgressBarModule],
   selector: 'app-list-toolbar',
   templateUrl: './list-toolbar.component.html',
   styleUrls: ['./list-toolbar.component.scss'],
@@ -30,32 +30,28 @@ export class ListToolbarComponent {
   readonly connectPhone = output<void>();
   readonly lyricsPriority = output<void>();
 
-  protected folderControl = new FormControl<string | undefined>('', { nonNullable: true });
+  protected readonly search = linkedSignal(() => this.folder() ?? '');
 
-  form = new FormGroup({
-    folder: this.folderControl,
-  });
+  private readonly searchInput$ = new Subject<string>();
 
   constructor() {
-    effect(() => {
-      const folder = this.folder();
-
-      if (folder && folder !== this.form.value) {
-        this.folderControl.setValue(folder, { emitEvent: false });
-      }
-    });
-
-    this.form.valueChanges
+    this.searchInput$
       .pipe(
         debounceTime(500),
         distinctUntilChanged(),
-        tap((request: SearchRequest) => this.searchRequest.emit(request)),
+        tap((folder) => this.searchRequest.emit({ folder })),
         takeUntilDestroyed(),
       )
       .subscribe();
   }
 
+  onSearchInput(value: string) {
+    this.search.set(value);
+    this.searchInput$.next(value);
+  }
+
   onClear() {
-    this.form.reset();
+    this.search.set('');
+    this.searchInput$.next('');
   }
 }

@@ -1,7 +1,7 @@
 import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 import { AsyncPipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, OnInit, effect, inject, input, output } from '@angular/core';
-import { ControlContainer, FormArray, FormGroup, FormsModule, NonNullableFormBuilder, ReactiveFormsModule } from '@angular/forms';
+import { ChangeDetectionStrategy, Component, effect, inject, input, output } from '@angular/core';
+import { FieldTree, FormField } from '@angular/forms/signals';
 import { MatBottomSheet, MatBottomSheetModule } from '@angular/material/bottom-sheet';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -23,7 +23,7 @@ import { LyricsComponent } from '../lyrics/lyrics.component';
     AsyncPipe,
     BitRatePipe,
     ConfirmDeleteDirective,
-    FormsModule,
+    FormField,
     MatBottomSheetModule,
     MatButtonModule,
     MatFormFieldModule,
@@ -33,7 +33,6 @@ import { LyricsComponent } from '../lyrics/lyrics.component';
     MatProgressSpinnerModule,
     MatTableModule,
     MatTooltipModule,
-    ReactiveFormsModule,
     TimePipe,
     TitleCaseDirective,
   ],
@@ -42,13 +41,11 @@ import { LyricsComponent } from '../lyrics/lyrics.component';
   styleUrls: ['./tracks.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class TracksComponent implements OnInit {
-  private readonly controlContainer = inject(ControlContainer);
-  private readonly fb = inject(NonNullableFormBuilder);
+export class TracksComponent {
   private readonly bottomSheet = inject(MatBottomSheet);
   private readonly breakpointObserver = inject(BreakpointObserver);
 
-  protected form!: FormArray<FormGroup<TracksForm>>;
+  readonly field = input.required<FieldTree<TracksForm[]>>();
 
   tracksLoading = input(false);
   tracks = input<Track[]>([]);
@@ -60,49 +57,16 @@ export class TracksComponent implements OnInit {
   delete = output<Track>();
 
   displayedColumns$: Observable<string[]>;
-  dataSource = new MatTableDataSource<FormGroup<TracksForm>>();
+  dataSource = new MatTableDataSource<FieldTree<TracksForm>>();
 
   constructor() {
     effect(() => {
-      const tracks = this.tracks();
-
-      if (tracks?.length) {
-        this.addTracks(tracks);
-      }
+      this.dataSource.data = [...this.field()];
     });
 
     this.displayedColumns$ = this.breakpointObserver
       .observe([Breakpoints.Large, Breakpoints.XLarge])
       .pipe(map(({ matches }) => (matches ? ['trackNumber', 'title', 'duration', 'bitrate', 'actions'] : ['title', 'duration', 'actions'])));
-  }
-
-  ngOnInit(): void {
-    this.form = this.controlContainer.control?.get('tracks') as FormArray<FormGroup<TracksForm>>;
-  }
-
-  private addTracks(tracks: Track[]) {
-    this.form.clear();
-
-    for (let index = 0; index < tracks.length; index++) {
-      this.form.push(this.addTrack(tracks[index]));
-    }
-
-    this.dataSource.data = this.form.controls;
-  }
-
-  private addTrack(track: Track): FormGroup<TracksForm> {
-    return this.fb.group({
-      id: this.fb.control(track.id),
-      trackNumber: this.fb.control(track.trackNumber),
-      title: this.fb.control(track.title),
-      duration: this.fb.control(track.duration),
-      bitrate: this.fb.control(track.bitrate),
-      lyrics: this.fb.control(track.lyrics),
-      syncedLyrics: this.fb.control(track.syncedLyrics),
-      file: this.fb.control(track.file),
-      folder: this.fb.control(track.folder),
-      fullPath: this.fb.control(track.fullPath),
-    });
   }
 
   viewLyrics(index: number, lyrics: string | undefined, syncedLyrics: string | undefined) {
@@ -118,7 +82,11 @@ export class TracksComponent implements OnInit {
       .pipe(
         take(1),
         filter((newLyrics) => newLyrics !== undefined),
-        tap((newLyrics) => this.form.at(index).controls.lyrics.setValue(newLyrics)),
+        tap((newLyrics) =>
+          this.field()
+            [index].lyrics()
+            .value.set(newLyrics ?? ''),
+        ),
       )
       .subscribe();
   }
@@ -149,8 +117,8 @@ export class TracksComponent implements OnInit {
     }
   }
 
-  trackByFn(index: number, item: FormGroup<TracksForm>) {
-    return item.controls.id.value || index;
+  trackByFn(index: number, item: FieldTree<TracksForm>) {
+    return item().value().id || index;
   }
 
   private getTrack(id: number): Track | undefined {

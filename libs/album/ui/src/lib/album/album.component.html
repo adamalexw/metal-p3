@@ -21,7 +21,7 @@
     <mat-progress-bar class="fixed top-0 z-50 w-full lg:block" [value]="progress" mode="determinate" />
   }
 
-  <form [formGroup]="form">
+  <form>
     <section class="flex flex-col lg:flex-row">
       <app-cover
         class="w-full lg:max-w-125 lg:min-w-125"
@@ -32,7 +32,13 @@
         (coverUrl)="coverUrl.emit({ id: album.id, url: $event })"
       />
 
-      <app-album-form class="mt-1 mb-0 block w-full lg:mx-2" (findBandProps)="getBandProps($event)" (identifyBand)="onIdentifyBand()" (lyricsPriority)="lyricsPriority.emit(albumId())" />
+      <app-album-form
+        class="mt-1 mb-0 block w-full lg:mx-2"
+        [field]="form.details"
+        (findBandProps)="getBandProps($event)"
+        (identifyBand)="onIdentifyBand()"
+        (lyricsPriority)="lyricsPriority.emit(albumId())"
+      />
     </section>
 
     <section>
@@ -52,6 +58,7 @@
 
       <app-tracks
         class="block overflow-auto lg:h-[calc(100vh-128px-500px)]"
+        [field]="form.tracks"
         [tracksLoading]="tracksLoading() || false"
         [tracks]="tracks() || []"
         [tracksError]="tracksError()"

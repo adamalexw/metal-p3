@@ -1,6 +1,5 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, computed, effect, inject, input, output, untracked } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { FormGroup, FormsModule, NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, input, linkedSignal, output, untracked } from '@angular/core';
+import { applyEach, form, required } from '@angular/forms/signals';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
@@ -15,20 +14,19 @@ import { BandDto, BandProps, MetalArchivesAlbumTrack, MetalArchivesUrl, TrackBas
 import { CoverComponent } from '@metal-p3/cover/ui';
 import { Album, AlbumWithoutTracks } from '@metal-p3/shared/data-access';
 import { NotificationService } from '@metal-p3/shared/feedback';
-import { Track, TracksForm } from '@metal-p3/track/domain';
+import { Track } from '@metal-p3/track/domain';
 import { TracksComponent, TracksToolbarComponent } from '@metal-p3/track/ui';
 import { WA_WINDOW } from '@ng-web-apis/common';
+import { take } from 'rxjs';
 import { AlbumFormComponent } from '../album-form/album-form.component';
 import { AlbumToolbarComponent } from '../album-toolbar/album-toolbar.component';
 import { BandIdentifyComponent } from './band-identify.component';
-import { take } from 'rxjs';
 
 @Component({
   imports: [
     AlbumFormComponent,
     AlbumToolbarComponent,
     CoverComponent,
-    FormsModule,
     MatButtonModule,
     MatCheckboxModule,
     MatDialogModule,
@@ -37,7 +35,6 @@ import { take } from 'rxjs';
     MatInputModule,
     MatListModule,
     MatProgressBarModule,
-    ReactiveFormsModule,
     RouterModule,
     TracksComponent,
     TracksToolbarComponent,
@@ -50,7 +47,6 @@ import { take } from 'rxjs';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AlbumComponent {
-  private readonly fb = inject(NonNullableFormBuilder);
   private readonly windowRef = inject(WA_WINDOW);
   private readonly notificationService = inject(NotificationService);
   private readonly dialog = inject(MatDialog);
@@ -176,84 +172,93 @@ export class AlbumComponent {
 
   albumId = computed(() => this.album()?.id ?? 0);
 
-  get albumUrl() {
-    return this.details.controls.albumUrl;
+  get albumUrl(): string {
+    return this.model().details.albumUrl;
   }
 
-  get artistUrl() {
-    return this.details.controls.artistUrl;
-  }
-
-  get hasLyrics() {
-    return this.details.controls.hasLyrics;
-  }
-
-  private get details() {
-    return this.form.controls.details;
-  }
-
-  private get genre() {
-    return this.details.controls.genre;
-  }
-
-  private get country() {
-    return this.details.controls.country;
-  }
-
-  form = this.fb.group<AlbumForm>({
-    details: this.fb.group<AlbumDetailsForm>({
-      artist: this.fb.control('', Validators.required),
-      album: this.fb.control('', Validators.required),
-      year: this.fb.control(0, Validators.required),
-      genre: this.fb.control('', Validators.required),
-      country: this.fb.control('', Validators.required),
-      artistUrl: this.fb.control(undefined),
-      albumUrl: this.fb.control(undefined),
-      ignore: this.fb.control(false),
-      played: this.fb.control(false),
-      transferred: this.fb.control(undefined),
-      hasLyrics: this.fb.control(undefined),
-      dateCreated: this.fb.control(''),
+  protected readonly model = linkedSignal<
+    {
+      album: Album | null;
+      tracks: Track[];
+      maUrls: MetalArchivesUrl | null;
+      bandProps: BandProps | null | undefined;
+    },
+    AlbumForm
+  >({
+    source: () => ({
+      album: this.album(),
+      tracks: this.tracks() ?? [],
+      maUrls: this.maUrls(),
+      bandProps: this.bandProps(),
     }),
-    tracks: this.fb.array<FormGroup<TracksForm>>([]),
+    computation: ({ album, tracks, maUrls, bandProps }) => ({
+      details: {
+        artist: album?.artist ?? '',
+        album: album?.album ?? '',
+        year: album?.year ?? 0,
+        genre: bandProps ? (bandProps.genre ?? '') : (album?.genre ?? ''),
+        country: bandProps ? (bandProps.country ?? '') : (album?.country ?? ''),
+        played: album?.played ?? false,
+        artistUrl: maUrls ? (maUrls.artistUrl ?? '') : (album?.artistUrl ?? ''),
+        albumUrl: maUrls ? (maUrls.albumUrl ?? '') : (album?.albumUrl ?? ''),
+        ignore: false,
+        transferred: album?.transferred ?? false,
+        hasLyrics: album?.hasLyrics ?? false,
+        dateCreated: album?.dateCreated ?? '',
+      },
+      tracks: tracks.map((track) => ({
+        id: track.id,
+        trackNumber: track.trackNumber,
+        title: track.title,
+        duration: track.duration ?? 0,
+        bitrate: track.bitrate ?? 0,
+        lyrics: track.lyrics ?? '',
+        syncedLyrics: track.syncedLyrics ?? '',
+        file: track.file,
+        folder: track.folder,
+        fullPath: track.fullPath,
+      })),
+    }),
   });
+
+  protected readonly form = form(this.model, (path) => {
+    required(path.details.artist);
+    required(path.details.album);
+    required(path.details.year);
+    required(path.details.genre);
+    required(path.details.country);
+    applyEach(path.tracks, (track) => {
+      required(track.trackNumber);
+      required(track.title);
+    });
+  });
+
+  private updateDetails(patch: Partial<AlbumDetailsForm>): void {
+    this.model.update((m) => ({ ...m, details: { ...m.details, ...patch } }));
+  }
 
   constructor() {
     effect(() => {
-      const albumId = this.albumId();
-
-      if (albumId) {
-        const album = untracked(this.album);
-
-        if (album) {
-          this.form.controls.details.patchValue(album);
-        }
-      }
-    });
-
-    effect(() => {
       const maUrls = this.maUrls();
 
+      if (!maUrls) {
+        return;
+      }
+
+      const artistUrl = maUrls.artistUrl;
+
+      if (!artistUrl) {
+        return;
+      }
+
       untracked(() => {
+        const { genre, country } = this.model().details;
         const gettingBandProps = this.gettingBandProps() ?? false;
 
-        if (maUrls) {
-          this.setMaUrls(maUrls);
-
-          if (maUrls.artistUrl && (!this.genre.value || !this.country.value) && !gettingBandProps) {
-            this.getBandProps(maUrls.artistUrl);
-          }
+        if ((!genre || !country) && !gettingBandProps) {
+          this.getBandProps(artistUrl);
         }
       });
-    });
-
-    // prevent band genre and country from being overidden
-    effect(() => {
-      const bandProps = this.bandProps();
-
-      if (bandProps) {
-        this.setBandProps(bandProps);
-      }
     });
 
     effect(() => {
@@ -269,7 +274,7 @@ export class AlbumComponent {
     const currentAlbum = this.album();
     if (!currentAlbum) return;
     const { folder, fullPath } = currentAlbum;
-    const album = this.details.getRawValue();
+    const album = this.model().details;
 
     const previousBandId = bandId !== undefined && bandId !== currentAlbum.bandId ? currentAlbum.bandId : undefined;
 
@@ -288,11 +293,12 @@ export class AlbumComponent {
   }
 
   onImageSearch() {
-    this.openLink(encodeURI(`https://google.com/images?q=${this.details.controls.artist.value} ${this.details.controls.album.value}`));
+    const { artist, album } = this.model().details;
+    this.openLink(encodeURI(`https://google.com/images?q=${artist} ${album}`));
   }
 
   onFindUrl() {
-    const { artist, album } = this.details.value;
+    const { artist, album } = this.model().details;
 
     if (artist && album) {
       this.findUrl.emit({ id: this.albumId(), artist, album });
@@ -312,18 +318,18 @@ export class AlbumComponent {
   }
 
   onMaTracks() {
-    if (this.albumUrl.value) {
-      this.getMaTracks.emit({ id: this.albumId(), url: this.albumUrl.value });
+    if (this.albumUrl) {
+      this.getMaTracks.emit({ id: this.albumId(), url: this.albumUrl });
     }
   }
 
   onLyrics() {
     // Albums without a metal-archives url still get lyrics via LrcLib using the local tracks.
-    this.lyrics.emit({ id: this.albumId(), url: this.albumUrl.value ?? '' });
+    this.lyrics.emit({ id: this.albumId(), url: this.albumUrl });
   }
 
   onRenameFolder() {
-    const { artist, album } = this.details.value;
+    const { artist, album } = this.model().details;
 
     if (artist && album) {
       this.renameFolder.emit({ id: this.albumId(), src: this.album()?.fullPath || '', artist, album });
@@ -339,7 +345,7 @@ export class AlbumComponent {
   }
 
   onIdentifyBand(): void {
-    const artistName = this.details.controls.artist.value;
+    const artistName = this.model().details.artist;
     if (!artistName) return;
 
     this.dialog
@@ -351,8 +357,7 @@ export class AlbumComponent {
       .pipe(take(1))
       .subscribe((band) => {
         if (band) {
-          this.details.controls.country.setValue(band.country);
-          this.details.controls.genre.setValue(band.genre);
+          this.updateDetails({ country: band.country ?? '', genre: band.genre ?? '' });
           this.onSave(band.id);
         }
       });
@@ -365,7 +370,7 @@ export class AlbumComponent {
       this.transferAlbum.emit(transferTracks);
     }
 
-    this.form.controls.details.controls.transferred.setValue(true);
+    this.updateDetails({ transferred: true });
     this.setPlayed();
   }
 
@@ -384,20 +389,10 @@ export class AlbumComponent {
   }
 
   private setPlayed() {
-    this.form.controls.details.controls.played.setValue(true);
-  }
-
-  private setMaUrls(urls: MetalArchivesUrl) {
-    this.artistUrl.setValue(urls.artistUrl);
-    this.albumUrl.setValue(urls.albumUrl);
-  }
-
-  private setBandProps(props: BandProps) {
-    this.genre.setValue(props.genre);
-    this.country.setValue(props.country);
+    this.updateDetails({ played: true });
   }
 
   private getTracks(): TrackBase[] {
-    return this.form.controls.tracks.getRawValue();
+    return this.model().tracks;
   }
 }

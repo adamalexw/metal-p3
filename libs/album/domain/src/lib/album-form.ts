@@ -1,22 +1,21 @@
-import { FormArray, FormControl, FormGroup } from '@angular/forms';
 import { TracksForm } from '@metal-p3/track/domain';
 
 export interface AlbumForm {
-  details: FormGroup<AlbumDetailsForm>;
-  tracks: FormArray<FormGroup<TracksForm>>;
+  details: AlbumDetailsForm;
+  tracks: TracksForm[];
 }
 
 export interface AlbumDetailsForm {
-  artist: FormControl<string>;
-  album: FormControl<string>;
-  year: FormControl<number>;
-  genre: FormControl<string | undefined>;
-  country: FormControl<string | undefined>;
-  played: FormControl<boolean | undefined>;
-  artistUrl: FormControl<string | undefined>;
-  albumUrl: FormControl<string | undefined>;
-  ignore: FormControl<boolean>;
-  transferred: FormControl<boolean | undefined>;
-  hasLyrics: FormControl<boolean | undefined>;
-  dateCreated: FormControl<string>;
+  artist: string;
+  album: string;
+  year: number;
+  genre: string;
+  country: string;
+  played: boolean;
+  artistUrl: string;
+  albumUrl: string;
+  ignore: boolean;
+  transferred: boolean;
+  hasLyrics: boolean;
+  dateCreated: string;
 }
