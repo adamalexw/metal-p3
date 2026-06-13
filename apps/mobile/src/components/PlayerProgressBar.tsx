@@ -22,6 +22,10 @@ interface Props {
   mutedForeground: string;
   onSeek: (positionMs: number) => void;
   testID?: string;
+  // Identifies the current track. Changing this forces a position reset even
+  // when positionMs stays the same (the native player reports 0 at the start
+  // of every track, so 0 -> 0 transitions would otherwise be missed).
+  trackKey?: string | null;
 }
 
 const TRACK_HEIGHT = 4;
@@ -37,6 +41,7 @@ export function PlayerProgressBar({
   mutedForeground,
   onSeek,
   testID,
+  trackKey,
 }: Props) {
   // Shared values drive the visible position and width on the UI thread, so
   // the fill bar and thumb update smoothly without re-rendering React. Width
@@ -64,11 +69,12 @@ export function PlayerProgressBar({
   }, [durationMs, durationSv]);
 
   // Snap the position whenever the source-of-truth prop changes (track change,
-  // server reconcile, scrub release reflected back).
+  // server reconcile, scrub release reflected back). trackKey is included so a
+  // track change resets the bar even when positionMs is unchanged (0 -> 0).
   useEffect(() => {
     position.value = positionMs;
     setDisplaySec(secOf(positionMs));
-  }, [positionMs, position]);
+  }, [positionMs, trackKey, position]);
 
   // While playing (and not scrubbing), advance the shared value locally so the
   // bar moves between server updates. JS interval is fine here — it only
@@ -86,7 +92,7 @@ export function PlayerProgressBar({
       setDisplaySec((prev) => (prev === sec ? prev : sec));
     }, TICK_INTERVAL_MS);
     return () => clearInterval(id);
-  }, [positionMs, durationMs, isPlaying, scrubbing, position]);
+  }, [positionMs, trackKey, durationMs, isPlaying, scrubbing, position]);
 
   // 1Hz pulse on the elapsed-time text. Driven by RN Animated to avoid an
   // extra Reanimated worklet for a once-per-second visual blip.
