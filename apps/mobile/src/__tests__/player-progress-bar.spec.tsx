@@ -1,6 +1,26 @@
 import { act, render } from '@testing-library/react-native';
 import { PlayerProgressBar } from '../components/PlayerProgressBar';
 
+// The shared global mock returns a fresh shared-value object on every render,
+// which resets `position.value` and prevents the component's local
+// interpolation interval from advancing. Override it here with a ref-backed
+// stable shared value so the elapsed-time interpolation behaves like the real
+// reanimated runtime.
+jest.mock('react-native-reanimated', () => {
+  const React = require('react');
+  const RN = require('react-native');
+  const { View } = RN;
+  return {
+    __esModule: true,
+    default: { View, createAnimatedComponent: (c: unknown) => c },
+    View,
+    useSharedValue: (v: unknown) => React.useRef({ value: v }).current,
+    useAnimatedStyle: () => ({}),
+    withSpring: (v: unknown) => v,
+    withTiming: (v: unknown) => v,
+  };
+});
+
 function flatten<T>(style: T | T[] | null | undefined): Record<string, unknown> {
   if (!style) return {};
   if (Array.isArray(style)) {
@@ -121,5 +141,53 @@ describe('PlayerProgressBar', () => {
 
     expect(onStartShouldSetResponder()).toBe(false);
     expect(onSeek).not.toHaveBeenCalled();
+  });
+
+  it('resets the elapsed time when the track changes even if positionMs stays 0', () => {
+    jest.useFakeTimers();
+    const start = Date.now();
+    const nowSpy = jest.spyOn(Date, 'now').mockReturnValue(start);
+    try {
+      const onSeek = jest.fn();
+      const r = render(
+        <PlayerProgressBar
+          positionMs={0}
+          durationMs={120_000}
+          isPlaying
+          trackKey="track-a"
+          accent="#ff0066"
+          mutedForeground="#bbbbbb"
+          onSeek={onSeek}
+          testID="progress"
+        />,
+      );
+
+      // Local interpolation advances the elapsed time during playback.
+      nowSpy.mockReturnValue(start + 3_000);
+      act(() => {
+        jest.advanceTimersByTime(3_000);
+      });
+      expect(r.getByText('0:03')).toBeTruthy();
+
+      // Next track starts: the native player reports positionMs 0 again, so the
+      // only thing that changes is the track identity. The bar must reset.
+      r.rerender(
+        <PlayerProgressBar
+          positionMs={0}
+          durationMs={120_000}
+          isPlaying
+          trackKey="track-b"
+          accent="#ff0066"
+          mutedForeground="#bbbbbb"
+          onSeek={onSeek}
+          testID="progress"
+        />,
+      );
+
+      expect(r.getByText('0:00')).toBeTruthy();
+    } finally {
+      nowSpy.mockRestore();
+      jest.useRealTimers();
+    }
   });
 });

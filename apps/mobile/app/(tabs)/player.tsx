@@ -397,6 +397,7 @@ export default function PlayerScreen() {
             positionMs={state?.positionMs ?? 0}
             durationMs={state?.durationMs ?? 0}
             isPlaying={isPlaying}
+            trackKey={current?.uri ?? current?.id ?? null}
             accent={theme.accent}
             mutedForeground={theme.mutedForeground}
             onSeek={(ms) => {
