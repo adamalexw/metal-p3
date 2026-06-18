@@ -113,10 +113,11 @@ step('Tune gradle.properties for build memory headroom');
   // execution and cap workers at 2 so a release build doesn't flatline the
   // machine.
   const additions = [
-    ['org.gradle.jvmargs', '-Xmx3g -XX:MaxMetaspaceSize=512m -Dfile.encoding=UTF-8'],
-    ['kotlin.daemon.jvmargs', '-Xmx1.5g -XX:MaxMetaspaceSize=256m'],
+    ['reactNativeArchitectures', 'arm64-v8a'],
+    ['org.gradle.jvmargs', '-Xmx2g -XX:MaxMetaspaceSize=384m -Dfile.encoding=UTF-8'],
+    ['kotlin.daemon.jvmargs', '-Xmx1g -XX:MaxMetaspaceSize=256m'],
     ['kotlin.compiler.execution.strategy', 'daemon'],
-    ['org.gradle.workers.max', '2'],
+    ['org.gradle.workers.max', '1'],
     ['org.gradle.parallel', 'false'],
   ];
   let patched = original;

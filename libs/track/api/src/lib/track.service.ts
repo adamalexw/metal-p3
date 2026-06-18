@@ -8,6 +8,7 @@ import * as NodeID3 from 'node-id3';
 import { ReadStream } from 'node:fs';
 import { basename, dirname, extname, join } from 'path';
 import { EMPTY, Observable, catchError, concatAll, from, map, toArray } from 'rxjs';
+import sharpFn from 'sharp';
 
 @Injectable()
 export class TrackService {
@@ -101,6 +102,7 @@ export class TrackService {
     let baseTags: Partial<NodeID3.Tags> = {
       album: track.album,
       artist: track.artist,
+      performerInfo: track.artist,
       year: track.year?.toString(),
       genre: track.genre,
     };
@@ -123,7 +125,7 @@ export class TrackService {
     if (coverImage) {
       baseTags = { ...baseTags, image: coverImage };
     } else if (track.cover) {
-      baseTags = { ...baseTags, image: this.buildCoverImage(track.cover) };
+      baseTags = { ...baseTags, image: await this.buildCoverImage(track.cover) };
     }
 
     const tags = this.mapTrackToTags(track, baseTags);
@@ -164,7 +166,7 @@ export class TrackService {
     let coverImage: NodeID3.Tags['image'] | undefined;
 
     if (firstWithCover?.cover) {
-      coverImage = this.buildCoverImage(firstWithCover.cover);
+      coverImage = await this.buildCoverImage(firstWithCover.cover);
     } else if (tracks[0]?.folder) {
       const coverPath = join(tracks[0].folder, 'Cover.jpg');
       if (existsSync(coverPath)) {
@@ -184,10 +186,12 @@ export class TrackService {
     return true;
   }
 
-  private buildCoverImage(cover: string): NodeID3.Tags['image'] {
+  private async buildCoverImage(cover: string): Promise<NodeID3.Tags['image']> {
     const mimeMatch = cover.match(/^data:(image\/[^;]+);base64,/);
     const mime = (mimeMatch?.[1] ?? 'image/jpeg') as 'image/jpeg' | 'image/png';
     const base64Data = cover.replace(/^data:image\/[^;]+;base64,/, '');
+    const buffer = await sharpFn(Buffer.from(base64Data, 'base64')).resize({ height: 500, width: 500 }).toBuffer();
+
     return {
       mime,
       type: {
@@ -195,7 +199,7 @@ export class TrackService {
         name: 'front cover',
       },
       description: 'front cover',
-      imageBuffer: Buffer.from(base64Data, 'base64'),
+      imageBuffer: buffer,
     };
   }
 

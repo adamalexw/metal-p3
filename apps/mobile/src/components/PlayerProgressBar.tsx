@@ -1,15 +1,18 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Animated as RNAnimated,
-  Easing,
+  Easing as RNEasing,
   type GestureResponderEvent,
   type LayoutChangeEvent,
   Text,
   View,
 } from 'react-native';
 import Animated, {
+  cancelAnimation,
+  Easing,
   useAnimatedStyle,
   useSharedValue,
+  withTiming,
 } from 'react-native-reanimated';
 import { withAlpha } from '../lib/color';
 import { tw } from '../lib/tw';
@@ -22,16 +25,12 @@ interface Props {
   mutedForeground: string;
   onSeek: (positionMs: number) => void;
   testID?: string;
-  // Identifies the current track. Changing this forces a position reset even
-  // when positionMs stays the same (the native player reports 0 at the start
-  // of every track, so 0 -> 0 transitions would otherwise be missed).
   trackKey?: string | null;
 }
 
 const TRACK_HEIGHT = 4;
 const THUMB_SIZE = 14;
 const HIT_HEIGHT = THUMB_SIZE + 16;
-const TICK_INTERVAL_MS = 250;
 
 export function PlayerProgressBar({
   positionMs,
@@ -43,94 +42,110 @@ export function PlayerProgressBar({
   testID,
   trackKey,
 }: Props) {
-  // Shared values drive the visible position and width on the UI thread, so
-  // the fill bar and thumb update smoothly without re-rendering React. Width
-  // is still kept in state because the test harness reads it, and so the
-  // initial mount can compute its own ratio without waiting a frame.
   const position = useSharedValue(positionMs);
-  const widthSv = useSharedValue(0);
   const durationSv = useSharedValue(durationMs);
-  const scrubSv = useSharedValue<number>(-1); // -1 => not scrubbing
   const isScrubbing = useSharedValue(false);
+  const scrubSv = useSharedValue(0);
 
-  const [width, setWidth] = useState(0);
-  const widthRef = useRef(0);
-  const durationRef = useRef(0);
-  const scrubMsRef = useRef<number | null>(null);
-  widthRef.current = width;
+  const durationRef = useRef(durationMs);
   durationRef.current = durationMs;
 
-  const [scrubbing, setScrubbing] = useState(false);
+  const widthRef = useRef(0);
+  const scrubMsRef = useRef<number | null>(null);
+
+  const [scrubbingState, setScrubbingState] = useState(false);
   const [displaySec, setDisplaySec] = useState(() => secOf(positionMs));
 
-  // Keep the duration shared value in sync with the prop.
+  const trackRef = useRef(trackKey);
+  const trackChangeTimeRef = useRef(0);
+
   useEffect(() => {
     durationSv.value = durationMs;
   }, [durationMs, durationSv]);
 
-  // Snap the position whenever the source-of-truth prop changes (track change,
-  // server reconcile, scrub release reflected back). trackKey is included so a
-  // track change resets the bar even when positionMs is unchanged (0 -> 0).
+  // Core synchronization logic
   useEffect(() => {
-    position.value = positionMs;
-    setDisplaySec(secOf(positionMs));
-  }, [positionMs, trackKey, position]);
+    if (isScrubbing.value) return;
 
-  // While playing (and not scrubbing), advance the shared value locally so the
-  // bar moves between server updates. JS interval is fine here — it only
-  // writes a shared value (no re-render) and bumps `displaySec` once a second.
+    const now = Date.now();
+    let isNewTrack = false;
+
+    if (trackKey !== trackRef.current) {
+      isNewTrack = true;
+      trackRef.current = trackKey;
+      trackChangeTimeRef.current = now;
+      cancelAnimation(position);
+      position.value = 0;
+    }
+
+    // Ignore stale position updates (e.g. position > 2000) for 2 seconds after a track change
+    if (now - trackChangeTimeRef.current < 2000 && positionMs > 2000) {
+      return;
+    }
+
+    const drift = Math.abs(position.value - positionMs);
+    // Snap to server position if drift is large (seek/buffer), new track started, or paused
+    if (drift > 1500 || isNewTrack || !isPlaying) {
+      cancelAnimation(position);
+      position.value = positionMs;
+      setDisplaySec(secOf(positionMs));
+    }
+
+    if (isPlaying && durationMs > 0) {
+      const remainingMs = durationMs - position.value;
+      if (remainingMs > 0) {
+        position.value = withTiming(durationMs, {
+          duration: remainingMs,
+          easing: Easing.linear,
+        });
+      }
+    } else {
+      cancelAnimation(position);
+    }
+  }, [positionMs, durationMs, isPlaying, trackKey, position, isScrubbing]);
+
+  // Read the animated position safely every 250ms to update the text label
   useEffect(() => {
-    if (scrubbing) return;
-    if (!isPlaying || durationMs <= 0) return;
-    const startedAt = Date.now();
-    const baseMs = position.value;
+    if (scrubbingState) return;
     const id = setInterval(() => {
-      const elapsed = Date.now() - startedAt;
-      const next = Math.min(baseMs + elapsed, durationMs);
-      position.value = next;
-      const sec = secOf(next);
+      const ms = Math.max(0, Math.min(position.value, durationMs));
+      const sec = secOf(ms);
       setDisplaySec((prev) => (prev === sec ? prev : sec));
-    }, TICK_INTERVAL_MS);
+    }, 250);
     return () => clearInterval(id);
-  }, [positionMs, trackKey, durationMs, isPlaying, scrubbing, position]);
+  }, [position, scrubbingState, durationMs]);
 
-  // 1Hz pulse on the elapsed-time text. Driven by RN Animated to avoid an
-  // extra Reanimated worklet for a once-per-second visual blip.
+  // 1Hz pulse on the elapsed-time text. Driven by RN Animated to avoid an extra Reanimated worklet.
   const tickAnim = useRef(new RNAnimated.Value(1)).current;
   const lastSecRef = useRef(displaySec);
   useEffect(() => {
     if (lastSecRef.current === displaySec) return;
     lastSecRef.current = displaySec;
-    if (scrubbing) return;
+    if (scrubbingState) return;
     RNAnimated.sequence([
       RNAnimated.timing(tickAnim, {
         toValue: 1.08,
         duration: 90,
-        easing: Easing.out(Easing.quad),
+        easing: RNEasing.out(RNEasing.quad),
         useNativeDriver: true,
       }),
       RNAnimated.timing(tickAnim, {
         toValue: 1,
         duration: 160,
-        easing: Easing.inOut(Easing.quad),
+        easing: RNEasing.inOut(RNEasing.quad),
         useNativeDriver: true,
       }),
     ]).start();
-  }, [displaySec, scrubbing, tickAnim]);
+  }, [displaySec, scrubbingState, tickAnim]);
 
-  const onLayout = useCallback(
-    (e: LayoutChangeEvent) => {
-      const w = e.nativeEvent.layout.width;
-      setWidth(w);
-      widthSv.value = w;
-    },
-    [widthSv],
-  );
+  const onLayout = useCallback((e: LayoutChangeEvent) => {
+    widthRef.current = e.nativeEvent.layout.width;
+  }, []);
 
   const positionFromX = (locationX: number) => {
     const w = widthRef.current;
     if (w <= 0 || durationRef.current <= 0) return 0;
-    const r = clamp01(locationX / w);
+    const r = Math.max(0, Math.min(1, locationX / w));
     return Math.round(r * durationRef.current);
   };
 
@@ -141,7 +156,7 @@ export function PlayerProgressBar({
     scrubMsRef.current = ms;
     scrubSv.value = ms;
     isScrubbing.value = true;
-    setScrubbing(true);
+    setScrubbingState(true);
     setDisplaySec(secOf(ms));
   };
   const onResponderMove = (e: GestureResponderEvent) => {
@@ -161,16 +176,16 @@ export function PlayerProgressBar({
       try {
         onSeek(ms);
       } catch {
-        // swallow — next stateChanged will reconcile
+        // swallow
       }
     }
     isScrubbing.value = false;
-    setScrubbing(false);
+    setScrubbingState(false);
     scrubMsRef.current = null;
   };
   const onResponderTerminate = () => {
     isScrubbing.value = false;
-    setScrubbing(false);
+    setScrubbingState(false);
     scrubMsRef.current = null;
   };
   const onResponderTerminationRequest = () => false;
@@ -178,22 +193,20 @@ export function PlayerProgressBar({
   const filledColor = accent;
   const trackColor = withAlpha(mutedForeground, 0.35);
 
-  // Animated styles: width of the fill, and the thumb's left offset.
   const fillStyle = useAnimatedStyle(() => {
     const dur = durationSv.value;
     if (dur <= 0) return { width: '0%' as const };
     const live = isScrubbing.value ? scrubSv.value : position.value;
-    const ratio = clampWorklet(live / dur);
+    const ratio = Math.max(0, Math.min(1, live / dur));
     return { width: `${ratio * 100}%` as `${number}%` };
   });
 
   const thumbStyle = useAnimatedStyle(() => {
     const dur = durationSv.value;
-    const w = widthSv.value;
-    if (dur <= 0 || w <= 0) return { left: 0 };
+    if (dur <= 0) return { left: '0%' as const };
     const live = isScrubbing.value ? scrubSv.value : position.value;
-    const ratio = clampWorklet(live / dur);
-    return { left: Math.max(0, ratio * w - THUMB_SIZE / 2) };
+    const ratio = Math.max(0, Math.min(1, live / dur));
+    return { left: `${ratio * 100}%` as `${number}%` };
   });
 
   const enabled = durationMs > 0;
@@ -233,6 +246,7 @@ export function PlayerProgressBar({
                 top: (HIT_HEIGHT - THUMB_SIZE) / 2,
                 backgroundColor: filledColor,
                 boxShadow: '0 1px 3px rgba(0, 0, 0, 0.3)',
+                transform: [{ translateX: -THUMB_SIZE / 2 }],
               },
               thumbStyle,
             ]}
@@ -268,15 +282,6 @@ function fmt(ms: number): string {
 
 function secOf(ms: number): number {
   return Math.max(0, Math.floor(ms / 1000));
-}
-
-function clamp01(value: number): number {
-  return Math.max(0, Math.min(1, value));
-}
-
-function clampWorklet(value: number): number {
-  'worklet';
-  return Math.max(0, Math.min(1, value));
 }
 
 export default PlayerProgressBar;

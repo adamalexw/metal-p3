@@ -1,0 +1,18 @@
+{
+  "manifest_version": 3,
+  "name": "Metal Area Modern Skin",
+  "version": "1.0",
+  "description": "Applies a modern dark theme and grid layout to Metal Area new releases.",
+  "content_scripts": [
+    {
+      "matches": ["*://metalarea.org/*", "*://*.metalarea.org/*"],
+      "css": ["styles.css"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "host_permissions": [
+    "*://metalarea.org/*",
+    "*://*.metalarea.org/*"
+  ]
+}
