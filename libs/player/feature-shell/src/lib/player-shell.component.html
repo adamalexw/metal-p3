@@ -1,7 +1,7 @@
 @if (playerStore.playerOpen()) {
   <div [class]="divClass()">
     <div class="static flex w-full" [class]="subDivClass()" [class.hidden]="!playerStore.activePlaylistItem()">
-      <app-cover class="aspect-square" [class]="coverSize()" [cover]="playerStore.activeItemCover()" />
+      <app-cover class="aspect-square shrink-0 max-h-[calc(100vh-120px)] lg:max-h-none" [class]="coverSize()" [cover]="playerStore.activeItemCover()" />
 
       <app-player-controls
         class="block w-full"
@@ -9,7 +9,7 @@
         [isFirstItemPlaying]="playerStore.isFirstItemPlaying()"
         [isLastItemPlaying]="playerStore.isLastItemPlaying()"
         [currentItem]="playerStore.activePlaylistItem()"
-        [elapsedTime]="elapsedTime$ | async"
+        [elapsedTime]="elapsedTime()"
         [toggleIcon]="toggleIcon()"
         (playItem)="onPlay()"
         (pauseItem)="onPause()"
@@ -25,7 +25,7 @@
     @if (!playerStore.footerMode()) {
       <app-playlist-shell [duration]="playerStore.playlistDuration()" (clearPlaylist)="onClearPlaylist()" (closePlaylist)="onClosePlaylist()" (togglePlaylist)="onTogglePlaylist()" />
       <app-playlist
-        class="fixed top-0 left-0 z-50 h-screen overflow-auto bg-background lg:static lg:block lg:h-auto lg:max-h-[calc(100vh-384px)] lg:translate-y-0"
+        class="fixed top-0 left-0 z-50 h-screen overflow-y-auto bg-background lg:static lg:block lg:flex-1 lg:min-h-0 lg:h-auto lg:max-h-none lg:translate-y-0"
         [class.hidden]="!playerStore.showPlaylist()"
         [playlist]="playerStore.playlist()"
         [currentItem]="playerStore.activePlaylistItem()"

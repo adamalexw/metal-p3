@@ -6,8 +6,8 @@ import { MatSnackBar, MatSnackBarConfig, MatSnackBarRef, TextOnlySnackBar } from
 export class NotificationService {
   private readonly snackBar = inject(MatSnackBar);
 
-  showError(message: string, action = 'Close') {
-    this.snackBar.open(message, action, { panelClass: 'snackbar-error' });
+  showError(message: string, context?: string) {
+    this.snackBar.open(context ? `${context}: ${message}` : message, 'Close', { duration: 3000, panelClass: 'snackbar-error' });
   }
 
   showComplete(message: string, action = 'Close') {

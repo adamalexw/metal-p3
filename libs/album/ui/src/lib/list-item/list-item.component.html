@@ -25,10 +25,9 @@
     <div class="my-2 flex cursor-pointer justify-center overflow-hidden" (click)="openAlbum.emit(album().id)">
       <app-cover
         class="z-10 block hover:scale-110 hover:transition"
-        [class.animate-spin]="album().coverLoading"
-        [cover]="album().cover"
-        [coverError]="album().coverError"
-        [loading]="album().coverLoading || false"
+        [cover]="cover() ?? album().cover"
+        [coverError]="coverError()"
+        [loading]="coverLoading()"
       />
     </div>
   </mat-card-content>

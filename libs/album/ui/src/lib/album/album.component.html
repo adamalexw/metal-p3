@@ -26,8 +26,8 @@
       <app-cover
         class="w-full lg:max-w-125 lg:min-w-125"
         [loading]="coverLoading()"
-        [cover]="album.cover"
-        [coverError]="album.coverError"
+        [cover]="cover() ?? album.cover"
+        [coverError]="coverError() ?? undefined"
         [enableDnd]="true"
         (coverUrl)="coverUrl.emit({ id: album.id, url: $event })"
       />

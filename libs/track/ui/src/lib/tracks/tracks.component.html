@@ -71,7 +71,7 @@
       </td>
     </ng-container>
 
-    @if (displayedColumns$ | async; as displayedColumns) {
+    @if (displayedColumns(); as displayedColumns) {
       <tr *matHeaderRowDef="displayedColumns" mat-header-row></tr>
       <tr *matRowDef="let row; columns: displayedColumns" mat-row></tr>
     }

@@ -1,193 +1,186 @@
-import { AsyncPipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, inject } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+
+import { ChangeDetectionStrategy, Component, OnInit, inject, computed, effect, signal } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
+import { AlbumStore } from '@metal-p3/album/data-access';
 import { ApplyLyrics } from '@metal-p3/album/domain';
+import { CoverStore } from '@metal-p3/cover/data-access';
 import { ApplyLyricsComponent } from '@metal-p3/maintenance/ui';
-import {
-  AlbumActions,
-  CoverActions,
-  TrackActions,
-  selectAlbum,
-  selectAlbumFolder,
-  selectAlbumSaving,
-  selectAlbumUrl,
-  selectCover,
-  selectCoverLoading,
-  selectGettingMaTracks,
-  selectLyricsExpected,
-  selectLyricsLoading,
-  selectLyricsLoadingProgress,
-  selectMaTracks,
-  selectRouteParams,
-  selectTrackSavingProgress,
-  selectTrackTransferring,
-  selectTrackTransferringProgress,
-  selectTracks,
-  selectTracksLoading,
-} from '@metal-p3/shared/data-access';
-import { nonNullable } from '@metal-p3/shared/utils';
-import { Store } from '@ngrx/store';
-import { Observable, combineLatest, filter, map, take, tap, withLatestFrom } from 'rxjs';
+import { TrackStore } from '@metal-p3/track/data-access';
 
 @Component({
-  imports: [AsyncPipe, ApplyLyricsComponent, MatDialogModule],
+  imports: [ApplyLyricsComponent, MatDialogModule],
   selector: 'app-apply-lyrics-shell',
   templateUrl: './apply-lyrics.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ApplyLyricsShellComponent implements OnInit {
-  private readonly store = inject(Store);
   private readonly dialogRef = inject(MatDialogRef<ApplyLyricsShellComponent>, { optional: true });
-  private readonly destroyRef = inject(DestroyRef);
-
   private readonly data: { albumId: number; historyId: number } = inject(MAT_DIALOG_DATA, { optional: true });
 
-  albumId$: Observable<number> = this.store.select(selectRouteParams).pipe(
-    map((params) => params?.id || this.data?.albumId),
-    filter((id) => !!id),
-    map((id) => +id),
-    takeUntilDestroyed(),
-  );
+  private readonly albumStore = inject(AlbumStore);
+  private readonly trackStore = inject(TrackStore);
+  private readonly coverStore = inject(CoverStore);
 
-  album$ = this.store.select(selectAlbum);
+  albumId = computed(() => this.data?.albumId ?? this.albumStore.selectedAlbumId?.());
 
-  tracksLoading$ = this.store.select(selectTracksLoading);
-  gettingMaTracks$ = this.store.select(selectGettingMaTracks);
-  lyricsLoading$ = this.store.select(selectLyricsLoading);
-  lyricsExpected$ = this.store.select(selectLyricsExpected);
-  lyricsLoadingProgress$ = this.store.select(selectLyricsLoadingProgress);
+  album = this.albumStore.selectedAlbum;
 
-  tracks$ = this.store.select(selectTracks);
-  maTracks$ = this.store.select(selectMaTracks);
-  albumUrl$ = this.store.select(selectAlbumUrl);
-  albumFolder$ = this.store.select(selectAlbumFolder);
-  coverLoading$ = this.store.select(selectCoverLoading);
-  cover$ = this.store.select(selectCover);
+  tracksLoading = this.trackStore.loading;
+  gettingMaTracks = this.trackStore.gettingMaTracks;
+  
+  lyricsLoading = computed(() => this.trackStore.tracks().some(t => t.lyricsLoading) || this.trackStore.maTracks().some(t => t.lyricsLoading));
+  lyricsExpected = computed(() => (this.trackStore.tracks().filter(t => t.lyricsLoading).length + this.trackStore.maTracks().filter(t => t.lyricsLoading).length) > 0);
+  lyricsLoadingProgress = computed(() => {
+    const maTracks = this.trackStore.maTracks();
+    const tracks = this.trackStore.tracks();
+    
+    const total = maTracks.length > 0 
+      ? maTracks.filter(t => t.hasLyrics).length 
+      : tracks.length;
 
-  trackTransferring$ = this.store.select(selectTrackTransferring);
-  trackTransferringProgress$ = this.store.select(selectTrackTransferringProgress);
-  applying$ = this.store.select(selectAlbumSaving);
-  applyingProgress$ = this.store.select(selectTrackSavingProgress);
+    const loaded = maTracks.filter(t => t.lyricsChecked).length + tracks.filter(t => t.lyricsChecked).length;
+    
+    return Math.round((loaded / (total || 1)) * 100);
+  });
+
+  tracks = this.trackStore.tracks;
+  maTracks = this.trackStore.maTracks;
+  albumUrl = computed(() => this.albumStore.selectedAlbum()?.albumUrl);
+  albumFolder = computed(() => this.albumStore.selectedAlbum()?.folder);
+  coverLoading = computed(() => {
+    const id = this.data?.albumId ?? this.albumStore.selectedAlbumId?.();
+    return id ? this.coverStore.entityMap()[id]?.loading ?? false : false;
+  });
+  cover = computed(() => {
+    const id = this.data?.albumId ?? this.albumStore.selectedAlbumId?.();
+    return id ? this.coverStore.entityMap()[id]?.cover : undefined;
+  });
+
+  trackTransferring = computed(() => this.trackStore.tracks().some(t => t.trackTransferring));
+  trackTransferringProgress = computed(() => {
+    const total = this.trackStore.tracks().length;
+    const transferred = this.trackStore.tracks().filter(t => !t.trackTransferring).length;
+    return Math.round((transferred / (total || 1)) * 100);
+  });
+  
+  applying = computed(() => this.trackStore.tracks().some(t => t.trackSaving));
+  applyingProgress = computed(() => {
+    const total = this.trackStore.tracks().length;
+    const saved = this.trackStore.tracks().filter(t => !t.trackSaving).length;
+    return Math.round((saved / (total || 1)) * 100);
+  });
 
   showClose = !this.data?.historyId;
-  applied = false;
+  applied = signal(false);
 
   ngOnInit(): void {
-    this.setState();
   }
 
-  private setState(): void {
-    this.albumId$
-      .pipe(
-        take(1),
-        tap((id) => this.store.dispatch(AlbumActions.viewAlbum({ id }))),
-      )
-      .subscribe();
+  private lastAlbumFetchedId: number | null = null;
+  private lastTracksFetchedAlbumId: number | null = null;
+  private lastMaTracksFetchedAlbumId: number | null = null;
+  private lastLyricsTriggeredAlbumId: number | null = null;
+  private lastLocalLyricsTriggeredAlbumId: number | null = null;
+  private lastCoverFetchedAlbumId: number | null = null;
 
-    const album$ = this.album$.pipe(nonNullable());
+  constructor() {
+    if (this.data?.albumId) {
+      this.albumStore.viewAlbum(this.data.albumId);
+    }
 
-    album$
-      .pipe(
-        take(1),
-        tap(({ id }) => this.store.dispatch(AlbumActions.getAlbum({ id }))),
-        takeUntilDestroyed(this.destroyRef),
-      )
-      .subscribe();
+    effect(() => {
+      const album = this.album();
+      if (album && this.lastAlbumFetchedId !== album.id) {
+        this.lastAlbumFetchedId = album.id;
+        this.albumStore.getAlbum(album.id);
+      }
+    });
 
-    combineLatest([album$, this.tracks$])
-      .pipe(
-        filter(([album, tracks]) => !album.tracksLoading && (!tracks || tracks.length === 0)),
-        map(([album]) => ({ id: album.id, folder: album.folder })),
-        tap(({ id, folder }) => this.store.dispatch(TrackActions.getTracks({ id, folder }))),
-        take(1),
-        takeUntilDestroyed(this.destroyRef),
-      )
-      .subscribe();
+    effect(() => {
+      const album = this.album();
+      if (album && this.lastTracksFetchedAlbumId !== album.id) {
+        this.lastTracksFetchedAlbumId = album.id;
+        this.trackStore.getTracks({ id: album.id, folder: album.folder || '' });
+      }
+    });
 
-    combineLatest([album$, this.maTracks$])
-      .pipe(
-        filter(([album, maTracks]) => !!album.albumUrl && !album.gettingMaTracks && (!maTracks || maTracks.length === 0)),
-        map(([album]) => ({ id: album.id, url: album.albumUrl || '' })),
-        tap(({ id, url }) => this.store.dispatch(TrackActions.getMetalArchivesTracks({ id, url }))),
-        take(1),
-        takeUntilDestroyed(this.destroyRef),
-      )
-      .subscribe();
+    effect(() => {
+      const album = this.album();
+      if (album?.albumUrl && this.lastMaTracksFetchedAlbumId !== album.id) {
+        this.lastMaTracksFetchedAlbumId = album.id;
+        this.trackStore.getMetalArchivesTracks({ url: album.albumUrl });
+      }
+    });
 
     // Album has a metal-archives url: drive lyrics from the metal-archives tracklist.
-    combineLatest([this.maTracks$, this.tracks$, this.album$.pipe(nonNullable())])
-      .pipe(
-        filter(([maTracks, tracks]) => !!maTracks?.length && !!tracks?.length),
-        withLatestFrom(this.albumId$),
-        tap(([[maTracks, tracks, album], id]) => {
-          maTracks
-            ?.filter((maTrack) => maTrack.hasLyrics && !maTrack.lyricsLoading)
-            .forEach((maTrack, i) => {
-              const localTrack = this.matchLocalTrack(tracks ?? [], maTrack);
-              setTimeout(
-                () =>
-                  this.store.dispatch(
-                    localTrack
-                      ? TrackActions.getSyncedLyrics({
-                          id,
-                          localTrackId: localTrack.id,
-                          maTrackId: maTrack.id,
-                          artist: album.artist ?? '',
-                          track: localTrack.title ?? maTrack.title ?? '',
-                          album: album.album ?? '',
-                          durationSeconds: localTrack.duration,
-                        })
-                      : TrackActions.getLyrics({ id, trackId: maTrack.id }),
-                  ),
-                i * 3000,
-              );
-            });
-        }),
-        take(1),
-        takeUntilDestroyed(this.destroyRef),
-      )
-      .subscribe();
+    effect(() => {
+      const maTracks = this.maTracks();
+      const tracks = this.tracks();
+      const album = this.album();
+      const albumId = this.albumId();
+
+      if (maTracks?.length && tracks?.length && album && albumId && this.lastLyricsTriggeredAlbumId !== albumId) {
+        this.lastLyricsTriggeredAlbumId = albumId;
+        maTracks
+          .filter((maTrack) => maTrack.hasLyrics && !maTrack.lyricsLoading)
+          .forEach((maTrack, i) => {
+            const localTrack = this.matchLocalTrack(tracks ?? [], maTrack);
+            setTimeout(
+              () => {
+                if (localTrack) {
+                  this.trackStore.getSyncedLyrics({
+                        localTrackId: localTrack.id,
+                        maTrackId: maTrack.id,
+                        artist: album.artist ?? '',
+                        track: localTrack.title ?? maTrack.title ?? '',
+                        album: album.album ?? '',
+                        durationSeconds: localTrack.duration || 0,
+                  });
+                } else {
+                  this.trackStore.getLyrics({ trackId: maTrack.id });
+                }
+              },
+              i * 3000,
+            );
+          });
+      }
+    });
 
     // Album has no metal-archives url: drive lyrics from the local mp3 tracks via LrcLib.
-    combineLatest([this.tracks$, this.album$.pipe(nonNullable())])
-      .pipe(
-        filter(([tracks, album]) => !album.albumUrl && !!tracks?.length),
-        withLatestFrom(this.albumId$),
-        tap(([[tracks, album], id]) => {
-          (tracks ?? [])
-            .filter((track) => !track.lyricsLoading && !track.lyricsChecked)
-            .forEach((track, i) => {
-              setTimeout(
-                () =>
-                  this.store.dispatch(
-                    TrackActions.getLocalLyrics({
-                      id,
-                      localTrackId: track.id,
-                      artist: album.artist ?? track.artist ?? '',
-                      track: track.title ?? '',
-                      album: album.album ?? track.album ?? '',
-                      durationSeconds: track.duration,
-                    }),
-                  ),
-                i * 3000,
-              );
-            });
-        }),
-        take(1),
-        takeUntilDestroyed(this.destroyRef),
-      )
-      .subscribe();
+    effect(() => {
+      const tracks = this.tracks();
+      const album = this.album();
+      const albumId = this.albumId();
 
-    combineLatest([album$, this.cover$])
-      .pipe(
-        filter(([album, cover]) => !album.cover && !cover),
-        map(([album]) => ({ id: album.id, folder: album.folder })),
-        take(1),
-        tap(({ id, folder }) => this.store.dispatch(CoverActions.get({ id, folder }))),
-        takeUntilDestroyed(this.destroyRef),
-      )
-      .subscribe();
+      if (album && !album.albumUrl && tracks?.length && albumId && this.lastLocalLyricsTriggeredAlbumId !== albumId) {
+        this.lastLocalLyricsTriggeredAlbumId = albumId;
+        (tracks ?? [])
+          .filter((track) => !track.lyricsLoading && !track.lyricsChecked)
+          .forEach((track, i) => {
+            setTimeout(
+              () =>
+                this.trackStore.getLocalLyrics({
+                    localTrackId: track.id,
+                    artist: album.artist ?? track.artist ?? '',
+                    track: track.title ?? '',
+                    album: album.album ?? track.album ?? '',
+                    durationSeconds: track.duration || 0,
+                }),
+              i * 3000,
+            );
+          });
+      }
+    });
+
+    effect(() => {
+      const album = this.album();
+      const cover = this.cover();
+
+      if (album && !album.cover && !cover && this.lastCoverFetchedAlbumId !== album.id) {
+        this.lastCoverFetchedAlbumId = album.id;
+        this.coverStore.getCover({ id: album.id, folder: album.folder || '' });
+      }
+    });
   }
 
   onApply(id: number, lyrics: ApplyLyrics[]) {
@@ -200,17 +193,15 @@ export class ApplyLyricsShellComponent implements OnInit {
         if (track.maTrack?.lyrics) {
           return { ...track, lyrics: this.formatLyrics(track.maTrack.lyrics) };
         }
-        // Local (no metal-archives url) plain lyrics already live on track.lyrics from LrcLib
         return { ...track };
       });
 
     if (tracksToSave.length) {
-      this.store.dispatch(TrackActions.saveTracks({ id, tracks: tracksToSave }));
+      this.trackStore.saveTracks({ tracks: tracksToSave });
     }
 
-    this.store.dispatch(AlbumActions.setHasLyrics({ id, hasLyrics: true }));
-
-    this.applied = true;
+    this.albumStore.setHasLyrics({ id, hasLyrics: true });
+    this.applied.set(true);
   }
 
   private formatLyrics(lyrics: string): string {
@@ -233,11 +224,11 @@ export class ApplyLyricsShellComponent implements OnInit {
   }
 
   onTransfer(tracks: { id: number; trackId: number }[]) {
-    tracks.forEach((track) => this.store.dispatch(TrackActions.transferTrack({ id: track.id, trackId: track.trackId })));
-    this.store.dispatch(AlbumActions.setTransferred({ id: tracks[0].id, transferred: true }));
+    tracks.forEach((track) => this.trackStore.transferTrack({ trackId: track.trackId }));
+    this.albumStore.setTransferred({ id: tracks[0].id, transferred: true });
   }
 
   onDone() {
-    this.dialogRef?.close({ id: this.data.historyId, apply: this.applied });
+    this.dialogRef?.close({ id: this.data?.historyId, apply: this.applied() });
   }
 }

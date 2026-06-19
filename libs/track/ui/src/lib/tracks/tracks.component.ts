@@ -1,6 +1,7 @@
 import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
-import { AsyncPipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, effect, inject, input, output } from '@angular/core';
+
+import { ChangeDetectionStrategy, Component, effect, inject, input, output, computed } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { FieldTree, FormField } from '@angular/forms/signals';
 import { MatBottomSheet, MatBottomSheetModule } from '@angular/material/bottom-sheet';
 import { MatButtonModule } from '@angular/material/button';
@@ -20,7 +21,6 @@ import { LyricsComponent } from '../lyrics/lyrics.component';
 
 @Component({
   imports: [
-    AsyncPipe,
     BitRatePipe,
     ConfirmDeleteDirective,
     FormField,
@@ -56,17 +56,16 @@ export class TracksComponent {
   addTrackToPlaylist = output<Track>();
   delete = output<Track>();
 
-  displayedColumns$: Observable<string[]>;
+  isHandset = toSignal(this.breakpointObserver.observe([Breakpoints.Large, Breakpoints.XLarge]).pipe(map(({ matches }) => matches)));
+  
+  displayedColumns = computed(() => this.isHandset() ? ['trackNumber', 'title', 'duration', 'bitrate', 'actions'] : ['title', 'duration', 'actions']);
+
   dataSource = new MatTableDataSource<FieldTree<TracksForm>>();
 
   constructor() {
     effect(() => {
       this.dataSource.data = [...this.field()];
     });
-
-    this.displayedColumns$ = this.breakpointObserver
-      .observe([Breakpoints.Large, Breakpoints.XLarge])
-      .pipe(map(({ matches }) => (matches ? ['trackNumber', 'title', 'duration', 'bitrate', 'actions'] : ['title', 'duration', 'actions'])));
   }
 
   viewLyrics(index: number, lyrics: string | undefined, syncedLyrics: string | undefined) {

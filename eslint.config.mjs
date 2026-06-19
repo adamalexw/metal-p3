@@ -62,23 +62,7 @@ export default [
         ...config.rules,
       },
     })),
-  ...ngrxEslintPlugin.configs.store.map((config) => ({
-    ...config,
-    files: ['**/*.ts'],
-  })),
-  ...ngrxEslintPlugin.configs.effects.map((config) => ({
-    ...config,
-    files: ['**/*.ts'],
-  })),
-  ...ngrxEslintPlugin.configs.operators.map((config) => ({
-    ...config,
-    files: ['**/*.ts'],
-  })),
   ...ngrxEslintPlugin.configs.signals.map((config) => ({
-    ...config,
-    files: ['**/*.ts'],
-  })),
-  ...ngrxEslintPlugin.configs.componentStore.map((config) => ({
     ...config,
     files: ['**/*.ts'],
   })),

@@ -1,6 +1,6 @@
-import { AsyncPipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, OnInit, afterNextRender, inject, viewChild, computed } from '@angular/core';
-import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
+
+import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, afterNextRender, inject, viewChild, computed, signal, effect } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Title } from '@angular/platform-browser';
 import { CoverComponent } from '@metal-p3/cover/ui';
 import { PlayerStore } from '@metal-p3/player/data-access';
@@ -9,21 +9,18 @@ import { PlayerControlsComponent } from '@metal-p3/player/ui';
 import { PlaylistShellComponent } from '@metal-p3/playlist';
 import { PlaylistStore } from '@metal-p3/playlist/data-access';
 import { PlaylistComponent } from '@metal-p3/playlist/ui';
-import { selectAlbumFolder } from '@metal-p3/shared/data-access';
 import { NotificationService } from '@metal-p3/shared/feedback';
 import { nonNullable } from '@metal-p3/shared/utils';
 import { TrackService } from '@metal-p3/track/data-access';
-import { Store } from '@ngrx/store';
-import { EMPTY, Observable, catchError, combineLatest, concatMap, distinctUntilChanged, distinctUntilKeyChanged, filter, fromEvent, map, of, tap, take } from 'rxjs';
+import { EMPTY, Observable, catchError, fromEvent, map, tap } from 'rxjs';
 
 @Component({
-  imports: [AsyncPipe, CoverComponent, PlayerControlsComponent, PlaylistShellComponent, PlaylistComponent],
+  imports: [CoverComponent, PlayerControlsComponent, PlaylistShellComponent, PlaylistComponent],
   selector: 'app-player',
   templateUrl: './player-shell.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class PlayerShellComponent implements OnInit {
-  private readonly store = inject(Store);
+export class PlayerShellComponent {
   private readonly trackService = inject(TrackService);
   private readonly title = inject(Title);
   private readonly destroyRef = inject(DestroyRef);
@@ -34,57 +31,52 @@ export class PlayerShellComponent implements OnInit {
   protected readonly playerStore = inject(PlayerStore);
   protected readonly playlistStore = inject(PlaylistStore);
 
-  activeItem$ = toObservable(this.playerStore.activePlaylistItem);
-  activeCover$ = toObservable(this.playerStore.activeItemCover);
 
-  divClass = computed(() => (this.playerStore.footerMode() ? 'max-h-[64px]' : 'lg:translate-y-0 lg:max-h-[calc(100vh-64px)]'));
+  divClass = computed(() => (this.playerStore.footerMode() ? 'max-h-[64px]' : 'flex flex-col lg:translate-y-0 lg:max-h-[calc(100vh-64px)]'));
   subDivClass = computed(() => (this.playerStore.footerMode() ? '' : 'flex-col lg:flex-row'));
   toggleIcon = computed(() => (this.playerStore.footerMode() ? 'expand_less' : 'expand_more'));
   coverSize = computed(() => (this.playerStore.footerMode() ? 'h-16 w-16' : 'w-screen lg:w-[18.5rem]'));
 
-  elapsedTime$: Observable<number> = of(0);
+  elapsedTime = signal(0);
 
   private readonly defaultTitle = this.title.getTitle();
 
   constructor() {
-    combineLatest([this.activeItem$, this.store.select(selectAlbumFolder)])
-      .pipe(
-        map(([item, folder]) => {
-          if (item?.playing || item?.paused) return `${item.artist} - ${item.title}`;
-          return folder ?? this.defaultTitle;
-        }),
-        distinctUntilChanged(),
-        tap((t) => this.title.setTitle(t)),
-        takeUntilDestroyed(),
-      )
-      .subscribe();
+    effect(() => {
+      const item = this.playerStore.activePlaylistItem();
+      if (item?.playing || item?.paused) {
+        this.title.setTitle(`${item.artist} - ${item.title}`);
+      } else {
+        this.title.setTitle(this.defaultTitle);
+      }
+    });
+
+    let currentId: string | undefined;
+
+    effect(() => {
+      const item = this.playerStore.activePlaylistItem();
+      if (!item?.playing) return;
+
+      // if we are reordering tracks we want to keep the current item playing
+      if (item.id === currentId) return;
+      currentId = item.id;
+
+      if (item.url) {
+        this.audioElement.src = item.url;
+      } else {
+        this.getBlobUrl(item.id, item.fullPath || '')
+          .pipe(takeUntilDestroyed(this.destroyRef))
+          .subscribe((url) => {
+            if (url) this.audioElement.src = url;
+          });
+      }
+    });
+
+    this.setupMediaSession();
 
     afterNextRender(() => {
-      this.activeItem$
-        .pipe(
-          filter((item) => !!item?.playing),
-          nonNullable(),
-          distinctUntilKeyChanged('id'), // if we are reordering tracks we want to keep the current item playing
-          concatMap((item) => (item?.url ? of(item.url) : this.getBlobUrl(item?.id || '', item?.fullPath || ''))),
-          tap((url) => {
-            if (url) {
-              this.audioElement.src = url;
-            }
-          }),
-          takeUntilDestroyed(this.destroyRef),
-          catchError((error) => {
-            console.error(error);
-            this.notificationService.showError(`Error playing track ${JSON.stringify(error)}`, 'Close');
-            return EMPTY;
-          }),
-        )
-        .subscribe();
+      this.listenToAudioEvents();
     });
-  }
-
-  ngOnInit(): void {
-    this.listenToAudioEvents();
-    this.setupMediaSession();
   }
 
   /**
@@ -107,26 +99,24 @@ export class PlayerShellComponent implements OnInit {
     mediaSession.setActionHandler('nexttrack', () => this.onNext());
     mediaSession.setActionHandler('previoustrack', () => this.onMediaPrevious());
 
-    combineLatest([this.activeItem$, this.activeCover$])
-      .pipe(
-        tap(([item, cover]) => {
-          if (!item) {
-            mediaSession.metadata = null;
-            mediaSession.playbackState = 'none';
-            return;
-          }
+    effect(() => {
+      const item = this.playerStore.activePlaylistItem();
+      const cover = this.playerStore.activeItemCover();
 
-          mediaSession.metadata = new MediaMetadata({
-            title: item.title ?? '',
-            artist: item.artist ?? '',
-            album: item.album ?? '',
-            artwork: cover ? [{ src: cover }] : [],
-          });
-          mediaSession.playbackState = item.playing ? 'playing' : item.paused ? 'paused' : 'none';
-        }),
-        takeUntilDestroyed(this.destroyRef),
-      )
-      .subscribe();
+      if (!item) {
+        mediaSession.metadata = null;
+        mediaSession.playbackState = 'none';
+        return;
+      }
+
+      mediaSession.metadata = new MediaMetadata({
+        title: item.title ?? '',
+        artist: item.artist ?? '',
+        album: item.album ?? '',
+        artwork: cover ? [{ src: cover }] : [],
+      });
+      mediaSession.playbackState = item.playing ? 'playing' : item.paused ? 'paused' : 'none';
+    });
 
     this.destroyRef.onDestroy(() => {
       (['play', 'pause', 'nexttrack', 'previoustrack'] as const).forEach((action) => mediaSession.setActionHandler(action, null));
@@ -192,7 +182,12 @@ export class PlayerShellComponent implements OnInit {
       )
       .subscribe();
 
-    this.elapsedTime$ = fromEvent(this.audio().nativeElement, 'timeupdate').pipe(map(() => (this.audio().nativeElement as AudioContext).currentTime));
+    fromEvent(this.audio().nativeElement, 'timeupdate')
+      .pipe(
+        tap(() => this.elapsedTime.set((this.audio().nativeElement as HTMLAudioElement).currentTime)),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe();
   }
 
   private get audioElement() {

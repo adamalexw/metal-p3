@@ -98,6 +98,7 @@ export interface MetalArchivesAlbumTrack {
   hasLyrics?: boolean;
   lyrics?: string;
   lyricsLoading?: boolean;
+  lyricsChecked?: boolean;
 }
 
 export interface RenameFolder {

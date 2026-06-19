@@ -1,30 +1,17 @@
-import { AlbumDto, BandProps, MetalArchivesAlbumTrack } from '@metal-p3/api-interfaces';
-import { Track } from '@metal-p3/track/domain';
-import { EntityState } from '@ngrx/entity';
+import { AlbumDto } from '@metal-p3/api-interfaces';
 
 export interface Album extends AlbumDto {
   getError?: string;
-  bandProps?: BandProps;
-  gettingBandProps?: boolean;
-  tracks: EntityState<Track>;
-  tracksLoading?: boolean;
-  tracksError?: string;
-  coverLoading?: boolean;
-  coverError?: string;
   findingUrl?: boolean;
   saving?: boolean;
   saveError?: string;
-  savingCover?: boolean;
   renamingFolder?: boolean;
   renamingFolderError?: string;
   refreshing?: boolean;
   gettingMaTracks?: boolean;
-  maTracks: EntityState<MetalArchivesAlbumTrack>;
   deleting?: boolean;
   deleteError?: string;
 }
-
-export type AlbumWithoutTracks = Omit<Album, 'tracks' | 'maTracks'>;
 
 export const AlbumDtoToAlbum = (dto: AlbumDto): Partial<Album> => {
   return {

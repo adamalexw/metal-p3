@@ -17,6 +17,7 @@ export class ApplyLyricsToolbarComponent {
   protected readonly windowRef = inject(WA_WINDOW);
 
   applying = input(false);
+  applied = input(false);
   albumUrl = input<string | null | undefined>();
   albumId = input<number | null>();
   coverLoading = input(false);

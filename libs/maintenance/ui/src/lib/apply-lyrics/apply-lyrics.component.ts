@@ -29,6 +29,7 @@ export class ApplyLyricsComponent {
   lyricsLoadingProgress = input<number | null>(0);
   applyingProgress = input<number | null>(0);
   applying = input<boolean | null>(false);
+  applied = input<boolean | null>(false);
   trackTransferring = input<boolean | null>(false);
   trackTransferringProgress = input<number | null>(0);
   albumUrl = input<string | null | undefined>();
@@ -54,6 +55,9 @@ export class ApplyLyricsComponent {
   displayedColumns = ['trackNumber', 'title', 'duration', 'maTrack', 'selected'];
   dataSource: ApplyLyrics[] = [];
 
+  private manualSelections = new Map<number, boolean>();
+  private manualMaTracks = new Map<number, MetalArchivesAlbumTrack>();
+
   constructor() {
     effect(() => {
       const tracks = this.tracks();
@@ -70,7 +74,16 @@ export class ApplyLyricsComponent {
   }
 
   private mapDataSource(tracks: Track[], maTracks: MetalArchivesAlbumTrack[]) {
-    this.dataSource = tracks.map((track) => this.mapApplyLyrics(track, maTracks));
+    this.dataSource = tracks.map((track) => {
+      const mapped = this.mapApplyLyrics(track, maTracks);
+      if (this.manualSelections.has(track.id)) {
+        mapped.selected = this.manualSelections.get(track.id)!;
+      }
+      if (this.manualMaTracks.has(track.id)) {
+        mapped.maTrack = this.manualMaTracks.get(track.id)!;
+      }
+      return mapped;
+    });
   }
 
   private mapApplyLyrics(track: Track, maTracks: MetalArchivesAlbumTrack[]): ApplyLyrics {
@@ -101,13 +114,22 @@ export class ApplyLyricsComponent {
   }
 
   onSelectAll(checked: boolean) {
-    this.dataSource.forEach((lh) => (lh.selected = checked));
+    this.dataSource.forEach((lh) => {
+      lh.selected = checked;
+      this.manualSelections.set(lh.id, checked);
+    });
   }
 
   onSelectItem(id: number, checked: boolean) {
     this.dataSource.find((i) => i.id === id)!.selected = checked;
+    this.manualSelections.set(id, checked);
   }
 
+  onSelectMaTrack(id: number, maTrack: MetalArchivesAlbumTrack) {
+    this.dataSource.find((i) => i.id === id)!.maTrack = maTrack;
+    this.manualMaTracks.set(id, maTrack);
+  }
+  
   onTransfer() {
     this.transfer.emit(this.dataSource.filter((l) => l.selected).map((l) => ({ id: this.albumId()!, trackId: l.id })));
   }

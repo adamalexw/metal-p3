@@ -3,15 +3,10 @@ import { ErrorHandler, enableProdMode, importProvidersFrom, isDevMode, provideZo
 import { MAT_FORM_FIELD_DEFAULT_OPTIONS } from '@angular/material/form-field';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { bootstrapApplication } from '@angular/platform-browser';
-import { provideRouter, withInMemoryScrolling } from '@angular/router';
+import { provideRouter, withInMemoryScrolling, withComponentInputBinding } from '@angular/router';
+import { ErrorsHandler } from '@metal-p3/shared/error';
 import { routes } from '@metal-p3/album';
 import { ALBUM_DRAWER_WIDTH, API, BASE_PATH, TAKE } from '@metal-p3/album/domain';
-import { AlbumEffects, BandEffects, CoverEffects, TrackEffects, albumsFeature } from '@metal-p3/shared/data-access';
-import { ErrorsHandler } from '@metal-p3/shared/error';
-import { provideEffects } from '@ngrx/effects';
-import { provideRouterStore, routerReducer } from '@ngrx/router-store';
-import { provideState, provideStore } from '@ngrx/store';
-import { provideStoreDevtools } from '@ngrx/store-devtools';
 import { SocketIoConfig, SocketIoModule } from 'ngx-socket-io';
 import { AppComponent } from './app/app.component';
 import { environment } from './environments/environment';
@@ -24,20 +19,10 @@ if (environment.production) {
 
 bootstrapApplication(AppComponent, {
   providers: [
-    provideRouter(routes, withInMemoryScrolling({ scrollPositionRestoration: 'enabled' })),
+    provideRouter(routes, withInMemoryScrolling({ scrollPositionRestoration: 'enabled' }), withComponentInputBinding()),
     provideHttpClient(),
     provideZonelessChangeDetection(),
     importProvidersFrom(MatSnackBarModule, SocketIoModule.forRoot(config)),
-    provideRouterStore(),
-    provideStore({ router: routerReducer }),
-    provideState(albumsFeature),
-    provideStoreDevtools({
-      maxAge: 100,
-      logOnly: !isDevMode(),
-      autoPause: true,
-      connectInZone: true,
-    }),
-    provideEffects([AlbumEffects, BandEffects, CoverEffects, TrackEffects]),
     { provide: API, useValue: 'http://' + window.location.hostname + ':3333/api/' },
     { provide: BASE_PATH, useValue: environment.baseFolderLocation },
     { provide: TAKE, useValue: environment.take },

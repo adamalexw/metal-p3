@@ -12,7 +12,7 @@ import { RouterModule } from '@angular/router';
 import { AlbumDetailsForm, AlbumForm } from '@metal-p3/album/domain';
 import { BandDto, BandProps, MetalArchivesAlbumTrack, MetalArchivesUrl, TrackBase } from '@metal-p3/api-interfaces';
 import { CoverComponent } from '@metal-p3/cover/ui';
-import { Album, AlbumWithoutTracks } from '@metal-p3/shared/data-access';
+import { Album } from '@metal-p3/album/domain';
 import { NotificationService } from '@metal-p3/shared/feedback';
 import { Track } from '@metal-p3/track/domain';
 import { TracksComponent, TracksToolbarComponent } from '@metal-p3/track/ui';
@@ -59,6 +59,7 @@ export class AlbumComponent {
   albumDuration = input<number | null>(0);
   trackSavingProgress = input<number | null>(0);
   coverLoading = input<boolean | null>(false);
+  coverError = input<string | null | undefined>();
   cover = input<string | null | undefined>();
   findingUrl = input<boolean | null>(false);
   maUrls = input<MetalArchivesUrl | null>(null);
@@ -75,7 +76,7 @@ export class AlbumComponent {
   bandProps = input<BandProps | null | undefined>(null);
 
   readonly save = output<{
-    album: AlbumWithoutTracks;
+    album: Album;
     tracks: TrackBase[];
     previousBandId?: number;
   }>();

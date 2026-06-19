@@ -10,7 +10,7 @@ import { Track } from '@metal-p3/track/domain';
 import { patchState, signalStore, withComputed, withMethods, withState } from '@ngrx/signals';
 import { addEntity, removeEntity, setAllEntities, updateEntity, withEntities } from '@ngrx/signals/entities';
 import { rxMethod } from '@ngrx/signals/rxjs-interop';
-import { catchError, concatMap, EMPTY, forkJoin, map, Observable, pipe, tap } from 'rxjs';
+import { catchError, concatMap, EMPTY, forkJoin, map, Observable, pipe, tap, of, switchMap } from 'rxjs';
 import { PlaylistService } from './playlist.service';
 
 export interface PlaylistState {
@@ -73,24 +73,27 @@ export const PlaylistStore = signalStore(
       ),
       loadPlaylist: rxMethod<number>(
         pipe(
-          tap((id) => {
+          switchMap((id) => {
             const playlist = store.entityMap()[id];
-            const tracks: Observable<Track>[] = [];
+            if (!playlist) return of(null);
 
-            playlist?.items.forEach((item) =>
-              tracks.push(
-                trackService.getTrack(item.itemPath).pipe(
-                  map((track) => ({ ...track, playlistItemId: item.id })),
-                  catchError((error) => {
-                    notificationService.showError(`Failed to load track details for ${item.itemPath}`);
-                    return EMPTY;
-                  })
-                )
+            const trackObservables = playlist.items.map((item) =>
+              trackService.getTrack(item.itemPath).pipe(
+                map((track): Track => ({ ...track, playlistItemId: item.id })),
+                catchError((error) => {
+                  notificationService.showError(`Failed to load track details for ${item.itemPath}`);
+                  return of(null);
+                })
               )
             );
 
-            playerService.playPlaylist(tracks);
-            patchState(store, { active: id });
+            return forkJoin(trackObservables).pipe(
+              map((tracks) => tracks.filter((t): t is Track => t !== null)),
+              tap((tracks) => {
+                playerService.playPlaylist(tracks);
+                patchState(store, { active: id });
+              })
+            );
           })
         )
       ),

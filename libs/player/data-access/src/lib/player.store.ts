@@ -147,6 +147,27 @@ export const PlayerStore = signalStore(
       });
       patchState(store, { activeTrack: undefined }, removeAllEntities());
     },
+    replacePlaylist(tracks: PlaylistItem[]) {
+      store.entities().forEach(blob => {
+        if (typeof blob.cover === 'string') URL.revokeObjectURL(blob.cover);
+        if (typeof blob.url === 'string') URL.revokeObjectURL(blob.url);
+      });
+      
+      patchState(store, { activeTrack: undefined }, removeAllEntities(), addEntities(tracks));
+      
+      if (tracks[0]) {
+        this.play(tracks[0].id);
+      }
+      
+      const seenFolders = new Set<string>();
+      tracks.forEach((track) => {
+        const key = track.folder || track.id;
+        if (!seenFolders.has(key)) {
+          seenFolders.add(key);
+          this.getCover({ id: track.id, folder: track.folder || '' });
+        }
+      });
+    },
     shuffle() {
       const pl = [...store.playlist()];
       shuffleArray(pl);
