@@ -1,8 +1,8 @@
 import { RenameTrack, TrackDto, TransferPlaylistRequest } from '@metal-p3/api-interfaces';
 import { FileSystemService } from '@metal-p3/shared/file-system';
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Patch, Post, Query, Res } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, NotFoundException, Patch, Post, Query, Res } from '@nestjs/common';
 import { Response } from 'express';
-import { Observable } from 'rxjs';
+import { Observable, throwIfEmpty } from 'rxjs';
 import { TrackService } from './track.service';
 
 @Controller('track')
@@ -19,7 +19,9 @@ export class TrackController {
 
   @Get('trackDetails')
   trackDetails(@Query('file') file: string, @Query('id') id: number): Observable<TrackDto> {
-    return this.trackService.trackDetails(file, id);
+    return this.trackService.trackDetails(file, id).pipe(
+      throwIfEmpty(() => new NotFoundException(`Track details not found for file: ${file}`))
+    );
   }
 
   @Patch()

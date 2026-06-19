@@ -7,7 +7,6 @@ import { provideRouter, withInMemoryScrolling } from '@angular/router';
 import { routes } from '@metal-p3/album';
 import { ALBUM_DRAWER_WIDTH, API, BASE_PATH, TAKE } from '@metal-p3/album/domain';
 import { PlayerEffects, playerFeature } from '@metal-p3/player/data-access';
-import { PlaylistEffects, playlistFeature } from '@metal-p3/playlist/data-access';
 import { AlbumEffects, BandEffects, CoverEffects, TrackEffects, albumsFeature } from '@metal-p3/shared/data-access';
 import { ErrorsHandler } from '@metal-p3/shared/error';
 import { provideEffects } from '@ngrx/effects';
@@ -34,14 +33,13 @@ bootstrapApplication(AppComponent, {
     provideStore({ router: routerReducer }),
     provideState(albumsFeature),
     provideState(playerFeature),
-    provideState(playlistFeature),
     provideStoreDevtools({
       maxAge: 100,
       logOnly: !isDevMode(),
       autoPause: true,
       connectInZone: true,
     }),
-    provideEffects([AlbumEffects, BandEffects, CoverEffects, TrackEffects, PlayerEffects, PlaylistEffects]),
+    provideEffects([AlbumEffects, BandEffects, CoverEffects, TrackEffects, PlayerEffects]),
     { provide: API, useValue: 'http://' + window.location.hostname + ':3333/api/' },
     { provide: BASE_PATH, useValue: environment.baseFolderLocation },
     { provide: TAKE, useValue: environment.take },

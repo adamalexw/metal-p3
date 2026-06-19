@@ -6,19 +6,19 @@ import { MatSnackBar, MatSnackBarConfig, MatSnackBarRef, TextOnlySnackBar } from
 export class NotificationService {
   private readonly snackBar = inject(MatSnackBar);
 
-  showError(message: string, action?: string | undefined) {
+  showError(message: string, action = 'Close') {
     this.snackBar.open(message, action, { panelClass: 'snackbar-error' });
   }
 
-  showComplete(message: string, action?: string | undefined) {
+  showComplete(message: string, action = 'Close') {
     this.snackBar.open(message, action, { duration: 2000, panelClass: 'snackbar-info' });
   }
 
-  showProgress(message: string, action?: string | undefined): MatSnackBarRef<TextOnlySnackBar> {
+  showProgress(message: string, action = 'Close'): MatSnackBarRef<TextOnlySnackBar> {
     return this.snackBar.open(message, action);
   }
 
-  showInfo(message: string, action?: string | undefined) {
+  showInfo(message: string, action = 'Close') {
     this.snackBar.open(message, action, { duration: 2000, panelClass: 'snackbar-info' });
   }
 

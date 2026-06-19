@@ -1,17 +1,7 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-import {
-  SetlistImporterActions,
-  selectSetlistImporterCreating,
-  selectSetlistImporterError,
-  selectSetlistImporterMatching,
-  selectSetlistImporterScraping,
-  selectSetlistImporterTracks,
-  selectSetlistImporterUrls,
-} from '@metal-p3/setlist-importer/data-access';
+import { SetlistImporterStore } from '@metal-p3/setlist-importer/data-access';
 import { ReviewTableComponent, UrlListEditorComponent } from '@metal-p3/setlist-importer/ui';
 import { NavToolbarComponent } from '@metal-p3/shared/navigation';
-import { Store } from '@ngrx/store';
-import { toSignal } from '@angular/core/rxjs-interop';
 
 @Component({
   imports: [NavToolbarComponent, UrlListEditorComponent, ReviewTableComponent],
@@ -20,32 +10,32 @@ import { toSignal } from '@angular/core/rxjs-interop';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SetlistImporterShellComponent {
-  private readonly store = inject(Store);
+  private readonly store = inject(SetlistImporterStore);
 
-  readonly urls = toSignal(this.store.select(selectSetlistImporterUrls), { initialValue: [] });
-  readonly tracks = toSignal(this.store.select(selectSetlistImporterTracks), { initialValue: [] });
-  readonly scraping = toSignal(this.store.select(selectSetlistImporterScraping), { initialValue: false });
-  readonly matching = toSignal(this.store.select(selectSetlistImporterMatching), { initialValue: false });
-  readonly creating = toSignal(this.store.select(selectSetlistImporterCreating), { initialValue: false });
-  readonly error = toSignal(this.store.select(selectSetlistImporterError), { initialValue: undefined });
+  readonly urls = this.store.urls;
+  readonly tracks = this.store.tracks;
+  readonly scraping = this.store.scraping;
+  readonly matching = this.store.matching;
+  readonly creating = this.store.creating;
+  readonly error = this.store.error;
 
   onUrlsChange(urls: string[]) {
-    this.store.dispatch(SetlistImporterActions.setUrls({ urls }));
+    this.store.setUrls(urls);
   }
 
   onScrape() {
-    this.store.dispatch(SetlistImporterActions.scrape());
+    this.store.scrape();
   }
 
   onToggleSelection(key: string) {
-    this.store.dispatch(SetlistImporterActions.toggleTrackSelection({ key }));
+    this.store.toggleTrackSelection(key);
   }
 
   onSetAllSelection(selected: boolean) {
-    this.store.dispatch(SetlistImporterActions.setAllSelection({ selected }));
+    this.store.setAllSelection(selected);
   }
 
   onCreatePlaylist(name: string) {
-    this.store.dispatch(SetlistImporterActions.createPlaylist({ name }));
+    this.store.createPlaylist(name);
   }
 }

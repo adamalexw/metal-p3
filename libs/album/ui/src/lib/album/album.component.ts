@@ -191,34 +191,42 @@ export class AlbumComponent {
       maUrls: this.maUrls(),
       bandProps: this.bandProps(),
     }),
-    computation: ({ album, tracks, maUrls, bandProps }) => ({
-      details: {
-        artist: album?.artist ?? '',
-        album: album?.album ?? '',
-        year: album?.year ?? 0,
-        genre: bandProps ? (bandProps.genre ?? '') : (album?.genre ?? ''),
-        country: bandProps ? (bandProps.country ?? '') : (album?.country ?? ''),
-        played: album?.played ?? false,
-        artistUrl: maUrls ? (maUrls.artistUrl ?? '') : (album?.artistUrl ?? ''),
-        albumUrl: maUrls ? (maUrls.albumUrl ?? '') : (album?.albumUrl ?? ''),
-        ignore: false,
-        transferred: album?.transferred ?? false,
-        hasLyrics: album?.hasLyrics ?? false,
-        dateCreated: album?.dateCreated ?? '',
-      },
-      tracks: tracks.map((track) => ({
-        id: track.id,
-        trackNumber: track.trackNumber,
-        title: track.title,
-        duration: track.duration ?? 0,
-        bitrate: track.bitrate ?? 0,
-        lyrics: track.lyrics ?? '',
-        syncedLyrics: track.syncedLyrics ?? '',
-        file: track.file,
-        folder: track.folder,
-        fullPath: track.fullPath,
-      })),
-    }),
+    computation: (source, previous) => {
+      if (previous && source.album?.saving) {
+        return previous.value;
+      }
+
+      const { album, tracks, maUrls, bandProps } = source;
+
+      return {
+        details: {
+          artist: album?.artist ?? '',
+          album: album?.album ?? '',
+          year: album?.year ?? 0,
+          genre: bandProps ? (bandProps.genre ?? '') : (album?.genre ?? ''),
+          country: bandProps ? (bandProps.country ?? '') : (album?.country ?? ''),
+          played: album?.played ?? false,
+          artistUrl: maUrls ? (maUrls.artistUrl ?? '') : (album?.artistUrl ?? ''),
+          albumUrl: maUrls ? (maUrls.albumUrl ?? '') : (album?.albumUrl ?? ''),
+          ignore: album?.ignore ?? false,
+          transferred: album?.transferred ?? false,
+          hasLyrics: album?.hasLyrics ?? false,
+          dateCreated: album?.dateCreated ?? '',
+        },
+        tracks: tracks.map((track) => ({
+          id: track.id,
+          trackNumber: track.trackNumber,
+          title: track.title,
+          duration: track.duration ?? 0,
+          bitrate: track.bitrate ?? 0,
+          lyrics: track.lyrics ?? '',
+          syncedLyrics: track.syncedLyrics ?? '',
+          file: track.file,
+          folder: track.folder,
+          fullPath: track.fullPath,
+        })),
+      };
+    },
   });
 
   protected readonly form = form(this.model, (path) => {

@@ -6,7 +6,7 @@ import { AlbumService } from '@metal-p3/album/data-access';
 import { AlbumComponent } from '@metal-p3/album/ui';
 import { MetalArchivesAlbumTrack, TrackBase } from '@metal-p3/api-interfaces';
 import { CoverService } from '@metal-p3/cover/data-access';
-import { MaintenanceActions } from '@metal-p3/maintenance/data-access';
+import { MaintenanceStore } from '@metal-p3/maintenance/data-access';
 import { PlayerService } from '@metal-p3/player/data-access';
 import {
   AlbumActions,
@@ -61,6 +61,7 @@ import { Observable, combineLatest, distinctUntilChanged, filter, map, switchMap
 })
 export class AlbumShellComponent implements OnInit {
   private readonly store = inject(Store);
+  private readonly maintenanceStore = inject(MaintenanceStore);
   private readonly albumService = inject(AlbumService);
   private readonly coverService = inject(CoverService);
   private readonly router = inject(Router);
@@ -254,7 +255,7 @@ export class AlbumShellComponent implements OnInit {
   }
 
   onLyricsPriority(albumId: number) {
-    this.store.dispatch(MaintenanceActions.addLyricsPriority({ albumId }));
+    this.maintenanceStore.addLyricsPriority(albumId);
   }
 
   onRefreshTracks(id: number, folder: string) {
