@@ -2,14 +2,16 @@ import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 import { CdkVirtualScrollViewport, ScrollingModule, ViewportRuler } from '@angular/cdk/scrolling';
 import { AsyncPipe, Location } from '@angular/common';
 import { ChangeDetectionStrategy, Component, DOCUMENT, OnInit, inject, output, viewChild } from '@angular/core';
+import { toObservable } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { AlbumService } from '@metal-p3/album/data-access';
 import { ALBUM_DRAWER_WIDTH, TAKE } from '@metal-p3/album/domain';
 import { ListItemComponent, ListToolbarComponent } from '@metal-p3/album/ui';
 import { AlbumDto, SearchRequest } from '@metal-p3/api-interfaces';
 import { PlayerShellComponent } from '@metal-p3/player';
-import { PlayerActions, PlayerService, selectShowPlayer } from '@metal-p3/player/data-access';
+import { PlayerStore, PlayerService } from '@metal-p3/player/data-access';
 import {
+
   Album,
   AlbumActions,
   CoverActions,
@@ -44,6 +46,7 @@ export class ListComponent implements OnInit {
   private readonly store = inject(Store);
   private readonly router = inject(Router);
   private readonly playerService = inject(PlayerService);
+  private readonly playerStore = inject(PlayerStore);
   private readonly notificationService = inject(NotificationService);
   private readonly connectPhoneService = inject(ConnectPhoneService);
   private readonly service = inject(AlbumService);
@@ -60,7 +63,7 @@ export class ListComponent implements OnInit {
   albums$ = this.store.select(selectAlbums);
   searchRequest$ = this.store.select(selectAlbumsSearchRequest);
   searchRequestFolder$ = this.store.select(selectAlbumsSearchRequestFolder);
-  showPlayer$ = this.store.select(selectShowPlayer);
+  showPlayer$ = toObservable(this.playerStore.showPlayer);
   creatingNew$ = this.store.select(selectCreatingNew);
   sideNavOpen$ = this.store.select(selectSideNavOpen);
 
@@ -206,7 +209,7 @@ export class ListComponent implements OnInit {
   }
 
   onShowPlayer() {
-    this.store.dispatch(PlayerActions.show());
+    this.playerStore.show();
   }
 
   onCreateNew() {

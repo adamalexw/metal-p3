@@ -1,16 +1,16 @@
-@if (playerOpen$ | async) {
-  <div [class]="divClass$ | async">
-    <div class="static flex w-full" [class]="subDivClass$ | async" [class.hidden]="!!(activeItem$ | async) === false">
-      <app-cover class="aspect-square" [class]="this.coverSize$ | async" [cover]="cover$ | async" />
+@if (playerStore.playerOpen()) {
+  <div [class]="divClass()">
+    <div class="static flex w-full" [class]="subDivClass()" [class.hidden]="!playerStore.activePlaylistItem()">
+      <app-cover class="aspect-square" [class]="coverSize()" [cover]="playerStore.activeItemCover()" />
 
       <app-player-controls
         class="block w-full"
-        [footerMode]="footerMode$ | async"
-        [isFirstItemPlaying]="isFirstItemPlaying$ | async"
-        [isLastItemPlaying]="isLastItemPlaying$ | async"
-        [currentItem]="activeItem$ | async"
+        [footerMode]="playerStore.footerMode()"
+        [isFirstItemPlaying]="playerStore.isFirstItemPlaying()"
+        [isLastItemPlaying]="playerStore.isLastItemPlaying()"
+        [currentItem]="playerStore.activePlaylistItem()"
         [elapsedTime]="elapsedTime$ | async"
-        [toggleIcon]="toggleIcon$ | async"
+        [toggleIcon]="toggleIcon()"
         (playItem)="onPlay()"
         (pauseItem)="onPause()"
         (seekTo)="onSeekTo($event)"
@@ -22,13 +22,13 @@
       />
     </div>
 
-    @if ((footerMode$ | async) === false) {
-      <app-playlist-shell [duration]="playlistDuration$ | async" (clearPlaylist)="onClearPlaylist()" (closePlaylist)="onClosePlaylist()" (togglePlaylist)="onTogglePlaylist()" />
+    @if (!playerStore.footerMode()) {
+      <app-playlist-shell [duration]="playerStore.playlistDuration()" (clearPlaylist)="onClearPlaylist()" (closePlaylist)="onClosePlaylist()" (togglePlaylist)="onTogglePlaylist()" />
       <app-playlist
         class="fixed top-0 left-0 z-50 h-screen overflow-auto bg-background lg:static lg:block lg:h-auto lg:max-h-[calc(100vh-384px)] lg:translate-y-0"
-        [class.hidden]="(showPlaylist$ | async) === false"
-        [playlist]="playlist$ | async"
-        [currentItem]="activeItem$ | async"
+        [class.hidden]="!playerStore.showPlaylist()"
+        [playlist]="playerStore.playlist()"
+        [currentItem]="playerStore.activePlaylistItem()"
         (playItem)="onPlayItem($event)"
         (pauseItem)="onPause()"
         (resumeItem)="onPlay()"

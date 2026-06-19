@@ -1,9 +1,7 @@
 import { ChangeDetectionStrategy, Component, inject, input, output } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
-import { PlayerActions, selectPlaylistItemSize } from '@metal-p3/player/data-access';
+import { PlayerStore } from '@metal-p3/player/data-access';
 import { PlaylistStore } from '@metal-p3/playlist/data-access';
 import { PlaylistToolbarComponent } from '@metal-p3/playlist/ui';
-import { Store } from '@ngrx/store';
 
 @Component({
   imports: [PlaylistToolbarComponent],
@@ -13,7 +11,7 @@ import { Store } from '@ngrx/store';
 })
 export class PlaylistShellComponent {
   readonly playlistStore = inject(PlaylistStore);
-  private readonly store = inject(Store);
+  private readonly playerStore = inject(PlayerStore);
 
   duration = input<number | null | undefined>(0);
 
@@ -21,7 +19,7 @@ export class PlaylistShellComponent {
   readonly closePlaylist = output<void>();
   readonly togglePlaylist = output<void>();
 
-  playlistSize = toSignal(this.store.select(selectPlaylistItemSize));
+  playlistSize = this.playerStore.playlistSize;
 
   onLoadPlaylists() {
     this.playlistStore.loadPlaylists();
@@ -40,7 +38,7 @@ export class PlaylistShellComponent {
   }
 
   onShuffle() {
-    this.store.dispatch(PlayerActions.shuffle());
+    this.playerStore.shuffle();
   }
 
   onDeletePlaylist() {

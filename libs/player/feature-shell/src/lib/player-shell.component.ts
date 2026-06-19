@@ -1,30 +1,20 @@
 import { AsyncPipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, OnInit, afterNextRender, inject, viewChild } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, OnInit, afterNextRender, inject, viewChild, computed } from '@angular/core';
+import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { Title } from '@angular/platform-browser';
 import { CoverComponent } from '@metal-p3/cover/ui';
-import {
-  PlayerActions,
-  selectActiveItemCover,
-  selectActivePlaylistItem,
-  selectFirstItemPlaying,
-  selectFooterMode,
-  selectLastItemPlaying,
-  selectPlayerOpen,
-  selectPlaylist,
-  selectPlaylistDuration,
-  selectShowPlaylist,
-} from '@metal-p3/player/data-access';
+import { PlayerStore } from '@metal-p3/player/data-access';
 import { PlaylistItem } from '@metal-p3/player/domain';
 import { PlayerControlsComponent } from '@metal-p3/player/ui';
 import { PlaylistShellComponent } from '@metal-p3/playlist';
+import { PlaylistStore } from '@metal-p3/playlist/data-access';
 import { PlaylistComponent } from '@metal-p3/playlist/ui';
 import { selectAlbumFolder } from '@metal-p3/shared/data-access';
 import { NotificationService } from '@metal-p3/shared/feedback';
 import { nonNullable } from '@metal-p3/shared/utils';
 import { TrackService } from '@metal-p3/track/data-access';
 import { Store } from '@ngrx/store';
-import { EMPTY, Observable, catchError, combineLatest, concatMap, distinctUntilChanged, distinctUntilKeyChanged, filter, fromEvent, map, of, shareReplay, take, tap, withLatestFrom } from 'rxjs';
+import { EMPTY, Observable, catchError, combineLatest, concatMap, distinctUntilChanged, distinctUntilKeyChanged, filter, fromEvent, map, of, tap, take } from 'rxjs';
 
 @Component({
   imports: [AsyncPipe, CoverComponent, PlayerControlsComponent, PlaylistShellComponent, PlaylistComponent],
@@ -41,30 +31,18 @@ export class PlayerShellComponent implements OnInit {
 
   private readonly audio = viewChild.required<ElementRef>('audio');
 
-  playerOpen$ = this.store.select(selectPlayerOpen);
+  protected readonly playerStore = inject(PlayerStore);
+  protected readonly playlistStore = inject(PlaylistStore);
 
-  footerMode$ = this.store.select(selectFooterMode).pipe(shareReplay());
-  divClass$ = this.footerMode$.pipe(map((footerMode) => (footerMode ? 'max-h-[64px]' : 'lg:translate-y-0 lg:max-h-[calc(100vh-64px)]')));
-  subDivClass$ = this.footerMode$.pipe(map((footerMode) => (footerMode ? '' : 'flex-col lg:flex-row')));
-  toggleIcon$ = this.footerMode$.pipe(map((footerMode) => (footerMode ? 'expand_less' : 'expand_more')));
+  activeItem$ = toObservable(this.playerStore.activePlaylistItem);
+  activeCover$ = toObservable(this.playerStore.activeItemCover);
 
-  playlist$ = this.store.select(selectPlaylist);
-  activeItem$ = this.store.select(selectActivePlaylistItem);
-
-  cover$ = this.store.select(selectActiveItemCover);
-  coverSize$ = this.footerMode$.pipe(
-    map((footerMode) => (footerMode ? { 'h-16': true, 'w-16': true } : { 'w-screen': true, 'lg:w-[18.5rem]': true })),
-    shareReplay(),
-  );
+  divClass = computed(() => (this.playerStore.footerMode() ? 'max-h-[64px]' : 'lg:translate-y-0 lg:max-h-[calc(100vh-64px)]'));
+  subDivClass = computed(() => (this.playerStore.footerMode() ? '' : 'flex-col lg:flex-row'));
+  toggleIcon = computed(() => (this.playerStore.footerMode() ? 'expand_less' : 'expand_more'));
+  coverSize = computed(() => (this.playerStore.footerMode() ? 'h-16 w-16' : 'w-screen lg:w-[18.5rem]'));
 
   elapsedTime$: Observable<number> = of(0);
-  ended$: Observable<boolean> = of(false);
-  isFirstItemPlaying$ = this.store.select(selectFirstItemPlaying);
-  isLastItemPlaying$ = this.store.select(selectLastItemPlaying);
-
-  playlistDuration$ = this.store.select(selectPlaylistDuration);
-
-  showPlaylist$ = this.store.select(selectShowPlaylist);
 
   private readonly defaultTitle = this.title.getTitle();
 
@@ -129,7 +107,7 @@ export class PlayerShellComponent implements OnInit {
     mediaSession.setActionHandler('nexttrack', () => this.onNext());
     mediaSession.setActionHandler('previoustrack', () => this.onMediaPrevious());
 
-    combineLatest([this.activeItem$, this.cover$])
+    combineLatest([this.activeItem$, this.activeCover$])
       .pipe(
         tap(([item, cover]) => {
           if (!item) {
@@ -162,30 +140,23 @@ export class PlayerShellComponent implements OnInit {
    * more than 10s in (or already on the first track), otherwise step back.
    */
   private onMediaPrevious(): void {
-    this.isFirstItemPlaying$
-      .pipe(
-        take(1),
-        tap((isFirst) => {
-          if (this.audioElement.currentTime > 10 || isFirst) {
-            this.onSeekTo(0);
-          } else {
-            this.onPrevious();
-          }
-        }),
-      )
-      .subscribe();
+    if (this.audioElement.currentTime > 10 || this.playerStore.isFirstItemPlaying()) {
+      this.onSeekTo(0);
+    } else {
+      this.onPrevious();
+    }
   }
 
   onPlayItem(id: string) {
-    this.store.dispatch(PlayerActions.play({ id }));
+    this.playerStore.play(id);
   }
 
   private getBlobUrl(id: string, file: string): Observable<string> {
     return this.trackService.playTrack(file).pipe(
       map((response) => URL.createObjectURL(response)),
-      tap((url) => this.store.dispatch(PlayerActions.updateItem({ update: { id, changes: { url, error: undefined } } }))),
+      tap((url) => this.playerStore.updateItem({ id, changes: { url, error: undefined } })),
       catchError((error) => {
-        this.store.dispatch(PlayerActions.playError({ update: { id, changes: { error } } }));
+        this.playerStore.updateItem({ id, changes: { error } });
         return EMPTY;
       }),
     );
@@ -194,19 +165,19 @@ export class PlayerShellComponent implements OnInit {
   private listenToAudioEvents() {
     fromEvent(this.audio().nativeElement, 'ended')
       .pipe(
-        withLatestFrom(this.playlist$),
-        tap(([_ended, playlist]) => {
+        tap(() => {
+          const playlist = this.playerStore.playlist();
           const currentIndex = playlist.findIndex((pl) => pl.playing);
 
           if (playlist.length === 1) {
             this.onSeekTo(0);
-            this.store.dispatch(PlayerActions.pause());
+            this.playerStore.pause();
             return;
           }
 
           if (currentIndex === playlist.length - 1) {
             const id = playlist[0].id;
-            this.store.dispatch(PlayerActions.play({ id }));
+            this.playerStore.play(id);
             this.onPause();
             return;
           }
@@ -229,27 +200,23 @@ export class PlayerShellComponent implements OnInit {
   }
 
   onPlay() {
-    this.activeItem$
-      .pipe(
-        take(1),
-        tap((item) => this.onPlayItem(item?.id || '')),
-      )
-      .subscribe();
+    const item = this.playerStore.activePlaylistItem();
+    if (item) this.onPlayItem(item.id);
 
     this.audioElement.play();
   }
 
   onPause() {
-    this.store.dispatch(PlayerActions.pause());
+    this.playerStore.pause();
     this.audioElement.pause();
   }
 
   onPrevious() {
-    this.store.dispatch(PlayerActions.playPrevious());
+    this.playerStore.playPrevious();
   }
 
   onNext() {
-    this.store.dispatch(PlayerActions.playNext());
+    this.playerStore.playNext();
   }
 
   onSeekTo(value: number) {
@@ -257,7 +224,11 @@ export class PlayerShellComponent implements OnInit {
   }
 
   onRemove(id: string) {
-    this.store.dispatch(PlayerActions.remove({ id }));
+    const item = this.playerStore.playlist().find(i => i.id === id);
+    if (item?.playlistItemId) {
+      this.playlistStore.removeBackendItem(item.playlistItemId);
+    }
+    this.playerStore.remove(id);
   }
 
   onVolume(value: number) {
@@ -265,24 +236,25 @@ export class PlayerShellComponent implements OnInit {
   }
 
   onToogleView() {
-    this.store.dispatch(PlayerActions.toogleView());
+    this.playerStore.toggleView();
   }
 
   onReorder(playlist: PlaylistItem[]) {
-    this.store.dispatch(PlayerActions.reorder({ updates: playlist.map((item, index) => ({ id: item.id, changes: { index } })) }));
+    this.playerStore.updateItems(playlist.map((item, index) => ({ id: item.id, changes: { index } })));
   }
 
   onClearPlaylist() {
     this.audioElement.src = '';
-    this.store.dispatch(PlayerActions.clear());
+    this.playerStore.clear();
+    this.playlistStore.clearActive();
   }
 
   onClosePlaylist() {
     this.onClearPlaylist();
-    this.store.dispatch(PlayerActions.close());
+    this.playerStore.close();
   }
 
   onTogglePlaylist() {
-    this.store.dispatch(PlayerActions.tooglePlaylist());
+    this.playerStore.togglePlaylist();
   }
 }

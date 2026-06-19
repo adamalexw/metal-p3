@@ -1,5 +1,5 @@
 import { computed, inject } from '@angular/core';
-import { PlayerActions, PlayerService, selectItemById, selectPlaylist } from '@metal-p3/player/data-access';
+import { PlayerStore, PlayerService } from '@metal-p3/player/data-access';
 import { PlaylistItem } from '@metal-p3/player/domain';
 import { playlistItemToDto } from '@metal-p3/player/util';
 import { PlaylistDto } from '@metal-p3/playlist/domain';
@@ -7,13 +7,10 @@ import { ErrorService } from '@metal-p3/shared/error';
 import { NotificationService } from '@metal-p3/shared/feedback';
 import { TrackService } from '@metal-p3/track/data-access';
 import { Track } from '@metal-p3/track/domain';
-import { Actions, ofType } from '@ngrx/effects';
-import { Update } from '@ngrx/entity';
-import { patchState, signalStore, withComputed, withHooks, withMethods, withState } from '@ngrx/signals';
+import { patchState, signalStore, withComputed, withMethods, withState } from '@ngrx/signals';
 import { addEntity, removeEntity, setAllEntities, updateEntity, withEntities } from '@ngrx/signals/entities';
 import { rxMethod } from '@ngrx/signals/rxjs-interop';
-import { Store as NgrxStore } from '@ngrx/store';
-import { catchError, concatMap, EMPTY, filter, forkJoin, map, Observable, of, pipe, take, tap, withLatestFrom } from 'rxjs';
+import { catchError, concatMap, EMPTY, forkJoin, map, Observable, pipe, tap } from 'rxjs';
 import { PlaylistService } from './playlist.service';
 
 export interface PlaylistState {
@@ -56,10 +53,9 @@ export const PlaylistStore = signalStore(
       playlistService = inject(PlaylistService),
       trackService = inject(TrackService),
       playerService = inject(PlayerService),
+      playerStore = inject(PlayerStore),
       errorService = inject(ErrorService),
       notificationService = inject(NotificationService),
-      ngrxStore = inject(NgrxStore),
-      actions$ = inject(Actions),
     ) => ({
       loadPlaylists: rxMethod<void>(
         pipe(
@@ -100,8 +96,8 @@ export const PlaylistStore = signalStore(
       ),
       create: rxMethod<string>(
         pipe(
-          withLatestFrom(ngrxStore.select(selectPlaylist)),
-          map(([name, items]) => {
+          map((name) => {
+            const items = playerStore.playlist();
             const playlist: PlaylistDto = {
               id: -1,
               name,
@@ -124,26 +120,25 @@ export const PlaylistStore = signalStore(
       ),
       save: rxMethod<string>(
         pipe(
-          withLatestFrom(ngrxStore.select(selectPlaylist)),
-          map(([name, items]) => {
+          map((name) => {
+            const items = playerStore.playlist();
             const id = store.active();
             if (!id) throw new Error('No active playlist to save');
             return {
               id,
               name,
               items: items.map((item) => playlistItemToDto(item, id)),
-            };
+            } as PlaylistDto;
           }),
           concatMap((playlist: PlaylistDto) =>
             playlistService.updatePlaylist(playlist).pipe(
-              withLatestFrom(ngrxStore.select(selectPlaylist)),
-              tap(([updatedPlaylist, items]) => {
+              tap((updatedPlaylist) => {
                 patchState(store, updateEntity({ id: updatedPlaylist.id, changes: updatedPlaylist }));
 
-                // Handle saveSuccess$ effect
+                const items = playerStore.playlist();
                 const newItems = items.filter((item) => (item.playlistItemId ?? -1) < 0);
                 if (newItems.length > 0) {
-                  const updateItems: Update<PlaylistItem>[] = [];
+                  const updateItems: { id: string; changes: Partial<PlaylistItem> }[] = [];
                   newItems.forEach((newItem) => {
                     const playlistItem = updatedPlaylist.items.find((i) => i.itemIndex === newItem.index);
                     if (playlistItem) {
@@ -151,7 +146,7 @@ export const PlaylistStore = signalStore(
                     }
                   });
                   if (updateItems.length > 0) {
-                    ngrxStore.dispatch(PlayerActions.updateItems({ updates: updateItems }));
+                    playerStore.updateItems(updateItems);
                   }
                 }
               }),
@@ -184,10 +179,15 @@ export const PlaylistStore = signalStore(
       transfer: rxMethod<void>(
         pipe(
           tap(() => patchState(store, { transferring: true })),
-          withLatestFrom(ngrxStore.select(selectPlaylist)),
-          concatMap(([_, tracks]) => {
+          concatMap(() => {
+            const tracks = playerStore.playlist();
             const activePlaylist = store.activePlaylist();
-            const tracks$ = tracks.map((track) => trackService.transferTrack(track.fullPath));
+            const tracks$ = tracks.map((track) => trackService.transferTrack(track.fullPath || ''));
+
+            if (!tracks$.length) {
+              patchState(store, { transferring: false });
+              return EMPTY;
+            }
 
             return forkJoin(tracks$).pipe(
               concatMap(() => {
@@ -222,32 +222,11 @@ export const PlaylistStore = signalStore(
           })
         )
       ),
-    })
-  ),
-  withHooks({
-    onInit(store) {
-      const actions$ = inject(Actions);
-      const ngrxStore = inject(NgrxStore);
-      const playlistService = inject(PlaylistService);
-
-      // Listen for PlayerActions.remove to remove items from the backend playlist
-      actions$.pipe(
-        ofType(PlayerActions.remove),
-        concatMap(({ id }) => 
-          ngrxStore.select(selectItemById(id)).pipe(
-            take(1),
-            map(item => item!),
-            filter(item => !!item?.playlistItemId),
-            concatMap((item) => playlistService.removeItem(item.playlistItemId || 0))
-          )
+      removeBackendItem: rxMethod<number>(
+        pipe(
+          concatMap((playlistItemId) => playlistService.removeItem(playlistItemId))
         )
-      ).subscribe();
-      
-      // Listen for PlayerActions.clear
-      actions$.pipe(
-        ofType(PlayerActions.clear),
-        tap(() => store.clearActive())
-      ).subscribe();
-    }
-  })
+      )
+    })
+  )
 );
