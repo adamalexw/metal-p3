@@ -1,6 +1,6 @@
 @if (coverError()) {
   <div class="relative w-full" [enableDnd]="enableDnd()" (coverUrl)="coverUrl.emit($event)" appCoverDnd>
-    <img alt="blank cover" [style.width.px]="width()" [style.height.px]="height()" src="/assets/blank.png" />
+    <img alt="blank cover" [style.width.px]="width()" [style.height.px]="height()" [src]="blankCover" />
     <div class="absolute top-12 w-full rounded-md bg-red-700 text-center text-white">COVER ERROR</div>
   </div>
 } @else if (cover(); as coverStr) {
@@ -14,7 +14,7 @@
   </div>
 } @else {
   <div class="relative w-full overflow-hidden" [enableDnd]="enableDnd()" (coverUrl)="coverUrl.emit($event)" appCoverDnd>
-    <img alt="blank cover" [style.width.px]="width()" [style.height.px]="height()" src="/assets/blank.png" />
+    <img alt="blank cover" [style.width.px]="width()" [style.height.px]="height()" [src]="blankCover" />
     @if (loading()) {
       <div class="absolute top-0 flex h-full w-full items-center justify-center bg-black/50">
         <mat-spinner diameter="48"></mat-spinner>

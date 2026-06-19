@@ -31,7 +31,7 @@ type SearchFormModel = {
 export class AdvancedSearchFormComponent {
   protected readonly take = inject(TAKE);
 
-  request = input.required<SearchRequest | null | undefined>();
+  request = input.required<SearchRequest>();
   searchRequest = output<SearchRequest>();
 
   protected readonly model = linkedSignal(() => this.normaliseSearchRequest(this.request()));
@@ -39,11 +39,12 @@ export class AdvancedSearchFormComponent {
 
   onSearch() {
     const { year, transferred, hasLyrics, played, ...rest } = this.model();
+    const parsedYear = year ? parseInt(year.toString(), 10) : null;
     const request: SearchRequest = {
       ...rest,
       take: this.take,
       skip: 0,
-      ...(year !== null && { year }),
+      ...(parsedYear !== null && !isNaN(parsedYear) && { year: parsedYear }),
       ...(transferred !== null && { transferred }),
       ...(hasLyrics !== null && { hasLyrics }),
       ...(played !== null && { played }),

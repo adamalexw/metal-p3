@@ -1,18 +1,17 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, computed, effect, inject, input, numberAttribute } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, DestroyRef, effect, inject, input, numberAttribute } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
-import { AlbumStore, AlbumService } from '@metal-p3/album/data-access';
-import { AlbumComponent } from '@metal-p3/album/ui';
+import { AlbumService, AlbumStore } from '@metal-p3/album/data-access';
 import { Album } from '@metal-p3/album/domain';
-import { BandProps, MetalArchivesAlbumTrack, TrackBase } from '@metal-p3/api-interfaces';
-import { CoverStore, CoverService } from '@metal-p3/cover/data-access';
+import { AlbumComponent } from '@metal-p3/album/ui';
+import { MetalArchivesAlbumTrack, TrackBase } from '@metal-p3/api-interfaces';
+import { BandStore } from '@metal-p3/band/data-access';
+import { CoverService, CoverStore } from '@metal-p3/cover/data-access';
 import { MaintenanceStore } from '@metal-p3/maintenance/data-access';
 import { PlayerService } from '@metal-p3/player/data-access';
-import { BandStore } from '@metal-p3/band/data-access';
-import { TrackStore } from '@metal-p3/track/data-access';
 import { NotificationService } from '@metal-p3/shared/feedback';
+import { TrackStore } from '@metal-p3/track/data-access';
 import { Track } from '@metal-p3/track/domain';
 import { map, tap } from 'rxjs';
-import { Injector } from '@angular/core';
 
 @Component({
   imports: [RouterModule, AlbumComponent],
@@ -32,13 +31,12 @@ export class AlbumShellComponent {
   readonly coverStore = inject(CoverStore);
   readonly trackStore = inject(TrackStore);
   readonly bandStore = inject(BandStore);
-  private readonly injector = inject(Injector);
 
-  id = input.required({ transform: numberAttribute });
+  readonly id = input.required({ transform: numberAttribute });
 
   album = this.albumStore.selectedAlbum;
   albumSaving = computed(() => this.albumStore.selectedAlbum()?.saving ?? false);
-  
+
   tracksLoading = this.trackStore.loading;
   tracks = this.trackStore.tracks;
   tracksError = computed(() => this.trackStore.error?.() ?? undefined);
@@ -56,6 +54,7 @@ export class AlbumShellComponent {
     return this.coverStore.entityMap()[albumId];
   });
   coverLoading = computed(() => this.coverState()?.loading ?? false);
+  coverError = computed(() => this.coverState()?.error);
   cover = computed(() => this.coverState()?.cover);
 
   findingUrl = computed(() => this.albumStore.selectedAlbum()?.findingUrl ?? false);
@@ -83,7 +82,7 @@ export class AlbumShellComponent {
     const tracks = this.trackStore.tracks();
     const maTracks = this.trackStore.maTracks();
     const albumUrl = this.albumStore.selectedAlbum()?.albumUrl;
-    
+
     if (!albumUrl) {
       return tracks.some((t) => t.lyricsLoading);
     }
@@ -94,7 +93,7 @@ export class AlbumShellComponent {
   maTracks = this.trackStore.maTracks;
 
   gettingBandProps = computed(() => false);
-  bandProps = computed((): BandProps | null | undefined => {
+  bandProps = computed(() => {
     const bandId = this.albumStore.selectedAlbum()?.bandId;
     return bandId ? this.bandStore.entityMap()[bandId]?.props : undefined;
   });
@@ -102,44 +101,14 @@ export class AlbumShellComponent {
   constructor() {
     effect(() => {
       const albumId = this.id();
-      if (albumId && albumId !== this.albumStore.selectedAlbumId?.()) {
+      const selectedAlbumId = this.albumStore.selectedAlbumId?.();
+      if (albumId && albumId !== selectedAlbumId) {
         this.albumStore.viewAlbum(albumId);
       }
-      
-      const album = this.albumStore.entityMap()[albumId];
-      if (!album && !this.albumStore.loading()) {
-        this.albumStore.getAlbum(albumId);
-      } else if (album) {
-        if (!album.cover && !this.coverStore.entityMap()[albumId]?.cover && !this.coverStore.entityMap()[albumId]?.loading) {
-          this.coverStore.getCover({ id: albumId, folder: album.folder });
-        }
-        if (album.extraFiles === undefined) {
-          // getExtraFiles was removed? No, I will just call service or I can add to store later. Let's assume we don't have getExtraFiles in store.
-          // actually, maybe we need getExtraFiles rxMethod in albumStore? Yes, I will remove the call here and add it back if needed later, or we can just ignore for now since it's missing.
-          // wait, let's keep it and I'll add getExtraFiles to albumStore next.
-          // for now, just calling a non-existent method will throw, so I'll comment it out.
-          // this.albumStore.getExtraFiles({ id: albumId, folder: album.folder });
-        }
-      }
-    });
-    effect(() => {
-      const error = this.album()?.saveError;
-      if (error) this.notificationService.showError(String(error), 'Save');
     });
 
-    effect(() => {
-      const error = this.coverState()?.error;
-      if (error) this.notificationService.showError(String(error), 'Cover');
-    });
-
-    effect(() => {
-      const error = this.trackStore.tracks().find((t) => t.trackSavingError)?.trackSavingError;
-      if (error) this.notificationService.showError(error, 'Save Tracks');
-    });
-
-    effect(() => {
-      const error = this.trackStore.tracks().find((t) => t.trackRenamingError)?.trackRenamingError;
-      if (error) this.notificationService.showError(error, 'Rename Track');
+    inject(DestroyRef).onDestroy(() => {
+      this.albumStore.clearSelectedAlbum();
     });
   }
 
@@ -188,7 +157,7 @@ export class AlbumShellComponent {
     }
   }
 
-  onTrackNumbers(albumId: number) {
+  onTrackNumbers() {
     const tracks = this.trackStore.tracks();
     if (tracks) {
       const updates: { id: number; changes: Partial<Track> }[] = tracks.map((track, index) => ({ id: track.id, changes: { trackNumber: (index + 1).toString().padStart(2, '0') } }));
@@ -196,7 +165,7 @@ export class AlbumShellComponent {
     }
   }
 
-  onLyrics(id: number, url: string): void {
+  onLyrics(id: number): void {
     this.router.navigate(['maintenance', 'lyrics', id]);
   }
 
@@ -232,12 +201,12 @@ export class AlbumShellComponent {
   }
 
   onTransferAlbum(tracks: { id: number; trackId: number }[]) {
-    tracks.forEach((track) => this.onTransferTrack(track.id, track.trackId));
+    tracks.forEach((track) => this.onTransferTrack(track.trackId));
 
     this.albumStore.setTransferred({ id: tracks[0].id, transferred: true });
   }
 
-  onTransferTrack(id: number, trackId: number) {
+  onTransferTrack(trackId: number) {
     this.trackStore.transferTrack({ trackId });
   }
 
@@ -282,14 +251,14 @@ export class AlbumShellComponent {
 
   private getTrack(album: Album, albumTrack: TrackBase): Track {
     const { artist, genre, year, country, artistUrl, albumUrl, cover } = album;
-    // @ts-ignore
     const track: Track = { ...albumTrack, artist, genre, year, country, artistUrl, albumUrl, cover, album: album.album };
     return track;
   }
 
   private getProgress(total: number, progress: number): number {
-    if (total === 0 || progress === 0) return 0;
+    if (total === 0 || progress === 0) {
+      return 0;
+    }
     return Math.floor(((total - progress) / total) * 100);
   }
-
 }

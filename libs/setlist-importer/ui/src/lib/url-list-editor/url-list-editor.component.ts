@@ -11,8 +11,8 @@ import { MatInputModule } from '@angular/material/input';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class UrlListEditorComponent {
-  urls = input<string[]>([]);
-  scraping = input<boolean>(false);
+  readonly urls = input<string[]>([]);
+  readonly scraping = input(false);
 
   readonly urlsChange = output<string[]>();
   readonly scrape = output<void>();

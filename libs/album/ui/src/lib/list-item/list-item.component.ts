@@ -15,10 +15,10 @@ import { CountryFlagPipe } from '@metal-p3/shared/utils';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ListItemComponent {
-  album = input.required<Album>();
-  coverLoading = input<boolean>(false);
-  coverError = input<string | undefined>(undefined);
-  cover = input<string | undefined>(undefined);
+  readonly album = input.required<Album>();
+  readonly coverLoading = input(false);
+  readonly coverError = input<string | undefined>(undefined);
+  readonly cover = input<string | undefined>(undefined);
 
   readonly openAlbum = output<number>();
   readonly deleteAlbum = output<void>();

@@ -47,9 +47,9 @@ export class TracksComponent {
 
   readonly field = input.required<FieldTree<TracksForm[]>>();
 
-  tracksLoading = input(false);
-  tracks = input<Track[]>([]);
-  tracksError = input<string | null | undefined>();
+  readonly tracksLoading = input(false);
+  readonly tracks = input<Track[]>([]);
+  readonly tracksError = input<string>();
 
   transferTrack = output<number>();
   playTrack = output<Track>();

@@ -49,12 +49,12 @@
     }
 
     @if (playlistSize() ?? 0 > 1) {
-      <button type="button" class="!hidden lg:!inline-block" [disabled]="transferring()" (click)="transfer.emit()" mat-icon-button>
+      <button type="button" class="hidden! lg:inline-block!" [disabled]="transferring()" (click)="transfer.emit()" mat-icon-button>
         <mat-icon title="transfer">adb</mat-icon>
       </button>
     }
 
-    <button type="button" class="lg:!hidden" (click)="togglePlaylist.emit()" mat-icon-button>
+    <button type="button" class="lg:hidden!" (click)="togglePlaylist.emit()" mat-icon-button>
       <mat-icon title="playlist toggle">playlist_play</mat-icon>
     </button>
 

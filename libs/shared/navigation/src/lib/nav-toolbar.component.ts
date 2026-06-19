@@ -12,8 +12,8 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 export class NavToolbarComponent {
   private readonly location = inject(Location);
 
-  showClose = input(true);
-  closeFullWidth = input(true);
+  readonly showClose = input(true);
+  readonly closeFullWidth = input(true);
 
   onClose() {
     this.location.back();

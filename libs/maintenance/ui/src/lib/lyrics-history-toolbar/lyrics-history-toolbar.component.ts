@@ -12,8 +12,8 @@ import { NavToolbarComponent } from '@metal-p3/shared/navigation';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LyricsHistoryToolbarComponent {
-  getting = input<boolean | null>(false);
-  checking = input<boolean | null>(false);
+  readonly getting = input(false);
+  readonly checking = input(false);
 
   readonly viewPriority = output<void>();
   readonly checkPriority = output<void>();

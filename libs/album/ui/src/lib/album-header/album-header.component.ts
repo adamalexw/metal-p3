@@ -7,5 +7,5 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AlbumHeaderComponent {
-  folder = input.required<string>();
+  readonly folder = input.required<string>();
 }

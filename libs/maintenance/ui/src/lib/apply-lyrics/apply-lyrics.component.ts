@@ -19,24 +19,24 @@ import { ApplyLyricsToolbarComponent } from '../apply-lyrics-toolbar/apply-lyric
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ApplyLyricsComponent {
-  albumId = input.required<number | null>();
-  tracks = input<Track[] | null | undefined>([]);
-  tracksLoading = input<boolean | null>(false);
-  maTracks = input<MetalArchivesAlbumTrack[] | null | undefined>([]);
-  maTracksLoading = input<boolean | null>(false);
-  lyricsLoading = input<boolean | null>(false);
-  lyricsExpected = input<boolean | null>(false);
-  lyricsLoadingProgress = input<number | null>(0);
-  applyingProgress = input<number | null>(0);
-  applying = input<boolean | null>(false);
-  applied = input<boolean | null>(false);
-  trackTransferring = input<boolean | null>(false);
-  trackTransferringProgress = input<number | null>(0);
-  albumUrl = input<string | null | undefined>();
-  coverLoading = input<boolean | null>(false);
-  cover = input<string | null | undefined>();
-  folder = input<string | null | undefined>();
-  showClose = input(true);
+  readonly albumId = input.required<number>();
+  readonly tracks = input<Track[]>([]);
+  readonly tracksLoading = input(false);
+  readonly maTracks = input<MetalArchivesAlbumTrack[]>([]);
+  readonly maTracksLoading = input(false);
+  readonly lyricsLoading = input(false);
+  readonly lyricsExpected = input(false);
+  readonly lyricsLoadingProgress = input(0);
+  readonly applyingProgress = input(0);
+  readonly applying = input(false);
+  readonly applied = input(false);
+  readonly trackTransferring = input(false);
+  readonly trackTransferringProgress = input(0);
+  readonly albumUrl = input<string>();
+  readonly coverLoading = input(false);
+  readonly cover = input<string>();
+  readonly folder = input<string>();
+  readonly showClose = input(true);
 
   readonly applyLyrics = output<{
     id: number;

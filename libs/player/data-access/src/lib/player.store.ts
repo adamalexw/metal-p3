@@ -3,6 +3,7 @@ import { CoverService } from '@metal-p3/cover/data-access';
 import { PlaylistItem } from '@metal-p3/player/domain';
 import { shuffleArray } from '@metal-p3/player/util';
 import { ErrorService } from '@metal-p3/shared/error';
+import { BLANK_COVER } from '@metal-p3/shared/utils';
 import { patchState, signalStore, withComputed, withMethods, withState } from '@ngrx/signals';
 import { addEntities, addEntity, removeAllEntities, removeEntity, updateAllEntities, updateEntities, updateEntity, withEntities } from '@ngrx/signals/entities';
 import { rxMethod } from '@ngrx/signals/rxjs-interop';
@@ -38,7 +39,7 @@ export const PlayerStore = signalStore(
     activeItemCover: computed(() => {
       const id = store.activeTrack();
       const item = id ? store.entityMap()[id] : undefined;
-      return item?.cover ?? '/assets/blank.png';
+      return item?.cover ?? BLANK_COVER;
     }),
     activeItemIndex: computed(() => {
       const id = store.activeTrack();
@@ -53,7 +54,7 @@ export const PlayerStore = signalStore(
   })),
   withMethods((store) => ({
     getCoverSuccess(payload: { id: string; cover: string }) {
-      patchState(store, updateEntity({ id: payload.id, changes: { cover: payload.cover } as Partial<PlaylistItem> }));
+      patchState(store, updateEntity({ id: payload.id, changes: { cover: payload.cover } }));
       const source = store.entityMap()[payload.id];
       if (!source?.folder || !payload.cover) return;
 

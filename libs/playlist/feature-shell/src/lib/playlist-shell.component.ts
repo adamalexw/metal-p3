@@ -13,7 +13,7 @@ export class PlaylistShellComponent {
   readonly playlistStore = inject(PlaylistStore);
   private readonly playerStore = inject(PlayerStore);
 
-  duration = input<number | null | undefined>(0);
+  readonly duration = input<number>();
 
   readonly clearPlaylist = output<void>();
   readonly closePlaylist = output<void>();

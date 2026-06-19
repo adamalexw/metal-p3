@@ -16,8 +16,8 @@ import { cloneDeep } from 'lodash-es';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PlaylistComponent {
-  playlist = input<PlaylistItem[] | null | undefined>([]);
-  currentItem = input<PlaylistItem | null | undefined>();
+  readonly playlist = input<PlaylistItem[]>([]);
+  readonly currentItem = input<PlaylistItem>();
 
   readonly playItem = output<string>();
   readonly resumeItem = output<void>();

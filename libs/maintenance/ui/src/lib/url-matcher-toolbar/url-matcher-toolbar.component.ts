@@ -10,8 +10,8 @@ import { NavToolbarComponent } from '@metal-p3/shared/navigation';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class UrlMatcherToolbarComponent {
-  getting = input(false);
-  matching = input<boolean | null | undefined>(false);
+  readonly getting = input(false);
+  readonly matching = input(false);
 
   readonly startMatching = output<void>();
   readonly stopMatching = output<void>();

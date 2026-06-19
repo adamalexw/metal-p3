@@ -1,5 +1,5 @@
-import { ChangeDetectionStrategy, Component, input, linkedSignal, output } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ChangeDetectionStrategy, Component, effect, input, linkedSignal, output, untracked } from '@angular/core';
+
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -9,7 +9,6 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { RouterModule } from '@angular/router';
 import { SearchRequest } from '@metal-p3/api-interfaces';
-import { Subject, debounceTime, distinctUntilChanged, tap } from 'rxjs';
 
 @Component({
   imports: [FormsModule, MatToolbarModule, RouterModule, MatInputModule, MatButtonModule, MatIconModule, MatMenuModule, MatProgressBarModule],
@@ -19,9 +18,9 @@ import { Subject, debounceTime, distinctUntilChanged, tap } from 'rxjs';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ListToolbarComponent {
-  creatingNew = input<boolean | null | undefined>(false);
-  searching = input<boolean | null | undefined>(false);
-  folder = input<string | null | undefined>('');
+  readonly creatingNew = input(false);
+  readonly searching = input(false);
+  readonly folder = input<string | undefined>('');
 
   readonly advancedSearch = output<void>();
   readonly searchRequest = output<SearchRequest>();
@@ -32,26 +31,27 @@ export class ListToolbarComponent {
 
   protected readonly search = linkedSignal(() => this.folder() ?? '');
 
-  private readonly searchInput$ = new Subject<string>();
-
   constructor() {
-    this.searchInput$
-      .pipe(
-        debounceTime(500),
-        distinctUntilChanged(),
-        tap((folder) => this.searchRequest.emit({ folder })),
-        takeUntilDestroyed(),
-      )
-      .subscribe();
+    effect((onCleanup) => {
+      const folder = this.search();
+
+      const timeout = setTimeout(() => {
+        untracked(() => {
+          if (folder !== (this.folder() ?? '')) {
+            this.searchRequest.emit({ folder });
+          }
+        });
+      }, 500);
+
+      onCleanup(() => clearTimeout(timeout));
+    });
   }
 
   onSearchInput(value: string) {
     this.search.set(value);
-    this.searchInput$.next(value);
   }
 
   onClear() {
     this.search.set('');
-    this.searchInput$.next('');
   }
 }

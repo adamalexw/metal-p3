@@ -34,8 +34,8 @@
 
   <mat-card-footer class="flex h-12 w-full items-center px-4">
     <div class="grow truncate">{{ album().year }} - {{ album().genre }}</div>
-    <button type="button" class="p-0!" [matMenuTriggerFor]="menu" mat-icon-button>
-      <mat-icon>more_vert</mat-icon>
+    <button type="button" (click)="$event.stopPropagation()" [matMenuTriggerFor]="menu" mat-icon-button>
+      <mat-icon class="relative -top-[3px]">more_vert</mat-icon>
     </button>
 
     <mat-menu #menu="matMenu">

@@ -15,75 +15,74 @@ export interface BandState {
   error?: string;
 }
 
+export const createInitialBandState = (id: number, overrides?: Partial<BandState>): BandState => ({
+  id,
+  loading: false,
+  ...overrides,
+});
+
 export const BandStore = signalStore(
   { providedIn: 'root' },
   withEntities<BandState>(),
-  withMethods(
-    (
-      store,
-      service = inject(BandService),
-      errorService = inject(ErrorService),
-      notificationService = inject(NotificationService)
-    ) => ({
-      saveBand: rxMethod<BandDto>(
-        pipe(
-          mergeMap((band) =>
-            service.saveBand(band).pipe(
-              map(() => {
-                // Not stored globally since albums fetch band props individually,
-                // but we could track successful saves if needed.
-              }),
-              catchError((error) => {
-                notificationService.showError(`${errorService.getError(error)}`, 'Save Band');
-                return of();
-              })
-            )
-          )
-        )
+  withMethods((store, service = inject(BandService), errorService = inject(ErrorService), notificationService = inject(NotificationService)) => ({
+    saveBand: rxMethod<BandDto>(
+      pipe(
+        mergeMap((band) =>
+          service.saveBand(band).pipe(
+            map(() => {
+              // Not stored globally since albums fetch band props individually,
+              // but we could track successful saves if needed.
+            }),
+            catchError((error) => {
+              notificationService.showError(`${errorService.getError(error)}`, 'Save Band');
+              return of();
+            }),
+          ),
+        ),
       ),
+    ),
 
-      deleteIfOrphaned: rxMethod<number>(
-        pipe(
-          mergeMap((id) =>
-            service.deleteIfOrphaned(id).pipe(
-              catchError((error) => {
-                notificationService.showError(`${errorService.getError(error)}`, 'Delete Band');
-                return of();
-              })
-            )
-          )
-        )
+    deleteIfOrphaned: rxMethod<number>(
+      pipe(
+        mergeMap((id) =>
+          service.deleteIfOrphaned(id).pipe(
+            catchError((error) => {
+              notificationService.showError(`${errorService.getError(error)}`, 'Delete Band');
+              return of();
+            }),
+          ),
+        ),
       ),
+    ),
 
-      getProps: rxMethod<{ id: number; url: string }>(
-        pipe(
-          tap(({ id }) => {
-            if (!store.entityMap()[id]) {
-              patchState(store, addEntity({ id, loading: true } as BandState));
-            } else {
-              patchState(store, updateEntity({ id, changes: { loading: true } as Partial<BandState> }));
-            }
-          }),
-          mergeMap(({ id, url }) =>
-            service.getBandProps(url).pipe(
-              map((band) => {
-                patchState(store, updateEntity({ id, changes: { props: band, loading: false, error: undefined } as Partial<BandState> }));
-              }),
-              catchError((error) => {
-                notificationService.showError(`${errorService.getError(error)}`, 'Get Band Props');
-                patchState(store, updateEntity({ id, changes: { loading: false, error: errorService.getError(error) } as Partial<BandState> }));
-                return of();
-              })
-            )
-          )
-        )
+    getProps: rxMethod<{ id: number; url: string }>(
+      pipe(
+        tap(({ id }) => {
+          if (!store.entityMap()[id]) {
+            patchState(store, addEntity(createInitialBandState(id, { loading: true })));
+          } else {
+            patchState(store, updateEntity({ id, changes: { loading: true } }));
+          }
+        }),
+        mergeMap(({ id, url }) =>
+          service.getBandProps(url).pipe(
+            map((band) => {
+              patchState(store, updateEntity({ id, changes: { props: band, loading: false, error: undefined } }));
+            }),
+            catchError((error) => {
+              notificationService.showError(`${errorService.getError(error)}`, 'Get Band Props');
+              patchState(store, updateEntity({ id, changes: { loading: false, error: errorService.getError(error) } }));
+              return of();
+            }),
+          ),
+        ),
       ),
+    ),
 
-      initProps(id: number) {
-        if (!store.entityMap()[id]) {
-          patchState(store, addEntity({ id, loading: false } as BandState));
-        }
+    initProps(id: number) {
+      if (!store.entityMap()[id]) {
+        patchState(store, addEntity(createInitialBandState(id, { loading: true })));
       }
-    })
-  )
+    },
+  })),
 );

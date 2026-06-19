@@ -65,7 +65,9 @@ export const TrackStore = signalStore(
             service.saveTrack(track).pipe(
               map(() => patchState(store, updateEntity({ id: track.id, changes: { ...track, trackSaving: false } }))),
               catchError((error) => {
-                patchState(store, updateEntity({ id: track.id, changes: { trackSaving: false, trackSavingError: errorService.getError(error) } }))
+                const errorMessage = errorService.getError(error);
+                notificationService.showError(errorMessage, 'Save Track');
+                patchState(store, updateEntity({ id: track.id, changes: { trackSaving: false, trackSavingError: errorMessage } }))
                 return of();
               })
             )
@@ -87,9 +89,10 @@ export const TrackStore = signalStore(
                 notificationService.showComplete('Tracks saved');
               }),
               catchError((error) => {
-                const updates = tracks.map((track) => ({ id: track.id, changes: { trackSaving: false, trackSavingError: errorService.getError(error) } }));
+                const errorMessage = errorService.getError(error);
+                const updates = tracks.map((track) => ({ id: track.id, changes: { trackSaving: false, trackSavingError: errorMessage } }));
                 updates.forEach((update) => patchState(store, updateEntity(update)));
-                notificationService.showError(`${errorService.getError(error)}`, 'Save Tracks');
+                notificationService.showError(errorMessage, 'Save Tracks');
                 return of();
               })
             )
@@ -137,7 +140,9 @@ export const TrackStore = signalStore(
             service.renameTrack(track).pipe(
               map(({ fullPath, file }) => patchState(store, updateEntity({ id: track.id, changes: { trackRenaming: false, fullPath, file } }))),
               catchError((error) => {
-                patchState(store, updateEntity({ id: track.id, changes: { trackRenaming: false, trackRenamingError: errorService.getError(error) } }));
+                const errorMessage = errorService.getError(error);
+                notificationService.showError(errorMessage, 'Rename Track');
+                patchState(store, updateEntity({ id: track.id, changes: { trackRenaming: false, trackRenamingError: errorMessage } }));
                 return of();
               })
             )

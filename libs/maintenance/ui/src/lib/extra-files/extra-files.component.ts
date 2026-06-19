@@ -9,6 +9,6 @@ import { MatListModule } from '@angular/material/list';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ExtraFilesComponent {
-  folders = input<string[] | null>([]);
+  readonly folders = input<string[]>([]);
   readonly openFolder = output<string>();
 }

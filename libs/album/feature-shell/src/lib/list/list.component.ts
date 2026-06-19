@@ -1,25 +1,22 @@
-import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 import { CdkVirtualScrollViewport, ScrollingModule, ViewportRuler } from '@angular/cdk/scrolling';
 import { Location } from '@angular/common';
-import { ChangeDetectionStrategy, Component, DOCUMENT, OnInit, inject, output, viewChild, computed, Injector, signal, effect } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DOCUMENT, OnInit, computed, effect, inject, output, signal, viewChild } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router } from '@angular/router';
-import { AlbumStore } from '@metal-p3/album/data-access';
-import { ALBUM_DRAWER_WIDTH, TAKE, BASE_PATH } from '@metal-p3/album/domain';
+import { AlbumService, AlbumStore } from '@metal-p3/album/data-access';
+import { Album, BASE_PATH, TAKE } from '@metal-p3/album/domain';
 import { ListItemComponent, ListToolbarComponent } from '@metal-p3/album/ui';
 import { AlbumDto, SearchRequest } from '@metal-p3/api-interfaces';
 import { CoverStore } from '@metal-p3/cover/data-access';
 import { PlayerShellComponent } from '@metal-p3/player';
 import { PlayerService, PlayerStore } from '@metal-p3/player/data-access';
-import { Album } from '@metal-p3/album/domain';
 import { NotificationService } from '@metal-p3/shared/feedback';
 import { ConnectPhoneService } from '@metal-p3/shared/transfer';
-import { nonNullable, toChunks } from '@metal-p3/shared/utils';
+import { toChunks } from '@metal-p3/shared/utils';
 import { TrackService } from '@metal-p3/track/data-access';
 import { Track } from '@metal-p3/track/domain';
-import { BehaviorSubject, Observable, combineLatest, debounceTime, delay, filter, from, map, mergeMap, startWith, take, tap } from 'rxjs';
+import { Observable, debounceTime, filter, from, map, mergeMap, take, tap } from 'rxjs';
 import { AddAlbumDirective } from './add-album.directive';
-import { AlbumService } from '@metal-p3/album/data-access';
 
 @Component({
   imports: [ScrollingModule, ListToolbarComponent, ListItemComponent, PlayerShellComponent, AddAlbumDirective],
@@ -42,11 +39,7 @@ export class ListComponent implements OnInit {
   private readonly location = inject(Location);
   private readonly document = inject(DOCUMENT);
   private readonly take = inject(TAKE);
-  private readonly albumDrawerWidth = inject(ALBUM_DRAWER_WIDTH);
-  private readonly breakpointObserver = inject(BreakpointObserver);
   private readonly basePath = inject(BASE_PATH);
-
-  private readonly injector = inject(Injector);
 
   albumsLoading = this.store.loading;
   albumsLoaded = this.store.loaded;
@@ -58,13 +51,12 @@ export class ListComponent implements OnInit {
   creatingNew = computed(() => this.store.creatingNew?.() ?? false);
   readonly coverMap = this.coverStore.entityMap;
 
-
   sideNavOpen = toSignal(
     this.router.events.pipe(
       filter((e) => e instanceof NavigationEnd),
       map(() => this.router.url !== '/'),
     ),
-    { initialValue: this.router.url !== '/' }
+    { initialValue: this.router.url !== '/' },
   );
 
   viewportWidth = toSignal(
@@ -72,23 +64,14 @@ export class ListComponent implements OnInit {
       debounceTime(150),
       map(() => this.viewportRuler.getViewportSize().width),
     ),
-    { initialValue: this.viewportRuler.getViewportSize().width }
-  );
-
-  private readonly isHandset = toSignal(
-    this.breakpointObserver.observe([Breakpoints.Handset]).pipe(map(({ matches }) => matches)),
-    { initialValue: this.breakpointObserver.isMatched(Breakpoints.Handset) }
+    { initialValue: this.viewportRuler.getViewportSize().width },
   );
 
   albumsView = computed(() => {
     const albums = this.albums();
     const width = this.viewportWidth();
-    const open = this.sideNavOpen();
-    const isHandset = this.isHandset();
 
-    // if the side nav is open we remove it's width (desktop/side mode only; on mobile the sidenav overlays)
-    const listWidth = open && !isHandset ? width - this.albumDrawerWidth : width;
-    const chunks = Math.max(1, Math.floor(listWidth / 275));
+    const chunks = Math.max(1, Math.floor(width / 275));
 
     return toChunks(albums, chunks);
   });
@@ -99,26 +82,25 @@ export class ListComponent implements OnInit {
   private readonly scrollIndex = signal<number>(0);
   private readonly scrollViewport = viewChild.required(CdkVirtualScrollViewport);
 
-  viewportHeight = toSignal(
-    this.viewportRuler.change(300).pipe(map(() => this.viewportRuler.getViewportSize().height)),
-    { initialValue: this.viewportRuler.getViewportSize().height }
-  );
+  viewportHeight = toSignal(this.viewportRuler.change(300).pipe(map(() => this.viewportRuler.getViewportSize().height)), { initialValue: this.viewportRuler.getViewportSize().height });
 
   constructor() {
     effect(() => {
       const error = this.store.loadError?.();
-      if (error) this.notificationService.showError(error, 'Load Albums');
+      if (error) {
+        this.notificationService.showError(error, 'Load Albums');
+      }
     });
 
-    let timeout: any;
-    effect(() => {
+    effect((onCleanup) => {
       const albums = this.albumsView();
       this.scrollIndex(); // tracking dependency
 
-      clearTimeout(timeout);
-      timeout = setTimeout(() => {
+      const timeoutId = setTimeout(() => {
         this.loadVisibleCovers(albums);
       }, 100);
+
+      onCleanup(() => clearTimeout(timeoutId));
     });
 
     effect(() => {
@@ -134,7 +116,6 @@ export class ListComponent implements OnInit {
   }
 
   ngOnInit(): void {
-
     this.service
       .albumAdded()
       .pipe(tap((album) => this.onAlbumAdded(album)))
@@ -150,7 +131,7 @@ export class ListComponent implements OnInit {
         return !a.cover && !coverState?.cover && !coverState?.loading && !coverState?.error;
       })
       .map((a) => ({ id: a.id, folder: a.folder }));
-      
+
     if (coverRequests.length > 0) {
       this.coverStore.getMany({ requests: coverRequests });
     }
@@ -161,7 +142,7 @@ export class ListComponent implements OnInit {
   }
 
   onTransferAlbum(id: number, folder: string) {
-    const tracks$ = this.getTracks(id, folder);
+    const tracks$ = this.getTracks(folder);
 
     tracks$
       .pipe(
@@ -175,18 +156,18 @@ export class ListComponent implements OnInit {
   }
 
   onPlayAlbum(id: number, folder: string) {
-    this.getTracks(id, folder).subscribe(tracks => {
+    this.getTracks(folder).subscribe((tracks) => {
       this.playerService.playAlbum(id, tracks);
     });
   }
 
   onAddToPlaylist(id: number, folder: string) {
-    this.getTracks(id, folder).subscribe(tracks => {
+    this.getTracks(folder).subscribe((tracks) => {
       this.playerService.addAlbumToPlaylist(id, tracks);
     });
   }
 
-  private getTracks(id: number, folder: string): Observable<Track[] | undefined> {
+  private getTracks(folder: string): Observable<Track[] | undefined> {
     return this.trackService.getTracks(`${this.basePath}/${folder}`).pipe(take(1));
   }
 
@@ -269,4 +250,3 @@ export class ListComponent implements OnInit {
     this.store.loadAlbums({ request: { ...request, take, skip } });
   }
 }
-

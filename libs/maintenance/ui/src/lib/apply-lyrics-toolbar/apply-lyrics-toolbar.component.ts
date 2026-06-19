@@ -16,15 +16,15 @@ import { WA_WINDOW } from '@ng-web-apis/common';
 export class ApplyLyricsToolbarComponent {
   protected readonly windowRef = inject(WA_WINDOW);
 
-  applying = input(false);
-  applied = input(false);
-  albumUrl = input<string | null | undefined>();
-  albumId = input<number | null>();
-  coverLoading = input(false);
-  cover = input<string | null | undefined>();
-  folder = input<string | null | undefined>();
-  trackTransferring = input(false);
-  showClose = input(true);
+  readonly applying = input(false);
+  readonly applied = input(false);
+  readonly albumUrl = input<string>();
+  readonly albumId = input<number>();
+  readonly coverLoading = input(false);
+  readonly cover = input<string>();
+  readonly folder = input<string>();
+  readonly trackTransferring = input(false);
+  readonly showClose = input(true);
 
   readonly apply = output<void>();
   readonly transfer = output<void>();

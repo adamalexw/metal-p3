@@ -17,12 +17,12 @@ import { TimePipe } from '@metal-p3/track/util';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PlaylistToolbarComponent {
-  duration = input<number | null | undefined>(0);
-  playlistSize = input<number | null | undefined>();
-  playlists = input<PlaylistDto[] | null>(null);
-  activePlaylist = input<number | null | undefined>(0);
-  playlistName = model<string | null | undefined>('');
-  transferring = input<boolean | null>(false);
+  readonly duration = input<number>();
+  readonly playlistSize = input<number>();
+  readonly playlists = input<PlaylistDto[]>();
+  readonly activePlaylist = input<number>();
+  readonly playlistName = model<string | undefined>();
+  readonly transferring = input(false);
 
   readonly loadPlaylists = output<void>();
   readonly updatePlaylist = output<string>();
