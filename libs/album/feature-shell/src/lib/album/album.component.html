@@ -23,6 +23,7 @@
     [lyricsLoading]="lyricsLoading()"
     [gettingBandProps]="gettingBandProps()"
     [bandProps]="bandProps()"
+    (imageSearchFromMa)="onImageSearchFromMa($event.id, $event.url)"
     (coverUrl)="onDownloadCover($event.id, $event.url)"
     (save)="onSave($event.album, $event.tracks, $event.previousBandId)"
     (findUrl)="onFindUrl($event.id, $event.artist, $event.album)"

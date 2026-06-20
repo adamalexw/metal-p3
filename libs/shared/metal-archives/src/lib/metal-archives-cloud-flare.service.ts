@@ -40,6 +40,16 @@ export class MetalArchivesService {
     return this.downloadPage(url).pipe(map((html) => extractBandProps(html)));
   }
 
+  getCoverUrl(url: string): Observable<string | null> {
+    return this.downloadPage(url).pipe(
+      map((html) => {
+        const root = parse(html);
+        const coverLink = root.querySelector('#cover');
+        return coverLink ? coverLink.getAttribute('href') ?? null : null;
+      })
+    );
+  }
+
   private getApiResponse<T>(url: string, waitItem: string, isJson = false): Observable<T> {
     return from(this.getPageContents<T>(url, 'url', waitItem, isJson)).pipe(
       catchError((err) => {

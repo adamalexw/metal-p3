@@ -132,6 +132,39 @@ export const CoverStore = signalStore(
         ),
       ),
 
+      getCoverFromMetalArchives: rxMethod<{ id: number; url: string; fallback: () => void }>(
+        pipe(
+          tap(({ id }) => {
+            const exists = store.entityMap()[id];
+            if (exists) {
+              patchState(store, updateEntity({ id, changes: { loading: true } }));
+            } else {
+              patchState(store, addEntity(createInitialCoverState(id, { loading: true })));
+            }
+          }),
+          mergeMap(({ id, url, fallback }) =>
+            service.getCoverFromMetalArchives(url).pipe(
+              map((cover) => {
+                if (cover) {
+                  patchState(store, updateEntity({ id, changes: { cover, loading: false, error: undefined } }));
+                  notificationService.showComplete('Found cover on Metal Archives', 'Cover');
+                } else {
+                  patchState(store, updateEntity({ id, changes: { loading: false, error: undefined } }));
+                  fallback();
+                }
+              }),
+              catchError((error) => {
+                const errorMessage = errorService.getError(error);
+                notificationService.showError(errorMessage, 'Cover');
+                patchState(store, updateEntity({ id, changes: { loading: false, error: errorMessage } }));
+                fallback();
+                return of();
+              }),
+            ),
+          ),
+        ),
+      ),
+
       saveCover: rxMethod<{ id: number; folder: string; cover: string }>(
         pipe(
           tap(({ id }) => {

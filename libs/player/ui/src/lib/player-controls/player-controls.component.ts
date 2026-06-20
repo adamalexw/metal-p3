@@ -33,7 +33,7 @@ export class PlayerControlsComponent {
   readonly toggleView = output();
 
   onPrevious() {
-    if ((this.elapsedTime() ?? 0) > 10 || this.isFirstItemPlaying()) {
+    if ((this.elapsedTime() ?? 0) > 5 || this.isFirstItemPlaying()) {
       this.seekTo.emit(0);
       return;
     }

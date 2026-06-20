@@ -9,7 +9,7 @@
 
   <table [dataSource]="dataSource" [trackBy]="trackByFn" mat-table>
     <ng-container matColumnDef="trackNumber">
-      <th *matHeaderCellDef mat-header-cell>#</th>
+      <th *matHeaderCellDef mat-header-cell class="text-[var(--sys-primary)]!">#</th>
       <td *matCellDef="let element" class="p-0! py-1! pl-1!" mat-cell>
         <mat-form-field class="w-full" floatLabel="auto">
           <input [formField]="element.trackNumber" matInput placeholder="No." />
@@ -18,7 +18,7 @@
     </ng-container>
 
     <ng-container matColumnDef="title">
-      <th *matHeaderCellDef mat-header-cell>Track</th>
+      <th *matHeaderCellDef mat-header-cell class="text-[var(--sys-primary)]!">Track</th>
       <td *matCellDef="let element" class="p-0! pl-2!" mat-cell>
         <mat-form-field class="w-full" [matTooltip]="element().value().fullPath" floatLabel="auto" matTooltipPosition="above">
           <input [formField]="element.title" matInput placeholder="Title" appTitleCase />
@@ -27,21 +27,21 @@
     </ng-container>
 
     <ng-container matColumnDef="duration">
-      <th *matHeaderCellDef mat-header-cell>Duration</th>
+      <th *matHeaderCellDef mat-header-cell class="text-[var(--sys-primary)]!">Duration</th>
       <td *matCellDef="let element" mat-cell>
         {{ element().value().duration | time }}
       </td>
     </ng-container>
 
     <ng-container matColumnDef="bitrate">
-      <th *matHeaderCellDef mat-header-cell>Bitrate</th>
+      <th *matHeaderCellDef mat-header-cell class="text-[var(--sys-primary)]!">Bitrate</th>
       <td *matCellDef="let element" mat-cell>
         {{ element().value().bitrate | bitrate }}
       </td>
     </ng-container>
 
     <ng-container matColumnDef="actions">
-      <th *matHeaderCellDef mat-header-cell>Actions</th>
+      <th *matHeaderCellDef mat-header-cell class="text-[var(--sys-primary)]!">Actions</th>
       <td *matCellDef="let element; let i = index" mat-cell>
         <button aria-label="Example icon-button with a menu" type="button" [matMenuTriggerFor]="menu" mat-icon-button>
           <mat-icon>more_vert</mat-icon>

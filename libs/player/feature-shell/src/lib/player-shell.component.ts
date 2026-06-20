@@ -127,10 +127,10 @@ export class PlayerShellComponent {
 
   /**
    * Mirrors the on-screen previous button: restart the current track if we're
-   * more than 10s in (or already on the first track), otherwise step back.
+   * more than 5s in (or already on the first track), otherwise step back.
    */
   private onMediaPrevious(): void {
-    if (this.audioElement.currentTime > 10 || this.playerStore.isFirstItemPlaying()) {
+    if (this.audioElement.currentTime > 5 || this.playerStore.isFirstItemPlaying()) {
       this.onSeekTo(0);
     } else {
       this.onPrevious();

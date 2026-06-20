@@ -21,6 +21,17 @@ export class CoverService {
     return this.http.get(`${this.baseUrl}/download?url=${encodeURIComponent(url)}`, { responseType: 'blob' }).pipe(map((blob) => (blob.size > 0 ? URL.createObjectURL(blob) : BLANK_COVER)));
   }
 
+  getCoverFromMetalArchives(url: string): Observable<string | null> {
+    return this.http.get(`${this.baseUrl}/metal-archives?url=${encodeURIComponent(url)}`, { responseType: 'blob', observe: 'response' }).pipe(
+      map((response) => {
+        if (response.status === 204 || !response.body || response.body.size === 0) {
+          return null;
+        }
+        return URL.createObjectURL(response.body);
+      })
+    );
+  }
+
   getCoverDto(blobUrl: string): Observable<unknown> {
     return this.http.get(blobUrl, { responseType: 'blob' }).pipe(switchMap((blob) => mapBlobToBase64(blob)));
   }

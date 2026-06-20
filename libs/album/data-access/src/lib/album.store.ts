@@ -201,7 +201,12 @@ export const AlbumStore = signalStore(
         pipe(
           mergeMap(({ id, transferred }) =>
             service.setTransferred(id, transferred).pipe(
-              map(() => patchState(store, updateEntity({ id, changes: { transferred, played: true } }))),
+              map(() => {
+                patchState(store, updateEntity({ id, changes: { transferred, played: true } }));
+                if (transferred) {
+                  notificationService.showComplete('Album transferred successfully', 'Transfer');
+                }
+              }),
               catchError((error) => {
                 console.error(error);
                 return EMPTY;

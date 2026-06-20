@@ -5,7 +5,8 @@
       {
         "root": "./apps/mobile/app"
       }
-    ]
+    ],
+    "expo-image"
   ],
   "extra": {
     "router": {

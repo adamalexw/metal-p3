@@ -1,5 +1,7 @@
 
 import { ChangeDetectionStrategy, Component, OnInit, inject, computed, effect, signal } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
+import { NotificationService } from '@metal-p3/shared/feedback';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { AlbumStore } from '@metal-p3/album/data-access';
 import { ApplyLyrics } from '@metal-p3/album/domain';
@@ -20,8 +22,15 @@ export class ApplyLyricsShellComponent implements OnInit {
   private readonly albumStore = inject(AlbumStore);
   private readonly trackStore = inject(TrackStore);
   private readonly coverStore = inject(CoverStore);
+  private readonly route = inject(ActivatedRoute);
+  private readonly notificationService = inject(NotificationService);
 
-  albumId = computed(() => this.data?.albumId ?? this.albumStore.selectedAlbumId?.());
+  albumId = computed(() => {
+    if (this.data?.albumId) return this.data.albumId;
+    const routeId = this.route.snapshot.paramMap.get('id');
+    if (routeId) return Number(routeId);
+    return this.albumStore.selectedAlbumId?.();
+  });
 
   album = this.albumStore.selectedAlbum;
 
@@ -84,9 +93,12 @@ export class ApplyLyricsShellComponent implements OnInit {
   private lastCoverFetchedAlbumId: number | null = null;
 
   constructor() {
-    if (this.data?.albumId) {
-      this.albumStore.viewAlbum(this.data.albumId);
-    }
+    effect(() => {
+      const id = this.albumId();
+      if (id && id !== this.albumStore.selectedAlbumId?.()) {
+        this.albumStore.viewAlbum(id);
+      }
+    }, { allowSignalWrites: true });
 
     effect(() => {
       const album = this.album();
@@ -224,6 +236,7 @@ export class ApplyLyricsShellComponent implements OnInit {
   }
 
   onTransfer(tracks: { id: number; trackId: number }[]) {
+    if (!tracks?.length) return;
     tracks.forEach((track) => this.trackStore.transferTrack({ trackId: track.trackId }));
     this.albumStore.setTransferred({ id: tracks[0].id, transferred: true });
   }

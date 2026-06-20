@@ -11,6 +11,7 @@ import { PlayerService } from '@metal-p3/player/data-access';
 import { NotificationService } from '@metal-p3/shared/feedback';
 import { TrackStore } from '@metal-p3/track/data-access';
 import { Track } from '@metal-p3/track/domain';
+import { WA_WINDOW } from '@ng-web-apis/common';
 import { map, tap } from 'rxjs';
 
 @Component({
@@ -26,6 +27,7 @@ export class AlbumShellComponent {
   private readonly notificationService = inject(NotificationService);
   private readonly playerService = inject(PlayerService);
   private readonly maintenanceStore = inject(MaintenanceStore);
+  private readonly windowRef = inject(WA_WINDOW);
 
   readonly albumStore = inject(AlbumStore);
   readonly coverStore = inject(CoverStore);
@@ -92,10 +94,13 @@ export class AlbumShellComponent {
   gettingMaTracks = this.trackStore.gettingMaTracks;
   maTracks = this.trackStore.maTracks;
 
-  gettingBandProps = computed(() => false);
+  gettingBandProps = computed(() => {
+    const albumId = this.id();
+    return albumId ? this.bandStore.entityMap()[albumId]?.loading : false;
+  });
   bandProps = computed(() => {
-    const bandId = this.albumStore.selectedAlbum()?.bandId;
-    return bandId ? this.bandStore.entityMap()[bandId]?.props : undefined;
+    const albumId = this.id();
+    return albumId ? this.bandStore.entityMap()[albumId]?.props : undefined;
   });
 
   constructor() {
@@ -114,6 +119,16 @@ export class AlbumShellComponent {
 
   onDownloadCover(id: number, url: string) {
     this.coverStore.downloadCover({ id, url });
+  }
+
+  onImageSearchFromMa(id: number, url: string) {
+    const album = this.albumStore.selectedAlbum();
+    const fallback = () => {
+      if (album?.artist && album?.album) {
+        this.windowRef.open(encodeURI(`https://google.com/images?q=${album.artist} ${album.album}`), '_blank');
+      }
+    };
+    this.coverStore.getCoverFromMetalArchives({ id, url, fallback });
   }
 
   onSave(album: Album, tracks: TrackBase[], previousBandId?: number) {
@@ -193,11 +208,7 @@ export class AlbumShellComponent {
   }
 
   onFindBandProps(id: number, url: string) {
-    const bandId = this.albumStore.selectedAlbum()?.bandId;
-    const band = bandId ? this.bandStore.entityMap()[bandId] : undefined;
-    if (!band) {
-      this.bandStore.getProps({ id, url });
-    }
+    this.bandStore.getProps({ id, url });
   }
 
   onTransferAlbum(tracks: { id: number; trackId: number }[]) {

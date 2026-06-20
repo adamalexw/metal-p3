@@ -67,7 +67,15 @@ class MetalP3PlayerModule : Module() {
     AsyncFunction("stopAsync") { withController { it.stop() } }
     AsyncFunction("seekToAsync") { positionMs: Long -> withController { it.seekTo(positionMs) } }
     AsyncFunction("skipToNextAsync") { withController { it.seekToNextMediaItem() } }
-    AsyncFunction("skipToPreviousAsync") { withController { it.seekToPreviousMediaItem() } }
+    AsyncFunction("skipToPreviousAsync") {
+      withController {
+        if (it.currentPosition > 5000 || !it.hasPreviousMediaItem()) {
+          it.seekTo(0L)
+        } else {
+          it.seekToPreviousMediaItem()
+        }
+      }
+    }
     AsyncFunction("skipToIndexAsync") { index: Int ->
       withController {
         if (index in 0 until it.mediaItemCount) {

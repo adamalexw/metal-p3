@@ -145,6 +145,20 @@
       "options": {
         "targetName": "lint"
       }
+    },
+    {
+      "plugin": "@nx/expo/plugin",
+      "options": {
+        "buildTargetName": "build",
+        "exportTargetName": "export",
+        "installTargetName": "install",
+        "prebuildTargetName": "prebuild",
+        "runAndroidTargetName": "run-android",
+        "runIosTargetName": "run-ios",
+        "serveTargetName": "serve",
+        "startTargetName": "start",
+        "submitTargetName": "submit"
+      }
     }
   ],
   "namedInputs": {

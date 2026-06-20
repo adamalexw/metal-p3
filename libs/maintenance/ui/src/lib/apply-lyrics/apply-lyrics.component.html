@@ -25,7 +25,7 @@
     }
   }
 
-  <mat-table [dataSource]="dataSource" [trackBy]="trackByFn">
+  <mat-table [dataSource]="dataSource()" [trackBy]="trackByFn">
     <ng-container matColumnDef="trackNumber">
       <mat-header-cell *matHeaderCellDef>#</mat-header-cell>
       <mat-cell *matCellDef="let element">
@@ -38,7 +38,7 @@
       <mat-cell *matCellDef="let element">
         <span>{{ element.title }}</span>
         @if (element.lyricsSource === 'synced') {
-          <span class="ml-2 rounded bg-emerald-700 px-2 py-0.5 text-xs text-white uppercase">Synced</span>
+          <span class="ml-2 rounded bg-emerald-700 px-2 py-0.5 text-xs text-white uppercase">Synced ({{ getLyricsLength(element.syncedLyrics) }})</span>
         }
       </mat-cell>
     </ng-container>
@@ -58,7 +58,7 @@
           <mat-select [value]="element.maTrack" (selectionChange)="onSelectMaTrack(element.id, $event.value)">
             <mat-option>None</mat-option>
             @for (track of maTracks(); track track) {
-              <mat-option [value]="track">{{ track.trackNumber }} {{ track.title }} / {{ track.duration }} / {{ track.lyrics?.length || 0 }} </mat-option>
+              <mat-option [value]="track">{{ track.trackNumber }} {{ track.title }} / {{ track.duration }} / {{ getLyricsLength(track.lyrics) }} </mat-option>
             }
           </mat-select>
         </mat-form-field>

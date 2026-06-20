@@ -71,7 +71,8 @@ export class LyricsHistoryShellComponent implements OnInit {
 
   onApplyLyrics(albumId: number, historyId: number) {
     const dialogRef = this.dialog.open(ApplyLyricsShellComponent, {
-      width: `${Math.ceil(this.viewportRuler.getViewportSize().width - 300).toString()}px`,
+      width: '1130px',
+      maxWidth: '100vw',
       data: { albumId, historyId },
     });
 

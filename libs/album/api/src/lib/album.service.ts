@@ -540,6 +540,18 @@ export class AlbumService {
   }
 
   async saveAlbum(album: AlbumDto): Promise<Album> {
+    if (album.bandId) {
+      await this.dbService.updateBand({
+        where: { BandId: album.bandId },
+        data: {
+          Name: album.artist ?? undefined,
+          Country: album.country ?? undefined,
+          Genre: album.genre ?? undefined,
+          MetalArchiveUrl: album.artistUrl ?? undefined,
+        },
+      });
+    }
+
     return this.dbService.updateAlbum({ where: { AlbumId: album.id }, data: this.mapAlbumDtoToAlbum(album) });
   }
 

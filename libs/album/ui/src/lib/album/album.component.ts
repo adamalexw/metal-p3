@@ -1,5 +1,7 @@
-import { ChangeDetectionStrategy, Component, computed, effect, inject, input, linkedSignal, output, untracked } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, input, linkedSignal, output, untracked, ElementRef } from '@angular/core';
 import { applyEach, form, required } from '@angular/forms/signals';
+import { FastAverageColor } from 'fast-average-color';
+import { lightenForContrast, toHex } from '@metal-p3/shared/utils';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
@@ -49,6 +51,8 @@ export class AlbumComponent {
   private readonly windowRef = inject(WA_WINDOW);
   private readonly notificationService = inject(NotificationService);
   private readonly dialog = inject(MatDialog);
+  private readonly elementRef = inject(ElementRef);
+  private readonly fac = new FastAverageColor();
 
   readonly album = input.required<Album>();
   readonly albumSaving = input(false);
@@ -81,6 +85,11 @@ export class AlbumComponent {
   }>();
 
   readonly coverUrl = output<{
+    id: number;
+    url: string;
+  }>();
+
+  readonly imageSearchFromMa = output<{
     id: number;
     url: string;
   }>();
@@ -250,6 +259,25 @@ export class AlbumComponent {
   }
 
   constructor() {
+    effect(() => {
+      const coverUrl = this.cover() ?? this.album()?.cover;
+      if (coverUrl) {
+        this.fac.getColorAsync(coverUrl, { algorithm: 'dominant' })
+          .then(color => {
+            const rgb = { r: color.value[0], g: color.value[1], b: color.value[2] };
+            const background = { r: 16, g: 16, b: 16 };
+            const primaryRgb = lightenForContrast(rgb, background, 4.5);
+            const primaryHex = toHex(primaryRgb);
+            
+            const el = this.elementRef.nativeElement;
+            el.style.setProperty('--mdc-theme-primary', primaryHex);
+            el.style.setProperty('--mat-sys-primary', primaryHex);
+            el.style.setProperty('--sys-primary', primaryHex);
+            el.style.setProperty('--mat-icon-color', primaryHex);
+          })
+          .catch(e => console.error('Failed to extract color', e));
+      }
+    });
 
     effect(() => {
       const renamingFolderError = this.renamingFolderError();
@@ -286,6 +314,15 @@ export class AlbumComponent {
   }
 
   onImageSearch() {
+    const { artist, album, albumUrl } = this.model().details;
+    if (albumUrl) {
+      this.imageSearchFromMa.emit({ id: this.albumId(), url: albumUrl });
+    } else {
+      this.openGoogleSearch();
+    }
+  }
+
+  openGoogleSearch() {
     const { artist, album } = this.model().details;
     this.openLink(encodeURI(`https://google.com/images?q=${artist} ${album}`));
   }

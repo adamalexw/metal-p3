@@ -13,6 +13,8 @@ const repoRoot = resolve(import.meta.dirname, '..', '..');
 
 // Prevent OOM errors in spawned Node/Metro bundler processes by raising memory limits
 process.env.NODE_OPTIONS = process.env.NODE_OPTIONS || '--max-old-space-size=2048';
+// Prevent Clang frontend crashes on Windows due to OOM during React Native C++ builds
+process.env.CMAKE_BUILD_PARALLEL_LEVEL = '1';
 const mobileRoot = resolve(repoRoot, 'apps', 'mobile');
 const rootBuildGradle = resolve(mobileRoot, 'android', 'build.gradle');
 const appBuildGradle = resolve(mobileRoot, 'android', 'app', 'build.gradle');
@@ -71,7 +73,7 @@ function run(cmd, args, opts = {}) {
 
 if (!skipPrebuild) {
   step('Clean Expo prebuild (Android)');
-  run('npx', ['nx', 'run', 'mobile:prebuild', '--', '--clean', '--platform', 'android']);
+  run('npx', ['expo', 'prebuild', '--clean', '--platform', 'android'], { cwd: mobileRoot });
 }
 
 step('Restore JVM 17 pin in android/build.gradle');
@@ -114,7 +116,7 @@ step('Tune gradle.properties for build memory headroom');
   // machine.
   const additions = [
     ['reactNativeArchitectures', 'arm64-v8a'],
-    ['org.gradle.jvmargs', '-Xmx2g -XX:MaxMetaspaceSize=384m -Dfile.encoding=UTF-8'],
+    ['org.gradle.jvmargs', '-Xmx3g -XX:MaxMetaspaceSize=1g -Dfile.encoding=UTF-8'],
     ['kotlin.daemon.jvmargs', '-Xmx1g -XX:MaxMetaspaceSize=256m'],
     ['kotlin.compiler.execution.strategy', 'daemon'],
     ['org.gradle.workers.max', '1'],

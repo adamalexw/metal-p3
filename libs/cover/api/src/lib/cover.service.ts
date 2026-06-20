@@ -1,11 +1,12 @@
 import { FileSystemService } from '@metal-p3/shared/file-system';
+import { MetalArchivesService } from '@metal-p3/shared/metal-archives';
 import { TrackService } from '@metal-p3/track/api';
 import { HttpService } from '@nestjs/axios';
 import { Injectable, Logger } from '@nestjs/common';
 import * as fs from 'fs';
 import { selectCover } from 'music-metadata';
 import * as path from 'path';
-import { catchError, EMPTY, filter, from, map, Observable, switchMap } from 'rxjs';
+import { catchError, EMPTY, filter, from, map, Observable, of, switchMap } from 'rxjs';
 import sharpFn from 'sharp';
 
 const coverPattern = /^Cover\.jpg$/i;
@@ -18,6 +19,7 @@ export class CoverService {
     private readonly trackService: TrackService,
     private readonly fileSystemService: FileSystemService,
     private readonly httpService: HttpService,
+    private readonly metalArchivesService: MetalArchivesService,
   ) {}
 
   getCover(location: string): Observable<Buffer> {
@@ -102,6 +104,32 @@ export class CoverService {
     }
 
     return this.httpService.get(resolvedUrl, { responseType: 'arraybuffer' }).pipe(map((response) => Buffer.from(response.data)));
+  }
+
+  getCoverFromMetalArchives(url: string): Observable<Buffer | null> {
+    return this.metalArchivesService.getCoverUrl(url).pipe(
+      switchMap((coverUrl) => {
+        if (!coverUrl) return of(null);
+        return this.httpService.get(coverUrl, { responseType: 'arraybuffer' }).pipe(
+          switchMap(async (response) => {
+            const buffer = Buffer.from(response.data);
+            const metadata = await sharpFn(buffer).metadata();
+            if ((metadata.width ?? 0) >= 500 && (metadata.height ?? 0) >= 500) {
+              return buffer;
+            }
+            return null;
+          }),
+          catchError((err) => {
+            Logger.error(`Failed to download or parse cover from ${coverUrl}: ${err}`);
+            return of(null);
+          })
+        );
+      }),
+      catchError((err) => {
+        Logger.error(`Failed to fetch Metal Archives page ${url}: ${err}`);
+        return of(null);
+      })
+    );
   }
 
   private resolveImageUrl(url: string): string {
