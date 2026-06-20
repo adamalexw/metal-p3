@@ -14,12 +14,12 @@ import { AlbumHeaderComponent } from '../album-header/album-header.component';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AlbumToolbarComponent {
-  saving = input<boolean | null>(false);
-  findingUrl = input<boolean | null>(false);
-  renamingFolder = input<boolean | null>(false);
-  trackTransferring = input<boolean | null>(false);
-  folder = input('');
-  extraFiles = input<boolean | undefined>();
+  readonly saving = input(false);
+  readonly findingUrl = input(false);
+  readonly renamingFolder = input(false);
+  readonly trackTransferring = input(false);
+  readonly folder = input('');
+  readonly extraFiles = input<boolean | undefined>();
 
   readonly save = output<void>();
   readonly imageSearch = output<void>();

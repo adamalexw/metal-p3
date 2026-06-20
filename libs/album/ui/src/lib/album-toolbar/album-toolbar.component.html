@@ -1,4 +1,4 @@
-<app-nav-toolbar [closeFullWidth]="false">
+<app-nav-toolbar class="shadow-drawer relative z-10 block" [closeFullWidth]="false">
   <button type="button" [disabled]="saving()" (click)="save.emit()" mat-icon-button>
     <mat-icon title="save">save</mat-icon>
   </button>
@@ -11,7 +11,7 @@
   <button type="button" [disabled]="renamingFolder()" (click)="renameFolder.emit()" mat-icon-button>
     <mat-icon title="rename folder">source</mat-icon>
   </button>
-  <button type="button" class="!hidden lg:!block" [matBadgeHidden]="!extraFiles()" (click)="openFolder.emit()" mat-icon-button matBadge="!" matBadgeColor="warn">
+  <button type="button" class="hidden! lg:block!" [matBadgeHidden]="!extraFiles()" (click)="openFolder.emit()" mat-icon-button matBadge="!" matBadgeColor="warn">
     <mat-icon title="open folder">folder()</mat-icon>
   </button>
   <button type="button" [disabled]="trackTransferring()" (click)="transfer.emit()" mat-icon-button>
@@ -26,6 +26,6 @@
   </div>
 </app-nav-toolbar>
 
-<mat-toolbar class="lg:!hidden">
+<mat-toolbar class="lg:hidden!">
   <app-album-header class="line-clamp-1" [folder]="folder()" />
 </mat-toolbar>

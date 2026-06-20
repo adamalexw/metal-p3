@@ -17,9 +17,9 @@ type StatusFilter = 'all' | 'matched' | 'missing';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ReviewTableComponent {
-  tracks = input<ResolvedTrack[]>([]);
-  matching = input<boolean>(false);
-  creating = input<boolean>(false);
+  readonly tracks = input<ResolvedTrack[]>([]);
+  readonly matching = input(false);
+  readonly creating = input(false);
 
   readonly toggleSelection = output<string>();
   readonly setAllSelection = output<boolean>();

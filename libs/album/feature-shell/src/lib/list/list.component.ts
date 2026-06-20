@@ -1,49 +1,37 @@
-import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 import { CdkVirtualScrollViewport, ScrollingModule, ViewportRuler } from '@angular/cdk/scrolling';
-import { AsyncPipe, Location } from '@angular/common';
-import { ChangeDetectionStrategy, Component, DOCUMENT, OnInit, inject, output, viewChild } from '@angular/core';
-import { Router } from '@angular/router';
-import { AlbumService } from '@metal-p3/album/data-access';
-import { ALBUM_DRAWER_WIDTH, TAKE } from '@metal-p3/album/domain';
+import { Location } from '@angular/common';
+import { ChangeDetectionStrategy, Component, DOCUMENT, OnInit, computed, effect, inject, output, signal, viewChild } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { NavigationEnd, Router } from '@angular/router';
+import { AlbumService, AlbumStore } from '@metal-p3/album/data-access';
+import { Album, BASE_PATH, TAKE } from '@metal-p3/album/domain';
 import { ListItemComponent, ListToolbarComponent } from '@metal-p3/album/ui';
 import { AlbumDto, SearchRequest } from '@metal-p3/api-interfaces';
+import { CoverStore } from '@metal-p3/cover/data-access';
 import { PlayerShellComponent } from '@metal-p3/player';
-import { PlayerActions, PlayerService, selectShowPlayer } from '@metal-p3/player/data-access';
-import {
-  Album,
-  AlbumActions,
-  CoverActions,
-  TrackActions,
-  selectAlbums,
-  selectAlbumsLoadError,
-  selectAlbumsLoaded,
-  selectAlbumsLoading,
-  selectAlbumsSearchRequest,
-  selectAlbumsSearchRequestFolder,
-  selectCreatingNew,
-  selectSideNavOpen,
-  selectTracksById,
-  selectTracksRequiredById,
-} from '@metal-p3/shared/data-access';
+import { PlayerService, PlayerStore } from '@metal-p3/player/data-access';
 import { NotificationService } from '@metal-p3/shared/feedback';
 import { ConnectPhoneService } from '@metal-p3/shared/transfer';
-import { nonNullable, toChunks } from '@metal-p3/shared/utils';
+import { toChunks } from '@metal-p3/shared/utils';
+import { TrackService } from '@metal-p3/track/data-access';
 import { Track } from '@metal-p3/track/domain';
-import { Store } from '@ngrx/store';
-import { BehaviorSubject, Observable, combineLatest, debounceTime, delay, filter, from, map, mergeMap, startWith, take, tap } from 'rxjs';
+import { Observable, debounceTime, filter, from, map, mergeMap, take, tap } from 'rxjs';
 import { AddAlbumDirective } from './add-album.directive';
 
 @Component({
-  imports: [AsyncPipe, ScrollingModule, ListToolbarComponent, ListItemComponent, PlayerShellComponent, AddAlbumDirective],
+  imports: [ScrollingModule, ListToolbarComponent, ListItemComponent, PlayerShellComponent, AddAlbumDirective],
   selector: 'app-list',
   templateUrl: './list.component.html',
   styleUrls: ['./list.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ListComponent implements OnInit {
-  private readonly store = inject(Store);
+  readonly store = inject(AlbumStore);
+  private readonly coverStore = inject(CoverStore);
+  private readonly trackService = inject(TrackService);
   private readonly router = inject(Router);
   private readonly playerService = inject(PlayerService);
+  private readonly playerStore = inject(PlayerStore);
   private readonly notificationService = inject(NotificationService);
   private readonly connectPhoneService = inject(ConnectPhoneService);
   private readonly service = inject(AlbumService);
@@ -51,99 +39,116 @@ export class ListComponent implements OnInit {
   private readonly location = inject(Location);
   private readonly document = inject(DOCUMENT);
   private readonly take = inject(TAKE);
-  private readonly albumDrawerWidth = inject(ALBUM_DRAWER_WIDTH);
-  private readonly breakpointObserver = inject(BreakpointObserver);
+  private readonly basePath = inject(BASE_PATH);
 
-  albumsLoading$ = this.store.select(selectAlbumsLoading);
-  albumsLoaded$ = this.store.select(selectAlbumsLoaded);
-  albumsLoadError$ = this.store.select(selectAlbumsLoadError);
-  albums$ = this.store.select(selectAlbums);
-  searchRequest$ = this.store.select(selectAlbumsSearchRequest);
-  searchRequestFolder$ = this.store.select(selectAlbumsSearchRequestFolder);
-  showPlayer$ = this.store.select(selectShowPlayer);
-  creatingNew$ = this.store.select(selectCreatingNew);
-  sideNavOpen$ = this.store.select(selectSideNavOpen);
+  albumsLoading = this.store.loading;
+  albumsLoaded = this.store.loaded;
+  albumsLoadError = this.store.loadError;
+  albums = this.store.albums;
+  searchRequest = this.store.searchRequest;
+  searchRequestFolder = computed(() => this.store.searchRequest()?.folder);
 
-  viewportWidth$ = this.viewportRuler.change().pipe(
-    debounceTime(150),
-    startWith(this.viewportRuler.getViewportSize().width),
-    map(() => this.viewportRuler.getViewportSize().width),
+  creatingNew = computed(() => this.store.creatingNew?.() ?? false);
+  readonly coverMap = this.coverStore.entityMap;
+
+  sideNavOpen = toSignal(
+    this.router.events.pipe(
+      filter((e) => e instanceof NavigationEnd),
+      map(() => this.router.url !== '/'),
+    ),
+    { initialValue: this.router.url !== '/' },
   );
 
-  private readonly isHandset$ = this.breakpointObserver.observe([Breakpoints.Handset]).pipe(map(({ matches }) => matches));
-
-  albumsView$ = combineLatest([this.albums$, this.viewportWidth$, this.store.select(selectSideNavOpen), this.isHandset$]).pipe(
-    map(([albums, width, open, isHandset]) => {
-      // if the side nav is open we remove it's width (desktop/side mode only; on mobile the sidenav overlays)
-      const listWidth = open && !isHandset ? width - this.albumDrawerWidth : width;
-      const chunks = Math.max(1, Math.floor(listWidth / 275));
-
-      return toChunks(albums, chunks);
-    }),
+  viewportWidth = toSignal(
+    this.viewportRuler.change().pipe(
+      debounceTime(150),
+      map(() => this.viewportRuler.getViewportSize().width),
+    ),
+    { initialValue: this.viewportRuler.getViewportSize().width },
   );
+
+  albumsView = computed(() => {
+    const albums = this.albums();
+    const width = this.viewportWidth();
+
+    const chunks = Math.max(1, Math.floor(width / 275));
+
+    return toChunks(albums, chunks);
+  });
 
   readonly openAlbum = output<number>();
 
   private fetchedPage = 0;
-  private readonly scrollIndex$ = new BehaviorSubject<number>(0);
+  private readonly scrollIndex = signal<number>(0);
   private readonly scrollViewport = viewChild.required(CdkVirtualScrollViewport);
 
-  ngOnInit(): void {
-    this.albumsLoadError$
-      .pipe(
-        nonNullable(),
-        tap((error) => this.notificationService.showError(error, 'Load Albums')),
-      )
-      .subscribe();
+  viewportHeight = toSignal(this.viewportRuler.change(300).pipe(map(() => this.viewportRuler.getViewportSize().height)), { initialValue: this.viewportRuler.getViewportSize().height });
 
+  constructor() {
+    effect(() => {
+      const error = this.store.loadError?.();
+      if (error) {
+        this.notificationService.showError(error, 'Load Albums');
+      }
+    });
+
+    effect((onCleanup) => {
+      const albums = this.albumsView();
+      this.scrollIndex(); // tracking dependency
+
+      const timeoutId = setTimeout(() => {
+        this.loadVisibleCovers(albums);
+      }, 100);
+
+      onCleanup(() => clearTimeout(timeoutId));
+    });
+
+    effect(() => {
+      const playerOpen = this.playerStore.showPlayer();
+      const height = this.viewportHeight();
+      const loading = this.albumsLoading();
+
+      const listHeight = playerOpen ? height - 128 : height - 64;
+      const finalHeight = loading ? listHeight - 12 : listHeight;
+
+      this.document.documentElement.style.setProperty('--list-height', `${finalHeight}px`);
+    });
+  }
+
+  ngOnInit(): void {
     this.service
       .albumAdded()
       .pipe(tap((album) => this.onAlbumAdded(album)))
       .subscribe();
-
-    combineLatest([this.albumsView$, this.scrollIndex$])
-      .pipe(
-        debounceTime(100),
-        tap(([albums]) => this.loadVisibleCovers(albums)),
-      )
-      .subscribe();
-
-    combineLatest([
-      this.showPlayer$,
-      this.viewportRuler.change(300).pipe(
-        map(() => this.viewportRuler.getViewportSize().height),
-        startWith(this.viewportRuler.getViewportSize().height),
-      ),
-      this.albumsLoading$,
-    ])
-      .pipe(
-        map(([playerOpen, height, loading]) => {
-          const listHeight = playerOpen ? height - 128 : height - 64;
-
-          return loading ? listHeight - 12 : listHeight;
-        }),
-      )
-      .subscribe((height) => this.document.documentElement.style.setProperty('--list-height', height.toString() + 'px'));
   }
 
   private loadVisibleCovers(albums: Album[][]): void {
     const { start, end } = this.scrollViewport().getRenderedRange();
     const rendered = albums.slice(start, end).flat();
-    rendered.filter((a) => !a.cover && !a.coverLoading && !a.coverError).forEach((a) => this.store.dispatch(CoverActions.get({ id: a.id, folder: a.folder })));
+    const coverRequests = rendered
+      .filter((a) => {
+        const coverState = this.coverMap()[a.id];
+        return !a.cover && !coverState?.cover && !coverState?.loading && !coverState?.error;
+      })
+      .map((a) => ({ id: a.id, folder: a.folder }));
+
+    if (coverRequests.length > 0) {
+      this.coverStore.getMany({ requests: coverRequests });
+    }
   }
 
   onDeleteAlbum(id: number) {
-    this.store.dispatch(AlbumActions.deleteAlbum({ id }));
+    this.store.deleteAlbum(id);
   }
 
   onTransferAlbum(id: number, folder: string) {
-    const tracks$ = this.getTracks(id, folder);
+    const tracks$ = this.getTracks(folder);
 
     tracks$
       .pipe(
         tap((tracks) => {
-          tracks?.forEach((track) => this.store.dispatch(TrackActions.transferTrack({ id, trackId: track.id })));
-          this.store.dispatch(AlbumActions.setTransferred({ id, transferred: true }));
+          tracks?.forEach((track) => this.trackService.transferTrack(track.fullPath).subscribe());
+          this.store.setTransferred({ id, transferred: true });
         }),
         take(1),
       )
@@ -151,24 +156,19 @@ export class ListComponent implements OnInit {
   }
 
   onPlayAlbum(id: number, folder: string) {
-    this.playerService.playAlbum(id, this.getTracks(id, folder));
+    this.getTracks(folder).subscribe((tracks) => {
+      this.playerService.playAlbum(id, tracks);
+    });
   }
 
   onAddToPlaylist(id: number, folder: string) {
-    this.playerService.addAlbumToPlaylist(id, this.getTracks(id, folder));
+    this.getTracks(folder).subscribe((tracks) => {
+      this.playerService.addAlbumToPlaylist(id, tracks);
+    });
   }
 
-  private getTracks(id: number, folder: string): Observable<Track[] | undefined> {
-    this.store
-      .select(selectTracksRequiredById(id))
-      .pipe(
-        take(1),
-        filter((required) => !!required),
-        tap(() => this.store.dispatch(TrackActions.getTracks({ id, folder }))),
-      )
-      .subscribe();
-
-    return this.store.select(selectTracksById(id)).pipe(filter((tracks) => !!tracks?.length));
+  private getTracks(folder: string): Observable<Track[] | undefined> {
+    return this.trackService.getTracks(`${this.basePath}/${folder}`).pipe(take(1));
   }
 
   trackByVirtualFn(index: number): number {
@@ -180,20 +180,22 @@ export class ListComponent implements OnInit {
   }
 
   onAdvancedSearch() {
-    this.store.dispatch(AlbumActions.advancedSearch());
+    this.store.toggleAdvancedSearch();
   }
 
   onSearch(request: SearchRequest) {
     this.fetchedPage = 0;
-    this.store.dispatch(AlbumActions.cancelPreviousSearch({ request: { cancel: true } }));
+    this.store.loadAlbums({ request: { skip: 0, take: 0 }, cancel: true });
     this.scrollIndexChange(0, request, true);
 
-    this.sideNavOpen$.pipe(take(1), filter(Boolean), delay(100)).subscribe(() => this.location.back());
+    if (this.sideNavOpen()) {
+      setTimeout(() => this.location.back(), 100);
+    }
   }
 
   onAlbumAdded(albumDto: AlbumDto) {
-    const album: Album = { ...albumDto, tracks: { ids: [], entities: {} }, maTracks: { ids: [], entities: {} } };
-    this.store.dispatch(AlbumActions.addAlbum({ album }));
+    const album: Album = { ...albumDto };
+    this.store.addAlbum(album);
   }
 
   onFoldersDropped(folders: string[]) {
@@ -206,15 +208,15 @@ export class ListComponent implements OnInit {
   }
 
   onShowPlayer() {
-    this.store.dispatch(PlayerActions.show());
+    this.playerStore.show();
   }
 
   onCreateNew() {
-    this.store.dispatch(AlbumActions.createNew());
+    this.store.createNew();
   }
 
   onOpenAlbum(id: number) {
-    this.store.dispatch(AlbumActions.viewAlbum({ id }));
+    this.store.viewAlbum(id);
     this.router.navigate(['album', id]);
   }
 
@@ -223,7 +225,7 @@ export class ListComponent implements OnInit {
   }
 
   scrollIndexChange(page: number, request: SearchRequest, force: boolean) {
-    this.scrollIndex$.next(page);
+    this.scrollIndex.set(page);
 
     if (!force && this.scrollViewport().getRenderedRange().end !== this.scrollViewport().getDataLength()) {
       return;
@@ -245,6 +247,6 @@ export class ListComponent implements OnInit {
     }
 
     this.fetchedPage += 1;
-    this.store.dispatch(AlbumActions.loadAlbums({ request: { ...request, take, skip } }));
+    this.store.loadAlbums({ request: { ...request, take, skip } });
   }
 }

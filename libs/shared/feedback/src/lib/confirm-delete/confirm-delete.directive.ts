@@ -16,7 +16,7 @@ export class ConfirmDeleteDirective {
 
   private confirmDeleteComponent = ConfirmDeleteComponent;
 
-  itemName = input('');
+  readonly itemName = input('');
   readonly confirmResult = output<boolean>();
 
   onClick() {

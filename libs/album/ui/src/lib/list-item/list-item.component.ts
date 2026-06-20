@@ -4,7 +4,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
 import { CoverComponent } from '@metal-p3/cover/ui';
-import { Album } from '@metal-p3/shared/data-access';
+import { Album } from '@metal-p3/album/domain';
 import { ConfirmDeleteDirective } from '@metal-p3/shared/feedback';
 import { CountryFlagPipe } from '@metal-p3/shared/utils';
 
@@ -15,7 +15,10 @@ import { CountryFlagPipe } from '@metal-p3/shared/utils';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ListItemComponent {
-  album = input.required<Album>();
+  readonly album = input.required<Album>();
+  readonly coverLoading = input(false);
+  readonly coverError = input<string | undefined>(undefined);
+  readonly cover = input<string | undefined>(undefined);
 
   readonly openAlbum = output<number>();
   readonly deleteAlbum = output<void>();

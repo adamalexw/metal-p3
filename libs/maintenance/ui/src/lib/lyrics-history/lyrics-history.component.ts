@@ -17,7 +17,7 @@ import { ConfirmDeleteDirective } from '@metal-p3/shared/feedback';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LyricsHistoryComponent {
-  lyrics = input<LyricsHistoryDto[] | null>([]);
+  readonly lyrics = input<LyricsHistoryDto[]>([]);
 
   readonly checked = output<{
     id: number;

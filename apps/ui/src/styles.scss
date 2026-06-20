@@ -4,6 +4,10 @@
 
 @use 'tailwind';
 
+@theme {
+  --shadow-drawer: -15px 0 30px -5px rgba(0, 0, 0, 0.5);
+}
+
 html,
 body {
   display: block;

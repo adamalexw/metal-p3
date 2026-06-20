@@ -11,14 +11,16 @@ export function extractUrl(url: string): string | undefined {
   return;
 }
 
+export const BLANK_COVER = '/assets/splash-icon.png';
+
 export const createToObjectUrl = (image: string): string => {
-  if (!image) return '/assets/blank.png';
+  if (!image) return BLANK_COVER;
   try {
     const bytes = Uint8Array.from(atob(image), (c) => c.charCodeAt(0));
     return URL.createObjectURL(new Blob([bytes], { type: 'image/png' }));
   } catch (error) {
     console.error('Error creating object URL from image', error);
-    return '/assets/blank.png';
+    return BLANK_COVER;
   }
 };
 

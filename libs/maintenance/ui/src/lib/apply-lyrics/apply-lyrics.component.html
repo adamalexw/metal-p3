@@ -6,6 +6,7 @@
 } @else {
   <app-lyrics-toolbar
     [applying]="applying() || false"
+    [applied]="applied() || false"
     [trackTransferring]="trackTransferring() || false"
     [albumId]="albumId()"
     [albumUrl]="albumUrl()"
@@ -19,10 +20,12 @@
   />
 
   @if (applyingProgress() || trackTransferringProgress(); as progress) {
-    <mat-progress-bar class="w-full" [value]="progress" mode="determinate" />
+    @if (progress < 100) {
+      <mat-progress-bar class="w-full" [value]="progress" mode="determinate" />
+    }
   }
 
-  <mat-table [dataSource]="dataSource" [trackBy]="trackByFn">
+  <mat-table [dataSource]="dataSource()" [trackBy]="trackByFn">
     <ng-container matColumnDef="trackNumber">
       <mat-header-cell *matHeaderCellDef>#</mat-header-cell>
       <mat-cell *matCellDef="let element">
@@ -35,7 +38,7 @@
       <mat-cell *matCellDef="let element">
         <span>{{ element.title }}</span>
         @if (element.lyricsSource === 'synced') {
-          <span class="ml-2 rounded bg-emerald-700 px-2 py-0.5 text-xs text-white uppercase">Synced</span>
+          <span class="ml-2 rounded bg-emerald-700 px-2 py-0.5 text-xs text-white uppercase">Synced ({{ getLyricsLength(element.syncedLyrics) }})</span>
         }
       </mat-cell>
     </ng-container>
@@ -52,10 +55,10 @@
       <mat-cell *matCellDef="let element" class="w-full">
         <mat-form-field class="w-full" floatLabel="auto">
           <mat-label>Select lyrics track</mat-label>
-          <mat-select [(value)]="element.maTrack">
+          <mat-select [value]="element.maTrack" (selectionChange)="onSelectMaTrack(element.id, $event.value)">
             <mat-option>None</mat-option>
             @for (track of maTracks(); track track) {
-              <mat-option [value]="track">{{ track.trackNumber }} {{ track.title }} / {{ track.duration }} / {{ track.lyrics?.length || 0 }} </mat-option>
+              <mat-option [value]="track">{{ track.trackNumber }} {{ track.title }} / {{ track.duration }} / {{ getLyricsLength(track.lyrics) }} </mat-option>
             }
           </mat-select>
         </mat-form-field>

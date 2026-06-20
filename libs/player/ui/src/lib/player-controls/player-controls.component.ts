@@ -15,13 +15,13 @@ import { VolumeComponent } from '../volume/volume.component';
   encapsulation: ViewEncapsulation.None,
 })
 export class PlayerControlsComponent {
-  footerMode = input<boolean | null>(false);
-  isFirstItemPlaying = input<boolean | null | undefined>(false);
-  isLastItemPlaying = input<boolean | null | undefined>(false);
-  currentItem = input<PlaylistItem | null | undefined>();
-  elapsedTime = input<number | null | undefined>(0);
-  toggleIcon = input<'expand_more' | 'expand_less' | null>('expand_more');
-  gain = input(1);
+  readonly footerMode = input(false);
+  readonly isFirstItemPlaying = input(false);
+  readonly isLastItemPlaying = input(false);
+  readonly currentItem = input<PlaylistItem>();
+  readonly elapsedTime = input(0);
+  readonly toggleIcon = input<'expand_more' | 'expand_less'>('expand_more');
+  readonly gain = input(1);
 
   readonly previous = output<void>();
   readonly playItem = output<void>();
@@ -33,7 +33,7 @@ export class PlayerControlsComponent {
   readonly toggleView = output();
 
   onPrevious() {
-    if ((this.elapsedTime() ?? 0) > 10 || this.isFirstItemPlaying()) {
+    if ((this.elapsedTime() ?? 0) > 5 || this.isFirstItemPlaying()) {
       this.seekTo.emit(0);
       return;
     }

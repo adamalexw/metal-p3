@@ -12,7 +12,7 @@ import { UrlMatcher } from '@metal-p3/maintenance/domain';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class UrlMatcherComponent {
-  albums = input<UrlMatcher[] | null | undefined>([]);
+  readonly albums = input<UrlMatcher[]>([]);
 
   displayedColumns = ['band', 'artistUrl', 'album', 'albumUrl', 'result', 'complete'];
   dataSource = new MatTableDataSource<UrlMatcher>();

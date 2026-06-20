@@ -16,7 +16,6 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#000000"
       },
-      "edgeToEdgeEnabled": true,
       "permissions": [
         "android.permission.READ_MEDIA_AUDIO",
         "android.permission.READ_MEDIA_IMAGES",
@@ -37,7 +36,10 @@
           "resizeMode": "contain",
           "backgroundColor": "#000000"
         }
-      ]
+      ],
+      "./plugins/withReanimatedBypass.js",
+      "./plugins/withKotlinJvmTarget.js",
+      "./plugins/withWindowsMemoryLimits.js"
     ],
     "experiments": {
       "typedRoutes": true

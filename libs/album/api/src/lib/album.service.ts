@@ -72,24 +72,26 @@ export class AlbumService {
       };
     }
 
-    if (request.year) {
+    if (request.year != null) {
       where = {
         ...where,
-        Year: request.year,
+        Year: +request.year,
       };
     }
 
-    if (request.hasLyrics) {
+    if (request.hasLyrics != null) {
+      const lyricsBool = request.hasLyrics === true || (request.hasLyrics as unknown as string) === 'true';
       where = {
         ...where,
-        Lyrics: Boolean(request.hasLyrics),
+        Lyrics: lyricsBool,
       };
     }
 
-    if (request.transferred) {
+    if (request.transferred != null) {
+      const transferredBool = request.transferred === true || (request.transferred as unknown as string) === 'true';
       where = {
         ...where,
-        Transferred: Boolean(request.transferred),
+        Transferred: transferredBool,
       };
     }
 
@@ -538,6 +540,18 @@ export class AlbumService {
   }
 
   async saveAlbum(album: AlbumDto): Promise<Album> {
+    if (album.bandId) {
+      await this.dbService.updateBand({
+        where: { BandId: album.bandId },
+        data: {
+          Name: album.artist ?? undefined,
+          Country: album.country ?? undefined,
+          Genre: album.genre ?? undefined,
+          MetalArchiveUrl: album.artistUrl ?? undefined,
+        },
+      });
+    }
+
     return this.dbService.updateAlbum({ where: { AlbumId: album.id }, data: this.mapAlbumDtoToAlbum(album) });
   }
 

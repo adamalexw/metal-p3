@@ -32,6 +32,25 @@ export class CoverController {
     });
   }
 
+  @Get('metal-archives')
+  getFromMetalArchives(@Query('url') url: string, @Res() res: Response): void {
+    this.coverService.getCoverFromMetalArchives(url).subscribe({
+      next: (buffer) => {
+        if (buffer) {
+           res.set('Content-Type', 'image/jpeg').send(buffer);
+        } else {
+           res.status(204).send();
+        }
+      },
+      error: () => {
+        if (!res.headersSent) res.status(204).send();
+      },
+      complete: () => {
+        if (!res.headersSent) res.status(204).send();
+      },
+    });
+  }
+
   @Post()
   post(@Body() body: { folder: string; cover: string }): Promise<void> {
     return this.coverService.saveCover(body.folder, body.cover);

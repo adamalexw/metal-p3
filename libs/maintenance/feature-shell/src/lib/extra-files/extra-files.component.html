@@ -1,2 +1,2 @@
-<app-extra-files-toolbar [running]="running$ | async" (stopProcessing)="onStop()" />
-<app-extra-files [folders]="extraFiles$ | async" (openFolder)="onOpenFolder($event)" />
+<app-extra-files-toolbar [running]="running()" (stopProcessing)="onStop()" />
+<app-extra-files [folders]="extraFiles()" (openFolder)="onOpenFolder($event)" />

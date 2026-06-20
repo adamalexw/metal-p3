@@ -1,5 +1,7 @@
-import { ChangeDetectionStrategy, Component, computed, effect, inject, input, linkedSignal, output, untracked } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, input, linkedSignal, output, untracked, ElementRef } from '@angular/core';
 import { applyEach, form, required } from '@angular/forms/signals';
+import { FastAverageColor } from 'fast-average-color';
+import { lightenForContrast, toHex } from '@metal-p3/shared/utils';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
@@ -9,10 +11,9 @@ import { MatInputModule } from '@angular/material/input';
 import { MatListModule } from '@angular/material/list';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { RouterModule } from '@angular/router';
-import { AlbumDetailsForm, AlbumForm } from '@metal-p3/album/domain';
+import { Album, AlbumDetailsForm, AlbumForm } from '@metal-p3/album/domain';
 import { BandDto, BandProps, MetalArchivesAlbumTrack, MetalArchivesUrl, TrackBase } from '@metal-p3/api-interfaces';
 import { CoverComponent } from '@metal-p3/cover/ui';
-import { Album, AlbumWithoutTracks } from '@metal-p3/shared/data-access';
 import { NotificationService } from '@metal-p3/shared/feedback';
 import { Track } from '@metal-p3/track/domain';
 import { TracksComponent, TracksToolbarComponent } from '@metal-p3/track/ui';
@@ -50,37 +51,45 @@ export class AlbumComponent {
   private readonly windowRef = inject(WA_WINDOW);
   private readonly notificationService = inject(NotificationService);
   private readonly dialog = inject(MatDialog);
+  private readonly elementRef = inject(ElementRef);
+  private readonly fac = new FastAverageColor();
 
-  album = input.required<Album | null>();
-  albumSaving = input<boolean | null>(false);
-  tracks = input<Track[] | null | undefined>([]);
-  tracksLoading = input<boolean | null>(false);
-  tracksError = input<string | null>();
-  albumDuration = input<number | null>(0);
-  trackSavingProgress = input<number | null>(0);
-  coverLoading = input<boolean | null>(false);
-  cover = input<string | null | undefined>();
-  findingUrl = input<boolean | null>(false);
-  maUrls = input<MetalArchivesUrl | null>(null);
-  gettingMaTracks = input<boolean | null>(false);
-  maTracks = input<MetalArchivesAlbumTrack[] | null | undefined>([]);
-  trackRenaming = input<boolean | null>(false);
-  trackRenamingProgress = input<number | null>(0);
-  trackTransferring = input<boolean | null>(false);
-  trackTransferringProgress = input<number | null>(0);
-  renamingFolder = input<boolean | null>(false);
-  renamingFolderError = input<string | null | undefined>();
-  lyricsLoading = input<boolean | null>(false);
-  gettingBandProps = input<boolean | null>(false);
-  bandProps = input<BandProps | null | undefined>(null);
+  readonly album = input.required<Album>();
+  readonly albumSaving = input(false);
+  readonly tracks = input<Track[]>([]);
+  readonly tracksLoading = input(false);
+  readonly tracksError = input<string>();
+  readonly albumDuration = input(0);
+  readonly trackSavingProgress = input(0);
+  readonly coverLoading = input(false);
+  readonly coverError = input<string>();
+  readonly cover = input<string>();
+  readonly findingUrl = input(false);
+  readonly maUrls = input<MetalArchivesUrl>();
+  readonly gettingMaTracks = input(false);
+  readonly maTracks = input<MetalArchivesAlbumTrack[]>([]);
+  readonly trackRenaming = input(false);
+  readonly trackRenamingProgress = input(0);
+  readonly trackTransferring = input(false);
+  readonly trackTransferringProgress = input(0);
+  readonly renamingFolder = input(false);
+  readonly renamingFolderError = input<string>();
+  readonly lyricsLoading = input(false);
+  readonly gettingBandProps = input(false);
+  readonly bandProps = input<BandProps>();
 
   readonly save = output<{
-    album: AlbumWithoutTracks;
+    album: Album;
     tracks: TrackBase[];
     previousBandId?: number;
   }>();
 
   readonly coverUrl = output<{
+    id: number;
+    url: string;
+  }>();
+
+  readonly imageSearchFromMa = output<{
     id: number;
     url: string;
   }>();
@@ -96,12 +105,8 @@ export class AlbumComponent {
     url: string;
   }>();
 
-  readonly lyrics = output<{
-    id: number;
-    url: string;
-  }>();
-
-  readonly trackNumbers = output<number>();
+  readonly lyrics = output<number>();
+  readonly trackNumbers = output();
 
   readonly renameTracks = output<{
     id: number;
@@ -144,13 +149,8 @@ export class AlbumComponent {
     }[]
   >();
 
-  readonly transferTrack = output<{
-    id: number;
-    trackId: number;
-  }>();
-
+  readonly transferTrack = output<number>();
   readonly playAlbum = output<number>();
-
   readonly addAlbumToPlaylist = output<number>();
 
   readonly playTrack = output<{
@@ -170,18 +170,15 @@ export class AlbumComponent {
 
   readonly deleteAlbum = output<number>();
 
-  albumId = computed(() => this.album()?.id ?? 0);
-
-  get albumUrl(): string {
-    return this.model().details.albumUrl;
-  }
+  readonly albumId = computed(() => this.album()?.id ?? 0);
+  readonly albumUrl = computed(() => this.model().details.albumUrl);
 
   protected readonly model = linkedSignal<
     {
-      album: Album | null;
+      album: Album;
       tracks: Track[];
-      maUrls: MetalArchivesUrl | null;
-      bandProps: BandProps | null | undefined;
+      maUrls: MetalArchivesUrl | undefined;
+      bandProps: BandProps | undefined;
     },
     AlbumForm
   >({
@@ -191,22 +188,14 @@ export class AlbumComponent {
       maUrls: this.maUrls(),
       bandProps: this.bandProps(),
     }),
-    computation: ({ album, tracks, maUrls, bandProps }) => ({
-      details: {
-        artist: album?.artist ?? '',
-        album: album?.album ?? '',
-        year: album?.year ?? 0,
-        genre: bandProps ? (bandProps.genre ?? '') : (album?.genre ?? ''),
-        country: bandProps ? (bandProps.country ?? '') : (album?.country ?? ''),
-        played: album?.played ?? false,
-        artistUrl: maUrls ? (maUrls.artistUrl ?? '') : (album?.artistUrl ?? ''),
-        albumUrl: maUrls ? (maUrls.albumUrl ?? '') : (album?.albumUrl ?? ''),
-        ignore: false,
-        transferred: album?.transferred ?? false,
-        hasLyrics: album?.hasLyrics ?? false,
-        dateCreated: album?.dateCreated ?? '',
-      },
-      tracks: tracks.map((track) => ({
+    computation: (source, previous) => {
+      if (previous && source.album?.saving) {
+        return previous.value;
+      }
+
+      const { album, tracks, maUrls, bandProps } = source;
+
+      const mapTracks = (trackList: Track[]) => trackList.map((track) => ({
         id: track.id,
         trackNumber: track.trackNumber,
         title: track.title,
@@ -217,8 +206,40 @@ export class AlbumComponent {
         file: track.file,
         folder: track.folder,
         fullPath: track.fullPath,
-      })),
-    }),
+      }));
+
+      if (previous && previous.source.album?.id === source.album?.id) {
+        return {
+          ...previous.value,
+          details: {
+            ...previous.value.details,
+            genre: bandProps?.genre ? bandProps.genre : previous.value.details.genre,
+            country: bandProps?.country ? bandProps.country : previous.value.details.country,
+            artistUrl: maUrls?.artistUrl ? maUrls.artistUrl : previous.value.details.artistUrl,
+            albumUrl: maUrls?.albumUrl ? maUrls.albumUrl : previous.value.details.albumUrl,
+          },
+          tracks: source.tracks !== previous.source.tracks ? mapTracks(source.tracks) : previous.value.tracks,
+        };
+      }
+
+      return {
+        details: {
+          artist: album?.artist ?? '',
+          album: album?.album ?? '',
+          year: album?.year ?? 0,
+          genre: bandProps ? (bandProps.genre ?? '') : (album?.genre ?? ''),
+          country: bandProps ? (bandProps.country ?? '') : (album?.country ?? ''),
+          played: album?.played ?? false,
+          artistUrl: maUrls ? (maUrls.artistUrl ?? '') : (album?.artistUrl ?? ''),
+          albumUrl: maUrls ? (maUrls.albumUrl ?? '') : (album?.albumUrl ?? ''),
+          ignore: album?.ignore ?? false,
+          transferred: album?.transferred ?? false,
+          hasLyrics: album?.hasLyrics ?? false,
+          dateCreated: album?.dateCreated ?? '',
+        },
+        tracks: mapTracks(tracks),
+      };
+    },
   });
 
   protected readonly form = form(this.model, (path) => {
@@ -239,26 +260,23 @@ export class AlbumComponent {
 
   constructor() {
     effect(() => {
-      const maUrls = this.maUrls();
-
-      if (!maUrls) {
-        return;
+      const coverUrl = this.cover() ?? this.album()?.cover;
+      if (coverUrl) {
+        this.fac.getColorAsync(coverUrl, { algorithm: 'dominant' })
+          .then(color => {
+            const rgb = { r: color.value[0], g: color.value[1], b: color.value[2] };
+            const background = { r: 16, g: 16, b: 16 };
+            const primaryRgb = lightenForContrast(rgb, background, 4.5);
+            const primaryHex = toHex(primaryRgb);
+            
+            const el = this.elementRef.nativeElement;
+            el.style.setProperty('--mdc-theme-primary', primaryHex);
+            el.style.setProperty('--mat-sys-primary', primaryHex);
+            el.style.setProperty('--sys-primary', primaryHex);
+            el.style.setProperty('--mat-icon-color', primaryHex);
+          })
+          .catch(e => console.error('Failed to extract color', e));
       }
-
-      const artistUrl = maUrls.artistUrl;
-
-      if (!artistUrl) {
-        return;
-      }
-
-      untracked(() => {
-        const { genre, country } = this.model().details;
-        const gettingBandProps = this.gettingBandProps() ?? false;
-
-        if ((!genre || !country) && !gettingBandProps) {
-          this.getBandProps(artistUrl);
-        }
-      });
     });
 
     effect(() => {
@@ -272,7 +290,10 @@ export class AlbumComponent {
 
   onSave(bandId?: number): void {
     const currentAlbum = this.album();
-    if (!currentAlbum) return;
+    if (!currentAlbum) {
+      return;
+    }
+
     const { folder, fullPath } = currentAlbum;
     const album = this.model().details;
 
@@ -293,6 +314,15 @@ export class AlbumComponent {
   }
 
   onImageSearch() {
+    const { artist, album, albumUrl } = this.model().details;
+    if (albumUrl) {
+      this.imageSearchFromMa.emit({ id: this.albumId(), url: albumUrl });
+    } else {
+      this.openGoogleSearch();
+    }
+  }
+
+  openGoogleSearch() {
     const { artist, album } = this.model().details;
     this.openLink(encodeURI(`https://google.com/images?q=${artist} ${album}`));
   }
@@ -314,18 +344,18 @@ export class AlbumComponent {
   }
 
   onTrackNumbers() {
-    this.trackNumbers.emit(this.albumId());
+    this.trackNumbers.emit();
   }
 
   onMaTracks() {
     if (this.albumUrl) {
-      this.getMaTracks.emit({ id: this.albumId(), url: this.albumUrl });
+      this.getMaTracks.emit({ id: this.albumId(), url: this.albumUrl() });
     }
   }
 
   onLyrics() {
     // Albums without a metal-archives url still get lyrics via LrcLib using the local tracks.
-    this.lyrics.emit({ id: this.albumId(), url: this.albumUrl });
+    this.lyrics.emit(this.albumId());
   }
 
   onRenameFolder() {
@@ -375,7 +405,7 @@ export class AlbumComponent {
   }
 
   onTransferTrack(trackId: number) {
-    this.transferTrack.emit({ id: this.albumId(), trackId });
+    this.transferTrack.emit(trackId);
   }
 
   onPlayAlbum(albumId: number) {

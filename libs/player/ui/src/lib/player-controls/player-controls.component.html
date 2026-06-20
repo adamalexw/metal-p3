@@ -17,7 +17,7 @@
       </div>
     </mat-toolbar-row>
   }
-  <mat-toolbar-row class="-mr-16 !h-16 gap-2 lg:mr-0">
+  <mat-toolbar-row class="-mr-16 h-16! gap-2 lg:mr-0">
     <div class="flex h-full items-center" [class.w-full]="!footerMode()" [class.justify-center]="!footerMode()" [class.gap-2]="!footerMode()">
       <ng-container *ngTemplateOutlet="controlsTemplate" />
     </div>
@@ -80,7 +80,7 @@
 </ng-template>
 
 <ng-template #durationTemplate>
-  <mat-slider class="z-10 !m-0 !w-full" [max]="currentItem()?.duration" [disabled]="!currentItem()" min="0" step="1">
+  <mat-slider class="z-10 m-0! w-full!" [max]="currentItem()?.duration" [disabled]="!currentItem()" min="0" step="1">
     <input [value]="elapsedTime()" (valueChange)="onSeek($event)" matSliderThumb />
   </mat-slider>
 </ng-template>

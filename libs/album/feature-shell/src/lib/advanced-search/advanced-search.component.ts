@@ -1,26 +1,27 @@
-import { AsyncPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { AlbumStore } from '@metal-p3/album/data-access';
 import { AdvancedSearchFormComponent } from '@metal-p3/album/ui';
 import { SearchRequest } from '@metal-p3/api-interfaces';
-import { AlbumActions, selectAlbumsSearchRequest } from '@metal-p3/shared/data-access';
-import { Store } from '@ngrx/store';
+import { CoverStore } from '@metal-p3/cover/data-access';
 
 @Component({
-  imports: [AsyncPipe, AdvancedSearchFormComponent],
+  imports: [AdvancedSearchFormComponent],
   selector: 'app-advanced-search-shell',
   templateUrl: './advanced-search.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AdvancedSearchShellComponent {
-  private readonly store = inject(Store);
-  request$ = this.store.select(selectAlbumsSearchRequest);
+  readonly store = inject(AlbumStore);
+  private readonly coverStore = inject(CoverStore);
 
   onSearch(request: SearchRequest): void {
     this.cancelPreviousSearch();
-    this.store.dispatch(AlbumActions.loadAlbums({ request }));
+    this.store.loadAlbums({ request });
   }
 
   private cancelPreviousSearch() {
-    this.store.dispatch(AlbumActions.cancelPreviousSearch({ request: { cancel: true } }));
+    this.store.loadAlbums({ request: { skip: 0, take: 0 }, cancel: true });
+    this.coverStore.getMany({ requests: [], cancel: true });
   }
 }
+

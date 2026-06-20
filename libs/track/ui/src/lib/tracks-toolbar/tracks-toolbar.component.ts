@@ -12,11 +12,11 @@ import { TimePipe } from '@metal-p3/track/util';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TracksToolbarComponent {
-  gettingMaTracks = input(false);
-  trackRenaming = input(false);
-  enableMaActions = input(false);
-  lyricsLoading = input(false);
-  albumDuration = input(0);
+  readonly gettingMaTracks = input(false);
+  readonly trackRenaming = input(false);
+  readonly enableMaActions = input(false);
+  readonly lyricsLoading = input(false);
+  readonly albumDuration = input(0);
 
   readonly trackNumbers = output<void>();
   readonly renameTracks = output<void>();

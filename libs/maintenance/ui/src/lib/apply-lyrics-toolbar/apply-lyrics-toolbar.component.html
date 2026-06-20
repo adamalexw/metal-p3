@@ -1,7 +1,7 @@
 <app-nav-toolbar [showClose]="showClose()">
   <div class="-pl-4 flex items-center gap-3 leading-5">
     <app-cover [loading]="coverLoading()" [cover]="cover()" [width]="64" [height]="64" />
-    <button type="button" class="cursor-pointer" [disabled]="applying()" (click)="apply.emit()" mat-icon-button>
+    <button type="button" class="cursor-pointer" [disabled]="applying() || applied()" (click)="apply.emit()" mat-icon-button>
       <mat-icon title="apply">spellcheck</mat-icon>
     </button>
     @if (albumUrl(); as albumUrl) {

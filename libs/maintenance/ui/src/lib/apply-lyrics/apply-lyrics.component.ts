@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { DatePipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, effect, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, input, output, signal } from '@angular/core';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
@@ -19,23 +19,24 @@ import { ApplyLyricsToolbarComponent } from '../apply-lyrics-toolbar/apply-lyric
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ApplyLyricsComponent {
-  albumId = input.required<number | null>();
-  tracks = input<Track[] | null | undefined>([]);
-  tracksLoading = input<boolean | null>(false);
-  maTracks = input<MetalArchivesAlbumTrack[] | null | undefined>([]);
-  maTracksLoading = input<boolean | null>(false);
-  lyricsLoading = input<boolean | null>(false);
-  lyricsExpected = input<boolean | null>(false);
-  lyricsLoadingProgress = input<number | null>(0);
-  applyingProgress = input<number | null>(0);
-  applying = input<boolean | null>(false);
-  trackTransferring = input<boolean | null>(false);
-  trackTransferringProgress = input<number | null>(0);
-  albumUrl = input<string | null | undefined>();
-  coverLoading = input<boolean | null>(false);
-  cover = input<string | null | undefined>();
-  folder = input<string | null | undefined>();
-  showClose = input(true);
+  readonly albumId = input.required<number>();
+  readonly tracks = input<Track[]>([]);
+  readonly tracksLoading = input(false);
+  readonly maTracks = input<MetalArchivesAlbumTrack[]>([]);
+  readonly maTracksLoading = input(false);
+  readonly lyricsLoading = input(false);
+  readonly lyricsExpected = input(false);
+  readonly lyricsLoadingProgress = input(0);
+  readonly applyingProgress = input(0);
+  readonly applying = input(false);
+  readonly applied = input(false);
+  readonly trackTransferring = input(false);
+  readonly trackTransferringProgress = input(0);
+  readonly albumUrl = input<string>();
+  readonly coverLoading = input(false);
+  readonly cover = input<string>();
+  readonly folder = input<string>();
+  readonly showClose = input(true);
 
   readonly applyLyrics = output<{
     id: number;
@@ -52,7 +53,10 @@ export class ApplyLyricsComponent {
   readonly done = output<void>();
 
   displayedColumns = ['trackNumber', 'title', 'duration', 'maTrack', 'selected'];
-  dataSource: ApplyLyrics[] = [];
+  readonly dataSource = signal<ApplyLyrics[]>([]);
+
+  private manualSelections = new Map<number, boolean>();
+  private manualMaTracks = new Map<number, MetalArchivesAlbumTrack>();
 
   constructor() {
     effect(() => {
@@ -62,7 +66,7 @@ export class ApplyLyricsComponent {
       if (tracks?.length) {
         this.mapDataSource(tracks, maTracks ?? []);
       }
-    });
+    }, { allowSignalWrites: true });
   }
 
   trackByFn(_index: number, item: ApplyLyrics) {
@@ -70,7 +74,17 @@ export class ApplyLyricsComponent {
   }
 
   private mapDataSource(tracks: Track[], maTracks: MetalArchivesAlbumTrack[]) {
-    this.dataSource = tracks.map((track) => this.mapApplyLyrics(track, maTracks));
+    const data = tracks.map((track) => {
+      const mapped = this.mapApplyLyrics(track, maTracks);
+      if (this.manualSelections.has(track.id)) {
+        mapped.selected = this.manualSelections.get(track.id)!;
+      }
+      if (this.manualMaTracks.has(track.id)) {
+        mapped.maTrack = this.manualMaTracks.get(track.id)!;
+      }
+      return mapped;
+    });
+    this.dataSource.set(data);
   }
 
   private mapApplyLyrics(track: Track, maTracks: MetalArchivesAlbumTrack[]): ApplyLyrics {
@@ -97,18 +111,43 @@ export class ApplyLyricsComponent {
   }
 
   onApply() {
-    this.applyLyrics.emit({ id: this.albumId()!, lyrics: this.dataSource.filter((l) => l.selected) });
+    this.applyLyrics.emit({
+      id: this.albumId()!,
+      lyrics: this.dataSource().filter((l) => l.selected),
+    });
   }
 
   onSelectAll(checked: boolean) {
-    this.dataSource.forEach((lh) => (lh.selected = checked));
+    this.dataSource.update((data) => {
+      data.forEach((i) => (i.selected = checked));
+      return [...data];
+    });
   }
 
   onSelectItem(id: number, checked: boolean) {
-    this.dataSource.find((i) => i.id === id)!.selected = checked;
+    this.dataSource.update((data) => {
+      const item = data.find((i) => i.id === id);
+      if (item) item.selected = checked;
+      return [...data];
+    });
+    this.manualSelections.set(id, checked);
+  }
+
+  onSelectMaTrack(id: number, maTrack: MetalArchivesAlbumTrack) {
+    this.dataSource.update((data) => {
+      const item = data.find((i) => i.id === id);
+      if (item) item.maTrack = maTrack;
+      return [...data];
+    });
+    this.manualMaTracks.set(id, maTrack);
   }
 
   onTransfer() {
-    this.transfer.emit(this.dataSource.filter((l) => l.selected).map((l) => ({ id: this.albumId()!, trackId: l.id })));
+    this.transfer.emit(this.dataSource().filter((l) => l.selected).map((l) => ({ id: this.albumId()!, trackId: l.id })));
+  }
+
+  getLyricsLength(lyrics: string | undefined): number {
+    if (!lyrics) return 0;
+    return lyrics.split('\n').filter(l => l.trim().length > 0).length;
   }
 }

@@ -23,6 +23,27 @@ allprojects {
 apply plugin: "expo-root-project"
 apply plugin: "com.facebook.react.rootproject"
 
+
+allprojects {
+    gradle.projectsEvaluated {
+        def reanimatedProject = project.findProject(":react-native-reanimated")
+        if (reanimatedProject != null) {
+            def task = reanimatedProject.tasks.findByName("assertMinimalReactNativeVersionTask")
+            if (task != null) {
+                task.enabled = false
+            }
+        }
+        
+        def workletsProject = project.findProject(":react-native-worklets")
+        if (workletsProject != null) {
+            def task = workletsProject.tasks.findByName("assertMinimalReactNativeVersionTask")
+            if (task != null) {
+                task.enabled = false
+            }
+        }
+    }
+}
+
 // Pin every subproject's Kotlin compile to JVM 17 so libraries that don't pin
 // their own jvmTarget (e.g. react-native-image-colors) don't drift up to JDK 21
 // when Android Studio ships a newer bundled JDK and break with

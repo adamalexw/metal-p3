@@ -10,6 +10,6 @@ import { NavToolbarComponent } from '@metal-p3/shared/navigation';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ExtraFilesToolbarComponent {
-  running = input<boolean | null | undefined>();
+  readonly running = input<boolean>();
   readonly stopProcessing = output<void>();
 }

@@ -1,181 +1,145 @@
-import { AsyncPipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, inject } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ChangeDetectionStrategy, Component, computed, DestroyRef, effect, inject, input, numberAttribute } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
-import { AlbumService } from '@metal-p3/album/data-access';
+import { AlbumService, AlbumStore } from '@metal-p3/album/data-access';
+import { Album } from '@metal-p3/album/domain';
 import { AlbumComponent } from '@metal-p3/album/ui';
 import { MetalArchivesAlbumTrack, TrackBase } from '@metal-p3/api-interfaces';
-import { CoverService } from '@metal-p3/cover/data-access';
-import { MaintenanceActions } from '@metal-p3/maintenance/data-access';
+import { BandStore } from '@metal-p3/band/data-access';
+import { CoverService, CoverStore } from '@metal-p3/cover/data-access';
+import { MaintenanceStore } from '@metal-p3/maintenance/data-access';
 import { PlayerService } from '@metal-p3/player/data-access';
-import {
-  AlbumActions,
-  AlbumWithoutTracks,
-  BandActions,
-  CoverActions,
-  TrackActions,
-  selectAlbum,
-  selectAlbumById,
-  selectAlbumSaving,
-  selectBandProps,
-  selectCover,
-  selectCoverError,
-  selectCoverLoading,
-  selectCoverRequired,
-  selectFindingUrl,
-  selectGettingBandProps,
-  selectGettingMaTracks,
-  selectLyricsLoading,
-  selectMaTracks,
-  selectMaUrls,
-  selectRenamingFolder,
-  selectRenamingFolderError,
-  selectRouteNestedNumericParam,
-  selectSaveAlbumError,
-  selectSelectedAlbumId,
-  selectTrackRenaming,
-  selectTrackRenamingError,
-  selectTrackRenamingProgress,
-  selectTrackSavingError,
-  selectTrackSavingProgress,
-  selectTrackTransferring,
-  selectTrackTransferringProgress,
-  selectTracks,
-  selectTracksDuration,
-  selectTracksError,
-  selectTracksLoading,
-  selectTracksRequired,
-} from '@metal-p3/shared/data-access';
 import { NotificationService } from '@metal-p3/shared/feedback';
-import { nonNullable, objectDistinctUntilChanged } from '@metal-p3/shared/utils';
+import { TrackStore } from '@metal-p3/track/data-access';
 import { Track } from '@metal-p3/track/domain';
-import { Update } from '@ngrx/entity';
-import { Store } from '@ngrx/store';
-import { Observable, combineLatest, distinctUntilChanged, filter, map, switchMap, take, tap, withLatestFrom } from 'rxjs';
+import { WA_WINDOW } from '@ng-web-apis/common';
+import { map, tap } from 'rxjs';
 
 @Component({
-  imports: [AsyncPipe, RouterModule, AlbumComponent],
+  imports: [RouterModule, AlbumComponent],
   selector: 'app-album-shell',
   templateUrl: './album.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class AlbumShellComponent implements OnInit {
-  private readonly store = inject(Store);
+export class AlbumShellComponent {
   private readonly albumService = inject(AlbumService);
   private readonly coverService = inject(CoverService);
   private readonly router = inject(Router);
   private readonly notificationService = inject(NotificationService);
   private readonly playerService = inject(PlayerService);
-  private readonly destroyRef = inject(DestroyRef);
+  private readonly maintenanceStore = inject(MaintenanceStore);
+  private readonly windowRef = inject(WA_WINDOW);
 
-  album$ = this.store.select(selectAlbum).pipe(nonNullable());
-  albumSaving$ = this.store.select(selectAlbumSaving);
-  saveError$ = this.store.select(selectSaveAlbumError);
+  readonly albumStore = inject(AlbumStore);
+  readonly coverStore = inject(CoverStore);
+  readonly trackStore = inject(TrackStore);
+  readonly bandStore = inject(BandStore);
 
-  tracksLoading$ = this.store.select(selectTracksLoading);
-  tracks$ = this.store.select(selectTracks);
-  tracksError$ = this.store.select(selectTracksError);
-  albumDuration$ = this.store.select(selectTracksDuration);
+  readonly id = input.required({ transform: numberAttribute });
 
-  trackSavingProgress$ = this.store.select(selectTrackSavingProgress);
+  album = this.albumStore.selectedAlbum;
+  albumSaving = computed(() => this.albumStore.selectedAlbum()?.saving ?? false);
 
-  coverLoading$ = this.store.select(selectCoverLoading);
-  cover$ = this.store.select(selectCover);
+  tracksLoading = this.trackStore.loading;
+  tracks = this.trackStore.tracks;
+  tracksError = computed(() => this.trackStore.error?.() ?? undefined);
+  albumDuration = this.trackStore.tracksDuration;
 
-  findingUrl$ = this.store.select(selectFindingUrl);
-  maUrls$ = this.store.select(selectMaUrls).pipe(
-    filter((urls) => !!urls && !!(urls.albumUrl || urls.artistUrl)),
-    objectDistinctUntilChanged(),
-  );
+  trackSavingProgress = computed(() => {
+    const tracks = this.trackStore.tracks();
+    const total = tracks.length;
+    const progress = tracks.filter((t) => t.trackSaving).length;
+    return this.getProgress(total, progress);
+  });
 
-  trackRenaming$ = this.store.select(selectTrackRenaming);
-  trackRenamingProgress$ = this.store.select(selectTrackRenamingProgress);
+  coverState = computed(() => {
+    const albumId = this.id();
+    return this.coverStore.entityMap()[albumId];
+  });
+  coverLoading = computed(() => this.coverState()?.loading ?? false);
+  coverError = computed(() => this.coverState()?.error);
+  cover = computed(() => this.coverState()?.cover);
 
-  trackTransferring$ = this.store.select(selectTrackTransferring);
-  trackTransferringProgress$ = this.store.select(selectTrackTransferringProgress);
+  findingUrl = computed(() => this.albumStore.selectedAlbum()?.findingUrl ?? false);
+  maUrls = computed(() => {
+    const album = this.albumStore.selectedAlbum();
+    return album ? { albumUrl: album.albumUrl, artistUrl: album.artistUrl } : undefined;
+  });
 
-  renamingFolder$ = this.store.select(selectRenamingFolder);
-  renamingFolderError$ = this.store.select(selectRenamingFolderError);
+  trackRenaming = computed(() => this.trackStore.tracks().some((t) => t.trackRenaming));
+  trackRenamingProgress = computed(() => {
+    const tracks = this.trackStore.tracks();
+    return this.getProgress(tracks.length, tracks.filter((t) => t.trackRenaming).length);
+  });
 
-  lyricsLoading$ = this.store.select(selectLyricsLoading);
+  trackTransferring = computed(() => this.trackStore.tracks().some((t) => t.trackTransferring));
+  trackTransferringProgress = computed(() => {
+    const tracks = this.trackStore.tracks();
+    return this.getProgress(tracks.length, tracks.filter((t) => t.trackTransferring).length);
+  });
 
-  gettingMaTracks$ = this.store.select(selectGettingMaTracks);
-  maTracks$ = this.store.select(selectMaTracks);
+  renamingFolder = computed(() => this.albumStore.selectedAlbum()?.renamingFolder ?? false);
+  renamingFolderError = computed(() => this.albumStore.selectedAlbum()?.renamingFolderError);
 
-  gettingBandProps$ = this.store.select(selectGettingBandProps);
-  bandProps$ = this.store.select(selectBandProps);
+  lyricsLoading = computed(() => {
+    const tracks = this.trackStore.tracks();
+    const maTracks = this.trackStore.maTracks();
+    const albumUrl = this.albumStore.selectedAlbum()?.albumUrl;
 
-  routeId$ = this.store.select(selectRouteNestedNumericParam('id')).pipe(nonNullable());
+    if (!albumUrl) {
+      return tracks.some((t) => t.lyricsLoading);
+    }
+    return maTracks.some((t) => t.lyricsLoading);
+  });
 
-  ngOnInit(): void {
-    this.setState();
-    this.errorNotifications();
-  }
+  gettingMaTracks = this.trackStore.gettingMaTracks;
+  maTracks = this.trackStore.maTracks;
 
-  private setState(): void {
-    this.routeId$
-      .pipe(
-        withLatestFrom(this.store.select(selectSelectedAlbumId)),
-        filter(([routeId, selectedId]) => routeId !== selectedId),
-        tap(([routeId]) => this.store.dispatch(AlbumActions.viewAlbum({ id: routeId }))),
-        switchMap(([routeId]) =>
-          this.store.select(selectAlbumById(routeId)).pipe(
-            take(1),
-            filter((album) => !album),
-            tap(() => this.store.dispatch(AlbumActions.getAlbum({ id: routeId }))),
-          ),
-        ),
-        takeUntilDestroyed(this.destroyRef),
-      )
-      .subscribe();
+  gettingBandProps = computed(() => {
+    const albumId = this.id();
+    return albumId ? this.bandStore.entityMap()[albumId]?.loading : false;
+  });
+  bandProps = computed(() => {
+    const albumId = this.id();
+    return albumId ? this.bandStore.entityMap()[albumId]?.props : undefined;
+  });
 
-    const dispatchProps$ = this.album$.pipe(
-      nonNullable(),
-      map((album) => ({ id: album.id, folder: album.folder })),
-      distinctUntilChanged((prev, curr) => prev.id === curr.id),
-    );
+  constructor() {
+    effect(() => {
+      const albumId = this.id();
+      const selectedAlbumId = this.albumStore.selectedAlbumId?.();
+      if (albumId && albumId !== selectedAlbumId) {
+        this.albumStore.viewAlbum(albumId);
+      }
+    });
 
-    // if tracks haven't been loaded dispatch an action to the load them
-    combineLatest({ props: dispatchProps$, loading: this.tracksLoading$, required: this.store.select(selectTracksRequired) })
-      .pipe(
-        filter(({ loading, required }) => required && !loading),
-        tap(({ props }) => this.store.dispatch(TrackActions.getTracks(props))),
-        takeUntilDestroyed(this.destroyRef),
-      )
-      .subscribe();
-
-    // if the album doesn't have a cover dispatch an action to load it
-    combineLatest({ props: dispatchProps$, loading: this.coverLoading$, required: this.store.select(selectCoverRequired) })
-      .pipe(
-        filter(({ loading, required }) => required && !loading),
-        tap(({ props }) => this.store.dispatch(CoverActions.get(props))),
-        takeUntilDestroyed(this.destroyRef),
-      )
-      .subscribe();
-
-    // when opening the album check for extra files
-    this.album$
-      .pipe(
-        nonNullable(),
-        tap((album) => this.store.dispatch(AlbumActions.getExtraFiles({ id: album.id, folder: album.folder }))),
-        take(1),
-      )
-      .subscribe();
+    inject(DestroyRef).onDestroy(() => {
+      this.albumStore.clearSelectedAlbum();
+    });
   }
 
   onDownloadCover(id: number, url: string) {
-    this.store.dispatch(CoverActions.download({ id, url }));
+    this.coverStore.downloadCover({ id, url });
   }
 
-  onSave(album: AlbumWithoutTracks, tracks: TrackBase[], previousBandId?: number) {
-    this.store.dispatch(AlbumActions.saveAlbum({ album, previousBandId }));
+  onImageSearchFromMa(id: number, url: string) {
+    const album = this.albumStore.selectedAlbum();
+    const fallback = () => {
+      if (album?.artist && album?.album) {
+        this.windowRef.open(encodeURI(`https://google.com/images?q=${album.artist} ${album.album}`), '_blank');
+      }
+    };
+    this.coverStore.getCoverFromMetalArchives({ id, url, fallback });
+  }
+
+  onSave(album: Album, tracks: TrackBase[], previousBandId?: number) {
+    this.albumStore.saveAlbum({ album, previousBandId });
 
     if (album.cover) {
       this.coverService
         .getCoverDto(album.cover)
         .pipe(
           map((cover) => cover as string),
-          tap((cover) => this.store.dispatch(CoverActions.save({ id: album.id, folder: album.fullPath, cover }))),
+          tap((cover) => this.coverStore.saveCover({ id: album.id, folder: album.fullPath, cover })),
           tap((cover) => this.dispatchTracks({ ...album, cover }, tracks)),
         )
         .subscribe();
@@ -185,109 +149,84 @@ export class AlbumShellComponent implements OnInit {
   }
 
   onFindUrl(id: number, artist: string, album: string) {
-    this.store.dispatch(AlbumActions.findMetalArchivesUrl({ id, artist, album }));
+    this.albumStore.findMetalArchivesUrl({ id, artist, album });
   }
 
   onMaTracks(id: number, url: string) {
-    combineLatest([this.tracks$.pipe(nonNullable()), this.getMaTracks(id, url).pipe(nonNullable())])
-      .pipe(
-        tap(([tracks, maTracks]) => {
-          const updates: Update<Track>[] = [];
+    const maTracks = this.getMaTracks(id, url);
+    const tracks = this.trackStore.tracks();
 
-          for (let index = 0; index < tracks.length; index++) {
-            const track = tracks[index];
-            const maTrack = maTracks[index];
+    if (maTracks && tracks) {
+      const updates: { id: number; changes: Partial<Track> }[] = [];
 
-            updates.push({ id: track.id, changes: { trackNumber: maTrack.trackNumber, title: maTrack.title } });
-          }
+      for (let index = 0; index < tracks.length; index++) {
+        const track = tracks[index];
+        const maTrack = maTracks[index];
 
-          this.store.dispatch(TrackActions.updateTracksSuccess({ id, updates }));
-        }),
-        take(1),
-      )
-      .subscribe();
-  }
+        if (maTrack) {
+          updates.push({ id: track.id, changes: { trackNumber: maTrack.trackNumber, title: maTrack.title } });
+        }
+      }
 
-  onTrackNumbers(albumId: number) {
-    this.tracks$
-      .pipe(
-        nonNullable(),
-        tap((tracks) => {
-          const updates: Update<Track>[] = tracks.map((track, index) => ({ id: track.id, changes: { trackNumber: (index + 1).toString().padStart(2, '0') } }));
-          this.store.dispatch(TrackActions.updateTracksSuccess({ id: albumId, updates }));
-        }),
-        take(1),
-      )
-      .subscribe();
-  }
-
-  onLyrics(id: number, url: string): void {
-    // Album without a metal-archives url: skip the MA tracklist fetch, the lyrics screen drives LrcLib from local tracks.
-    if (!url) {
-      this.router.navigate(['maintenance', 'lyrics', id]);
-      return;
+      this.trackStore.updateTracks({ updates });
     }
+  }
 
-    const maTracks$ = this.getMaTracks(id, url);
+  onTrackNumbers() {
+    const tracks = this.trackStore.tracks();
+    if (tracks) {
+      const updates: { id: number; changes: Partial<Track> }[] = tracks.map((track, index) => ({ id: track.id, changes: { trackNumber: (index + 1).toString().padStart(2, '0') } }));
+      this.trackStore.updateTracks({ updates });
+    }
+  }
 
-    maTracks$
-      .pipe(
-        take(1),
-        tap(() => this.router.navigate(['maintenance', 'lyrics', id])),
-      )
-      .subscribe();
+  onLyrics(id: number): void {
+    this.router.navigate(['maintenance', 'lyrics', id]);
   }
 
   onRenameTracks(id: number, tracks: Track[]) {
     tracks.forEach((track) => {
-      this.store.dispatch(TrackActions.renameTrack({ id, track }));
+      this.trackStore.renameTrack({ track });
     });
   }
 
   onRenameFolder(id: number, src: string, artist: string, album: string) {
-    this.store.dispatch(AlbumActions.renameFolder({ id, src, artist, album }));
+    this.albumStore.renameFolder({ id, src, artist, album });
   }
 
   onOpenFolder(id: number, folder: string) {
-    this.store.dispatch(AlbumActions.setExtraFiles({ update: { id, changes: { extraFiles: false } } }));
+    this.albumStore.updateAlbum(id, { extraFiles: false });
     this.albumService.openFolder(folder).subscribe();
   }
 
   onLyricsPriority(albumId: number) {
-    this.store.dispatch(MaintenanceActions.addLyricsPriority({ albumId }));
+    this.maintenanceStore.addLyricsPriority(albumId);
   }
 
   onRefreshTracks(id: number, folder: string) {
-    this.store.dispatch(TrackActions.getTracks({ id, folder }));
+    this.trackStore.getTracks({ id, folder });
   }
 
   onFindBandProps(id: number, url: string) {
-    this.bandProps$
-      .pipe(
-        filter((props) => !props),
-        tap(() => this.store.dispatch(BandActions.getProps({ id, url }))),
-        take(1),
-        takeUntilDestroyed(this.destroyRef),
-      )
-      .subscribe();
+    this.bandStore.getProps({ id, url });
   }
 
   onTransferAlbum(tracks: { id: number; trackId: number }[]) {
-    tracks.forEach((track) => this.onTransferTrack(track.id, track.trackId));
+    tracks.forEach((track) => this.onTransferTrack(track.trackId));
 
-    this.store.dispatch(AlbumActions.setTransferred({ id: tracks[0].id, transferred: true }));
+    this.albumStore.setTransferred({ id: tracks[0].id, transferred: true });
   }
 
-  onTransferTrack(id: number, trackId: number) {
-    this.store.dispatch(TrackActions.transferTrack({ id, trackId }));
+  onTransferTrack(trackId: number) {
+    this.trackStore.transferTrack({ trackId });
   }
 
   onPlayAlbum(albumId: number) {
-    this.playerService.playAlbum(albumId, this.tracks$);
+    this.playerService.playAlbum(albumId, this.trackStore.tracks());
   }
 
   onAddAlbumToPlaylist(albumId: number) {
-    this.playerService.addAlbumToPlaylist(albumId, this.tracks$);
+    this.playerService.addAlbumToPlaylist(albumId, this.trackStore.tracks());
   }
 
   onPlayTrack(track: Track, albumId: number) {
@@ -299,78 +238,38 @@ export class AlbumShellComponent implements OnInit {
   }
 
   onDeleteTrack(track: Track, albumId: number): void {
-    this.store.dispatch(TrackActions.deleteTrack({ id: albumId, track }));
+    this.trackStore.deleteTrack({ track });
   }
 
   onDeleteAlbum(id: number) {
-    this.store.dispatch(AlbumActions.deleteAlbum({ id }));
+    this.albumStore.deleteAlbum(id);
     this.router.navigate(['/']);
   }
 
-  private getMaTracks(id: number, url: string): Observable<MetalArchivesAlbumTrack[] | undefined> {
-    return this.maTracks$.pipe(
-      withLatestFrom(this.gettingMaTracks$),
-      tap(([maTracks, gettingMaTracks]) => {
-        if (!maTracks?.length && !gettingMaTracks) {
-          this.store.dispatch(TrackActions.getMetalArchivesTracks({ id, url }));
-        }
-      }),
-      map(([maTracks]) => maTracks),
-      filter((maTracks) => !!maTracks?.length),
-      take(1),
-    );
+  private getMaTracks(id: number, url: string): MetalArchivesAlbumTrack[] | undefined {
+    if (!this.trackStore.maTracks().length && !this.trackStore.gettingMaTracks()) {
+      this.trackStore.getMetalArchivesTracks({ url });
+    }
+    return this.trackStore.maTracks();
   }
 
-  private dispatchTracks(album: AlbumWithoutTracks, tracks: TrackBase[]) {
-    // const mappedTracks = tracks.map((albumTrack) => this.getTrack(album, albumTrack));
-    // this.store.dispatch(TrackActions.saveTracks({ id: album.id, tracks: mappedTracks }));
-
+  private dispatchTracks(album: Album, tracks: TrackBase[]) {
     tracks.forEach((albumTrack) => {
       const track = this.getTrack(album, albumTrack);
-      this.store.dispatch(TrackActions.saveTrack({ id: album.id, track }));
+      this.trackStore.saveTrack({ track });
     });
   }
 
-  private getTrack(album: AlbumWithoutTracks, albumTrack: Track): Track {
+  private getTrack(album: Album, albumTrack: TrackBase): Track {
     const { artist, genre, year, country, artistUrl, albumUrl, cover } = album;
-    const track = { ...albumTrack, artist, genre, year, country, artistUrl, albumUrl, cover, album: album.album };
+    const track: Track = { ...albumTrack, artist, genre, year, country, artistUrl, albumUrl, cover, album: album.album };
     return track;
   }
 
-  private errorNotifications() {
-    this.saveError$
-      .pipe(
-        nonNullable(),
-        tap((error) => this.notificationService.showError(error, 'Save')),
-        takeUntilDestroyed(this.destroyRef),
-      )
-      .subscribe();
-
-    this.store
-      .select(selectCoverError)
-      .pipe(
-        nonNullable(),
-        tap((error) => this.notificationService.showError(error, 'Cover')),
-        takeUntilDestroyed(this.destroyRef),
-      )
-      .subscribe();
-
-    this.store
-      .select(selectTrackSavingError)
-      .pipe(
-        nonNullable(),
-        tap((error) => this.notificationService.showError(error, 'Save Tracks')),
-        takeUntilDestroyed(this.destroyRef),
-      )
-      .subscribe();
-
-    this.store
-      .select(selectTrackRenamingError)
-      .pipe(
-        nonNullable(),
-        tap((error) => this.notificationService.showError(error, 'Rename Track')),
-        takeUntilDestroyed(this.destroyRef),
-      )
-      .subscribe();
+  private getProgress(total: number, progress: number): number {
+    if (total === 0 || progress === 0) {
+      return 0;
+    }
+    return Math.floor(((total - progress) / total) * 100);
   }
 }

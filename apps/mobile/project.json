@@ -6,41 +6,31 @@
   "tags": [],
   "targets": {
     "start": {
-      "executor": "@nx/expo:start",
       "dependsOn": ["sync-deps"],
       "options": {
-        "port": 8081
+        "args": ["--port=8081"]
       }
     },
     "serve": {
-      "executor": "@nx/expo:serve",
       "dependsOn": ["sync-deps"],
       "options": {
-        "port": 4200
+        "args": ["--port=4200"]
       }
     },
     "run-ios": {
-      "executor": "@nx/expo:run",
       "dependsOn": ["sync-deps"],
       "options": {
-        "platform": "ios"
+        "args": []
       }
     },
     "run-android": {
-      "executor": "@nx/expo:run",
       "dependsOn": ["sync-deps"],
       "options": {
-        "platform": "android"
+        "args": []
       }
     },
     "build": {
-      "executor": "@nx/expo:build",
-      "dependsOn": ["sync-deps"],
-      "options": {}
-    },
-    "submit": {
-      "executor": "@nx/expo:submit",
-      "options": {}
+      "dependsOn": ["sync-deps"]
     },
     "build-list": {
       "executor": "@nx/expo:build-list",
@@ -51,25 +41,17 @@
       "options": {}
     },
     "prebuild": {
-      "executor": "@nx/expo:prebuild",
-      "dependsOn": ["sync-deps"],
-      "options": {}
-    },
-    "install": {
-      "executor": "@nx/expo:install",
-      "options": {}
+      "dependsOn": ["sync-deps"]
     },
     "update": {
       "executor": "@nx/expo:update",
       "options": {}
     },
     "export": {
-      "executor": "@nx/expo:export",
       "dependsOn": ["sync-deps"],
-      "outputs": ["{options.outputDir}"],
+      "outputs": ["{projectRoot}/{options.outputDir}", "{workspaceRoot}/apps/mobile/dist"],
       "options": {
-        "platform": "all",
-        "outputDir": "apps/mobile/dist"
+        "args": ["--output-dir=../../apps/mobile/dist", "--platform=all"]
       }
     }
   }

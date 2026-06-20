@@ -1,94 +1,71 @@
 import { inject, Injectable } from '@angular/core';
 import { TrackDto } from '@metal-p3/api-interfaces';
 import { PlaylistItem } from '@metal-p3/player/domain';
-import { AlbumActions } from '@metal-p3/shared/data-access';
+import { AlbumStore } from '@metal-p3/album/data-access';
 import { Track } from '@metal-p3/track/domain';
-import { Store } from '@ngrx/store';
 import { nanoid } from 'nanoid';
-import { concatAll, filter, from, map, Observable, take, tap, toArray, withLatestFrom } from 'rxjs';
-import { selectPlaylistItemSize } from '..';
-import { PlayerActions } from './+state/actions';
+import { PlayerStore } from './player.store';
 
 @Injectable({
   providedIn: 'root',
 })
 export class PlayerService {
-  private readonly store = inject(Store);
+  private readonly albumStore = inject(AlbumStore);
+  private readonly playerStore = inject(PlayerStore);
 
-  playAlbum(albumId: number, tracks$: Observable<TrackDto[] | undefined>): void {
-    this.clear();
-    this.addAlbumToPlaylist(albumId, tracks$);
+  playAlbum(albumId: number, tracks: TrackDto[] | undefined): void {
+    this.addAlbumToPlaylist(albumId, tracks, true);
   }
 
-  addAlbumToPlaylist(albumId: number, tracks$: Observable<TrackDto[] | undefined>) {
-    tracks$
-      .pipe(
-        filter((tracks) => !!tracks?.length),
-        take(1),
-        withLatestFrom(this.store.select(selectPlaylistItemSize)),
-        map(([tracks, size]) => tracks?.map((track, index) => this.mapTrackToPlaylistItem(track, albumId, index + size))),
-        tap((tracks) => this.addTracks(tracks)),
-        tap(() => this.store.dispatch(AlbumActions.setPlayed({ id: albumId, played: true }))),
-      )
-      .subscribe();
+  addAlbumToPlaylist(albumId: number, tracks: TrackDto[] | undefined, clearFirst = false) {
+    if (!tracks?.length) return;
+
+    if (clearFirst) {
+      this.clear();
+    }
+
+    const size = this.playerStore.playlistSize();
+    const items = tracks.map((track, index) => this.mapTrackToPlaylistItem(track, albumId, index + size));
+
+    this.addTracks(items);
+    this.albumStore.setPlayed({ id: albumId, played: true });
   }
 
   playTrack(track: TrackDto, albumId: number) {
-    this.clear();
-    this.addTrackToPlaylist(track, albumId, true);
+    this.addTrackToPlaylist(track, albumId, true, true);
   }
 
-  addTrackToPlaylist(track: TrackDto, albumId: number, play = false) {
-    this.store
-      .select(selectPlaylistItemSize)
-      .pipe(
-        take(1),
-        map((size) => this.mapTrackToPlaylistItem(track, albumId, size ? size + 1 : 0)),
-        tap((track) => {
-          this.store.dispatch(PlayerActions.addItem({ track }));
-        }),
-        tap((track) => {
-          if (play || track.index === 0) {
-            this.store.dispatch(PlayerActions.play({ id: track.id }));
-          }
-        }),
-      )
-      .subscribe();
+  addTrackToPlaylist(track: TrackDto, albumId: number, play = false, clearFirst = false) {
+    if (clearFirst) {
+      this.clear();
+    }
+    const size = this.playerStore.playlistSize();
+    const item = this.mapTrackToPlaylistItem(track, albumId, size ? size + 1 : 0);
+    this.playerStore.addItem(item);
+    
+    if (play || item.index === 0) {
+      this.playerStore.play(item.id);
+    }
   }
 
   mapTrackToPlaylistItem(track: TrackDto, albumId: number, index: number): PlaylistItem {
     return { ...track, id: nanoid(), albumId, index };
   }
 
-  playPlaylist(tracks: Observable<Track>[]) {
-    this.clear();
+  playPlaylist(tracks: Track[]) {
+    if (!tracks?.length) return;
 
-    from(tracks)
-      .pipe(
-        concatAll(),
-        toArray(),
-        map((tracks) => tracks?.map((track, index) => this.mapTrackToPlaylistItem(track, 0, index))),
-        tap((tracks) => this.addTracks(tracks)),
-        take(1),
-      )
-      .subscribe();
+    const items = tracks.map((track, index) => this.mapTrackToPlaylistItem(track, 0, index));
+    this.playerStore.replacePlaylist(items);
   }
 
   private clear() {
-    this.store.dispatch(PlayerActions.clear());
+    this.playerStore.clear();
   }
 
   private addTracks(tracks: PlaylistItem[] | undefined) {
-    if (tracks) {
-      this.store.dispatch(PlayerActions.addItems({ tracks }));
-      const seenFolders = new Set<string>();
-      tracks.forEach((track) => {
-        const key = track.folder || track.id;
-        if (!seenFolders.has(key)) {
-          seenFolders.add(key);
-          this.store.dispatch(PlayerActions.getCover({ id: track.id, folder: track.folder || '' }));
-        }
-      });
+    if (tracks && tracks.length > 0) {
+      this.playerStore.addItems(tracks);
     }
   }
 }

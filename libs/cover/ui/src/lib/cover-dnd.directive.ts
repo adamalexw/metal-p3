@@ -8,7 +8,7 @@ import { Directive, HostListener, input, output } from '@angular/core';
   },
 })
 export class CoverDragDirective {
-  enableDnd = input(true);
+  readonly enableDnd = input(true);
   coverUrl = output<string>();
 
   coverClass = '';

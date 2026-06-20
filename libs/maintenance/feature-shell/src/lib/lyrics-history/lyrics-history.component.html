@@ -1,6 +1,6 @@
 <app-lyrics-history-toolbar
-  [getting]="getting$ | async"
-  [checking]="checking$ | async"
+  [getting]="store.gettingLyrics()"
+  [checking]="store.checkingLyrics()"
   (viewPriority)="onViewPriority()"
   (checkPriority)="onCheckPriority()"
   (viewCheck)="onViewCheck()"
@@ -8,7 +8,7 @@
   (stopCheck)="onStopCheck()"
 />
 <app-lyrics-history
-  [lyrics]="lyrics$ | async"
+  [lyrics]="store.lyricsEntities()"
   (checked)="onChecked($event.id, $event.checked)"
   (applyLyrics)="onApplyLyrics($event.albumId, $event.historyId)"
   (deleteHistory)="onDeleteHistory($event)"
