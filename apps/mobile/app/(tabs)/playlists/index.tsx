@@ -1,6 +1,6 @@
 import { FlashList } from '@shopify/flash-list';
 import { useRouter } from 'expo-router';
-import { ListPlus, Pencil, Play, Shuffle, Trash2 } from 'lucide-react-native';
+import { ListPlus, Play, Shuffle, Trash2 } from 'lucide-react-native';
 import { useCallback, useEffect, useState } from 'react';
 import { Text, View } from 'react-native';
 import Animated, {

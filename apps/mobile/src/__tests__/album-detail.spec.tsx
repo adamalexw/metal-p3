@@ -52,7 +52,7 @@ jest.mock('../theme/useArtworkTheme', () => ({
     artworkDataUri: null,
     loading: false,
   }),
-  prefetchArtworkTheme: () => {},
+  prefetchArtworkTheme: jest.fn(),
 }));
 
 const mockPlayer = {

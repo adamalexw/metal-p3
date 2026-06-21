@@ -16,14 +16,12 @@ export function SyncedLyricsView({
   lines,
   positionMs,
   isPlaying = true,
-  theme,
   testID,
   offsetMs = 0,
 }: {
   lines: SyncedLyricsLine[];
   positionMs: number | null | undefined;
   isPlaying?: boolean;
-  theme: ThemeColors;
   testID?: string;
   // Lead time in ms to compensate for audio output latency (Bluetooth, sink buffers, etc.).
   // Positive values advance the highlight earlier.

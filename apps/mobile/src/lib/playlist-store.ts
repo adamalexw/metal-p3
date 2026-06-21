@@ -36,7 +36,7 @@ function notify(): void {
 function syncToNative(): void {
   try {
     // Lazy require so unit tests don't need to mock the native module.
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
+     
     const mod: { MetalP3Player?: { setPlaylists?: (json: string) => Promise<void> } } =
       require('../../modules/metalp3-player');
     void mod?.MetalP3Player?.setPlaylists?.(JSON.stringify(playlists));

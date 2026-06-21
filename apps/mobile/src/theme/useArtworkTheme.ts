@@ -12,6 +12,7 @@ import {
   toHex,
   type Rgb,
 } from './contrast';
+import { DEFAULT_THEME, type ArtworkTheme } from './types';
 
 function saturation({ r, g, b }: Rgb): number {
   const max = Math.max(r, g, b) / 255;
@@ -25,7 +26,6 @@ function pickMostSaturated(candidates: Array<Rgb | null>): Rgb | null {
   if (valid.length === 0) return null;
   return valid.reduce((best, c) => (saturation(c) > saturation(best) ? c : best));
 }
-import { DEFAULT_THEME, type ArtworkTheme } from './types';
 
 const THEME_CACHE = new Map<string, ArtworkTheme>();
 
