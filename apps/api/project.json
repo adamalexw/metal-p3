@@ -6,38 +6,9 @@
   "tags": [],
   "targets": {
     "build": {
-      "executor": "@nx/webpack:webpack",
-      "outputs": ["{options.outputPath}"],
-      "options": {
-        "outputPath": "dist/apps/api",
-        "main": "apps/api/src/main.ts",
-        "tsConfig": "apps/api/tsconfig.app.json",
-        "assets": ["apps/api/src/assets"],
-        "target": "node",
-        "compiler": "tsc",
-        "isoldatedConfig": true,
-        "webpackConfig": "apps/api/webpack.config.js"
-      },
+      "outputs": ["{projectRoot}/{options.outputPath}"],
       "configurations": {
-        "production": {
-          "optimization": true,
-          "extractLicenses": true,
-          "inspect": false,
-          "generatePackageJson": false,
-          "externalDependencies": "all",
-          "fileReplacements": [
-            {
-              "replace": "apps/api/src/environments/environment.ts",
-              "with": "apps/api/src/environments/environment.prod.ts"
-            }
-          ]
-        }
-      }
-    },
-    "serve": {
-      "executor": "@nx/js:node",
-      "options": {
-        "buildTarget": "api:build"
+        "production": {}
       }
     },
     "test": {
@@ -49,6 +20,21 @@
         "ci": {
           "ci": true,
           "coverage": true
+        }
+      }
+    },
+    "serve": {
+      "executor": "@nx/js:node",
+      "defaultConfiguration": "development",
+      "options": {
+        "buildTarget": "api:build"
+      },
+      "configurations": {
+        "development": {
+          "buildTarget": "api:build:development"
+        },
+        "production": {
+          "buildTarget": "api:build:production"
         }
       }
     }

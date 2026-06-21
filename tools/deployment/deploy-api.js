@@ -32,11 +32,14 @@ if (result.status >= 8) {
   throw new Error(`robocopy failed with exit code ${result.status}`);
 }
 
-fs.copySync('.env', path.join(dest, '.env'));
+// Copy and update .env for production database path
+const envSrcContent = fs.readFileSync('.env', 'utf8');
+const envDestContent = envSrcContent.replace(/DATABASE_URL=.*/, 'DATABASE_URL="file:C:/metal-p3/data/prod.db"');
+fs.writeFileSync(path.join(dest, '.env'), envDestContent);
 fs.copySync('prisma', path.join(dest, 'prisma'));
 fs.copySync('prisma.config.ts', path.join(dest, 'prisma.config.ts'));
 fs.copySync('package.json', path.join(dest, 'package.json'));
-fs.copySync('package-lock.json', path.join(dest, 'package.lock.json'));
+fs.copySync('package-lock.json', path.join(dest, 'package-lock.json')); // Fixed typo in filename as well
 fs.copySync('decorate-angular-cli.js', path.join(dest, 'decorate-angular-cli.js'));
 
 process.chdir(dest);
