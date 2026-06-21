@@ -1,8 +1,9 @@
+import { BASE_PATH_TOKEN } from '@metal-p3/api-interfaces';
 import { FileSystemService } from '@metal-p3/shared/file-system';
 import { MetalArchivesService } from '@metal-p3/shared/metal-archives';
 import { TrackService } from '@metal-p3/track/api';
 import { HttpService } from '@nestjs/axios';
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import * as fs from 'fs';
 import { selectCover } from 'music-metadata';
 import * as path from 'path';
@@ -20,6 +21,7 @@ export class CoverService {
     private readonly fileSystemService: FileSystemService,
     private readonly httpService: HttpService,
     private readonly metalArchivesService: MetalArchivesService,
+    @Inject(BASE_PATH_TOKEN) private readonly basePath: string,
   ) {}
 
   getCover(location: string): Observable<Buffer> {
@@ -122,13 +124,13 @@ export class CoverService {
           catchError((err) => {
             Logger.error(`Failed to download or parse cover from ${coverUrl}: ${err}`);
             return of(null);
-          })
+          }),
         );
       }),
       catchError((err) => {
         Logger.error(`Failed to fetch Metal Archives page ${url}: ${err}`);
         return of(null);
-      })
+      }),
     );
   }
 
@@ -217,10 +219,10 @@ export class CoverService {
   }
 
   async resize() {
-    const folders = this.fileSystemService.getFolders('m:/mp3');
+    const folders = this.fileSystemService.getFolders(this.basePath);
 
     for (let index = 0; index < folders.length; index++) {
-      const f = `m:/mp3/${folders[index]}/${this.cover}`;
+      const f = `${this.basePath}/${folders[index]}/${this.cover}`;
 
       if (fs.existsSync(f)) {
         console.log(((index / folders.length) * 100).toFixed(1), folders[index]);

@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, inject } from '
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MaintenanceStore, UrlMaintenanceService } from '@metal-p3/maintenance/data-access';
 import { UrlMatcherComponent, UrlMatcherToolbarComponent } from '@metal-p3/maintenance/ui';
-import { filter, take, tap } from 'rxjs';
+import { tap } from 'rxjs';
 
 @Component({
   imports: [UrlMatcherToolbarComponent, UrlMatcherComponent],

@@ -8,7 +8,7 @@ import { Track } from '@metal-p3/track/domain';
 import { patchState, signalStore, withComputed, withHooks, withMethods, withState, type } from '@ngrx/signals';
 import { removeAllEntities, removeEntity, setAllEntities, updateEntity, withEntities } from '@ngrx/signals/entities';
 import { rxMethod } from '@ngrx/signals/rxjs-interop';
-import { catchError, concatMap, EMPTY, filter, map, mergeMap, of, pipe, switchMap, tap, timeout } from 'rxjs';
+import { catchError, concatMap, EMPTY, map, mergeMap, of, pipe, switchMap, tap, timeout } from 'rxjs';
 import { TrackService } from './track.service';
 
 export interface TrackState {
@@ -124,7 +124,7 @@ export const TrackStore = signalStore(
             service.getLyrics(trackId).pipe(
               timeout(60_000),
               map((lyrics) => patchState(store, updateEntity({ id: trackId, changes: { lyricsLoading: false, lyrics: lyrics || undefined, lyricsChecked: true } }, { collection: 'maTracks' }))),
-              catchError((error) => {
+              catchError(() => {
                 patchState(store, updateEntity({ id: trackId, changes: { lyricsLoading: false, lyricsChecked: true } }, { collection: 'maTracks' }));
                 return of();
               })

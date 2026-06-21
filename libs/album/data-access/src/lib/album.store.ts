@@ -1,5 +1,5 @@
 import { computed, effect, inject } from '@angular/core';
-import { Album, BASE_PATH } from '@metal-p3/album/domain';
+import { Album, BASE_PATH, TAKE } from '@metal-p3/album/domain';
 import { SearchRequest } from '@metal-p3/api-interfaces';
 import { BandStore } from '@metal-p3/band/data-access';
 import { CoverService, CoverStore } from '@metal-p3/cover/data-access';
@@ -10,13 +10,11 @@ import { WA_WINDOW } from '@ng-web-apis/common';
 import { patchState, signalStore, withComputed, withHooks, withMethods, withState } from '@ngrx/signals';
 import { addEntities, addEntity, removeAllEntities, removeEntity, setAllEntities, updateEntity, withEntities } from '@ngrx/signals/entities';
 import { rxMethod } from '@ngrx/signals/rxjs-interop';
-import { catchError, concatMap, EMPTY, map, mergeMap, of, pipe, switchMap, tap, throwError } from 'rxjs';
+import { catchError, concatMap, EMPTY, map, mergeMap, of, pipe, tap, throwError } from 'rxjs';
+import { rxResource } from '@angular/core/rxjs-interop';
 import { AlbumService } from './album.service';
 
 export interface AlbumState {
-  loading: boolean;
-  loaded: boolean;
-  loadError?: string;
   advancedSearchOpen: boolean;
   searchRequest: SearchRequest;
   creatingNew?: boolean;
@@ -24,11 +22,8 @@ export interface AlbumState {
 }
 
 const initialState: AlbumState = {
-  loading: false,
-  loaded: false,
-  loadError: undefined,
   advancedSearchOpen: false,
-  searchRequest: { skip: 65, take: 0 },
+  searchRequest: { skip: 0, take: 0 },
   creatingNew: false,
   selectedAlbumId: undefined,
 };
@@ -86,35 +81,21 @@ export const AlbumStore = signalStore(
         patchState(store, updateEntity({ id, changes }));
       },
 
-      loadAlbums: rxMethod<{ request: SearchRequest; cancel?: boolean }>(
-        pipe(
-          switchMap(({ request, cancel }) => {
-            if (cancel) {
-              return of();
-            }
-            patchState(store, { searchRequest: request, loading: true, loaded: false });
+      setAlbumsFromResource(albums: Album[], skip: number) {
+        const items = skip === 0 ? setAllEntities(albums) : addEntities(albums);
+        patchState(store, items);
 
-            return service.getAlbums(request).pipe(
-              map((albumsDto) => {
-                const albums = albumsDto.map((dto): Album => ({ ...dto }));
-                const selectedId = store.selectedAlbumId?.();
-                const selectedAlbum = selectedId ? store.entityMap()[selectedId] : undefined;
+        const selectedId = store.selectedAlbumId?.();
+        const selectedAlbum = selectedId ? store.entityMap()[selectedId] : undefined;
+        if (selectedAlbum && selectedId && !store.entityMap()[selectedId]) {
+          patchState(store, addEntity(selectedAlbum));
+        }
+      },
 
-                const items = request.skip === 0 ? setAllEntities(albums) : addEntities(albums);
-                patchState(store, items, { loading: false, loaded: albums.length < 65, loadError: undefined });
-
-                if (selectedAlbum && selectedId && !store.entityMap()[selectedId]) {
-                  patchState(store, addEntity(selectedAlbum));
-                }
-              }),
-              catchError((error) => {
-                patchState(store, { loading: false, loaded: false, loadError: errorService.getError(error) });
-                return of();
-              }),
-            );
-          }),
-        ),
-      ),
+      loadAlbums(options: { request: SearchRequest; cancel?: boolean }) {
+        if (options.cancel) return;
+        patchState(store, { searchRequest: options.request });
+      },
 
       getAlbum: rxMethod<number>(
         pipe(
@@ -335,6 +316,34 @@ export const AlbumStore = signalStore(
       ),
     }),
   ),
+  withComputed((store, service = inject(AlbumService), errorService = inject(ErrorService), take = inject(TAKE)) => {
+    const albumsResource = rxResource({
+      params: () => store.searchRequest(),
+      stream: ({ params }) => {
+        if (params.take === 0) {
+          return of([]);
+        }
+        return service.getAlbums(params).pipe(
+          tap(albumsDto => {
+            const albums = albumsDto.map((dto): Album => ({ ...dto }));
+            store.setAlbumsFromResource(albums, params.skip ?? 0);
+          })
+        );
+      }
+    });
+
+    return {
+      albumsLoading: computed(() => albumsResource.isLoading()),
+      albumsLoaded: computed(() => {
+        const value = albumsResource.value();
+        return !!value && value.length < take;
+      }),
+      albumsLoadError: computed(() => {
+        const err = albumsResource.error();
+        return err ? errorService.getError(err) : undefined;
+      })
+    };
+  }),
   withHooks({
     onInit(store) {
       const coverStore = inject(CoverStore);
@@ -343,7 +352,7 @@ export const AlbumStore = signalStore(
         const albumId = store.selectedAlbumId?.();
         if (albumId) {
           const album = store.entityMap()[albumId];
-          if (!album && !store.loading()) {
+          if (!album && !store.albumsLoading()) {
             store.getAlbum(albumId);
           } else if (album) {
             if (!album.cover && !coverStore.entityMap()[albumId]?.cover && !coverStore.entityMap()[albumId]?.loading) {
