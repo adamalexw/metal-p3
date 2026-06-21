@@ -43,9 +43,9 @@ export class ListComponent implements OnInit {
   private readonly take = inject(TAKE);
   private readonly basePath = inject(BASE_PATH);
 
-  albumsLoading = this.store.loading;
-  albumsLoaded = this.store.loaded;
-  albumsLoadError = this.store.loadError;
+  albumsLoading = this.store.albumsLoading;
+  albumsLoaded = this.store.albumsLoaded;
+  albumsLoadError = this.store.albumsLoadError;
   albums = this.store.albums;
   searchRequest = this.store.searchRequest;
   searchRequestFolder = computed(() => this.store.searchRequest()?.folder);
@@ -89,7 +89,7 @@ export class ListComponent implements OnInit {
 
   constructor() {
     effect(() => {
-      const error = this.store.loadError?.();
+      const error = this.albumsLoadError();
       if (error) {
         this.notificationService.showError(error, 'Load Albums');
       }
@@ -241,9 +241,13 @@ export class ListComponent implements OnInit {
       return;
     }
 
+    if (!force && this.albumsLoading() && this.fetchedPage > 0) {
+      return;
+    }
+
     const initialSize = this.take;
     let skip = 0;
-    let take = 65;
+    let take = initialSize;
 
     switch (page) {
       case 0:

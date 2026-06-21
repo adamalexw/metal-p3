@@ -10,7 +10,7 @@ import { Track } from '@metal-p3/track/domain';
 import { patchState, signalStore, withComputed, withMethods, withState } from '@ngrx/signals';
 import { addEntity, removeEntity, setAllEntities, updateEntity, withEntities } from '@ngrx/signals/entities';
 import { rxMethod } from '@ngrx/signals/rxjs-interop';
-import { catchError, concatMap, EMPTY, forkJoin, map, Observable, pipe, tap, of, switchMap } from 'rxjs';
+import { catchError, concatMap, EMPTY, forkJoin, map, pipe, tap, of, switchMap } from 'rxjs';
 import { PlaylistService } from './playlist.service';
 
 export interface PlaylistState {
@@ -80,7 +80,7 @@ export const PlaylistStore = signalStore(
             const trackObservables = playlist.items.map((item) =>
               trackService.getTrack(item.itemPath).pipe(
                 map((track): Track => ({ ...track, playlistItemId: item.id })),
-                catchError((error) => {
+                catchError(() => {
                   notificationService.showError(`Failed to load track details for ${item.itemPath}`);
                   return of(null);
                 })

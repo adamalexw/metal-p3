@@ -256,14 +256,6 @@ export default function PlaylistDetailScreen() {
         insetTop={insets.top}
         title={playlist?.name ?? 'Playlist'}
         onBack={() => router.back()}
-        onEdit={
-          playlist
-            ? () =>
-                router.push(
-                  `/(tabs)/playlists/${encodeURIComponent(playlist.id)}/edit` as never,
-                )
-            : undefined
-        }
       />
 
       <DraggableFlatList<Track>
@@ -410,10 +402,9 @@ interface DetailHeaderProps {
   insetTop: number;
   title: string;
   onBack: () => void;
-  onEdit?: () => void;
 }
 
-function DetailHeader({ insetTop, title, onBack, onEdit }: DetailHeaderProps) {
+function DetailHeader({ insetTop, title, onBack }: DetailHeaderProps) {
   return (
     <View
       style={[

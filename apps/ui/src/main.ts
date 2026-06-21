@@ -1,5 +1,5 @@
 import { provideHttpClient } from '@angular/common/http';
-import { ErrorHandler, enableProdMode, importProvidersFrom, isDevMode, provideZonelessChangeDetection } from '@angular/core';
+import { ErrorHandler, enableProdMode, importProvidersFrom, provideZonelessChangeDetection } from '@angular/core';
 import { MAT_FORM_FIELD_DEFAULT_OPTIONS } from '@angular/material/form-field';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { bootstrapApplication } from '@angular/platform-browser';

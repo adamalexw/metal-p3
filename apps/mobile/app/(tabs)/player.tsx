@@ -241,10 +241,9 @@ export default function PlayerScreen() {
         {showLyrics && hasLyrics ? (
           hasSynced ? (
             <SyncedLyricsView
-              lines={synced.lines!}
+              lines={synced.lines ?? []}
               positionMs={state?.positionMs ?? null}
               isPlaying={isPlaying}
-              theme={theme}
               testID="player-lyrics-synced"
               offsetMs={300}
             />

@@ -1,3 +1,25 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { MetalP3Player } from '../../modules/metalp3-player';
+import {
+  PLAYLIST_STORAGE_KEY,
+  _resetForTests,
+  addTrackToPlaylist,
+  createPlaylist,
+  deletePlaylist,
+  DuplicatePlaylistNameError,
+  getActivePlaylistId,
+  getPlaylist,
+  getPlaylists,
+  loadPlaylists,
+  reconcileImportedPlaylists,
+  removeTrackFromPlaylist,
+  removeTrackIdsFromAllPlaylists,
+  renamePlaylist,
+  reorderPlaylistTracks,
+  setActivePlaylistId,
+  subscribe,
+} from '../lib/playlist-store';
+
 jest.mock('@react-native-async-storage/async-storage', () => {
   const store = new Map<string, string>();
   return {
@@ -29,28 +51,6 @@ jest.mock(
   }),
   { virtual: true },
 );
-
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { MetalP3Player } from '../../modules/metalp3-player';
-import {
-  PLAYLIST_STORAGE_KEY,
-  _resetForTests,
-  addTrackToPlaylist,
-  createPlaylist,
-  deletePlaylist,
-  DuplicatePlaylistNameError,
-  getActivePlaylistId,
-  getPlaylist,
-  getPlaylists,
-  loadPlaylists,
-  reconcileImportedPlaylists,
-  removeTrackFromPlaylist,
-  removeTrackIdsFromAllPlaylists,
-  renamePlaylist,
-  reorderPlaylistTracks,
-  setActivePlaylistId,
-  subscribe,
-} from '../lib/playlist-store';
 
 interface MockedStorage {
   __store: Map<string, string>;

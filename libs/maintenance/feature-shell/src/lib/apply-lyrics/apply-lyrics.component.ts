@@ -1,5 +1,5 @@
 
-import { ChangeDetectionStrategy, Component, OnInit, inject, computed, effect, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, computed, effect, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { NotificationService } from '@metal-p3/shared/feedback';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
@@ -15,7 +15,7 @@ import { TrackStore } from '@metal-p3/track/data-access';
   templateUrl: './apply-lyrics.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ApplyLyricsShellComponent implements OnInit {
+export class ApplyLyricsShellComponent {
   private readonly dialogRef = inject(MatDialogRef<ApplyLyricsShellComponent>, { optional: true });
   private readonly data: { albumId: number; historyId: number } = inject(MAT_DIALOG_DATA, { optional: true });
 
@@ -82,8 +82,6 @@ export class ApplyLyricsShellComponent implements OnInit {
   showClose = !this.data?.historyId;
   applied = signal(false);
 
-  ngOnInit(): void {
-  }
 
   private lastAlbumFetchedId: number | null = null;
   private lastTracksFetchedAlbumId: number | null = null;
