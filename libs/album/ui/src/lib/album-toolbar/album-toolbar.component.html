@@ -17,12 +17,14 @@
   <button type="button" [disabled]="trackTransferring()" (click)="transfer.emit()" mat-icon-button>
     <mat-icon title="transfer">adb</mat-icon>
   </button>
-  <button type="button" [itemName]="'album'" (confirmResult)="onDelete($event)" mat-icon-button appConfirmDelete>
+  <button type="button" (click)="refresh.emit()" itemName="refresh" mat-icon-button>
+    <mat-icon title="refresh">refresh</mat-icon>
+  </button>
+  <button type="button" (confirmResult)="onDelete($event)" itemName="album" mat-icon-button appConfirmDelete>
     <mat-icon title="delete">delete</mat-icon>
   </button>
-
-  <div class="hidden flex-grow flex-row-reverse lg:flex">
-    <app-album-header class="max-w-[745px]" [folder]="folder()" />
+  <div class="hidden grow flex-row-reverse lg:flex">
+    <app-album-header [folder]="folder()" />
   </div>
 </app-nav-toolbar>
 

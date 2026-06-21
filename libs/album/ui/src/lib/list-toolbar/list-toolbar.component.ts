@@ -9,6 +9,7 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { RouterModule } from '@angular/router';
 import { SearchRequest } from '@metal-p3/api-interfaces';
+import { PlaylistDto } from '@metal-p3/playlist/domain';
 
 @Component({
   imports: [FormsModule, MatToolbarModule, RouterModule, MatInputModule, MatButtonModule, MatIconModule, MatMenuModule, MatProgressBarModule],
@@ -21,10 +22,12 @@ export class ListToolbarComponent {
   readonly creatingNew = input(false);
   readonly searching = input(false);
   readonly folder = input<string | undefined>('');
+  readonly playlists = input<PlaylistDto[]>();
 
   readonly advancedSearch = output<void>();
   readonly searchRequest = output<SearchRequest>();
-  readonly showPlayer = output<void>();
+  readonly showPlaylists = output<void>();
+  readonly loadPlaylist = output<number>();
   readonly createNew = output<void>();
   readonly connectPhone = output<void>();
   readonly lyricsPriority = output<void>();

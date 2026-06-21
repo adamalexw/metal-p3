@@ -27,6 +27,7 @@ export class AlbumToolbarComponent {
   readonly renameFolder = output<void>();
   readonly openFolder = output<void>();
   readonly transfer = output<void>();
+  readonly refresh = output<void>();
   readonly delete = output<void>();
 
   onDelete(result: boolean) {

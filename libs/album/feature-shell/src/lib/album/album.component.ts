@@ -8,7 +8,6 @@ import { BandStore } from '@metal-p3/band/data-access';
 import { CoverService, CoverStore } from '@metal-p3/cover/data-access';
 import { MaintenanceStore } from '@metal-p3/maintenance/data-access';
 import { PlayerService } from '@metal-p3/player/data-access';
-import { NotificationService } from '@metal-p3/shared/feedback';
 import { TrackStore } from '@metal-p3/track/data-access';
 import { Track } from '@metal-p3/track/domain';
 import { WA_WINDOW } from '@ng-web-apis/common';
@@ -24,7 +23,6 @@ export class AlbumShellComponent {
   private readonly albumService = inject(AlbumService);
   private readonly coverService = inject(CoverService);
   private readonly router = inject(Router);
-  private readonly notificationService = inject(NotificationService);
   private readonly playerService = inject(PlayerService);
   private readonly maintenanceStore = inject(MaintenanceStore);
   private readonly windowRef = inject(WA_WINDOW);
@@ -117,18 +115,18 @@ export class AlbumShellComponent {
     });
   }
 
-  onDownloadCover(id: number, url: string) {
-    this.coverStore.downloadCover({ id, url });
+  onDownloadCover(url: string) {
+    this.coverStore.downloadCover({ id: this.id(), url });
   }
 
-  onImageSearchFromMa(id: number, url: string) {
+  onImageSearchFromMa(url: string) {
     const album = this.albumStore.selectedAlbum();
     const fallback = () => {
       if (album?.artist && album?.album) {
         this.windowRef.open(encodeURI(`https://google.com/images?q=${album.artist} ${album.album}`), '_blank');
       }
     };
-    this.coverStore.getCoverFromMetalArchives({ id, url, fallback });
+    this.coverStore.getCoverFromMetalArchives({ id: this.id(), url, fallback });
   }
 
   onSave(album: Album, tracks: TrackBase[], previousBandId?: number) {
@@ -148,12 +146,12 @@ export class AlbumShellComponent {
     }
   }
 
-  onFindUrl(id: number, artist: string, album: string) {
-    this.albumStore.findMetalArchivesUrl({ id, artist, album });
+  onFindUrl(artist: string, album: string) {
+    this.albumStore.findMetalArchivesUrl({ id: this.id(), artist, album });
   }
 
-  onMaTracks(id: number, url: string) {
-    const maTracks = this.getMaTracks(id, url);
+  onMaTracks(url: string) {
+    const maTracks = this.getMaTracks(url);
     const tracks = this.trackStore.tracks();
 
     if (maTracks && tracks) {
@@ -180,73 +178,78 @@ export class AlbumShellComponent {
     }
   }
 
-  onLyrics(id: number): void {
-    this.router.navigate(['maintenance', 'lyrics', id]);
+  onLyrics(): void {
+    this.router.navigate(['maintenance', 'lyrics', this.id()]);
   }
 
-  onRenameTracks(id: number, tracks: Track[]) {
+  onRenameTracks(tracks: Track[]) {
     tracks.forEach((track) => {
       this.trackStore.renameTrack({ track });
     });
   }
 
-  onRenameFolder(id: number, src: string, artist: string, album: string) {
-    this.albumStore.renameFolder({ id, src, artist, album });
+  onRenameFolder(src: string, artist: string, album: string) {
+    this.albumStore.renameFolder({ id: this.id(), src, artist, album });
   }
 
-  onOpenFolder(id: number, folder: string) {
-    this.albumStore.updateAlbum(id, { extraFiles: false });
+  onOpenFolder(folder: string) {
+    this.albumStore.updateAlbum(this.id(), { extraFiles: false });
     this.albumService.openFolder(folder).subscribe();
   }
 
-  onLyricsPriority(albumId: number) {
-    this.maintenanceStore.addLyricsPriority(albumId);
+  onLyricsPriority() {
+    this.maintenanceStore.addLyricsPriority(this.id());
   }
 
-  onRefreshTracks(id: number, folder: string) {
-    this.trackStore.getTracks({ id, folder });
+  onRefreshAlbum() {
+    this.coverStore.getCover({ id: this.id(), folder: this.album()?.folder ?? '' });
+    this.albumStore.getAlbum(this.id());
   }
 
-  onFindBandProps(id: number, url: string) {
-    this.bandStore.getProps({ id, url });
+  onRefreshTracks(folder: string) {
+    this.trackStore.getTracks({ id: this.id(), folder });
   }
 
-  onTransferAlbum(tracks: { id: number; trackId: number }[]) {
-    tracks.forEach((track) => this.onTransferTrack(track.trackId));
+  onFindBandProps(url: string) {
+    this.bandStore.getProps({ id: this.id(), url });
+  }
 
-    this.albumStore.setTransferred({ id: tracks[0].id, transferred: true });
+  onTransferAlbum(trackIds: number[]) {
+    trackIds.forEach((trackId) => this.onTransferTrack(trackId));
+
+    this.albumStore.setTransferred({ id: this.id(), transferred: true });
   }
 
   onTransferTrack(trackId: number) {
     this.trackStore.transferTrack({ trackId });
   }
 
-  onPlayAlbum(albumId: number) {
-    this.playerService.playAlbum(albumId, this.trackStore.tracks());
+  onPlayAlbum() {
+    this.playerService.playAlbum(this.id(), this.trackStore.tracks());
   }
 
-  onAddAlbumToPlaylist(albumId: number) {
-    this.playerService.addAlbumToPlaylist(albumId, this.trackStore.tracks());
+  onAddAlbumToPlaylist() {
+    this.playerService.addAlbumToPlaylist(this.id(), this.trackStore.tracks());
   }
 
-  onPlayTrack(track: Track, albumId: number) {
-    this.playerService.playTrack(track, albumId);
+  onPlayTrack(track: Track) {
+    this.playerService.playTrack(track, this.id());
   }
 
-  onAddTrackToPlaylist(track: Track, albumId: number) {
-    this.playerService.addTrackToPlaylist(track, albumId);
+  onAddTrackToPlaylist(track: Track) {
+    this.playerService.addTrackToPlaylist(track, this.id());
   }
 
-  onDeleteTrack(track: Track, albumId: number): void {
+  onDeleteTrack(track: Track): void {
     this.trackStore.deleteTrack({ track });
   }
 
-  onDeleteAlbum(id: number) {
-    this.albumStore.deleteAlbum(id);
+  onDeleteAlbum() {
+    this.albumStore.deleteAlbum(this.id());
     this.router.navigate(['/']);
   }
 
-  private getMaTracks(id: number, url: string): MetalArchivesAlbumTrack[] | undefined {
+  private getMaTracks(url: string): MetalArchivesAlbumTrack[] | undefined {
     if (!this.trackStore.maTracks().length && !this.trackStore.gettingMaTracks()) {
       this.trackStore.getMetalArchivesTracks({ url });
     }

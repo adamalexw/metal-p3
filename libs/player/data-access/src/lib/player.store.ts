@@ -5,7 +5,7 @@ import { shuffleArray } from '@metal-p3/player/util';
 import { ErrorService } from '@metal-p3/shared/error';
 import { BLANK_COVER } from '@metal-p3/shared/utils';
 import { patchState, signalStore, withComputed, withMethods, withState } from '@ngrx/signals';
-import { addEntities, addEntity, removeAllEntities, removeEntity, updateAllEntities, updateEntities, updateEntity, withEntities } from '@ngrx/signals/entities';
+import { addEntities, addEntity, removeAllEntities, removeEntity, updateAllEntities, updateEntity, withEntities } from '@ngrx/signals/entities';
 import { rxMethod } from '@ngrx/signals/rxjs-interop';
 import { EMPTY, catchError, mergeMap, pipe, tap } from 'rxjs';
 
@@ -58,12 +58,12 @@ export const PlayerStore = signalStore(
       const source = store.entityMap()[payload.id];
       if (!source?.folder || !payload.cover) return;
 
-      const others = store.entities().filter(i => i.id !== payload.id && i.folder === source.folder && !i.cover);
+      const others = store.entities().filter((i) => i.id !== payload.id && i.folder === source.folder && !i.cover);
       if (others.length) {
-        const updaters = others.map(i => updateEntity<PlaylistItem>({ id: i.id, changes: { cover: payload.cover } }));
+        const updaters = others.map((i) => updateEntity<PlaylistItem>({ id: i.id, changes: { cover: payload.cover } }));
         patchState(store, ...updaters);
       }
-    }
+    },
   })),
   withMethods((store, coverService = inject(CoverService), errorService = inject(ErrorService)) => ({
     show() {
@@ -82,14 +82,14 @@ export const PlayerStore = signalStore(
       patchState(store, updateEntity(update));
     },
     updateItems(updates: { id: string; changes: Partial<PlaylistItem> }[]) {
-      const updaters = updates.map(u => updateEntity<PlaylistItem>(u));
+      const updaters = updates.map((u) => updateEntity<PlaylistItem>(u));
       patchState(store, ...updaters);
     },
     play(id: string) {
       patchState(
         store,
         { activeTrack: id },
-        updateAllEntities((item) => ({ ...item, playing: item.id === id, paused: false }))
+        updateAllEntities((item) => ({ ...item, playing: item.id === id, paused: false })),
       );
     },
     pause() {
@@ -118,12 +118,12 @@ export const PlayerStore = signalStore(
     },
     addItems(tracks: PlaylistItem[]) {
       patchState(store, addEntities(tracks));
-      
+
       const active = store.activePlaylistItem();
       if (!active?.playing && !active?.paused && tracks[0]) {
         this.play(tracks[0].id);
       }
-      
+
       const seenFolders = new Set<string>();
       tracks.forEach((track) => {
         const key = track.folder || track.id;
@@ -142,24 +142,24 @@ export const PlayerStore = signalStore(
       patchState(store, removeEntity(id));
     },
     clear() {
-      store.entities().forEach(blob => {
+      store.entities().forEach((blob) => {
         if (typeof blob.cover === 'string') URL.revokeObjectURL(blob.cover);
         if (typeof blob.url === 'string') URL.revokeObjectURL(blob.url);
       });
       patchState(store, { activeTrack: undefined }, removeAllEntities());
     },
     replacePlaylist(tracks: PlaylistItem[]) {
-      store.entities().forEach(blob => {
+      store.entities().forEach((blob) => {
         if (typeof blob.cover === 'string') URL.revokeObjectURL(blob.cover);
         if (typeof blob.url === 'string') URL.revokeObjectURL(blob.url);
       });
-      
+
       patchState(store, { activeTrack: undefined }, removeAllEntities(), addEntities(tracks));
-      
+
       if (tracks[0]) {
         this.play(tracks[0].id);
       }
-      
+
       const seenFolders = new Set<string>();
       tracks.forEach((track) => {
         const key = track.folder || track.id;
@@ -173,16 +173,13 @@ export const PlayerStore = signalStore(
       const pl = [...store.playlist()];
       shuffleArray(pl);
       const updaters = pl.map((item, index) => updateEntity<PlaylistItem>({ id: item.id, changes: { index } }));
-      patchState(
-        store,
-        ...updaters
-      );
+      patchState(store, ...updaters);
     },
     getCover: rxMethod<{ id: string; folder: string }>(
       pipe(
         mergeMap(({ id, folder }) => {
-          const existingCover = store.playlist().find(item => item.folder === folder && typeof item.cover === 'string' && item.cover.startsWith('blob:'))?.cover ?? null;
-          
+          const existingCover = store.playlist().find((item) => item.folder === folder && typeof item.cover === 'string' && item.cover.startsWith('blob:'))?.cover ?? null;
+
           if (existingCover) {
             store.getCoverSuccess({ id, cover: existingCover });
             return EMPTY;
@@ -193,10 +190,10 @@ export const PlayerStore = signalStore(
             catchError((error) => {
               patchState(store, updateEntity({ id, changes: { cover: errorService.getError(error) } }));
               return EMPTY;
-            })
+            }),
           );
-        })
-      )
+        }),
+      ),
     ),
-  }))
+  })),
 );

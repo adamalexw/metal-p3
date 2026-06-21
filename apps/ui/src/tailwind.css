@@ -11,3 +11,7 @@
 @utility bg-background {
   background-color: var(--mat-sys-background);
 }
+
+@utility text-primary {
+  color: var(--sys-primary);
+}
