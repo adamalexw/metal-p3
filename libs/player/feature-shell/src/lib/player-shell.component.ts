@@ -1,5 +1,4 @@
-
-import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, afterNextRender, inject, viewChild, computed, signal, effect } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, afterNextRender, computed, effect, inject, signal, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Title } from '@angular/platform-browser';
 import { CoverComponent } from '@metal-p3/cover/ui';
@@ -9,8 +8,6 @@ import { PlayerControlsComponent } from '@metal-p3/player/ui';
 import { PlaylistShellComponent } from '@metal-p3/playlist';
 import { PlaylistStore } from '@metal-p3/playlist/data-access';
 import { PlaylistComponent } from '@metal-p3/playlist/ui';
-import { NotificationService } from '@metal-p3/shared/feedback';
-import { nonNullable } from '@metal-p3/shared/utils';
 import { TrackService } from '@metal-p3/track/data-access';
 import { EMPTY, Observable, catchError, fromEvent, map, tap } from 'rxjs';
 
@@ -24,13 +21,11 @@ export class PlayerShellComponent {
   private readonly trackService = inject(TrackService);
   private readonly title = inject(Title);
   private readonly destroyRef = inject(DestroyRef);
-  private readonly notificationService = inject(NotificationService);
 
   private readonly audio = viewChild.required<ElementRef>('audio');
 
   protected readonly playerStore = inject(PlayerStore);
   protected readonly playlistStore = inject(PlaylistStore);
-
 
   divClass = computed(() => (this.playerStore.footerMode() ? 'max-h-[64px]' : 'flex flex-col lg:translate-y-0 lg:max-h-[calc(100vh-64px)]'));
   subDivClass = computed(() => (this.playerStore.footerMode() ? '' : 'flex-col lg:flex-row'));
@@ -55,10 +50,15 @@ export class PlayerShellComponent {
 
     effect(() => {
       const item = this.playerStore.activePlaylistItem();
-      if (!item?.playing) return;
+      if (!item?.playing) {
+        return;
+      }
 
       // if we are reordering tracks we want to keep the current item playing
-      if (item.id === currentId) return;
+      if (item.id === currentId) {
+        return;
+      }
+
       currentId = item.id;
 
       if (item.url) {
@@ -185,7 +185,7 @@ export class PlayerShellComponent {
     fromEvent(this.audio().nativeElement, 'timeupdate')
       .pipe(
         tap(() => this.elapsedTime.set((this.audio().nativeElement as HTMLAudioElement).currentTime)),
-        takeUntilDestroyed(this.destroyRef)
+        takeUntilDestroyed(this.destroyRef),
       )
       .subscribe();
   }
@@ -219,7 +219,7 @@ export class PlayerShellComponent {
   }
 
   onRemove(id: string) {
-    const item = this.playerStore.playlist().find(i => i.id === id);
+    const item = this.playerStore.playlist().find((i) => i.id === id);
     if (item?.playlistItemId) {
       this.playlistStore.removeBackendItem(item.playlistItemId);
     }

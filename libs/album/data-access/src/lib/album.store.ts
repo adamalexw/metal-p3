@@ -53,7 +53,6 @@ export const AlbumStore = signalStore(
       store,
       service = inject(AlbumService),
       coverService = inject(CoverService),
-      coverStore = inject(CoverStore),
       bandStore = inject(BandStore),
       errorService = inject(ErrorService),
       notificationService = inject(NotificationService),
@@ -104,7 +103,7 @@ export const AlbumStore = signalStore(
                 const items = request.skip === 0 ? setAllEntities(albums) : addEntities(albums);
                 patchState(store, items, { loading: false, loaded: albums.length < 65, loadError: undefined });
 
-                if (selectedAlbum && !store.entityMap()[selectedId!]) {
+                if (selectedAlbum && selectedId && !store.entityMap()[selectedId]) {
                   patchState(store, addEntity(selectedAlbum));
                 }
               }),
@@ -122,8 +121,11 @@ export const AlbumStore = signalStore(
           mergeMap((id) =>
             service.getAlbum(id).pipe(
               map((albumDto) => {
-                const album: Album = { ...albumDto };
-                patchState(store, addEntity(album));
+                if (store.entityMap()[id]) {
+                  patchState(store, updateEntity({ id, changes: albumDto }));
+                } else {
+                  patchState(store, addEntity(albumDto));
+                }
               }),
               catchError((error) => {
                 patchState(store, updateEntity({ id, changes: { getError: errorService.getError(error) } }));
@@ -168,9 +170,21 @@ export const AlbumStore = signalStore(
           mergeMap(({ album, previousBandId }) =>
             service.saveAlbum(album).pipe(
               map(() => {
+                if (album.bandId > 0 && album.artist) {
+                  bandStore.saveBand({
+                    id: album.bandId,
+                    name: album.artist,
+                    genre: album.genre,
+                    country: album.country,
+                    metalArchiveUrl: album.artistUrl,
+                  });
+                }
+
+                if (previousBandId && previousBandId !== album.bandId) {
+                  bandStore.deleteIfOrphaned(previousBandId);
+                }
+
                 patchState(store, updateEntity({ id: album.id, changes: { ...album, saving: false, saveError: undefined } }));
-                // Note: BandStore logic for deleting orphaned bands or saving the band should be dispatched separately from the component
-                // since we decoupled stores. We'll handle orchestrating this in the UI.
               }),
               catchError((error) => {
                 const errorMessage = errorService.getError(error);

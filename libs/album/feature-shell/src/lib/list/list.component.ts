@@ -10,6 +10,7 @@ import { AlbumDto, SearchRequest } from '@metal-p3/api-interfaces';
 import { CoverStore } from '@metal-p3/cover/data-access';
 import { PlayerShellComponent } from '@metal-p3/player';
 import { PlayerService, PlayerStore } from '@metal-p3/player/data-access';
+import { PlaylistStore } from '@metal-p3/playlist/data-access';
 import { NotificationService } from '@metal-p3/shared/feedback';
 import { ConnectPhoneService } from '@metal-p3/shared/transfer';
 import { toChunks } from '@metal-p3/shared/utils';
@@ -32,6 +33,7 @@ export class ListComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly playerService = inject(PlayerService);
   private readonly playerStore = inject(PlayerStore);
+  private readonly playlistStore = inject(PlaylistStore);
   private readonly notificationService = inject(NotificationService);
   private readonly connectPhoneService = inject(ConnectPhoneService);
   private readonly service = inject(AlbumService);
@@ -47,6 +49,7 @@ export class ListComponent implements OnInit {
   albums = this.store.albums;
   searchRequest = this.store.searchRequest;
   searchRequestFolder = computed(() => this.store.searchRequest()?.folder);
+  playlists = this.playlistStore.entities;
 
   creatingNew = computed(() => this.store.creatingNew?.() ?? false);
   readonly coverMap = this.coverStore.entityMap;
@@ -207,8 +210,15 @@ export class ListComponent implements OnInit {
       .subscribe();
   }
 
-  onShowPlayer() {
-    this.playerStore.show();
+  onShowPlaylists() {
+    if (!this.playlistStore.loaded()) {
+      this.playlistStore.loadPlaylists();
+    }
+  }
+
+  onloadPlaylist(id: number) {
+    this.playlistStore.loadPlaylist(id);
+    this.router.navigate(['playlist', id]);
   }
 
   onCreateNew() {

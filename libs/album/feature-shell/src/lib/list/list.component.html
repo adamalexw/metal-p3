@@ -2,15 +2,24 @@
   [folder]="searchRequestFolder()"
   [searching]="albumsLoading()"
   [creatingNew]="creatingNew()"
+  [playlists]="playlists()"
   (advancedSearch)="onAdvancedSearch()"
   (searchRequest)="onSearch($event)"
-  (showPlayer)="onShowPlayer()"
+  (showPlaylists)="onShowPlaylists()"
+  (loadPlaylist)="onloadPlaylist($event)"
   (createNew)="onCreateNew()"
   (connectPhone)="onConnectPhone()"
 />
 
 @if (searchRequest(); as request) {
-  <cdk-virtual-scroll-viewport [style.overflow-x]="'hidden'" [style.overflow-y]="sideNavOpen() ? 'hidden' : 'auto'" [itemSize]="380" (scrolledIndexChange)="scrollIndexChange($event, request, false)" minBufferPx="1520" maxBufferPx="1900">
+  <cdk-virtual-scroll-viewport
+    [style.overflow-x]="'hidden'"
+    [style.overflow-y]="sideNavOpen() ? 'hidden' : 'auto'"
+    [itemSize]="380"
+    (scrolledIndexChange)="scrollIndexChange($event, request, false)"
+    minBufferPx="1520"
+    maxBufferPx="1900"
+  >
     <div class="mx-4 overflow-hidden" (albumAdded)="onFoldersDropped($event)" appAddAlbum>
       <div *cdkVirtualFor="let albums of albumsView(); trackBy: trackByVirtualFn">
         <div class="grid auto-cols-fr grid-flow-col gap-4 py-2 lg:auto-cols-min">

@@ -14,9 +14,16 @@
   <button type="button" (click)="advancedSearch.emit()" mat-icon-button>
     <mat-icon title="advanced search">manage_search</mat-icon>
   </button>
-  <button type="button" (click)="showPlayer.emit()" mat-icon-button>
-    <mat-icon title="playlists">queue_music</mat-icon>
+
+  <button type="button" [matMenuTriggerFor]="menu" (click)="showPlaylists.emit()" mat-icon-button>
+    <mat-icon title="playlits">queue_music</mat-icon>
   </button>
+  <mat-menu #menu="matMenu" yPosition="above">
+    @for (playlist of playlists(); track playlist) {
+      <button type="button" (click)="loadPlaylist.emit(playlist.id)" mat-menu-item>{{ playlist.name }}</button>
+    }
+  </mat-menu>
+
   <button type="button" class="hidden! md:block!" [disabled]="creatingNew()" (click)="createNew.emit()" mat-icon-button>
     <mat-icon title="files to folders">create_new_folder</mat-icon>
   </button>

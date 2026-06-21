@@ -74,19 +74,19 @@
     </mat-form-field>
     @if (!albumUrl) {
       <div>
-        <mat-checkbox [formField]="field().ignore" class="text-[var(--sys-primary)]"> Ignore Metal Archives </mat-checkbox>
+        <mat-checkbox class="text-primary" [formField]="field().ignore"> Ignore Metal Archives </mat-checkbox>
       </div>
     }
   </div>
 
   <div class="flex flex-row items-center gap-6">
-    <mat-checkbox [formField]="field().played" class="text-[var(--sys-primary)]"> Played </mat-checkbox>
-    <mat-checkbox [formField]="field().transferred" class="text-[var(--sys-primary)]"> Transferred </mat-checkbox>
-    <mat-checkbox [formField]="field().hasLyrics" class="text-[var(--sys-primary)]"> Lyrics </mat-checkbox>
+    <mat-checkbox class="text-primary" [formField]="field().played"> Played </mat-checkbox>
+    <mat-checkbox class="text-primary" [formField]="field().transferred"> Transferred </mat-checkbox>
+    <mat-checkbox class="text-primary" [formField]="field().hasLyrics"> Lyrics </mat-checkbox>
 
     @if (!hasLyrics) {
       <div class="flex items-center">
-        <button type="button" type="button" (click)="lyricsPriority.emit()">
+        <button type="button" class="cursor-pointer" (click)="lyricsPriority.emit()">
           <span class="flex items-center gap-2">
             <mat-icon>new_releases</mat-icon>
             <span>Priority</span>

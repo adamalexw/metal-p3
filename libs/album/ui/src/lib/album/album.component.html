@@ -11,9 +11,10 @@
       (imageSearch)="onImageSearch()"
       (findUrl)="onFindUrl()"
       (renameFolder)="onRenameFolder()"
-      (openFolder)="openFolder.emit({ id: albumId(), folder: album.fullPath })"
+      (openFolder)="openFolder.emit(album.fullPath)"
       (transfer)="onTransferAlbum()"
-      (delete)="deleteAlbum.emit(albumId())"
+      (refresh)="refreshAlbum.emit()"
+      (delete)="deleteAlbum.emit()"
     />
   </nav>
 
@@ -29,16 +30,10 @@
         [cover]="cover() ?? album.cover"
         [coverError]="coverError() ?? undefined"
         [enableDnd]="true"
-        (coverUrl)="coverUrl.emit({ id: album.id, url: $event })"
+        (coverUrl)="coverUrl.emit($event)"
       />
 
-      <app-album-form
-        class="mt-1 mb-0 block w-full lg:mx-2"
-        [field]="form.details"
-        (findBandProps)="getBandProps($event)"
-        (identifyBand)="onIdentifyBand()"
-        (lyricsPriority)="lyricsPriority.emit(albumId())"
-      />
+      <app-album-form class="mt-1 mb-0 block w-full lg:mx-2" [field]="form.details" (findBandProps)="getBandProps($event)" (identifyBand)="onIdentifyBand()" (lyricsPriority)="lyricsPriority.emit()" />
     </section>
 
     <section>
@@ -51,9 +46,9 @@
         (trackNumbers)="onTrackNumbers()"
         (maTracks)="onMaTracks()"
         (lyrics)="onLyrics()"
-        (refreshTracks)="refreshTracks.emit({ id: album.id, folder: album.folder })"
-        (playAlbum)="onPlayAlbum(albumId())"
-        (addAlbumToPlaylist)="onAddAlbumToPlaylist(albumId())"
+        (refreshTracks)="refreshTracks.emit(album.folder)"
+        (playAlbum)="onPlayAlbum()"
+        (addAlbumToPlaylist)="onAddAlbumToPlaylist()"
       />
 
       <app-tracks
@@ -63,9 +58,9 @@
         [tracks]="tracks() || []"
         [tracksError]="tracksError()"
         (transferTrack)="onTransferTrack($event)"
-        (playTrack)="playTrack.emit({ track: $event, albumId: albumId() })"
-        (addTrackToPlaylist)="addTrackToPlaylist.emit({ track: $event, albumId: albumId() })"
-        (delete)="deleteTrack.emit({ track: $event, albumId: albumId() })"
+        (playTrack)="playTrack.emit($event)"
+        (addTrackToPlaylist)="addTrackToPlaylist.emit($event)"
+        (delete)="deleteTrack.emit($event)"
       />
     </section>
   </form>
