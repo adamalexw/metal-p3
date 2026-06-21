@@ -15,7 +15,7 @@ import { environment } from '../environments/environment.prod';
     SharedAdbModule,
     AlbumModule.forRoot(environment.basePath, environment.take),
     BandModule,
-    CoverModule,
+    CoverModule.forRoot(environment.basePath),
     TrackModule.forRoot(),
     SharedFileSystemModule.forRoot(environment.basePath),
     MaintenanceApiModule.forRoot(environment.basePath),
