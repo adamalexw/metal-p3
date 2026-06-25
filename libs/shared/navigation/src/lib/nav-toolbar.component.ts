@@ -14,6 +14,7 @@ export class NavToolbarComponent {
 
   readonly showClose = input(true);
   readonly closeFullWidth = input(true);
+  readonly transparent = input(false);
 
   onClose() {
     this.location.back();

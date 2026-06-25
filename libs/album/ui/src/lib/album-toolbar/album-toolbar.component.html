@@ -1,4 +1,4 @@
-<app-nav-toolbar class="shadow-drawer relative z-10 block" [closeFullWidth]="false">
+<app-nav-toolbar class="shadow-drawer relative z-10 block" [closeFullWidth]="false" [transparent]="true">
   <button type="button" [disabled]="saving()" (click)="save.emit()" mat-icon-button>
     <mat-icon title="save">save</mat-icon>
   </button>
@@ -28,6 +28,6 @@
   </div>
 </app-nav-toolbar>
 
-<mat-toolbar class="lg:hidden!">
+<mat-toolbar class="lg:hidden! bg-transparent!">
   <app-album-header class="line-clamp-1" [folder]="folder()" />
 </mat-toolbar>

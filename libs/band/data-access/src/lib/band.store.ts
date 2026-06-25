@@ -79,7 +79,7 @@ export const BandStore = signalStore(
       ),
     ),
 
-    initProps(id: number) {
+    _initProps(id: number) {
       if (!store.entityMap()[id]) {
         patchState(store, addEntity(createInitialBandState(id, { loading: true })));
       }

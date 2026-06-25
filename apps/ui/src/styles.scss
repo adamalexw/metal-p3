@@ -67,3 +67,8 @@ mat-drawer.mat-drawer-end {
   --mat-snack-bar-supporting-text-color: white;
   --mat-snack-bar-button-color: white;
 }
+
+.album-menu {
+  --mat-menu-item-icon-color: var(--album-sys-primary);
+  --mat-menu-item-label-text-color: var(--album-sys-primary);
+}

@@ -3,13 +3,11 @@ import { CdkTableModule } from '@angular/cdk/table';
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTableModule } from '@angular/material/table';
-import { CoverComponent } from '@metal-p3/cover/ui';
 import { PlaylistItem } from '@metal-p3/player/domain';
-import { TimePipe } from '@metal-p3/track/util';
 import { cloneDeep } from 'lodash-es';
 
 @Component({
-  imports: [CoverComponent, TimePipe, CdkTableModule, DragDropModule, MatTableModule, MatIconModule],
+  imports: [CdkTableModule, DragDropModule, MatTableModule, MatIconModule],
   selector: 'app-playlist',
   templateUrl: './playlist.component.html',
   styleUrls: ['./playlist.component.scss'],

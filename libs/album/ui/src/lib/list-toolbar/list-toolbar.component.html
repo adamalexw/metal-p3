@@ -15,10 +15,10 @@
     <mat-icon title="advanced search">manage_search</mat-icon>
   </button>
 
-  <button type="button" [matMenuTriggerFor]="menu" (click)="showPlaylists.emit()" mat-icon-button>
+  <button type="button" [matMenuTriggerFor]="playlistMenu" (click)="showPlaylists.emit()" mat-icon-button>
     <mat-icon title="playlits">queue_music</mat-icon>
   </button>
-  <mat-menu #menu="matMenu" yPosition="above">
+  <mat-menu #playlistMenu="matMenu" yPosition="above">
     @for (playlist of playlists(); track playlist) {
       <button type="button" (click)="loadPlaylist.emit(playlist.id)" mat-menu-item>{{ playlist.name }}</button>
     }
@@ -27,13 +27,13 @@
   <button type="button" class="hidden! md:block!" [disabled]="creatingNew()" (click)="createNew.emit()" mat-icon-button>
     <mat-icon title="files to folders">create_new_folder</mat-icon>
   </button>
-  <button type="button" class="hidden! md:block!" [matMenuTriggerFor]="menu" mat-icon-button>
+  <button type="button" class="hidden! md:block!" [matMenuTriggerFor]="maintenanceMenu" mat-icon-button>
     <mat-icon title="maintenance">engineering</mat-icon>
   </button>
   <button type="button" (click)="connectPhone.emit()" mat-icon-button>
     <mat-icon title="connect">adb</mat-icon>
   </button>
-  <mat-menu #menu="matMenu" class="hidden! md:block!">
+  <mat-menu #maintenanceMenu="matMenu">
     <button type="button" [routerLink]="['maintenance', 'lyrics']" mat-menu-item>
       <mat-icon>article</mat-icon>
       <span>Lyrics</span>

@@ -91,7 +91,7 @@ export class UrlService {
           ...matcher,
           result: 'success',
           artistUrl: fullLengths[0].artistUrl,
-          albumUrl: fullLengths[1].albumUrl,
+          albumUrl: fullLengths[0].albumUrl,
         };
       }
 

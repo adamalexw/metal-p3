@@ -7,7 +7,7 @@
     </div>
   }
 
-  <table [dataSource]="dataSource" [trackBy]="trackByFn" mat-table>
+  <table [dataSource]="dataSource" [trackBy]="trackByFn" mat-table class="bg-transparent!">
     <ng-container matColumnDef="trackNumber">
       <th *matHeaderCellDef class="text-primary!" mat-header-cell>#</th>
       <td *matCellDef="let element" class="p-0! py-1! pl-1!" mat-cell>
@@ -27,26 +27,26 @@
     </ng-container>
 
     <ng-container matColumnDef="duration">
-      <th *matHeaderCellDef class="text-primary!" mat-header-cell>Duration</th>
-      <td *matCellDef="let element" mat-cell>
+      <th *matHeaderCellDef class="text-primary! text-center!" mat-header-cell>Duration</th>
+      <td *matCellDef="let element" class="text-center! bg-transparent!" mat-cell>
         {{ element().value().duration | time }}
       </td>
     </ng-container>
 
     <ng-container matColumnDef="bitrate">
-      <th *matHeaderCellDef class="text-primary!" mat-header-cell>Bitrate</th>
-      <td *matCellDef="let element" mat-cell>
+      <th *matHeaderCellDef class="text-primary! text-center!" mat-header-cell>Bitrate</th>
+      <td *matCellDef="let element" class="text-center! bg-transparent!" mat-cell>
         {{ element().value().bitrate | bitrate }}
       </td>
     </ng-container>
 
     <ng-container matColumnDef="actions">
-      <th *matHeaderCellDef class="text-primary!" mat-header-cell>Actions</th>
-      <td *matCellDef="let element; let i = index" mat-cell>
+      <th *matHeaderCellDef class="text-primary! text-center!" mat-header-cell>Actions</th>
+      <td *matCellDef="let element; let i = index" class="text-center!" mat-cell>
         <button aria-label="Example icon-button with a menu" type="button" [matMenuTriggerFor]="menu" mat-icon-button>
           <mat-icon>more_vert</mat-icon>
         </button>
-        <mat-menu #menu="matMenu">
+        <mat-menu #menu="matMenu" class="album-menu">
           <button type="button" (click)="transferTrack.emit(element().value().id)" mat-menu-item>
             <mat-icon>adb</mat-icon>
             <span>Transfer</span>

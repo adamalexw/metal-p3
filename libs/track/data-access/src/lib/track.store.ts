@@ -8,7 +8,7 @@ import { Track } from '@metal-p3/track/domain';
 import { patchState, signalStore, withComputed, withHooks, withMethods, withState, type } from '@ngrx/signals';
 import { removeAllEntities, removeEntity, setAllEntities, updateEntity, withEntities } from '@ngrx/signals/entities';
 import { rxMethod } from '@ngrx/signals/rxjs-interop';
-import { catchError, concatMap, EMPTY, map, mergeMap, of, pipe, switchMap, tap, timeout } from 'rxjs';
+import { catchError, concatMap, EMPTY, forkJoin, map, mergeMap, of, pipe, switchMap, tap, timeout } from 'rxjs';
 import { TrackService } from './track.service';
 
 export interface TrackState {
@@ -41,7 +41,8 @@ export const TrackStore = signalStore(
       service = inject(TrackService),
       errorService = inject(ErrorService),
       notificationService = inject(NotificationService),
-      basePath = inject(BASE_PATH)
+      basePath = inject(BASE_PATH),
+      albumStore = inject(AlbumStore)
     ) => ({
       getTracks: rxMethod<{ id: number; folder: string }>(
         pipe(
@@ -162,6 +163,40 @@ export const TrackStore = signalStore(
                 patchState(store, updateEntity({ id: trackId, changes: { trackTransferring: false } }));
                 notificationService.showError(`${errorService.getError(error)}`, 'Transfer Track');
                 return of();
+              })
+            );
+          })
+        )
+      ),
+
+      transferAlbumTracks: rxMethod<{ trackIds: number[]; albumId: number }>(
+        pipe(
+          tap(({ trackIds }) => {
+            const updates = trackIds.map((id) => ({ id, changes: { trackTransferring: true } }));
+            updates.forEach((update) => patchState(store, updateEntity(update)));
+          }),
+          mergeMap(({ trackIds, albumId }) => {
+            const observables = trackIds.map((trackId) => {
+              const track = store.entityMap()[trackId];
+              if (!track) return of(true);
+              return service.transferTrack(track.fullPath).pipe(
+                map(() => {
+                  patchState(store, updateEntity({ id: trackId, changes: { trackTransferring: false } }));
+                  return true;
+                }),
+                catchError((error) => {
+                  patchState(store, updateEntity({ id: trackId, changes: { trackTransferring: false } }));
+                  notificationService.showError(`${errorService.getError(error)}`, 'Transfer Track');
+                  return of(false);
+                })
+              );
+            });
+            return forkJoin(observables).pipe(
+              map((results) => {
+                const allSuccess = results.every((r) => r === true);
+                if (allSuccess) {
+                  albumStore.setTransferred({ id: albumId, transferred: true });
+                }
               })
             );
           })

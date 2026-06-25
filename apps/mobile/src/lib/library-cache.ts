@@ -3,12 +3,33 @@ import { useMemo, useSyncExternalStore } from 'react';
 import { MetalP3Media } from '../../modules/metalp3-media';
 import type { Track } from '../../modules/metalp3-media/src/MetalP3Media.types';
 import { groupTracksByAlbum, type AlbumGroup } from './group-tracks-by-album';
+import { getPlaylists, subscribe as subscribePlaylists } from './playlist-store';
 
 type Listener = () => void;
 
 let cachedTracks: Track[] = [];
 let cachedGroups: AlbumGroup[] = [];
+let filteredCachedGroups: AlbumGroup[] = [];
 const listeners = new Set<Listener>();
+
+function rebuildFilteredGroups(): void {
+  const playlists = getPlaylists();
+  const hiddenIds = new Set<string>();
+  for (const p of playlists) {
+    for (const t of p.trackIds) hiddenIds.add(t);
+  }
+  if (hiddenIds.size === 0) {
+    filteredCachedGroups = cachedGroups;
+  } else {
+    const visible = cachedTracks.filter((t) => !hiddenIds.has(t.id));
+    filteredCachedGroups = groupTracksByAlbum(visible);
+  }
+}
+
+subscribePlaylists(() => {
+  rebuildFilteredGroups();
+  notify();
+});
 
 function notify(): void {
   for (const listener of listeners) {
@@ -28,6 +49,7 @@ export async function initializeLibraryCache(): Promise<void> {
       if (Array.isArray(parsed) && parsed.length > 0) {
         cachedTracks = parsed;
         cachedGroups = groupTracksByAlbum(parsed);
+        rebuildFilteredGroups();
         notify();
       }
     }
@@ -65,16 +87,17 @@ async function verifyAndClearLibraryCache(): Promise<void> {
 export function setLibraryTracks(tracks: Track[]): AlbumGroup[] {
   if (tracks.length === 0 && cachedTracks.length > 0) {
     void verifyAndClearLibraryCache();
-    return cachedGroups;
+    return filteredCachedGroups;
   }
 
   cachedTracks = tracks;
   cachedGroups = groupTracksByAlbum(tracks);
+  rebuildFilteredGroups();
   void AsyncStorage.setItem('metalp3:library_tracks:v1', JSON.stringify(tracks)).catch((err) => {
     console.warn('library-cache: failed to persist tracks', err);
   });
   notify();
-  return cachedGroups;
+  return filteredCachedGroups;
 }
 
 export function getLibraryTracks(): Track[] {
@@ -82,16 +105,17 @@ export function getLibraryTracks(): Track[] {
 }
 
 export function getAlbumGroups(): AlbumGroup[] {
-  return cachedGroups;
+  return filteredCachedGroups;
 }
 
 export function findAlbumGroup(key: string): AlbumGroup | undefined {
-  return cachedGroups.find((g) => g.key === key);
+  return filteredCachedGroups.find((g) => g.key === key);
 }
 
 export function clearLibraryCache(): void {
   cachedTracks = [];
   cachedGroups = [];
+  filteredCachedGroups = [];
   void AsyncStorage.removeItem('metalp3:library_tracks:v1').catch((err) => {
     console.warn('library-cache: failed to remove persisted tracks', err);
   });
@@ -112,8 +136,9 @@ export function removeTracksByIds(ids: string[]): AlbumGroup[] {
   if (next.length === cachedTracks.length) return cachedGroups;
   cachedTracks = next;
   cachedGroups = groupTracksByAlbum(next);
+  rebuildFilteredGroups();
   notify();
-  return cachedGroups;
+  return filteredCachedGroups;
 }
 
 /**
