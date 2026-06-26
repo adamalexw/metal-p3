@@ -215,9 +215,7 @@ export class AlbumShellComponent {
   }
 
   onTransferAlbum(trackIds: number[]) {
-    trackIds.forEach((trackId) => this.onTransferTrack(trackId));
-
-    this.albumStore.setTransferred({ id: this.id(), transferred: true });
+    this.trackStore.transferAlbumTracks({ trackIds, albumId: this.id() });
   }
 
   onTransferTrack(trackId: number) {

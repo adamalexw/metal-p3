@@ -1,3 +1,4 @@
+import { DOCUMENT } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, effect, ElementRef, inject, input, linkedSignal, output } from '@angular/core';
 import { applyEach, form, required } from '@angular/forms/signals';
 import { MatButtonModule } from '@angular/material/button';
@@ -13,11 +14,10 @@ import { Album, AlbumDetailsForm, AlbumForm } from '@metal-p3/album/domain';
 import { BandDto, BandProps, MetalArchivesAlbumTrack, MetalArchivesUrl, TrackBase } from '@metal-p3/api-interfaces';
 import { CoverComponent } from '@metal-p3/cover/ui';
 import { NotificationService } from '@metal-p3/shared/feedback';
-import { lightenForContrast, toHex } from '@metal-p3/shared/utils';
+import { ArtworkThemeService } from '@metal-p3/shared/utils';
 import { Track } from '@metal-p3/track/domain';
 import { TracksComponent, TracksToolbarComponent } from '@metal-p3/track/ui';
 import { WA_WINDOW } from '@ng-web-apis/common';
-import { FastAverageColor } from 'fast-average-color';
 import { take } from 'rxjs';
 import { AlbumFormComponent } from '../album-form/album-form.component';
 import { AlbumToolbarComponent } from '../album-toolbar/album-toolbar.component';
@@ -43,16 +43,26 @@ import { BandIdentifyComponent } from './band-identify.component';
   selector: 'app-album',
   templateUrl: './album.component.html',
   host: {
-    class: 'block h-screen lg:overflow-hidden',
+    class: 'relative block h-screen lg:overflow-hidden',
   },
+  styles: [
+    `
+      :host {
+        --mat-sys-surface-variant: rgba(255, 255, 255, 0.08);
+        --mat-sys-surface-container-highest: rgba(255, 255, 255, 0.08);
+        --mdc-filled-text-field-container-color: rgba(255, 255, 255, 0.08);
+      }
+    `,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AlbumComponent {
   private readonly windowRef = inject(WA_WINDOW);
   private readonly notificationService = inject(NotificationService);
   private readonly dialog = inject(MatDialog);
+  private readonly themeService = inject(ArtworkThemeService);
+  private readonly document = inject(DOCUMENT);
   private readonly elementRef = inject(ElementRef);
-  private readonly fac = new FastAverageColor();
 
   readonly album = input.required<Album>();
   readonly albumDuration = input(0);
@@ -225,25 +235,22 @@ export class AlbumComponent {
   }
 
   constructor() {
-    effect(() => {
+    effect((onCleanup) => {
       const coverUrl = this.cover() ?? this.album()?.cover;
+      const el = this.elementRef.nativeElement;
       if (coverUrl) {
-        this.fac
-          .getColorAsync(coverUrl, { algorithm: 'dominant' })
-          .then((color) => {
-            const rgb = { r: color.value[0], g: color.value[1], b: color.value[2] };
-            const background = { r: 16, g: 16, b: 16 };
-            const primaryRgb = lightenForContrast(rgb, background, 4.5);
-            const primaryHex = toHex(primaryRgb);
-
-            const el = this.elementRef.nativeElement;
-            el.style.setProperty('--mdc-theme-primary', primaryHex);
-            el.style.setProperty('--mat-sys-primary', primaryHex);
-            el.style.setProperty('--sys-primary', primaryHex);
-            el.style.setProperty('--mat-icon-color', primaryHex);
-          })
-          .catch((e) => console.error('Failed to extract color', e));
+        this.themeService.applyThemeToElement(el, coverUrl).then(hex => {
+          if (hex) this.document.body.style.setProperty('--album-sys-primary', hex);
+        });
+      } else {
+        this.themeService.clearTheme(el);
+        this.document.body.style.removeProperty('--album-sys-primary');
       }
+
+      onCleanup(() => {
+        this.themeService.clearTheme(el);
+        this.document.body.style.removeProperty('--album-sys-primary');
+      });
     });
 
     effect(() => {

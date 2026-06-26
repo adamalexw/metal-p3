@@ -28,7 +28,7 @@ export const CoverStore = signalStore(
   { providedIn: 'root' },
   withEntities<CoverState>(),
   withMethods((store, service = inject(CoverService), errorService = inject(ErrorService), basePath = inject(BASE_PATH), notificationService = inject(NotificationService)) => {
-    const clearAll = () => {
+    const _clearAll = () => {
       store.entities().forEach((state) => {
         if (typeof state.cover === 'string' && state.cover.startsWith('blob:')) {
           URL.revokeObjectURL(state.cover);
@@ -38,7 +38,7 @@ export const CoverStore = signalStore(
     };
 
     return {
-      clearAll,
+      _clearAll,
       getCover: rxMethod<{ id: number; folder: string }>(
         pipe(
           tap(({ id }) => {
@@ -67,9 +67,9 @@ export const CoverStore = signalStore(
 
       getMany: rxMethod<{ requests: CoverRequest[]; cancel?: boolean }>(
         pipe(
-          switchMap(({ requests, cancel }) => {
+          mergeMap(({ requests, cancel }) => {
             if (cancel) {
-              clearAll();
+              _clearAll();
               return of();
             }
 

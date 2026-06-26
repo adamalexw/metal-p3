@@ -4,7 +4,7 @@ import { DbService, MissingUrlResult } from '@metal-p3/shared/database';
 import { MetalArchivesService } from '@metal-p3/shared/metal-archives';
 import { extractUrl } from '@metal-p3/shared/utils';
 import { Injectable, Logger } from '@nestjs/common';
-import { Observable, Subject, catchError, concatMap, finalize, from, map, of, takeUntil, tap, toArray } from 'rxjs';
+import { Observable, Subject, catchError, concatMap, delay, finalize, from, map, of, takeUntil, tap, toArray } from 'rxjs';
 import { MaintenanceGateway } from './maintenance-gateway.service';
 
 @Injectable()
@@ -74,9 +74,10 @@ export class UrlService {
                 return of({ ...matcher, result: 'error', error } as UrlMatcher);
               }),
               tap((matcher) => this.maintenanceGateway.urlMatcher(matcher)),
-              toArray(),
+              delay(2000),
             ),
           ),
+          toArray(),
         ),
       ),
     );
@@ -91,7 +92,7 @@ export class UrlService {
           ...matcher,
           result: 'success',
           artistUrl: fullLengths[0].artistUrl,
-          albumUrl: fullLengths[1].albumUrl,
+          albumUrl: fullLengths[0].albumUrl,
         };
       }
 

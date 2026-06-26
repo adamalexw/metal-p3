@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, afterNextRender, computed, effect, inject, signal, viewChild } from '@angular/core';
+import { ApplicationRef, ChangeDetectionStrategy, Component, DestroyRef, ElementRef, afterNextRender, computed, effect, inject, signal, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Title } from '@angular/platform-browser';
 import { CoverComponent } from '@metal-p3/cover/ui';
@@ -10,7 +10,7 @@ import { PlaylistStore } from '@metal-p3/playlist/data-access';
 import { PlaylistComponent } from '@metal-p3/playlist/ui';
 import { TrackService } from '@metal-p3/track/data-access';
 import { EMPTY, Observable, catchError, fromEvent, map, tap } from 'rxjs';
-
+import { ArtworkThemeService } from '@metal-p3/shared/utils';
 @Component({
   imports: [CoverComponent, PlayerControlsComponent, PlaylistShellComponent, PlaylistComponent],
   selector: 'app-player',
@@ -21,13 +21,21 @@ export class PlayerShellComponent {
   private readonly trackService = inject(TrackService);
   private readonly title = inject(Title);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly themeService = inject(ArtworkThemeService);
+  private readonly elementRef = inject(ElementRef);
+  private readonly appRef = inject(ApplicationRef);
 
   private readonly audio = viewChild.required<ElementRef>('audio');
 
   protected readonly playerStore = inject(PlayerStore);
   protected readonly playlistStore = inject(PlaylistStore);
 
-  divClass = computed(() => (this.playerStore.footerMode() ? 'max-h-[64px]' : 'flex flex-col lg:translate-y-0 lg:max-h-[calc(100vh-64px)]'));
+  divClass = computed(() => {
+    const base = 'relative';
+    return this.playerStore.footerMode()
+      ? `${base} max-h-[64px]`
+      : `${base} flex flex-col lg:translate-y-0 lg:max-h-[calc(100vh-64px)]`;
+  });
   subDivClass = computed(() => (this.playerStore.footerMode() ? '' : 'flex-col lg:flex-row'));
   toggleIcon = computed(() => (this.playerStore.footerMode() ? 'expand_less' : 'expand_more'));
   coverSize = computed(() => (this.playerStore.footerMode() ? 'h-16 w-16' : 'w-screen lg:w-[18.5rem]'));
@@ -43,6 +51,16 @@ export class PlayerShellComponent {
         this.title.setTitle(`${item.artist} - ${item.title}`);
       } else {
         this.title.setTitle(this.defaultTitle);
+      }
+    });
+
+    effect(() => {
+      const cover = this.playerStore.activeItemCover();
+      const el = this.elementRef.nativeElement;
+      if (cover) {
+        this.themeService.applyThemeToElement(el, cover);
+      } else {
+        this.themeService.clearTheme(el);
       }
     });
 
@@ -161,6 +179,7 @@ export class PlayerShellComponent {
 
           if (playlist.length === 1) {
             this.onSeekTo(0);
+            this.elapsedTime.set(0);
             this.playerStore.pause();
             return;
           }
@@ -168,6 +187,8 @@ export class PlayerShellComponent {
           if (currentIndex === playlist.length - 1) {
             const id = playlist[0].id;
             this.playerStore.play(id);
+            this.onSeekTo(0);
+            this.elapsedTime.set(0);
             this.onPause();
             return;
           }
@@ -231,7 +252,14 @@ export class PlayerShellComponent {
   }
 
   onToogleView() {
-    this.playerStore.toggleView();
+    if ('startViewTransition' in document) {
+      (document as any).startViewTransition(() => {
+        this.playerStore.toggleView();
+        this.appRef.tick();
+      });
+    } else {
+      this.playerStore.toggleView();
+    }
   }
 
   onReorder(playlist: PlaylistItem[]) {

@@ -62,20 +62,20 @@ async function reconcileQueue(deletedIds: string[]): Promise<void> {
   );
   const survivingQueue = queue.filter((item) => !removeSet.has(item.id));
 
-  if (survivingQueue.length === 0) {
+  const currentId = state.current?.id ?? null;
+  const currentDeleted = currentId !== null && removeSet.has(currentId);
+
+  if (survivingQueue.length === 0 || currentDeleted) {
     try {
       await MetalP3Player.stop();
+      await MetalP3Player.clearQueue();
     } catch (err) {
       console.warn('delete-tracks: failed to stop playback', err);
     }
     return;
   }
 
-  const currentId = state.current?.id ?? null;
-  const currentDeleted = currentId !== null && removeSet.has(currentId);
-  let newIndex = currentDeleted
-    ? Math.min(state.currentIndex, survivingQueue.length - 1)
-    : Math.max(0, survivingQueue.findIndex((q) => q.id === currentId));
+  let newIndex = Math.max(0, survivingQueue.findIndex((q) => q.id === currentId));
   if (newIndex < 0) newIndex = 0;
 
   const nextItems = survivingQueue.map((q) => {
@@ -84,11 +84,7 @@ async function reconcileQueue(deletedIds: string[]): Promise<void> {
   });
 
   try {
-    const positionMs = currentDeleted ? 0 : state.positionMs;
-    await MetalP3Player.setQueueAsync(nextItems, newIndex, positionMs);
-    if (currentDeleted && state.isPlaying) {
-      await MetalP3Player.play();
-    }
+    await MetalP3Player.setQueueAsync(nextItems, newIndex, state.positionMs);
   } catch (err) {
     console.warn('delete-tracks: failed to rebuild queue', err);
   }

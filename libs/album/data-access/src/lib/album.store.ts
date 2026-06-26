@@ -63,7 +63,7 @@ export const AlbumStore = signalStore(
       clearSelectedAlbum() {
         patchState(store, { selectedAlbumId: undefined });
       },
-      clearAlbums() {
+      _clearAlbums() {
         patchState(store, { selectedAlbumId: undefined }, removeAllEntities());
       },
       addAlbum(album: Album) {
@@ -81,7 +81,7 @@ export const AlbumStore = signalStore(
         patchState(store, updateEntity({ id, changes }));
       },
 
-      setAlbumsFromResource(albums: Album[], skip: number) {
+      _setAlbumsFromResource(albums: Album[], skip: number) {
         const items = skip === 0 ? setAllEntities(albums) : addEntities(albums);
         patchState(store, items);
 
@@ -326,7 +326,7 @@ export const AlbumStore = signalStore(
         return service.getAlbums(params).pipe(
           tap(albumsDto => {
             const albums = albumsDto.map((dto): Album => ({ ...dto }));
-            store.setAlbumsFromResource(albums, params.skip ?? 0);
+            store._setAlbumsFromResource(albums, params.skip ?? 0);
           })
         );
       }

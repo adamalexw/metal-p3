@@ -1,4 +1,4 @@
-<mat-toolbar class="lg:hidden!">
+<mat-toolbar class="lg:hidden! bg-transparent!">
   @if (albumDuration()) {
     <div class="flex w-full items-center justify-center">
       <ng-container *ngTemplateOutlet="duration" />
@@ -6,7 +6,7 @@
   }
 </mat-toolbar>
 
-<mat-toolbar class="pl-0!">
+<mat-toolbar class="pl-0! bg-transparent!">
   <button type="button" (click)="trackNumbers.emit()" mat-icon-button title="Track Numbers">
     <mat-icon title="track numbers">tag</mat-icon>
   </button>

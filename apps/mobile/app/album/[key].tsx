@@ -164,23 +164,6 @@ export default function AlbumDetailScreen() {
           ),
           headerTransparent: true,
           headerShadowVisible: false,
-          headerBackground: () =>
-            artUri ? (
-              <View style={StyleSheet.absoluteFill}>
-                <Image
-                  source={{ uri: artUri }}
-                  style={StyleSheet.absoluteFill}
-                  contentFit="cover"
-                  blurRadius={10}
-                  cachePolicy="memory-disk"
-                  recyclingKey={artUri}
-                />
-                <BlurView intensity={35} tint="dark" style={StyleSheet.absoluteFill} />
-                <View style={[StyleSheet.absoluteFill, tw`bg-black/30`]} />
-              </View>
-            ) : (
-              <View style={[StyleSheet.absoluteFill, { backgroundColor: theme.background }]} />
-            ),
         }}
       />
 

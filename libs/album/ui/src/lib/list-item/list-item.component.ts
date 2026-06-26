@@ -12,6 +12,13 @@ import { CountryFlagPipe } from '@metal-p3/shared/utils';
   imports: [ConfirmDeleteDirective, CoverComponent, CountryFlagPipe, MatCardModule, MatButtonModule, MatIconModule, MatMenuModule],
   selector: 'app-list-item',
   templateUrl: './list-item.component.html',
+  styles: [
+    `
+      p {
+        font-family: 'Pirata One', sans-serif;
+      }
+    `,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ListItemComponent {

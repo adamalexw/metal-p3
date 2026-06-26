@@ -299,23 +299,7 @@ body.ma-modern-active {
   gap: 6px;
 }
 
-.ma-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-bottom: 15px;
-}
 
-.ma-tag {
-  background: rgba(255, 255, 255, 0.1);
-  color: var(--ma-text);
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 0.7rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
 
 .ma-downloads {
   flex-grow: 1;

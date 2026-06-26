@@ -67,3 +67,29 @@ mat-drawer.mat-drawer-end {
   --mat-snack-bar-supporting-text-color: white;
   --mat-snack-bar-button-color: white;
 }
+
+.album-menu {
+  --mat-menu-item-icon-color: var(--album-sys-primary);
+  --mat-menu-item-label-text-color: var(--album-sys-primary);
+}
+
+.mat-mdc-icon-button {
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  
+  /* Disable the off-center material ripple and state layer */
+  .mat-mdc-button-persistent-ripple,
+  .mat-mdc-focus-indicator,
+  .mat-mdc-button-ripple,
+  .mat-ripple {
+    display: none !important;
+  }
+  
+  &:hover {
+    transform: scale(1.15) !important;
+  }
+
+  &:active {
+    transform: scale(0.85) !important;
+  }
+}
+

@@ -1,9 +1,9 @@
-<mat-toolbar class="px-0! lg:px-4!">
+<mat-toolbar class="px-0! lg:px-4!" [class.bg-transparent!]="transparent()">
   <ng-content />
 
   @if (showClose()) {
     <div class="mr-2 flex grow flex-row-reverse lg:mr-0 lg:grow-0" [class.w-full]="closeFullWidth()">
-      <mat-icon class="cursor-pointer" (click)="onClose()">close</mat-icon>
+      <button mat-icon-button (click)="onClose()"><mat-icon>close</mat-icon></button>
     </div>
   }
 </mat-toolbar>

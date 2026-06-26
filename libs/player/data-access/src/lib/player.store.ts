@@ -53,7 +53,7 @@ export const PlayerStore = signalStore(
     isLastItemPlaying: computed(() => store.activeItemIndex() === store.playlistSize() - 1),
   })),
   withMethods((store) => ({
-    getCoverSuccess(payload: { id: string; cover: string }) {
+    _getCoverSuccess(payload: { id: string; cover: string }) {
       patchState(store, updateEntity({ id: payload.id, changes: { cover: payload.cover } }));
       const source = store.entityMap()[payload.id];
       if (!source?.folder || !payload.cover) return;
@@ -114,7 +114,7 @@ export const PlayerStore = signalStore(
     },
     addItem(track: PlaylistItem) {
       patchState(store, addEntity(track));
-      this.getCover({ id: track.id, folder: track.folder || '' });
+      this._getCover({ id: track.id, folder: track.folder || '' });
     },
     addItems(tracks: PlaylistItem[]) {
       patchState(store, addEntities(tracks));
@@ -129,7 +129,7 @@ export const PlayerStore = signalStore(
         const key = track.folder || track.id;
         if (!seenFolders.has(key)) {
           seenFolders.add(key);
-          this.getCover({ id: track.id, folder: track.folder || '' });
+          this._getCover({ id: track.id, folder: track.folder || '' });
         }
       });
     },
@@ -165,7 +165,7 @@ export const PlayerStore = signalStore(
         const key = track.folder || track.id;
         if (!seenFolders.has(key)) {
           seenFolders.add(key);
-          this.getCover({ id: track.id, folder: track.folder || '' });
+          this._getCover({ id: track.id, folder: track.folder || '' });
         }
       });
     },
@@ -175,18 +175,18 @@ export const PlayerStore = signalStore(
       const updaters = pl.map((item, index) => updateEntity<PlaylistItem>({ id: item.id, changes: { index } }));
       patchState(store, ...updaters);
     },
-    getCover: rxMethod<{ id: string; folder: string }>(
+    _getCover: rxMethod<{ id: string; folder: string }>(
       pipe(
         mergeMap(({ id, folder }) => {
           const existingCover = store.playlist().find((item) => item.folder === folder && typeof item.cover === 'string' && item.cover.startsWith('blob:'))?.cover ?? null;
 
           if (existingCover) {
-            store.getCoverSuccess({ id, cover: existingCover });
+            store._getCoverSuccess({ id, cover: existingCover });
             return EMPTY;
           }
 
           return coverService.getCover(folder).pipe(
-            tap((cover) => store.getCoverSuccess({ id, cover })),
+            tap((cover) => store._getCoverSuccess({ id, cover })),
             catchError((error) => {
               patchState(store, updateEntity({ id, changes: { cover: errorService.getError(error) } }));
               return EMPTY;

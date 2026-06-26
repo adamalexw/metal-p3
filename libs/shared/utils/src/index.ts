@@ -5,3 +5,4 @@ export * from './lib/non-nullable-operator';
 export * from './lib/object-distinct-until-changed';
 export * from './lib/prevent-default.directive';
 export * from './lib/color';
+export * from './lib/artwork-theme.service';

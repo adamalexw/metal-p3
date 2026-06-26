@@ -1,4 +1,11 @@
 @if (album(); as album) {
+  @if (cover() ?? album.cover; as bgCover) {
+    <!-- Full screen blurred background image -->
+    <div class="absolute inset-0 z-[-2] bg-cover bg-center bg-no-repeat bg-fixed opacity-50 blur-xl" [style.background-image]="'url(' + bgCover + ')'"></div>
+    <!-- Dark tint overlay to ensure text is perfectly readable -->
+    <div class="absolute inset-0 z-[-1] bg-black/60 backdrop-blur-md"></div>
+  }
+
   <nav class="sticky top-0 z-10 lg:block">
     <app-album-toolbar
       [saving]="albumSaving()"
@@ -65,5 +72,7 @@
     </section>
   </form>
 } @else {
-  <mat-icon routerLink="/">clear</mat-icon>
+  <button mat-icon-button routerLink="/">
+    <mat-icon>clear</mat-icon>
+  </button>
 }

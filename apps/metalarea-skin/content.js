@@ -199,7 +199,11 @@
     if (titleLower.includes('[video]') || titleLower.includes('(video)') || 
         titleLower.includes('dvd') || titleLower.includes('blu-ray') || 
         titleLower.includes('vhs') || titleLower.includes('studio clip') || 
-        genreLower.includes('video')) {
+        titleLower.includes('full show') || titleLower.includes('full concert') ||
+        titleLower.includes('pro-shot') || titleLower.includes('webcast') ||
+        titleLower.includes('.mkv') || titleLower.includes('.mp4') || titleLower.includes('.avi') ||
+        titleLower.includes('web-dl') || titleLower.includes('bdrip') || titleLower.includes('dvdrip') ||
+        titleLower.includes('hdtv') || genreLower.includes('video')) {
        return false;
     }
     
@@ -266,36 +270,23 @@
   }, observerOptions);
 
   topics.forEach(topic => {
-    const card = document.createElement('a');
+    const card = document.createElement('div');
     card.className = 'ma-card';
-    card.href = topic.url;
     card.id = `ma-card-${topic.id}`;
     card.setAttribute('data-topic-id', topic.id);
     
-    const tags = [];
-    const tagMatches = topic.title.match(/\[(.*?)\]/g);
-    if (tagMatches) {
-      tagMatches.forEach(t => tags.push(t.replace(/[\[\]]/g, '').trim()));
-    }
-    
-    let cleanTitle = topic.title.replace(/\[.*?\]/g, '').trim();
-    
-    let tagsHtml = '';
-    if (tags.length > 0) {
-      tagsHtml = `<div class="ma-tags">` + tags.map(t => `<span class="ma-tag">${t}</span>`).join('') + `</div>`;
-    }
+    let cleanTitle = topic.title.replace(/\[.*?\]/g, '').replace(/\|.*$/, '').trim();
     
     card.innerHTML = `
-      <div class="ma-card-image-container" id="ma-img-${topic.id}">
+      <a href="${topic.url}" class="ma-card-image-container" id="ma-img-${topic.id}">
         <div class="ma-card-image-placeholder">
            <div class="ma-spinner"></div>
            <span>Fetching details...</span>
         </div>
-      </div>
+      </a>
       <div class="ma-card-content">
         <div class="ma-genre" id="ma-genre-${topic.id}">${topic.genre}</div>
         <div class="ma-title">${cleanTitle}</div>
-        ${tagsHtml}
         <div class="ma-card-footer">
           <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 4px;">
              <div class="ma-country" id="ma-country-${topic.id}">Loading...</div>
