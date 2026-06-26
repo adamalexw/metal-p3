@@ -6,8 +6,11 @@ import { MatTableModule } from '@angular/material/table';
 import { PlaylistItem } from '@metal-p3/player/domain';
 import { cloneDeep } from 'lodash-es';
 
+import { CoverComponent } from '@metal-p3/cover/ui';
+import { TimePipe } from '@metal-p3/track/util';
+
 @Component({
-  imports: [CdkTableModule, DragDropModule, MatTableModule, MatIconModule],
+  imports: [CdkTableModule, DragDropModule, MatTableModule, MatIconModule, CoverComponent, TimePipe],
   selector: 'app-playlist',
   templateUrl: './playlist.component.html',
   styleUrls: ['./playlist.component.scss'],

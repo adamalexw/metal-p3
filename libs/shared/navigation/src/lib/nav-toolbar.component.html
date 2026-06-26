@@ -3,7 +3,7 @@
 
   @if (showClose()) {
     <div class="mr-2 flex grow flex-row-reverse lg:mr-0 lg:grow-0" [class.w-full]="closeFullWidth()">
-      <mat-icon class="cursor-pointer" (click)="onClose()">close</mat-icon>
+      <button mat-icon-button (click)="onClose()"><mat-icon>close</mat-icon></button>
     </div>
   }
 </mat-toolbar>

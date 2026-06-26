@@ -207,7 +207,15 @@ export class DbService {
   async missingUrls(): Promise<MissingUrlResult[]> {
     const results = await this.prisma.album.findMany({
       select: { AlbumId: true, Name: true, Band: { select: { BandId: true, Name: true, MetalArchiveUrl: true } } },
-      where: { IgnoreMetalArchives: null, MetalArchiveUrl: null, Lyrics: false, Name: { not: undefined }, Band: { Name: { not: undefined } } },
+      where: {
+        AND: [
+          { OR: [{ IgnoreMetalArchives: null }, { IgnoreMetalArchives: false }] },
+          { OR: [{ MetalArchiveUrl: null }, { MetalArchiveUrl: '' }] },
+        ],
+        Lyrics: false,
+        Name: { not: undefined },
+        Band: { Name: { not: undefined } },
+      },
       orderBy: { Folder: 'asc' },
     });
 

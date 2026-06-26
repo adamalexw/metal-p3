@@ -9,7 +9,7 @@
         <div matListItemTitle>{{ folder }}</div>
         <div class="mt-2! flex!" matListItemLine>
           <mat-icon class="cursor-pointer" (click)="searchAlbum.emit(folder)" mat-list-icon title="search for existing album">search</mat-icon>
-          <mat-icon class="cursor-pointer" (click)="add.emit(folder)" mat-list-icon title="add album">add</mat-icon>
+          <mat-icon class="cursor-pointer" (click)="onAdd(folder)" mat-list-icon title="add album">add</mat-icon>
           <mat-icon class="cursor-pointer" [itemName]="folder" (confirmResult)="onDelete($event, folder)" mat-list-icon appConfirmDelete title="delete folder">delete</mat-icon>
         </div>
       </mat-list-item>

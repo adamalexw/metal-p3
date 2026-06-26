@@ -28,7 +28,7 @@ export class UnmappedFoldersShellComponent {
   }
 
   onAdd(folder: string) {
-    this.albumService.addNewAlbum(folder).subscribe(albumDto => {
+    this.albumService.addNewAlbum(`${this.basePath}/${folder}`).subscribe(albumDto => {
       this.albumStore.addAlbum({ ...albumDto });
     });
   }

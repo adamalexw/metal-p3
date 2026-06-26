@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, afterNextRender, computed, effect, inject, signal, viewChild } from '@angular/core';
+import { ApplicationRef, ChangeDetectionStrategy, Component, DestroyRef, ElementRef, afterNextRender, computed, effect, inject, signal, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Title } from '@angular/platform-browser';
 import { CoverComponent } from '@metal-p3/cover/ui';
@@ -23,13 +23,19 @@ export class PlayerShellComponent {
   private readonly destroyRef = inject(DestroyRef);
   private readonly themeService = inject(ArtworkThemeService);
   private readonly elementRef = inject(ElementRef);
+  private readonly appRef = inject(ApplicationRef);
 
   private readonly audio = viewChild.required<ElementRef>('audio');
 
   protected readonly playerStore = inject(PlayerStore);
   protected readonly playlistStore = inject(PlaylistStore);
 
-  divClass = computed(() => (this.playerStore.footerMode() ? 'max-h-[64px]' : 'flex flex-col lg:translate-y-0 lg:max-h-[calc(100vh-64px)]'));
+  divClass = computed(() => {
+    const base = 'relative';
+    return this.playerStore.footerMode()
+      ? `${base} max-h-[64px]`
+      : `${base} flex flex-col lg:translate-y-0 lg:max-h-[calc(100vh-64px)]`;
+  });
   subDivClass = computed(() => (this.playerStore.footerMode() ? '' : 'flex-col lg:flex-row'));
   toggleIcon = computed(() => (this.playerStore.footerMode() ? 'expand_less' : 'expand_more'));
   coverSize = computed(() => (this.playerStore.footerMode() ? 'h-16 w-16' : 'w-screen lg:w-[18.5rem]'));
@@ -246,7 +252,14 @@ export class PlayerShellComponent {
   }
 
   onToogleView() {
-    this.playerStore.toggleView();
+    if ('startViewTransition' in document) {
+      (document as any).startViewTransition(() => {
+        this.playerStore.toggleView();
+        this.appRef.tick();
+      });
+    } else {
+      this.playerStore.toggleView();
+    }
   }
 
   onReorder(playlist: PlaylistItem[]) {

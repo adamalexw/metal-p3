@@ -1,5 +1,12 @@
 @if (playerStore.playerOpen()) {
   <div [class]="divClass()">
+    <div class="absolute inset-0 overflow-hidden z-[-1]">
+      <div class="absolute inset-0 z-[-3] bg-background"></div>
+      @if (playerStore.activeItemCover(); as bgCover) {
+        <div class="absolute inset-0 z-[-2] bg-cover bg-center bg-no-repeat bg-fixed opacity-50 blur-xl transition-all duration-500" [style.background-image]="'url(' + bgCover + ')'"></div>
+        <div class="absolute inset-0 z-[-1] bg-black/60 backdrop-blur-md"></div>
+      }
+    </div>
     <div class="static flex w-full" [class]="subDivClass()" [class.hidden]="!playerStore.activePlaylistItem()">
       <app-cover class="aspect-square shrink-0 max-h-[calc(100vh-120px)] lg:max-h-none" [class]="coverSize()" [cover]="playerStore.activeItemCover()" />
 
@@ -25,7 +32,7 @@
     @if (!playerStore.footerMode()) {
       <app-playlist-shell [duration]="playerStore.playlistDuration()" (clearPlaylist)="onClearPlaylist()" (closePlaylist)="onClosePlaylist()" (togglePlaylist)="onTogglePlaylist()" />
       <app-playlist
-        class="fixed top-0 left-0 z-50 h-screen overflow-y-auto bg-background lg:static lg:block lg:flex-1 lg:min-h-0 lg:h-auto lg:max-h-none lg:translate-y-0"
+        class="fixed top-0 left-0 z-50 h-screen overflow-y-auto lg:static lg:block lg:flex-1 lg:min-h-0 lg:h-auto lg:max-h-none lg:translate-y-0"
         [class.hidden]="!playerStore.showPlaylist()"
         [playlist]="playerStore.playlist()"
         [currentItem]="playerStore.activePlaylistItem()"

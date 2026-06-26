@@ -9,9 +9,9 @@
     <mat-toolbar-row>
       <div class="w-full">
         <div class="flex flex-row items-end pt-5">
-          <span class="text-xs">{{ elapsedTime() | time }}</span>
+          <span class="text-lg">{{ elapsedTime() | time }}</span>
           <span class="grow"></span>
-          <span class="text-xs">{{ currentItem()?.duration | time }}</span>
+          <span class="text-lg">{{ currentItem()?.duration | time }}</span>
         </div>
         <ng-container *ngTemplateOutlet="durationTemplate" />
       </div>
@@ -22,9 +22,9 @@
       <ng-container *ngTemplateOutlet="controlsTemplate" />
     </div>
     @if (footerMode()) {
-      <div class="hidden text-xs lg:block">{{ elapsedTime() | time }} / {{ currentItem()?.duration | time }}</div>
+      <div class="hidden lg:block lg:text-lg">{{ elapsedTime() | time }} / {{ currentItem()?.duration | time }}</div>
       @if (currentItem()) {
-        <div class="mr-4 line-clamp-1 text-xs lg:mr-0">{{ currentItem()?.trackNumber }} - {{ currentItem()?.title }}</div>
+        <div class="text-lg mr-4 line-clamp-1 lg:mr-0">{{ currentItem()?.trackNumber }} - {{ currentItem()?.title }}</div>
       }
       <div class="absolute top-1/2 left-1/2 hidden -translate-x-1/2 -translate-y-1/2 transform lg:block">
         <ng-container *ngTemplateOutlet="detailsTemplate" />
@@ -73,8 +73,8 @@
 <ng-template #detailsTemplate>
   <div class="flex-col text-center">
     @if (currentItem(); as currentItem) {
-      <div class="text-sm">{{ currentItem.artist }} - {{ currentItem.album }}</div>
-      <div class="text-sm">{{ currentItem.year }} - {{ currentItem.genre }}</div>
+      <div class="text-lg">{{ currentItem.artist }} - {{ currentItem.album }}</div>
+      <div class="text-base">{{ currentItem.year }} - {{ currentItem.genre }}</div>
     }
   </div>
 </ng-template>

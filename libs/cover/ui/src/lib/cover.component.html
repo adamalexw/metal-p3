@@ -7,18 +7,14 @@
   <div class="relative w-full overflow-hidden" [style.width.px]="width()" [style.height.px]="height()" [enableDnd]="enableDnd()" (coverUrl)="coverUrl.emit($event)" appCoverDnd>
     <img alt="album cover" class="w-full h-full object-cover" [src]="coverStr | safe: 'resourceUrl'" loading="lazy" />
     @if (loading()) {
-      <div class="absolute top-0 flex h-full w-full items-center justify-center bg-black/50">
-        <mat-spinner diameter="48"></mat-spinner>
-      </div>
+      <div class="absolute inset-0 flex h-full w-full bg-slate-500/40 animate-pulse backdrop-blur-sm"></div>
     }
   </div>
 } @else {
   <div class="relative w-full overflow-hidden" [enableDnd]="enableDnd()" (coverUrl)="coverUrl.emit($event)" appCoverDnd>
     <img alt="blank cover" [style.width.px]="width()" [style.height.px]="height()" [src]="blankCover" />
     @if (loading()) {
-      <div class="absolute top-0 flex h-full w-full items-center justify-center bg-black/50">
-        <mat-spinner diameter="48"></mat-spinner>
-      </div>
+      <div class="absolute inset-0 flex h-full w-full bg-slate-500/40 animate-pulse backdrop-blur-sm"></div>
     }
   </div>
 }

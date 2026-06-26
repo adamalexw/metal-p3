@@ -1,0 +1,46 @@
+<mat-toolbar class="bg-transparent! text-white">
+  <mat-toolbar-row>
+    <ng-container>
+      <button mat-icon-button [matMenuTriggerFor]="menu" (click)="onLoadPlaylists()"><mat-icon title="load">queue_music</mat-icon></button>
+      <mat-menu #menu="matMenu" yPosition="above">
+        @for (playlist of playlists(); track playlist.id) {
+          <button mat-menu-item (click)="loadPlaylist.emit(playlist.id)">{{ playlist.name }}</button>
+        }
+      </mat-menu>
+    </ng-container>
+
+    @if (activePlaylist()) {
+      <input matInput placeholder="playlist name" class="w-auto" required [(ngModel)]="playlistName" />
+      <button mat-icon-button (click)="updatePlaylist.emit(playlistName() || '')">
+        <mat-icon title="save">save</mat-icon>
+      </button>
+    } @else {
+      @if (saving()) {
+        <input matInput placeholder="playlist name" class="w-auto" required [(ngModel)]="playlistName" />
+      }
+      @if ((duration() ?? 0) > 0) {
+        <button mat-icon-button [disabled]="saving() && !playlistName()" (click)="onCreate()"><mat-icon title="create">playlist_add</mat-icon></button>
+      }
+    }
+
+    @if ((playlistSize() ?? 0) > 1) {
+      <button mat-icon-button (click)="shuffle.emit()">
+        <mat-icon>shuffle</mat-icon>
+      </button>
+    }
+
+    @if ((playlistSize() ?? 0) > 0) {
+      <button mat-icon-button (click)="clearPlaylist.emit()">
+        <mat-icon title="clear">clear_all</mat-icon>
+      </button>
+    }
+
+    <div class="w-full flex flex-row-reverse items-center">
+      <button mat-icon-button (click)="closePlaylist.emit()">
+        <mat-icon>close</mat-icon>
+      </button>
+      <div class="ml-1 mr-1">{{ duration() | time }}</div>
+      <mat-icon>timer</mat-icon>
+    </div>
+  </mat-toolbar-row>
+</mat-toolbar>

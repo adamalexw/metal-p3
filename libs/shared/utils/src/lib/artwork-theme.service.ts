@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { FastAverageColor } from 'fast-average-color';
-import { hslToRgb, lightenForContrast, rgbToHsl, toHex } from './color';
+import { lightenForContrast, toHex } from './color';
 
 @Injectable({ providedIn: 'root' })
 export class ArtworkThemeService {
@@ -13,16 +13,23 @@ export class ArtworkThemeService {
     }
 
     try {
-      const color = await this.fac.getColorAsync(url, { algorithm: 'dominant' });
+      const img = new Image();
+      img.crossOrigin = 'Anonymous';
+      img.src = url;
+      await new Promise((resolve, reject) => {
+        img.onload = resolve;
+        img.onerror = reject;
+      });
+
+      const height = Math.floor(img.naturalHeight * 0.3);
+      const color = await this.fac.getColorAsync(img, { 
+        algorithm: 'dominant',
+        top: 0,
+        left: 0,
+        width: img.naturalWidth,
+        height: height > 0 ? height : 50
+      });
       let rgb = { r: color.value[0], g: color.value[1], b: color.value[2] };
-      
-      const hsl = rgbToHsl(rgb);
-      
-      // Boost vibrancy: ensure minimum saturation and lightness so colors don't look flat
-      hsl.s = Math.max(hsl.s, 0.65); // Minimum 65% saturation
-      hsl.l = Math.max(hsl.l, 0.4);  // Minimum 40% lightness
-      
-      rgb = hslToRgb(hsl);
 
       const background = { r: 16, g: 16, b: 16 };
       const primaryRgb = lightenForContrast(rgb, background, 4.5);
@@ -42,15 +49,19 @@ export class ArtworkThemeService {
   }
 
   private applyStyles(el: HTMLElement, hex: string): void {
-    el.style.setProperty('--mdc-theme-primary', hex);
-    el.style.setProperty('--mat-sys-primary', hex);
-    el.style.setProperty('--sys-primary', hex);
-    el.style.setProperty('--mat-icon-color', hex);
+    el.style.setProperty('--mdc-theme-primary', hex, 'important');
+    el.style.setProperty('--mat-sys-primary', hex, 'important');
+    el.style.setProperty('--sys-primary', hex, 'important');
+    el.style.setProperty('--mat-icon-color', hex, 'important');
     
-    el.style.setProperty('--mdc-slider-handle-color', hex);
-    el.style.setProperty('--mdc-slider-focus-handle-color', hex);
-    el.style.setProperty('--mdc-slider-hover-handle-color', hex);
-    el.style.setProperty('--mdc-slider-active-track-color', hex);
+    el.style.setProperty('--mat-sys-on-surface', hex, 'important');
+    el.style.setProperty('--mat-sys-on-surface-variant', hex, 'important');
+    el.style.setProperty('color', hex, 'important');
+
+    el.style.setProperty('--mdc-slider-handle-color', hex, 'important');
+    el.style.setProperty('--mdc-slider-focus-handle-color', hex, 'important');
+    el.style.setProperty('--mdc-slider-hover-handle-color', hex, 'important');
+    el.style.setProperty('--mdc-slider-active-track-color', hex, 'important');
   }
 
   private clearStyles(el: HTMLElement): void {
@@ -59,6 +70,10 @@ export class ArtworkThemeService {
     el.style.removeProperty('--sys-primary');
     el.style.removeProperty('--mat-icon-color');
     
+    el.style.removeProperty('--mat-sys-on-surface');
+    el.style.removeProperty('--mat-sys-on-surface-variant');
+    el.style.removeProperty('color');
+
     el.style.removeProperty('--mdc-slider-handle-color');
     el.style.removeProperty('--mdc-slider-focus-handle-color');
     el.style.removeProperty('--mdc-slider-hover-handle-color');

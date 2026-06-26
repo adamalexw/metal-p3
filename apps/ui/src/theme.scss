@@ -46,6 +46,39 @@ html {
   --mat-sys-headline-small-line-height: 2rem;
   --mat-sys-headline-medium-line-height: 2.25rem;
   --mat-sys-headline-large-line-height: 2.5rem;
+
+  --theme-gold: #95773a;
+  --mat-sys-primary: var(--theme-gold) !important;
+  --mdc-theme-primary: var(--theme-gold) !important;
+  --sys-primary: var(--theme-gold) !important;
+  --mat-sys-on-surface: var(--theme-gold) !important;
+  --mat-sys-on-surface-variant: var(--theme-gold) !important;
+  --mat-icon-color: var(--theme-gold) !important;
+  --mdc-filled-text-field-input-text-color: var(--theme-gold) !important;
+  --mdc-filled-text-field-label-text-color: var(--theme-gold) !important;
+  --mdc-filled-text-field-focus-label-text-color: var(--theme-gold) !important;
+  --mdc-filled-text-field-caret-color: var(--theme-gold) !important;
+  --mat-menu-item-label-text-color: var(--theme-gold) !important;
+  --mat-menu-item-icon-color: var(--theme-gold) !important;
+  --mat-list-list-item-leading-icon-color: var(--theme-gold) !important;
+  
+  --mat-card-title-text-color: var(--theme-gold) !important;
+  --mat-card-subtitle-text-color: var(--theme-gold) !important;
+  --mat-card-content-text-color: var(--theme-gold) !important;
+  --mat-card-footer-text-color: var(--theme-gold) !important;
+  --mat-card-color: var(--theme-gold) !important;
+  
+  color: var(--theme-gold) !important;
+}
+
+.mat-mdc-card,
+.mat-mdc-card-title,
+.mat-mdc-card-subtitle,
+.mat-mdc-card-content,
+.mat-mdc-card-footer {
+  --mat-sys-on-surface: var(--theme-gold) !important;
+  --mat-sys-on-surface-variant: var(--theme-gold) !important;
+  color: var(--theme-gold) !important;
 }
 
 // Force text inputs to use Inter for readability
