@@ -1,5 +1,5 @@
 import { BlurView } from 'expo-blur';
-import { DrawerActions } from '@react-navigation/native';
+
 import { useNavigation, useRouter } from 'expo-router';
 import {
   Captions,
@@ -152,7 +152,7 @@ export default function PlayerScreen() {
         testID="player-header"
       >
         <Pressable
-          onPress={() => navigation.dispatch(DrawerActions.openDrawer())}
+          onPress={() => navigation.dispatch({ type: 'OPEN_DRAWER' } as any)}
           style={tw`w-10 h-10 items-center justify-center ml-1`}
           hitSlop={8}
           testID="player-menu-toggle"

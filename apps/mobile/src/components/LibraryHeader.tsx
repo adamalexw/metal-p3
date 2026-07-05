@@ -1,4 +1,3 @@
-import { DrawerActions } from '@react-navigation/native';
 import { BlurView } from 'expo-blur';
 import { useNavigation } from 'expo-router';
 import { Menu } from 'lucide-react-native';
@@ -89,7 +88,7 @@ export default function LibraryHeader({ title, stats, topInset, scrollY }: Props
         ]}
       >
         <Pressable
-          onPress={() => navigation.dispatch(DrawerActions.openDrawer())}
+          onPress={() => navigation.dispatch({ type: 'OPEN_DRAWER' } as any)}
           style={tw`w-10 h-10 items-center justify-center mr-2`}
           hitSlop={8}
           testID="library-menu-toggle"

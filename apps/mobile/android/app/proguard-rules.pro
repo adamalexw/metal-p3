@@ -12,3 +12,14 @@
 -keep class com.facebook.react.turbomodule.** { *; }
 
 # Add any project specific keep options here:
+
+# Expo modules
+-keep class expo.modules.** { *; }
+-keepclassmembers class expo.modules.** { *; }
+-keep class kotlin.reflect.** { *; }
+-keepclassmembers class * {
+  @expo.modules.core.interfaces.DoNotStrip *;
+}
+-keep class com.facebook.react.bridge.JSIModulePackage { *; }
+-keep class com.facebook.react.bridge.JSIModuleProvider { *; }
+-keep class com.facebook.react.bridge.UIManager { *; }
