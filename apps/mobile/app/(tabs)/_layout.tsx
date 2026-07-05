@@ -1,4 +1,4 @@
-import { DrawerContentScrollView, DrawerItemList, type DrawerContentComponentProps } from '@react-navigation/drawer';
+import { DrawerContentScrollView, DrawerItemList } from '@react-navigation/drawer';
 import { BlurView } from 'expo-blur';
 import { Drawer } from 'expo-router/drawer';
 import { Disc3, ListMusic, Music4 } from 'lucide-react-native';
@@ -7,7 +7,7 @@ import { StyleSheet, View } from 'react-native';
 import { tw } from '../../src/lib/tw';
 import { useNowPlayingState } from '../../src/lib/useNowPlayingState';
 
-function DrawerContent(props: DrawerContentComponentProps) {
+function DrawerContent(props: any) {
   return (
     <View style={tw`flex-1`}>
       <BlurView intensity={40} tint="dark" style={StyleSheet.absoluteFill} />

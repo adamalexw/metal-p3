@@ -26,7 +26,7 @@
     "expo": "*",
     "expo-blur": "*",
     "expo-constants": "*",
-    "expo-image": "~3.0.11",
+    "expo-image": "*",
     "expo-linking": "*",
     "expo-modules-core": "*",
     "expo-router": "*",

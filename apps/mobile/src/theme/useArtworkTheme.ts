@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { getColors } from 'react-native-image-colors';
 import type { AndroidImageColors } from 'react-native-image-colors/build/types';
-import { loadTrackArtwork, evictTrackArtwork } from '../lib/useTrackArtwork';
+import { loadTrackArtwork, evictTrackArtwork, revalidateNullArtwork } from '../lib/useTrackArtwork';
 import {
   bestMonoFor,
   clampLuminanceDown,
@@ -126,6 +126,32 @@ export function evictArtworkTheme(trackUri: string): void {
   }
 }
 
+/**
+ * Repair pass for artwork loads that failed while the device was locked:
+ * Android can refuse content:// reads from a backgrounded process, leaving a
+ * null poisoned into the artwork cache and no theme cached. Called on
+ * foreground for the now-playing tracks — clears the null, resets the retry
+ * budget, re-extracts, and pings theme listeners so mounted screens repaint.
+ * No-op when the caches already hold real artwork.
+ */
+export function repairArtworkTheme(trackUri: string | null | undefined): void {
+  if (!trackUri) return;
+  const cleared = revalidateNullArtwork(trackUri);
+  const themed = THEME_CACHE.has(trackUri);
+  if (!cleared && themed) return;
+  THEME_CACHE.delete(trackUri);
+  void loadArtworkTheme(trackUri).then(() => {
+    for (const listener of THEME_LISTENERS) {
+      listener(trackUri);
+    }
+  });
+}
+
+export function _resetForTests(): void {
+  THEME_CACHE.clear();
+  THEME_LISTENERS.clear();
+}
+
 export function useArtworkTheme(trackUri: string | null | undefined): ArtworkTheme {
   const [prevTrackUri, setPrevTrackUri] = useState<string | null | undefined>(trackUri);
   const [theme, setTheme] = useState<ArtworkTheme>(() => {
@@ -153,16 +179,19 @@ export function useArtworkTheme(trackUri: string | null | undefined): ArtworkThe
     }
 
     let cancelled = false;
-    const update = () => {
+    // Failure paths return a fallback theme without caching it (so it stays
+    // retryable) — apply that resolved value instead of re-reading the cache,
+    // or a palette failure would discard perfectly good artwork.
+    const update = (resolved?: ArtworkTheme) => {
       if (!cancelled) {
-        setTheme(THEME_CACHE.get(trackUri) ?? DEFAULT_THEME);
+        setTheme(THEME_CACHE.get(trackUri) ?? resolved ?? DEFAULT_THEME);
       }
     };
 
     if (!THEME_CACHE.has(trackUri)) {
       setTheme((t) => ({ ...t, loading: true }));
-      void loadArtworkTheme(trackUri).then(() => {
-        update();
+      void loadArtworkTheme(trackUri).then((resolved) => {
+        update(resolved);
       });
     } else {
       update();
@@ -171,8 +200,8 @@ export function useArtworkTheme(trackUri: string | null | undefined): ArtworkThe
     const unsubscribe = subscribeTheme((evictedUri) => {
       if (evictedUri === trackUri && !cancelled) {
         setTheme((t) => ({ ...t, loading: true }));
-        void loadArtworkTheme(trackUri).then(() => {
-          update();
+        void loadArtworkTheme(trackUri).then((resolved) => {
+          update(resolved);
         });
       }
     });

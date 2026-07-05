@@ -32,6 +32,25 @@ export function resetArtworkRetry(uri: string): void {
   RETRIES.delete(uri);
 }
 
+/**
+ * Re-attempts a load for a uri whose cached result is null — the signature of
+ * a read that ran while the device was locked (MediaMetadataRetriever can fail
+ * on content:// URIs from the backgrounded process, resolving null instead of
+ * rejecting). No-op when the cache holds real artwork or has no entry yet.
+ * Resets the retry budget first so repeated background failures can't exhaust
+ * it, then notifies subscribers so mounted consumers reload. Returns whether
+ * a poisoned entry was cleared.
+ */
+export function revalidateNullArtwork(uri: string): boolean {
+  if (ARTWORK_CACHE.get(uri) !== null) return false;
+  RETRIES.delete(uri);
+  ARTWORK_CACHE.delete(uri);
+  for (const listener of LISTENERS) {
+    listener(uri);
+  }
+  return true;
+}
+
 export function getCachedTrackArtwork(uri: string | null | undefined): string | null {
   if (!uri) return null;
   return ARTWORK_CACHE.get(uri) ?? null;

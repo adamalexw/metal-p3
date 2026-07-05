@@ -1,9 +1,9 @@
 import { BlurView } from 'expo-blur';
 import { Image } from 'expo-image';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
-import { Play, Shuffle, Trash2 } from 'lucide-react-native';
+import { Play, Shuffle, Trash2, ChevronLeft } from 'lucide-react-native';
 import { createRef, useEffect, useRef, useState, type RefObject } from 'react';
-import { FlatList, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
+import { FlatList, Linking, Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import ReanimatedSwipeable, {
   type SwipeableMethods,
 } from 'react-native-gesture-handler/ReanimatedSwipeable';
@@ -33,6 +33,8 @@ export default function AlbumDetailScreen() {
   const albumKey = decodeURIComponent(rawKey);
   const group = useLibraryAlbumGroup(albumKey);
   const insets = useSafeAreaInsets();
+  const { width: windowWidth } = useWindowDimensions();
+  const artSize = Math.max(160, Math.min(windowWidth - 48, 480));
   const nowPlaying = useNowPlayingState();
   const theme = useArtworkTheme(group?.representativeUri ?? null);
   const extras = useTrackExtras(group?.representativeUri ?? null);
@@ -138,34 +140,7 @@ export default function AlbumDetailScreen() {
 
   return (
     <View style={tw`flex-1 bg-black`}>
-      <Stack.Screen
-        options={{
-          title: group.albumName,
-          headerShown: true,
-          headerTintColor: theme.foreground,
-          headerTitleAlign: 'center',
-          headerTitle: () => (
-            <View style={tw`items-center`} testID="album-detail-header-title">
-              <Text
-                style={[tw`text-base font-semibold`, { color: theme.foreground }]}
-                numberOfLines={1}
-                ellipsizeMode="tail"
-              >
-                {group.albumName}
-              </Text>
-              <Text
-                style={[tw`text-xs`, { color: theme.mutedForeground }]}
-                numberOfLines={1}
-                ellipsizeMode="tail"
-              >
-                {group.bandName}
-              </Text>
-            </View>
-          ),
-          headerTransparent: true,
-          headerShadowVisible: false,
-        }}
-      />
+      <Stack.Screen options={{ headerShown: false }} />
 
       {artUri ? (
         <View style={StyleSheet.absoluteFill} pointerEvents="none" testID="album-detail-backdrop">
@@ -181,15 +156,33 @@ export default function AlbumDetailScreen() {
           <View style={[StyleSheet.absoluteFill, tw`bg-black/30`]} />
         </View>
       ) : null}
+      <Pressable
+        style={[
+          tw`absolute left-8 w-10 h-10 rounded-full bg-black/40 items-center justify-center z-50`,
+          { top: insets.top + 20 }
+        ]}
+        onPress={() => router.back()}
+        accessibilityRole="button"
+        accessibilityLabel="Go back"
+      >
+        <ChevronLeft size={24} color="#fff" />
+      </Pressable>
 
       <FlatList<Track>
         data={group.tracks}
         keyExtractor={(t) => t.id}
         contentContainerStyle={{ paddingBottom: listBottomPad }}
         ListHeaderComponent={
-          <View style={[tw`px-4 pb-6 items-center`, { paddingTop: insets.top + 88 }]}>
+          <View style={[tw`pb-6 items-center`, { paddingTop: insets.top + 8 }]}>
             <View
-              style={tw`w-[220px] h-[220px] rounded-lg overflow-hidden bg-[#222] mb-4`}
+              style={[
+                tw`max-w-full rounded-[18px] overflow-hidden bg-[#222] mb-6`,
+                {
+                  width: artSize,
+                  height: artSize,
+                  boxShadow: '0 8px 18px rgba(0, 0, 0, 0.5)',
+                },
+              ]}
               testID="album-detail-artwork"
             >
               {artUri ? (
@@ -205,97 +198,101 @@ export default function AlbumDetailScreen() {
                 <View style={tw`w-full h-full bg-[#222]`} />
               )}
             </View>
-            {albumUrl ? (
-              <Text
-                style={[
-                  tw`text-[22px] font-bold text-center underline`,
-                  { color: theme.accent },
-                ]}
-                numberOfLines={2}
-                onPress={() => void Linking.openURL(albumUrl)}
-                accessibilityRole="link"
-                accessibilityLabel="Open Metal Archives page"
-                testID="album-detail-name-link"
-              >
-                {group.albumName}
-              </Text>
-            ) : (
-              <Text
-                style={[tw`text-[22px] font-bold text-center`, { color: theme.foreground }]}
-                numberOfLines={2}
-                testID="album-detail-name"
-              >
-                {group.albumName}
-              </Text>
-            )}
-            <Text
-              style={[tw`text-base mt-1 text-center`, { color: theme.foreground }]}
-              numberOfLines={1}
-              testID="album-detail-band"
-            >
-              {group.bandName}
-            </Text>
-            {group.genre || flag ? (
-              <Text
-                style={[tw`text-[13px] mt-1 text-center`, { color: theme.mutedForeground }]}
-                numberOfLines={1}
-                testID="album-detail-genre"
-              >
-                {flag ? `${flag}  ` : ''}
-                {group.genre ?? ''}
-              </Text>
-            ) : null}
-            <Text style={[tw`text-[13px] mt-1.5 text-center`, { color: theme.mutedForeground }]}>
-              {meta}
-            </Text>
-            <View style={tw`flex-row gap-3 mt-4`}>
-              <Pressable
-                style={[
-                  tw`flex-row items-center justify-center gap-2 py-2.5 px-5 rounded-full min-w-[130px]`,
-                  { backgroundColor: theme.accent },
-                ]}
-                onPress={() => void playFrom(0)}
-                testID="album-detail-play"
-                accessibilityRole="button"
-                accessibilityLabel="Play album"
-              >
-                <Play
-                  size={20}
-                  color={theme.accentForeground}
-                  fill={theme.accentForeground}
-                  strokeWidth={2.5}
-                  strokeLinecap="square"
-                />
+
+            <View style={tw`px-4 w-full items-center`}>
+              {albumUrl ? (
                 <Text
-                  style={[tw`text-sm font-bold tracking-[0.4px]`, { color: theme.accentForeground }]}
+                  style={[
+                    tw`text-xl font-bold text-center`,
+                    { color: theme.accent },
+                  ]}
+                  numberOfLines={2}
+                  onPress={() => void Linking.openURL(albumUrl)}
+                  accessibilityRole="link"
+                  accessibilityLabel="Open Metal Archives page"
+                  testID="album-detail-name-link"
                 >
-                  Play
+                  {group.albumName}
                 </Text>
-              </Pressable>
-              <Pressable
-                style={[
-                  tw`flex-row items-center justify-center gap-2 py-2.5 px-5 rounded-full min-w-[130px]`,
-                  {
-                    borderWidth: 1.5,
-                    backgroundColor: theme.surface,
-                    borderColor: theme.accent,
-                  },
-                ]}
-                onPress={() => void playShuffled()}
-                testID="album-detail-shuffle"
-                accessibilityRole="button"
-                accessibilityLabel="Shuffle album"
+              ) : (
+                <Text
+                  style={[tw`text-xl font-bold text-center`, { color: theme.foreground }]}
+                  numberOfLines={2}
+                  testID="album-detail-name"
+                >
+                  {group.albumName}
+                </Text>
+              )}
+              <Text
+                style={[tw`text-base mt-1 text-center`, { color: theme.foreground }]}
+                numberOfLines={1}
+                testID="album-detail-band"
               >
-                <Shuffle
-                  size={20}
-                  color={theme.accent}
-                  strokeWidth={2.5}
-                  strokeLinecap="square"
-                />
-                <Text style={[tw`text-sm font-bold tracking-[0.4px]`, { color: theme.accent }]}>
-                  Shuffle
+                {group.bandName}
+              </Text>
+              {group.genre || flag ? (
+                <Text
+                  style={[tw`text-sm mt-1.5 text-center`, { color: theme.mutedForeground }]}
+                  numberOfLines={1}
+                  testID="album-detail-genre"
+                >
+                  {flag ? `${flag}  ` : ''}
+                  {group.genre ?? ''}
                 </Text>
-              </Pressable>
+              ) : null}
+              <Text style={[tw`text-sm mt-1 text-center`, { color: theme.mutedForeground }]}>
+                {meta}
+              </Text>
+              
+              <View style={tw`flex-row gap-3 w-full mt-5`}>
+                <Pressable
+                  style={[
+                    tw`flex-1 flex-row items-center justify-center gap-1.5 py-2 px-4 rounded-full`,
+                    { backgroundColor: theme.accent },
+                  ]}
+                  onPress={() => void playFrom(0)}
+                  testID="album-detail-play"
+                  accessibilityRole="button"
+                  accessibilityLabel="Play album"
+                >
+                  <Play
+                    size={16}
+                    color={theme.accentForeground}
+                    fill={theme.accentForeground}
+                    strokeWidth={2.5}
+                    strokeLinecap="square"
+                  />
+                  <Text
+                    style={[tw`text-sm font-bold tracking-[0.4px]`, { color: theme.accentForeground }]}
+                  >
+                    Play
+                  </Text>
+                </Pressable>
+                <Pressable
+                  style={[
+                    tw`flex-1 flex-row items-center justify-center gap-1.5 py-2 px-4 rounded-full`,
+                    {
+                      borderWidth: 1.5,
+                      backgroundColor: theme.surface,
+                      borderColor: theme.accent,
+                    },
+                  ]}
+                  onPress={() => void playShuffled()}
+                  testID="album-detail-shuffle"
+                  accessibilityRole="button"
+                  accessibilityLabel="Shuffle album"
+                >
+                  <Shuffle
+                    size={16}
+                    color={theme.accent}
+                    strokeWidth={2.5}
+                    strokeLinecap="square"
+                  />
+                  <Text style={[tw`text-sm font-bold tracking-[0.4px]`, { color: theme.accent }]}>
+                    Shuffle
+                  </Text>
+                </Pressable>
+              </View>
             </View>
           </View>
         }

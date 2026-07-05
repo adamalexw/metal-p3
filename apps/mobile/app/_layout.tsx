@@ -7,7 +7,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import MiniPlayer from '../src/components/MiniPlayer';
 import { startArtworkPrefetcher } from '../src/lib/artwork-prefetcher';
-import { reconcileImportedPlaylists } from '../src/lib/playlist-store';
+import { loadPlaylists, reconcileImportedPlaylists } from '../src/lib/playlist-store';
 import { tw } from '../src/lib/tw';
 
 export default function RootLayout() {
@@ -16,6 +16,9 @@ export default function RootLayout() {
   }, []);
 
   useEffect(() => {
+    // Load playlists at startup so the album-list filter (which hides
+    // playlist-owned tracks) works before the Playlists tab is visited.
+    void loadPlaylists();
     void reconcileImportedPlaylists();
     const sub = AppState.addEventListener('change', (state) => {
       if (state === 'active') void reconcileImportedPlaylists();

@@ -12,3 +12,15 @@
 -keep class com.facebook.react.turbomodule.** { *; }
 
 # Add any project specific keep options here:
+
+# metal-p3 keep rules
+# Expo modules resolve views/modules reflectively; R8 must not strip them.
+-keep class expo.modules.** { *; }
+-keepclassmembers class expo.modules.** { *; }
+-keep class kotlin.reflect.** { *; }
+-keepclassmembers class * {
+  @expo.modules.core.interfaces.DoNotStrip *;
+}
+-keep class com.facebook.react.bridge.JSIModulePackage { *; }
+-keep class com.facebook.react.bridge.JSIModuleProvider { *; }
+-keep class com.facebook.react.bridge.UIManager { *; }
