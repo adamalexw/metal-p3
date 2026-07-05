@@ -1,0 +1,3 @@
+{
+  "babelrcRoots": ["*", "apps/*", "libs/*", "modules/*"]
+}

@@ -5,9 +5,9 @@ module.exports = function withWindowsMemoryLimits(config) {
     // Modify org.gradle.jvmargs
     const jvmArgsItem = config.modResults.find(item => item.type === 'property' && item.key === 'org.gradle.jvmargs');
     if (jvmArgsItem) {
-      jvmArgsItem.value = '-Xmx3g -XX:MaxMetaspaceSize=1g -Dfile.encoding=UTF-8';
+      jvmArgsItem.value = '-Xmx4g -XX:MaxMetaspaceSize=1g -Dfile.encoding=UTF-8';
     } else {
-      config.modResults.push({ type: 'property', key: 'org.gradle.jvmargs', value: '-Xmx3g -XX:MaxMetaspaceSize=1g -Dfile.encoding=UTF-8' });
+      config.modResults.push({ type: 'property', key: 'org.gradle.jvmargs', value: '-Xmx4g -XX:MaxMetaspaceSize=1g -Dfile.encoding=UTF-8' });
     }
 
     // Disable parallel and limit workers
@@ -21,8 +21,8 @@ module.exports = function withWindowsMemoryLimits(config) {
     };
 
     setOrAdd('org.gradle.parallel', 'false');
-    setOrAdd('org.gradle.workers.max', '1');
-    setOrAdd('kotlin.daemon.jvmargs', '-Xmx1g -XX:MaxMetaspaceSize=256m');
+    setOrAdd('org.gradle.workers.max', '2');
+    setOrAdd('kotlin.daemon.jvmargs', '-Xmx2g -XX:MaxMetaspaceSize=512m');
     setOrAdd('kotlin.compiler.execution.strategy', 'daemon');
     setOrAdd('reactNativeArchitectures', 'arm64-v8a');
 

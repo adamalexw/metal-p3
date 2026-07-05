@@ -13,7 +13,8 @@
 
 # Add any project specific keep options here:
 
-# Expo modules
+# metal-p3 keep rules
+# Expo modules resolve views/modules reflectively; R8 must not strip them.
 -keep class expo.modules.** { *; }
 -keepclassmembers class expo.modules.** { *; }
 -keep class kotlin.reflect.** { *; }

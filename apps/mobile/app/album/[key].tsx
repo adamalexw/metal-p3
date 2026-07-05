@@ -3,7 +3,7 @@ import { Image } from 'expo-image';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { Play, Shuffle, Trash2, ChevronLeft } from 'lucide-react-native';
 import { createRef, useEffect, useRef, useState, type RefObject } from 'react';
-import { FlatList, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
+import { FlatList, Linking, Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import ReanimatedSwipeable, {
   type SwipeableMethods,
 } from 'react-native-gesture-handler/ReanimatedSwipeable';
@@ -33,6 +33,8 @@ export default function AlbumDetailScreen() {
   const albumKey = decodeURIComponent(rawKey);
   const group = useLibraryAlbumGroup(albumKey);
   const insets = useSafeAreaInsets();
+  const { width: windowWidth } = useWindowDimensions();
+  const artSize = Math.max(160, Math.min(windowWidth - 48, 480));
   const nowPlaying = useNowPlayingState();
   const theme = useArtworkTheme(group?.representativeUri ?? null);
   const extras = useTrackExtras(group?.representativeUri ?? null);
@@ -156,8 +158,8 @@ export default function AlbumDetailScreen() {
       ) : null}
       <Pressable
         style={[
-          tw`absolute left-4 w-10 h-10 rounded-full bg-black/40 items-center justify-center z-50`,
-          { top: insets.top + 8 }
+          tw`absolute left-8 w-10 h-10 rounded-full bg-black/40 items-center justify-center z-50`,
+          { top: insets.top + 20 }
         ]}
         onPress={() => router.back()}
         accessibilityRole="button"
@@ -171,9 +173,16 @@ export default function AlbumDetailScreen() {
         keyExtractor={(t) => t.id}
         contentContainerStyle={{ paddingBottom: listBottomPad }}
         ListHeaderComponent={
-          <View style={tw`pb-6 items-center`}>
+          <View style={[tw`pb-6 items-center`, { paddingTop: insets.top + 8 }]}>
             <View
-              style={tw`w-full aspect-square bg-[#222] mb-6`}
+              style={[
+                tw`max-w-full rounded-[18px] overflow-hidden bg-[#222] mb-6`,
+                {
+                  width: artSize,
+                  height: artSize,
+                  boxShadow: '0 8px 18px rgba(0, 0, 0, 0.5)',
+                },
+              ]}
               testID="album-detail-artwork"
             >
               {artUri ? (
@@ -189,12 +198,12 @@ export default function AlbumDetailScreen() {
                 <View style={tw`w-full h-full bg-[#222]`} />
               )}
             </View>
-            
+
             <View style={tw`px-4 w-full items-center`}>
               {albumUrl ? (
                 <Text
                   style={[
-                    tw`text-3xl font-bold text-center underline`,
+                    tw`text-xl font-bold text-center`,
                     { color: theme.accent },
                   ]}
                   numberOfLines={2}
@@ -207,7 +216,7 @@ export default function AlbumDetailScreen() {
                 </Text>
               ) : (
                 <Text
-                  style={[tw`text-3xl font-bold text-center`, { color: theme.foreground }]}
+                  style={[tw`text-xl font-bold text-center`, { color: theme.foreground }]}
                   numberOfLines={2}
                   testID="album-detail-name"
                 >
@@ -215,7 +224,7 @@ export default function AlbumDetailScreen() {
                 </Text>
               )}
               <Text
-                style={[tw`text-xl mt-2 text-center`, { color: theme.foreground }]}
+                style={[tw`text-base mt-1 text-center`, { color: theme.foreground }]}
                 numberOfLines={1}
                 testID="album-detail-band"
               >
@@ -223,7 +232,7 @@ export default function AlbumDetailScreen() {
               </Text>
               {group.genre || flag ? (
                 <Text
-                  style={[tw`text-base mt-2 text-center`, { color: theme.mutedForeground }]}
+                  style={[tw`text-sm mt-1.5 text-center`, { color: theme.mutedForeground }]}
                   numberOfLines={1}
                   testID="album-detail-genre"
                 >
@@ -231,14 +240,14 @@ export default function AlbumDetailScreen() {
                   {group.genre ?? ''}
                 </Text>
               ) : null}
-              <Text style={[tw`text-base mt-2 text-center`, { color: theme.mutedForeground }]}>
+              <Text style={[tw`text-sm mt-1 text-center`, { color: theme.mutedForeground }]}>
                 {meta}
               </Text>
               
-              <View style={tw`flex-row gap-4 w-full mt-6`}>
+              <View style={tw`flex-row gap-3 w-full mt-5`}>
                 <Pressable
                   style={[
-                    tw`flex-1 flex-row items-center justify-center gap-2 py-3 px-5 rounded-full`,
+                    tw`flex-1 flex-row items-center justify-center gap-1.5 py-2 px-4 rounded-full`,
                     { backgroundColor: theme.accent },
                   ]}
                   onPress={() => void playFrom(0)}
@@ -247,21 +256,21 @@ export default function AlbumDetailScreen() {
                   accessibilityLabel="Play album"
                 >
                   <Play
-                    size={22}
+                    size={16}
                     color={theme.accentForeground}
                     fill={theme.accentForeground}
                     strokeWidth={2.5}
                     strokeLinecap="square"
                   />
                   <Text
-                    style={[tw`text-base font-bold tracking-[0.4px]`, { color: theme.accentForeground }]}
+                    style={[tw`text-sm font-bold tracking-[0.4px]`, { color: theme.accentForeground }]}
                   >
                     Play
                   </Text>
                 </Pressable>
                 <Pressable
                   style={[
-                    tw`flex-1 flex-row items-center justify-center gap-2 py-3 px-5 rounded-full`,
+                    tw`flex-1 flex-row items-center justify-center gap-1.5 py-2 px-4 rounded-full`,
                     {
                       borderWidth: 1.5,
                       backgroundColor: theme.surface,
@@ -274,12 +283,12 @@ export default function AlbumDetailScreen() {
                   accessibilityLabel="Shuffle album"
                 >
                   <Shuffle
-                    size={22}
+                    size={16}
                     color={theme.accent}
                     strokeWidth={2.5}
                     strokeLinecap="square"
                   />
-                  <Text style={[tw`text-base font-bold tracking-[0.4px]`, { color: theme.accent }]}>
+                  <Text style={[tw`text-sm font-bold tracking-[0.4px]`, { color: theme.accent }]}>
                     Shuffle
                   </Text>
                 </Pressable>

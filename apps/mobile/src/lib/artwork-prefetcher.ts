@@ -1,5 +1,6 @@
+import { AppState } from 'react-native';
 import { MetalP3Player, type PlaybackState } from '../../modules/metalp3-player';
-import { prefetchArtworkTheme } from '../theme/useArtworkTheme';
+import { prefetchArtworkTheme, repairArtworkTheme } from '../theme/useArtworkTheme';
 
 let started = false;
 
@@ -11,6 +12,12 @@ let started = false;
  * users see a visible delay where the title shows up before the cover.
  * By the time skipToNext fires, the next track's theme is already cached
  * and `useArtworkTheme` paints it on the first render.
+ *
+ * Also revalidates on foreground: artwork reads that ran while the device
+ * was locked can fail (content:// access from a backgrounded process) and
+ * poison the caches with nulls that would otherwise stick until the track
+ * changes. Foreground reads succeed, so repairing here fixes the artwork
+ * the moment the user unlocks.
  */
 export function startArtworkPrefetcher(): void {
   if (started) return;
@@ -37,4 +44,10 @@ export function startArtworkPrefetcher(): void {
 
   MetalP3Player.getStateAsync().then(onState).catch(() => undefined);
   MetalP3Player.addStateListener(onState);
+
+  AppState.addEventListener('change', (appState) => {
+    if (appState !== 'active') return;
+    repairArtworkTheme(lastCurrentUri);
+    repairArtworkTheme(lastNextUri);
+  });
 }

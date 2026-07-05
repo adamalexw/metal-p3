@@ -37,9 +37,10 @@
           "backgroundColor": "#000000"
         }
       ],
-      "./plugins/withReanimatedBypass.js",
       "./plugins/withKotlinJvmTarget.js",
-      "./plugins/withWindowsMemoryLimits.js"
+      "./plugins/withWindowsMemoryLimits.js",
+      "./plugins/withNxWorkspaceRoot.js",
+      "./plugins/withProguardRules.js"
     ],
     "experiments": {
       "typedRoutes": true
