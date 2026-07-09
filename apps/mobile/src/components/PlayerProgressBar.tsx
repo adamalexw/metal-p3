@@ -63,44 +63,48 @@ export function PlayerProgressBar({
     durationSv.value = durationMs;
   }, [durationMs, durationSv]);
 
-  // Core synchronization logic
+  // Core synchronization logic. The native player only emits stateChanged on
+  // discrete events (play/pause/seek/track change/queue edits), so every event
+  // carries an authoritative position: snap to it and restart the linear
+  // animation toward the end of the track. Never leave a previous animation
+  // running past this point — a stale animation targeting the old track's
+  // duration is what makes the bar race to the end.
   useEffect(() => {
     if (isScrubbing.value) return;
 
     const now = Date.now();
-    let isNewTrack = false;
-
-    if (trackKey !== trackRef.current) {
-      isNewTrack = true;
+    const isNewTrack = trackKey !== trackRef.current;
+    if (isNewTrack) {
       trackRef.current = trackKey;
       trackChangeTimeRef.current = now;
-      cancelAnimation(position);
-      position.value = 0;
-    }
-
-    // Ignore stale position updates (e.g. position > 2000) for 2 seconds after a track change
-    if (now - trackChangeTimeRef.current < 2000 && positionMs > 2000) {
+    } else if (durationMs > 0 && positionMs > durationMs + 500) {
+      // Mid-transition media3 can pair the outgoing track's position with the
+      // incoming track's duration. Applying it would pin the bar at 100% until
+      // the track-change event lands ("races to the end and back"). Ignore it;
+      // the current animation is still valid.
       return;
     }
 
-    const drift = Math.abs(position.value - positionMs);
-    // Snap to server position if drift is large (seek/buffer), new track started, or paused
-    if (drift > 1500 || isNewTrack || !isPlaying) {
-      cancelAnimation(position);
-      position.value = positionMs;
-      setDisplaySec(secOf(positionMs));
-    }
+    // Right after a transition the controller can briefly report the previous
+    // track's position. Treat large positions in that window as stale: start
+    // the new track at 0, and for follow-up events keep the locally animated
+    // value (already correct after the reset or a local scrub).
+    const stale = now - trackChangeTimeRef.current < 2000 && positionMs > 2000;
+    const base = stale
+      ? isNewTrack
+        ? 0
+        : Math.min(position.value, durationMs > 0 ? durationMs : position.value)
+      : positionMs;
 
-    if (isPlaying && durationMs > 0) {
-      const remainingMs = durationMs - position.value;
-      if (remainingMs > 0) {
-        position.value = withTiming(durationMs, {
-          duration: remainingMs,
-          easing: Easing.linear,
-        });
-      }
-    } else {
-      cancelAnimation(position);
+    cancelAnimation(position);
+    position.value = base;
+    setDisplaySec(secOf(base));
+
+    if (isPlaying && durationMs > 0 && base < durationMs) {
+      position.value = withTiming(durationMs, {
+        duration: durationMs - base,
+        easing: Easing.linear,
+      });
     }
   }, [positionMs, durationMs, isPlaying, trackKey, position, isScrubbing]);
 

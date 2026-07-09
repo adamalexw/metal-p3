@@ -27,6 +27,7 @@
     "expo-blur": "*",
     "expo-constants": "*",
     "expo-image": "*",
+    "expo-keep-awake": "*",
     "expo-linking": "*",
     "expo-modules-core": "*",
     "expo-router": "*",

@@ -179,4 +179,40 @@ describe('PlayerProgressBar', () => {
 
     expect(r.getByText('0:00')).toBeTruthy();
   });
+
+  it('ignores a stale position paired with the next track duration mid-transition', () => {
+    const onSeek = jest.fn();
+    const r = render(
+      <PlayerProgressBar
+        positionMs={5000}
+        durationMs={200_000}
+        isPlaying
+        trackKey="track-a"
+        accent="#ff0066"
+        mutedForeground="#bbbbbb"
+        onSeek={onSeek}
+        testID="progress"
+      />,
+    );
+
+    expect(r.getByText('0:05')).toBeTruthy();
+
+    // Mid-transition media3 can report the outgoing track's position (198s)
+    // against the incoming track's duration (90s) before the track key
+    // updates. The bar must not jump to the end.
+    r.rerender(
+      <PlayerProgressBar
+        positionMs={198_000}
+        durationMs={90_000}
+        isPlaying
+        trackKey="track-a"
+        accent="#ff0066"
+        mutedForeground="#bbbbbb"
+        onSeek={onSeek}
+        testID="progress"
+      />,
+    );
+
+    expect(r.getByText('0:05')).toBeTruthy();
+  });
 });

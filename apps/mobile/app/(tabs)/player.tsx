@@ -1,4 +1,6 @@
+import { useIsFocused } from '@react-navigation/native';
 import { BlurView } from 'expo-blur';
+import { useKeepAwake } from 'expo-keep-awake';
 
 import { useNavigation, useRouter } from 'expo-router';
 import {
@@ -35,10 +37,18 @@ import { tw } from '../../src/lib/tw';
 import { ICON_STROKE } from '../../src/theme/icons';
 import { useArtworkTheme } from '../../src/theme/useArtworkTheme';
 
+// Mounted only while the lyrics view is visible so the screen stays on for
+// reading along, but the normal timeout applies everywhere else.
+function KeepAwakeWhileVisible() {
+  useKeepAwake();
+  return null;
+}
+
 export default function PlayerScreen() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
   const router = useRouter();
+  const isFocused = useIsFocused();
   const state = useNowPlayingState();
   const [showLyrics, setShowLyrics] = useState(false);
   const [queueOpen, setQueueOpen] = useState(false);
@@ -130,6 +140,7 @@ export default function PlayerScreen() {
 
   return (
     <View style={[tw`flex-1`, { backgroundColor: theme.background }]}>
+      {isFocused && showLyrics && hasLyrics ? <KeepAwakeWhileVisible /> : null}
       {theme.artworkDataUri ? (
         <View style={StyleSheet.absoluteFill} pointerEvents="none" testID="player-backdrop">
           <ArtworkImage
