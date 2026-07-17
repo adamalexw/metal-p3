@@ -1,4 +1,4 @@
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClient, withXhr } from '@angular/common/http';
 import { ErrorHandler, enableProdMode, importProvidersFrom, provideZonelessChangeDetection } from '@angular/core';
 import { MAT_FORM_FIELD_DEFAULT_OPTIONS } from '@angular/material/form-field';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
@@ -20,7 +20,7 @@ if (environment.production) {
 bootstrapApplication(AppComponent, {
   providers: [
     provideRouter(routes, withInMemoryScrolling({ scrollPositionRestoration: 'enabled' }), withComponentInputBinding()),
-    provideHttpClient(),
+    provideHttpClient(withXhr()),
     provideZonelessChangeDetection(),
     importProvidersFrom(MatSnackBarModule, SocketIoModule.forRoot(config)),
     { provide: API, useValue: 'http://' + window.location.hostname + ':3333/api/' },

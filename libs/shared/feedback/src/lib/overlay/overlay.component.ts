@@ -1,7 +1,7 @@
 import { OverlayModule } from '@angular/cdk/overlay';
 import { PortalModule } from '@angular/cdk/portal';
 import { NgComponentOutlet, NgTemplateOutlet } from '@angular/common';
-import { Component, OnInit, TemplateRef, Type, inject } from '@angular/core';
+import { Component, OnInit, TemplateRef, Type, inject, ChangeDetectionStrategy } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { AppOverlayRef } from './overlay-ref';
@@ -9,6 +9,7 @@ import { AppOverlayRef } from './overlay-ref';
 @Component({
   imports: [NgComponentOutlet, NgTemplateOutlet, OverlayModule, PortalModule, MatCardModule, MatButtonModule],
   selector: 'app-overlay',
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './overlay.component.html',
 })
 export class OverlayComponent implements OnInit {

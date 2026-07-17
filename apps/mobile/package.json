@@ -8,6 +8,7 @@
     "ios": "expo run:ios"
   },
   "dependencies": {
+    "@expo/metro": "*",
     "@expo/metro-config": "*",
     "@nx/detox": "*",
     "@nx/devkit": "*",
@@ -36,8 +37,6 @@
     "expo-system-ui": "*",
     "jest-expo": "*",
     "lucide-react-native": "*",
-    "metro-config": "*",
-    "metro-resolver": "*",
     "picocolors": "*",
     "react": "*",
     "react-native": "*",

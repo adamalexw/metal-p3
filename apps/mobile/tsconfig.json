@@ -3,21 +3,16 @@
   "compilerOptions": {
     "allowSyntheticDefaultImports": true,
     "jsx": "react-native",
-    "lib": [
-      "dom",
-      "esnext"
-    ],
+    "lib": ["dom", "esnext"],
     "moduleResolution": "node",
     "skipLibCheck": true,
     "resolveJsonModule": true,
     "strict": true,
-    "declaration": true
+    "declaration": true,
+    "ignoreDeprecations": "6.0"
   },
   "files": [],
-  "include": [
-    ".expo/types/**/*.ts",
-    "expo-env.d.ts"
-  ],
+  "include": [".expo/types/**/*.ts", "expo-env.d.ts"],
   "references": [
     {
       "path": "./tsconfig.app.json"

@@ -8,5 +8,15 @@
     "moduleResolution": "bundler"
   },
   "files": ["src/main.ts", "src/polyfills.ts"],
-  "exclude": ["jest.config.ts"]
+  "exclude": [
+    "jest.config.ts"
+  ],
+  "angularCompilerOptions": {
+    "extendedDiagnostics": {
+      "checks": {
+        "nullishCoalescingNotNullable": "suppress",
+        "optionalChainNotNullable": "suppress"
+      }
+    }
+  }
 }

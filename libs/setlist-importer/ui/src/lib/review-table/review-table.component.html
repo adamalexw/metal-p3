@@ -23,8 +23,8 @@
 
       <div class="ml-auto flex items-center gap-2 text-sm">
         <span>{{ selectedCount() }} selected</span>
-        <button type="button" mat-button (click)="setAllSelection.emit(true)">Select all matched</button>
-        <button type="button" mat-button (click)="setAllSelection.emit(false)">Deselect all</button>
+        <button type="button" (click)="setAllSelection.emit(true)" mat-button>Select all matched</button>
+        <button type="button" (click)="setAllSelection.emit(false)" mat-button>Deselect all</button>
       </div>
     </div>
 
@@ -66,9 +66,9 @@
     <div class="mt-4 flex items-center gap-2 border-t pt-4">
       <mat-form-field class="grow" floatLabel="auto">
         <mat-label>Playlist name</mat-label>
-        <input matInput type="text" [value]="playlistName()" (input)="playlistName.set($any($event.target).value)" />
+        <input type="text" [value]="playlistName()" (input)="playlistName.set($any($event.target).value)" matInput />
       </mat-form-field>
-      <button type="button" mat-flat-button color="primary" [disabled]="!canCreate()" (click)="onCreatePlaylist()">
+      <button type="button" [disabled]="!canCreate()" (click)="onCreatePlaylist()" mat-flat-button color="primary">
         @if (creating()) {
           <span>Creating…</span>
         } @else {

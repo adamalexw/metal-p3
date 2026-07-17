@@ -7,11 +7,12 @@ import { MatInputModule } from '@angular/material/input';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { PlaylistDto } from '@metal-p3/playlist/domain';
+import { ConfirmDeleteDirective } from '@metal-p3/shared/feedback';
 
 import { TimePipe } from '@metal-p3/track/util';
 
 @Component({
-  imports: [FormsModule, MatToolbarModule, MatMenuModule, MatButtonModule, MatIconModule, MatInputModule, MatFormFieldModule, TimePipe],
+  imports: [FormsModule, MatToolbarModule, MatMenuModule, MatButtonModule, MatIconModule, MatInputModule, MatFormFieldModule, ConfirmDeleteDirective, TimePipe],
   selector: 'app-playlist-toolbar',
   templateUrl: './playlist-toolbar.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,

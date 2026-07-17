@@ -12,7 +12,8 @@
     "/^node -e \"const d=require\\('path'\\)\\.dirname\\(require\\.resolve\\('@angular/forms/package\\.json'\\)\\); const path=require\\('path'\\); const fs=require\\('fs'\\); const s=fs\\.readFileSync\\(path\\.join\\(d,'types','signals\\.d\\.ts'\\),'utf8'\\); for\\(const re of \\[/export declare function form\\[\\\\s\\\\S\\]\\{0,500\\}/g\\]\\)\\{ let m; while\\(m=re\\.exec\\(s\\)\\)\\{console\\.log\\(m\\[0\\]\\); console\\.log\\('-----'\\);\\} \\} const m2=s\\.match\\(/class \\.\\{0,40\\}NgFieldDirective\\[\\\\s\\\\S\\]\\{0,400\\}/\\); console\\.log\\('DIR:', m2\\?m2\\[0\\]:'\\?'\\); const m3=s\\.match\\(/FormField:\\[\\\\s\\\\S\\]\\{0,200\\}/\\)\\|\\|s\\.match\\(/const FormField\\[\\\\s\\\\S\\]\\{0,200\\}/\\); console\\.log\\('FF:', m3\\?m3\\[0\\]:'\\?'\\);\"$/": {
       "approve": true,
       "matchCommandLine": true
-    }
+    },
+    "adb": true
   },
   "angular.enable-strict-mode-prompt": false
 }

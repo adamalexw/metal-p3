@@ -1,8 +1,7 @@
-import { useIsFocused } from '@react-navigation/native';
 import { BlurView } from 'expo-blur';
 import { useKeepAwake } from 'expo-keep-awake';
 
-import { useNavigation, useRouter } from 'expo-router';
+import { useIsFocused, useNavigation, useRouter } from 'expo-router';
 import {
   Captions,
   ListMusic,
@@ -131,9 +130,8 @@ export default function PlayerScreen() {
       const queue = state?.queue ?? [];
       const idx = state?.currentIndex ?? -1;
       if (queue.length > 1 && idx >= 0) {
-        const before = queue.slice(0, idx);
         const after = queue.slice(idx + 1);
-        await MetalP3Player.replaceUpcoming(shuffled([...before, ...after]));
+        await MetalP3Player.replaceUpcoming(shuffled(after));
       }
     }
   };

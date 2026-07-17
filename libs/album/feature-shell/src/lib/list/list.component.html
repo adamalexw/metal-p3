@@ -28,12 +28,13 @@
           }
 
           @for (album of albums; track trackByAlbumFn($index, album)) {
+            @let cover = coverMap()[album.id];
             <app-list-item
               class="w-full lg:w-67"
               [album]="album"
-              [coverLoading]="coverMap()[album.id]?.loading || false"
-              [cover]="coverMap()[album.id]?.cover"
-              [coverError]="coverMap()[album.id]?.error"
+              [coverLoading]="cover?.loading || false"
+              [cover]="cover?.cover"
+              [coverError]="cover?.error"
               (openAlbum)="onOpenAlbum($event)"
               (deleteAlbum)="onDeleteAlbum(album.id)"
               (transferAlbum)="onTransferAlbum(album.id, album.folder)"
