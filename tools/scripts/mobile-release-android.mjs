@@ -91,16 +91,7 @@ step('Build release APK (./gradlew assembleRelease)');
   clearKotlinCaches();
 
   const gradleCmd = process.platform === 'win32' ? resolve(androidDir, 'gradlew.bat') : './gradlew';
-  run(
-    gradleCmd,
-    [
-      '--no-daemon',
-      '-Dkotlin.incremental=false',
-      '-Dkotlin.compiler.execution.strategy=in-process',
-      'assembleRelease',
-    ],
-    { cwd: androidDir }
-  );
+  run(gradleCmd, ['--no-daemon', '-Dkotlin.incremental=false', '-Dkotlin.compiler.execution.strategy=in-process', 'assembleRelease'], { cwd: androidDir });
 }
 
 if (!existsSync(apkPath)) {
