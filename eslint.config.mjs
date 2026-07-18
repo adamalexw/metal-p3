@@ -1,3 +1,5 @@
+import angularTemplateEslintPlugin from '@angular-eslint/eslint-plugin-template';
+import angularTemplateParser from '@angular-eslint/template-parser';
 import { FlatCompat } from '@eslint/eslintrc';
 import js from '@eslint/js';
 import ngrxEslintPlugin from '@ngrx/eslint-plugin/v9';
@@ -66,20 +68,20 @@ export default [
     ...config,
     files: ['**/*.ts'],
   })),
-  ...compat
-    .config({
-      extends: ['plugin:@nx/angular-template'],
-    })
-    .map((config) => ({
-      ...config,
-      files: ['**/*.component.html'],
-      rules: {
-        ...config.rules,
-        '@angular-eslint/template/alt-text': ['error'],
-        '@angular-eslint/template/button-has-type': ['error'],
-        '@angular-eslint/template/eqeqeq': ['error'],
-        '@angular-eslint/template/prefer-self-closing-tags': ['warn'],
-        '@angular-eslint/template/no-interpolation-in-attributes': ['warn'],
-      },
-    })),
+  {
+    files: ['**/*.component.html'],
+    languageOptions: {
+      parser: angularTemplateParser,
+    },
+    plugins: {
+      '@angular-eslint/template': angularTemplateEslintPlugin,
+    },
+    rules: {
+      '@angular-eslint/template/alt-text': ['error'],
+      '@angular-eslint/template/button-has-type': ['error'],
+      '@angular-eslint/template/eqeqeq': ['error'],
+      '@angular-eslint/template/prefer-self-closing-tags': ['warn'],
+      '@angular-eslint/template/no-interpolation-in-attributes': ['warn'],
+    },
+  },
 ];

@@ -1,5 +1,6 @@
 import { FlatCompat } from '@eslint/eslintrc';
 import js from '@eslint/js';
+import angularEslintPlugin from '@angular-eslint/eslint-plugin';
 import { dirname } from 'path';
 import { fileURLToPath } from 'url';
 import baseConfig from '../../../eslint.config.mjs';
@@ -16,11 +17,12 @@ export default [
   ...baseConfig,
   ...compat
     .config({
-      extends: ['plugin:@nx/angular', 'plugin:@angular-eslint/template/process-inline-templates'],
+      extends: ['plugin:@nx/typescript'],
     })
     .map((config) => ({
       ...config,
       files: ['**/*.ts'],
+      plugins: { '@angular-eslint': angularEslintPlugin },
       rules: {
         ...config.rules,
         '@angular-eslint/directive-selector': [
@@ -43,7 +45,7 @@ export default [
     })),
   ...compat
     .config({
-      extends: ['plugin:@nx/angular-template'],
+      extends: [],
     })
     .map((config) => ({
       ...config,
@@ -53,3 +55,6 @@ export default [
       },
     })),
 ];
+
+
+

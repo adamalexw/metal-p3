@@ -71,6 +71,7 @@
       "options": {
         "proxyConfig": "apps/ui/proxy.conf.json",
         "buildTarget": "ui:build",
+        "port": 4200,
         "ssl": true
       },
       "configurations": {

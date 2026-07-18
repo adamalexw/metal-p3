@@ -1,6 +1,5 @@
-import { DrawerContentScrollView, DrawerItemList } from '@react-navigation/drawer';
 import { BlurView } from 'expo-blur';
-import { Drawer } from 'expo-router/drawer';
+import { Drawer, DrawerContentScrollView, DrawerItemList } from 'expo-router/drawer';
 import { Disc3, ListMusic, Music4 } from 'lucide-react-native';
 import { Image } from 'expo-image';
 import { StyleSheet, View } from 'react-native';

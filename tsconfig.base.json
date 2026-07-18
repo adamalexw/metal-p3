@@ -70,7 +70,10 @@
       "@metal-p3/track/ui": ["libs/track/ui/src/index.ts"],
       "@metal-p3/track/util": ["libs/track/util/src/index.ts"],
       "@metal-p3/shared/transfer": ["libs/shared/transfer/src/index.ts"]
-    }
+    },
+    "noUncheckedSideEffectImports": false,
+    "types": ["*"],
+    "ignoreDeprecations": "6.0"
   },
   "angularCompilerOptions": {
     "strictInjectionParameters": true,

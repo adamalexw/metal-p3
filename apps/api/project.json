@@ -6,7 +6,7 @@
   "tags": [],
   "targets": {
     "build": {
-      "outputs": ["{projectRoot}/{options.outputPath}"],
+      "outputs": ["{workspaceRoot}/dist/apps/api"],
       "configurations": {
         "production": {}
       }

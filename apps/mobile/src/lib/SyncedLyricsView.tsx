@@ -3,12 +3,6 @@ import { ScrollView, Text, View } from 'react-native';
 import type { SyncedLyricsLine } from '../../modules/metalp3-media';
 import { tw } from './tw';
 
-interface ThemeColors {
-  foreground: string;
-  mutedForeground: string;
-  accent: string;
-}
-
 const TICK_MS = 80;
 const LINE_HEIGHT = 32;
 
@@ -28,6 +22,8 @@ export function SyncedLyricsView({
   offsetMs?: number;
 }) {
   const scrollRef = useRef<ScrollView | null>(null);
+  const lineLayoutsRef = useRef<Record<number, { y: number; height: number }>>({});
+  const [layoutVersion, setLayoutVersion] = useState(0);
   // The native player only emits stateChanged on discrete events (play/pause/
   // seek/track-change), so positionMs doesn't advance during normal playback.
   // Interpolate locally with wall-clock so the active line keeps tracking.
@@ -68,9 +64,11 @@ export function SyncedLyricsView({
 
   useEffect(() => {
     if (activeIndex < 0) return;
-    const offset = Math.max(0, activeIndex * LINE_HEIGHT - LINE_HEIGHT * 3);
+    const layout = lineLayoutsRef.current[activeIndex];
+    const targetY = layout?.y ?? activeIndex * LINE_HEIGHT;
+    const offset = Math.max(0, targetY - LINE_HEIGHT * 3);
     scrollRef.current?.scrollTo({ y: offset, animated: true });
-  }, [activeIndex]);
+  }, [activeIndex, layoutVersion]);
 
   return (
     <View style={tw`flex-1 items-stretch`} testID={testID}>
@@ -85,6 +83,14 @@ export function SyncedLyricsView({
           return (
             <Text
               key={`${idx}-${line.startMs}`}
+              onLayout={(event) => {
+                const { y, height } = event.nativeEvent.layout;
+                const prev = lineLayoutsRef.current[idx];
+                if (!prev || Math.abs(prev.y - y) > 0.5 || Math.abs(prev.height - height) > 0.5) {
+                  lineLayoutsRef.current[idx] = { y, height };
+                  setLayoutVersion((v) => v + 1);
+                }
+              }}
               style={[
                 tw`text-center text-lg`,
                 {
