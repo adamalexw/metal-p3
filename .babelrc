@@ -1,0 +1,11 @@
+// Root babel config for METRO ONLY — do not delete.
+// @expo/metro-config's loadBabelConfig extends the first of .babelrc/.babelrc.js/babel.config.js
+// it finds at the Metro projectRoot (the workspace root under @nx/expo since nx 23); if none
+// exists it force-injects babel-preset-expo on top of apps/mobile/.babelrc.js and every bundle
+// fails with "Duplicate __self prop found".
+// This file supplies the preset for everything Metro transforms (app code AND node_modules TS).
+// metro.config.js sets enableBabelRCLookup:false so apps/mobile/.babelrc.js (kept for jest)
+// is not applied a second time. babel-preset-expo auto-adds react-native-worklets/plugin.
+{
+  "presets": ["babel-preset-expo"]
+}
