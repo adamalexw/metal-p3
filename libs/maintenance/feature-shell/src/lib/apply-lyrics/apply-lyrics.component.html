@@ -1,7 +1,6 @@
 <app-apply-lyrics
   [albumId]="albumId() || 0"
   [lyricsLoading]="lyricsLoading()"
-  [lyricsExpected]="lyricsExpected()"
   [lyricsLoadingProgress]="lyricsLoadingProgress()"
   [tracksLoading]="tracksLoading()"
   [maTracks]="maTracks()"
@@ -12,13 +11,13 @@
   [cover]="cover()"
   [folder]="albumFolder()"
   [applying]="applying()"
-  [applyingProgress]="applyingProgress()"
   [applied]="applied()"
   [trackTransferring]="trackTransferring()"
   [trackTransferringProgress]="trackTransferringProgress()"
   [transferEnabled]="transferEnabled()"
   [showClose]="showClose"
   (applyLyrics)="onApply($event.id, $event.lyrics)"
+  (retryLyrics)="onRetryLyrics($event)"
   (transfer)="onTransfer($event)"
   (done)="onDone()"
 />

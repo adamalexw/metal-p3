@@ -39,8 +39,19 @@ export class ApplyLyricsShellComponent {
   tracksLoading = this.trackStore.loading;
   gettingMaTracks = this.trackStore.gettingMaTracks;
   
-  lyricsLoading = computed(() => this.trackStore.tracks().some(t => t.lyricsLoading) || this.trackStore.maTracks().some(t => t.lyricsLoading));
-  lyricsExpected = computed(() => (this.trackStore.tracks().filter(t => t.lyricsLoading).length + this.trackStore.maTracks().filter(t => t.lyricsLoading).length) > 0);
+  // Fetches are staggered 3s apart, so per-request loading flags oscillate; visibility keys off the stable lyricsChecked counts instead.
+  lyricsLoading = computed(() => {
+    if (this.lyricsRunAlbumId() !== this.albumId()) return false;
+
+    const maTracks = this.trackStore.maTracks();
+    const tracks = this.trackStore.tracks();
+
+    const total = maTracks.length > 0 ? maTracks.filter(t => t.hasLyrics).length : tracks.length;
+    if (!total) return false;
+
+    const loaded = maTracks.filter(t => t.lyricsChecked).length + tracks.filter(t => t.lyricsChecked).length;
+    return loaded < total;
+  });
   lyricsLoadingProgress = computed(() => {
     const maTracks = this.trackStore.maTracks();
     const tracks = this.trackStore.tracks();
@@ -75,15 +86,12 @@ export class ApplyLyricsShellComponent {
   });
   
   applying = computed(() => this.trackStore.tracks().some(t => t.trackSaving));
-  applyingProgress = computed(() => {
-    const total = this.trackStore.tracks().length;
-    const saved = this.trackStore.tracks().filter(t => !t.trackSaving).length;
-    return Math.round((saved / (total || 1)) * 100);
-  });
 
   showClose = !this.data?.historyId;
   applied = signal(false);
 
+
+  private readonly lyricsRunAlbumId = signal<number | null>(null);
 
   private lastAlbumFetchedId: number | null = null;
   private lastTracksFetchedAlbumId: number | null = null;
@@ -133,6 +141,7 @@ export class ApplyLyricsShellComponent {
 
       if (maTracks?.length && tracks?.length && album && albumId && this.lastLyricsTriggeredAlbumId !== albumId) {
         this.lastLyricsTriggeredAlbumId = albumId;
+        this.lyricsRunAlbumId.set(albumId);
         maTracks
           .filter((maTrack) => maTrack.hasLyrics && !maTrack.lyricsLoading)
           .forEach((maTrack, i) => {
@@ -166,6 +175,7 @@ export class ApplyLyricsShellComponent {
 
       if (album && !album.albumUrl && tracks?.length && albumId && this.lastLocalLyricsTriggeredAlbumId !== albumId) {
         this.lastLocalLyricsTriggeredAlbumId = albumId;
+        this.lyricsRunAlbumId.set(albumId);
         (tracks ?? [])
           .filter((track) => !track.lyricsLoading && !track.lyricsChecked)
           .forEach((track, i) => {
@@ -231,6 +241,50 @@ export class ApplyLyricsShellComponent {
       if (byNumber) {
         return byNumber;
       }
+    }
+    return undefined;
+  }
+
+  onRetryLyrics(trackId: number) {
+    const album = this.album();
+    const track = this.tracks()?.find((t) => t.id === trackId);
+
+    if (!album || !track) {
+      return;
+    }
+
+    if (album.albumUrl) {
+      const maTrack = this.matchMaTrack(this.maTracks() ?? [], track);
+      if (maTrack) {
+        this.trackStore.getSyncedLyrics({
+          localTrackId: track.id,
+          maTrackId: maTrack.id,
+          artist: album.artist ?? '',
+          track: track.title ?? maTrack.title ?? '',
+          album: album.album ?? '',
+          durationSeconds: track.duration || 0,
+        });
+        return;
+      }
+    }
+
+    this.trackStore.getLocalLyrics({
+      localTrackId: track.id,
+      artist: album.artist ?? track.artist ?? '',
+      track: track.title ?? '',
+      album: album.album ?? track.album ?? '',
+      durationSeconds: track.duration || 0,
+    });
+  }
+
+  private matchMaTrack(maTracks: { id: string; trackNumber?: string; title?: string }[], track: { title?: string; trackNumber?: string }) {
+    const byTitle = maTracks.find((maTrack) => !!maTrack.title && maTrack.title.toLowerCase() === track.title?.toLowerCase());
+    if (byTitle) {
+      return byTitle;
+    }
+
+    if (track.trackNumber) {
+      return maTracks.find((maTrack) => Number(maTrack.trackNumber) === Number(track.trackNumber));
     }
     return undefined;
   }
