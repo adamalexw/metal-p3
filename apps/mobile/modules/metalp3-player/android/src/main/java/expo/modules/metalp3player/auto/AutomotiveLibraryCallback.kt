@@ -203,14 +203,21 @@ class AutomotiveLibraryCallback(private val context: Context) :
 
   private fun childrenOf(parentId: String): List<MediaItem>? = when {
     parentId == Ids.ROOT -> listOf(albumsCategoryItem(), playlistsCategoryItem())
-    parentId == Ids.CAT_ALBUMS -> MediaStoreLibrary.listAlbums(context).map { album ->
-      browsable(
-        id = Ids.album(album.id),
-        title = album.title,
-        subtitle = album.artist,
-        artworkUri = MediaStoreLibrary.albumArtUri(album.id),
-        mediaType = MediaMetadata.MEDIA_TYPE_ALBUM,
-      )
+    parentId == Ids.CAT_ALBUMS -> {
+      val playlisted = playlistTrackIds()
+      val albumTracks = if (playlisted.isEmpty()) emptyMap()
+        else MediaStoreLibrary.trackIdsByAlbum(context)
+      MediaStoreLibrary.listAlbums(context)
+        .filterNot { album -> isFullyPlaylisted(albumTracks[album.id], playlisted) }
+        .map { album ->
+          browsable(
+            id = Ids.album(album.id),
+            title = album.title,
+            subtitle = album.artist,
+            artworkUri = MediaStoreLibrary.albumArtUri(album.id),
+            mediaType = MediaMetadata.MEDIA_TYPE_ALBUM,
+          )
+        }
     }
     parentId.startsWith(Ids.ALBUM_PREFIX) -> {
       val albumId = parentId.removePrefix(Ids.ALBUM_PREFIX).toLongOrNull() ?: return null
@@ -239,6 +246,23 @@ class AutomotiveLibraryCallback(private val context: Context) :
       }
     }
     else -> null
+  }
+
+  /** Union of the track ids that appear in at least one playlist. */
+  private fun playlistTrackIds(): Set<Long> {
+    val out = HashSet<Long>()
+    for (pl in PlaylistStore.list(context)) out.addAll(pl.trackIds)
+    return out
+  }
+
+  /**
+   * Matches the mobile library list: an album drops out of the browse grid only
+   * once every one of its tracks sits in a playlist, so a partly-playlisted
+   * album stays put. An album MediaStore reports no tracks for stays visible.
+   */
+  private fun isFullyPlaylisted(albumTrackIds: Set<Long>?, playlisted: Set<Long>): Boolean {
+    if (albumTrackIds.isNullOrEmpty()) return false
+    return playlisted.containsAll(albumTrackIds)
   }
 
   private fun resolveItem(mediaId: String): MediaItem? = when {

@@ -83,9 +83,32 @@ internal object MediaStoreLibrary {
   fun albumArtUri(albumId: Long): Uri =
     ContentUris.withAppendedId(Uri.parse("content://media/external/audio/albumart"), albumId)
 
+  /**
+   * Every album's track ids in a single pass, so a caller deciding album
+   * visibility doesn't have to query per album.
+   */
+  fun trackIdsByAlbum(ctx: Context): Map<Long, Set<Long>> {
+    val cols = arrayOf(MediaStore.Audio.Media.ALBUM_ID, MediaStore.Audio.Media._ID)
+    val rows = query(
+      ctx,
+      audioCollection(),
+      cols,
+      "${MediaStore.Audio.Media.IS_MUSIC}=1",
+      null,
+      null,
+    ) { c -> c.getLong(0) to c.getLong(1) }
+    val out = HashMap<Long, MutableSet<Long>>()
+    for ((albumId, trackId) in rows) {
+      out.getOrPut(albumId) { HashSet() }.add(trackId)
+    }
+    return out
+  }
+
+  private fun audioCollection(): Uri = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
+    MediaStore.Audio.Media.getContentUri(MediaStore.VOLUME_EXTERNAL) else MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
+
   private fun queryTracks(ctx: Context, selection: String?, args: Array<String>?, sort: String?, limit: Int = 0): List<Track> {
-    val collection = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
-      MediaStore.Audio.Media.getContentUri(MediaStore.VOLUME_EXTERNAL) else MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
+    val collection = audioCollection()
     val cols = arrayOf(
       MediaStore.Audio.Media._ID,
       MediaStore.Audio.Media.TITLE,
