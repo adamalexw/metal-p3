@@ -47,6 +47,10 @@ import { useTrackArtwork } from '../../../src/lib/useTrackArtwork';
 import { useNowPlayingState } from '../../../src/lib/useNowPlayingState';
 import { prefetchArtworkTheme, useArtworkTheme } from '../../../src/theme/useArtworkTheme';
 
+// Row height (48px artwork + py-2.5); pins the ReanimatedSwipeable cell so its
+// absolutely-positioned action wrappers don't inflate the container.
+const PLAYLIST_ROW_HEIGHT = 68;
+
 export default function PlaylistDetailScreen() {
   const params = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
@@ -349,9 +353,11 @@ export default function PlaylistDetailScreen() {
             <ReanimatedSwipeable
               ref={refForRow(item.id)}
               testID={`playlist-detail-track-swipe-${item.id}`}
+              containerStyle={{ height: PLAYLIST_ROW_HEIGHT }}
+              childrenContainerStyle={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
               renderRightActions={() => (
                 <Pressable
-                  style={tw`bg-[#ff3b30] justify-center items-center px-6 min-w-[96px]`}
+                  style={[tw`bg-[#ff3b30] justify-center items-center px-6 min-w-[96px]`, { height: PLAYLIST_ROW_HEIGHT }]}
                   onPress={() => requestDeleteTrack(item)}
                   testID={`playlist-detail-track-delete-action-${item.id}`}
                   accessibilityRole="button"

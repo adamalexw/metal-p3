@@ -2,11 +2,11 @@ import { BASE_PATH_TOKEN } from '@metal-p3/api-interfaces';
 import { ImportedSetlist, ImportedTrack, MatchTracksRequest, ResolvedTrack, ScrapeSetlistsRequest } from '@metal-p3/setlist-importer/domain';
 import { DbService } from '@metal-p3/shared/database';
 import { FileSystemService } from '@metal-p3/shared/file-system';
-import { HttpService } from '@nestjs/axios';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import Fuse from 'fuse.js';
 import { extname, join } from 'path';
-import { firstValueFrom } from 'rxjs';
+import type { Browser } from 'puppeteer';
+import puppeteer from 'puppeteer-extra';
 import { ALBUM_FUSE_THRESHOLD, AlbumCandidate, FILE_FUSE_THRESHOLD, normalizeForMatch, parseSetlistHtml, tokenizeFilename, trackKey } from './setlist-importer-helpers';
 
 @Injectable()
@@ -14,7 +14,6 @@ export class SetlistImporterService {
   private readonly logger = new Logger(SetlistImporterService.name);
 
   constructor(
-    private readonly httpService: HttpService,
     private readonly dbService: DbService,
     private readonly fileSystemService: FileSystemService,
     @Inject(BASE_PATH_TOKEN) private readonly basePath: string,
@@ -23,18 +22,46 @@ export class SetlistImporterService {
   async scrape(request: ScrapeSetlistsRequest): Promise<ImportedSetlist[]> {
     const out: ImportedSetlist[] = [];
 
-    for (const url of request.urls) {
-      try {
-        const response = await firstValueFrom(this.httpService.get<string>(url, { headers: { 'User-Agent': 'metal-p3 (https://github.com/adamalexw/metal-p3)' }, responseType: 'text' }));
-        const setlist = parseSetlistHtml(response.data, url);
-        out.push(setlist);
-      } catch (error) {
-        this.logger.error(`Failed to scrape setlist ${url}: ${error}`);
-        out.push({ id: url, url, artist: '', tracks: [], error: error instanceof Error ? error.message : String(error) });
+    // setlist.fm sits behind an AWS WAF JavaScript challenge, so a plain HTTP GET only
+    // ever gets the challenge page. Drive a stealth browser so the challenge resolves.
+    const browser = await this.launchBrowser();
+
+    try {
+      for (const url of request.urls) {
+        try {
+          const html = await this.downloadPage(browser, url);
+          out.push(parseSetlistHtml(html, url));
+        } catch (error) {
+          this.logger.error(`Failed to scrape setlist ${url}: ${error}`);
+          out.push({ id: url, url, artist: '', tracks: [], error: error instanceof Error ? error.message : String(error) });
+        }
       }
+    } finally {
+      await browser.close();
     }
 
     return out;
+  }
+
+  private async launchBrowser(): Promise<Browser> {
+    const StealthPlugin = require('puppeteer-extra-plugin-stealth');
+    const puppeteerStealth = StealthPlugin();
+    puppeteerStealth.enabledEvasions.delete('user-agent-override');
+    puppeteer.use(puppeteerStealth);
+
+    return puppeteer.launch({
+      headless: false,
+      targetFilter: (target) => target.type() !== 'other',
+      args: ['--window-position=-32000,-32000', '--window-size=800,600'],
+    });
+  }
+
+  private async downloadPage(browser: Browser, url: string): Promise<string> {
+    const page = (await browser.pages())[0]; // default page bypasses the WAF challenge
+    // The WAF challenge reloads the page, so let goto settle loosely and wait on the content instead.
+    await page.goto(url).catch((error) => this.logger.warn(`Navigation issue on ${url}: ${error}`));
+    await page.waitForSelector('.setlistHeadline, ol.songsList', { timeout: 30000 }).catch((error) => this.logger.warn(`Timed out waiting for setlist content on ${url}: ${error}`));
+    return page.content();
   }
 
   async match(request: MatchTracksRequest): Promise<ResolvedTrack[]> {
@@ -179,4 +206,3 @@ export class SetlistImporterService {
     };
   }
 }
-

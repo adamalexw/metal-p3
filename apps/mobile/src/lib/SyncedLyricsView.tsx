@@ -24,6 +24,7 @@ export function SyncedLyricsView({
   const scrollRef = useRef<ScrollView | null>(null);
   const lineLayoutsRef = useRef<Record<number, { y: number; height: number }>>({});
   const [layoutVersion, setLayoutVersion] = useState(0);
+  const [viewportHeight, setViewportHeight] = useState(0);
   // The native player only emits stateChanged on discrete events (play/pause/
   // seek/track-change), so positionMs doesn't advance during normal playback.
   // Interpolate locally with wall-clock so the active line keeps tracking.
@@ -75,7 +76,14 @@ export function SyncedLyricsView({
       <ScrollView
         ref={scrollRef}
         style={tw`flex-1`}
-        contentContainerStyle={tw`pb-12 pt-6`}
+        onLayout={(event) => setViewportHeight(event.nativeEvent.layout.height)}
+        contentContainerStyle={[
+          tw`pt-6`,
+          // Pad the bottom by nearly a full viewport so every line—including the
+          // last one—can scroll up into the reading zone instead of being pinned
+          // to the bottom edge behind the playback controls.
+          { paddingBottom: Math.max(48, viewportHeight - LINE_HEIGHT * 4) },
+        ]}
         showsVerticalScrollIndicator={false}
       >
         {lines.map((line, idx) => {

@@ -26,7 +26,6 @@ try {
 console.log('Copying API files...');
 const result = spawnSync('robocopy', ['.\\dist\\apps\\api', dest, '/E', '/IS', '/IT', '/R:10', '/W:5', '/NP'], {
   stdio: 'inherit',
-  shell: true,
 });
 if (result.status >= 8) {
   throw new Error(`robocopy failed with exit code ${result.status}`);
