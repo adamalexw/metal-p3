@@ -54,6 +54,9 @@
           <button type="button" (click)="viewLyrics(i, element().value().lyrics, element().value().syncedLyrics)" mat-menu-item>
             <mat-icon>article</mat-icon>
             <span>Lyrics</span>
+            @if (element().value().syncedLyrics?.trim()) {
+              <span class="ml-2 rounded bg-emerald-700 px-2 py-0.5 text-xs text-white uppercase">Synced</span>
+            }
           </button>
           <button type="button" (click)="onPlayTrack(element().value().id)" mat-menu-item>
             <mat-icon>play_arrow</mat-icon>

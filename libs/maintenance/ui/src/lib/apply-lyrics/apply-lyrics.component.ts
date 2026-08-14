@@ -1,8 +1,10 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, effect, input, output, signal } from '@angular/core';
+import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatIconModule } from '@angular/material/icon';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTableModule } from '@angular/material/table';
@@ -11,8 +13,13 @@ import { MetalArchivesAlbumTrack } from '@metal-p3/api-interfaces';
 import { Track } from '@metal-p3/track/domain';
 import { ApplyLyricsToolbarComponent } from '../apply-lyrics-toolbar/apply-lyrics-toolbar.component';
 
+export function getLyricsLength(lyrics: string | undefined): number {
+  if (!lyrics) return 0;
+  return lyrics.split(/\r?\n|<br\s*\/?>/i).filter((l) => l.trim().length > 0).length;
+}
+
 @Component({
-  imports: [DatePipe, ApplyLyricsToolbarComponent, MatProgressBarModule, MatTableModule, MatFormFieldModule, MatSelectModule, MatCheckboxModule],
+  imports: [DatePipe, ApplyLyricsToolbarComponent, MatButtonModule, MatIconModule, MatProgressBarModule, MatTableModule, MatFormFieldModule, MatSelectModule, MatCheckboxModule],
   selector: 'app-apply-lyrics',
   templateUrl: './apply-lyrics.component.html',
   styleUrls: ['./apply-lyrics.component.scss'],
@@ -25,9 +32,7 @@ export class ApplyLyricsComponent {
   readonly maTracks = input<MetalArchivesAlbumTrack[]>([]);
   readonly maTracksLoading = input(false);
   readonly lyricsLoading = input(false);
-  readonly lyricsExpected = input(false);
   readonly lyricsLoadingProgress = input(0);
-  readonly applyingProgress = input(0);
   readonly applying = input(false);
   readonly applied = input(false);
   readonly trackTransferring = input(false);
@@ -52,6 +57,8 @@ export class ApplyLyricsComponent {
   >();
 
   readonly done = output<void>();
+
+  readonly retryLyrics = output<number>();
 
   displayedColumns = ['trackNumber', 'title', 'duration', 'maTrack', 'selected'];
   readonly dataSource = signal<ApplyLyrics[]>([]);
@@ -147,8 +154,5 @@ export class ApplyLyricsComponent {
     this.transfer.emit(this.dataSource().filter((l) => l.selected).map((l) => ({ id: this.albumId()!, trackId: l.id })));
   }
 
-  getLyricsLength(lyrics: string | undefined): number {
-    if (!lyrics) return 0;
-    return lyrics.split('\n').filter(l => l.trim().length > 0).length;
-  }
+  getLyricsLength = getLyricsLength;
 }

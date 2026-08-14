@@ -230,7 +230,7 @@ export const TrackStore = signalStore(
   withMethods((store, service = inject(TrackService)) => ({
     getSyncedLyrics: rxMethod<{ localTrackId: number; maTrackId: string; artist: string; track: string; album: string; durationSeconds: number }>(
       pipe(
-        tap(({ localTrackId }) => patchState(store, updateEntity({ id: localTrackId, changes: { lyricsLoading: true } }))),
+        tap(({ localTrackId }) => patchState(store, updateEntity({ id: localTrackId, changes: { lyricsLoading: true, syncedLyricsStatus: undefined } }))),
         mergeMap(({ localTrackId, maTrackId, artist, track, album, durationSeconds }) =>
           service.getSyncedLyrics({ artist, track, album, durationSeconds }).pipe(
             timeout(20_000),
@@ -238,13 +238,13 @@ export const TrackStore = signalStore(
               if (result?.syncedLyrics && !result.instrumental) {
                 patchState(store, updateEntity({ id: localTrackId, changes: { lyricsLoading: false, syncedLyrics: result.syncedLyrics || undefined, lyricsSource: 'synced', lyricsChecked: true } }));
               } else {
-                patchState(store, updateEntity({ id: localTrackId, changes: { lyricsLoading: false } }));
+                patchState(store, updateEntity({ id: localTrackId, changes: { lyricsLoading: false, syncedLyricsStatus: 'empty' } }));
                 // Fallback to getLyrics
                 store.getLyrics({ trackId: maTrackId });
               }
             }),
             catchError(() => {
-              patchState(store, updateEntity({ id: localTrackId, changes: { lyricsLoading: false } }));
+              patchState(store, updateEntity({ id: localTrackId, changes: { lyricsLoading: false, syncedLyricsStatus: 'error' } }));
               store.getLyrics({ trackId: maTrackId });
               return of();
             })
@@ -255,19 +255,32 @@ export const TrackStore = signalStore(
 
     getLocalLyrics: rxMethod<{ localTrackId: number; artist: string; track: string; album: string; durationSeconds: number }>(
       pipe(
-        tap(({ localTrackId }) => patchState(store, updateEntity({ id: localTrackId, changes: { lyricsLoading: true } }))),
+        tap(({ localTrackId }) => patchState(store, updateEntity({ id: localTrackId, changes: { lyricsLoading: true, syncedLyricsStatus: undefined } }))),
         mergeMap(({ localTrackId, artist, track, album, durationSeconds }) =>
           service.getSyncedLyrics({ artist, track, album, durationSeconds }).pipe(
             timeout(20_000),
             map((result) => {
               if (result && !result.instrumental && (result.syncedLyrics || result.plainLyrics)) {
-                patchState(store, updateEntity({ id: localTrackId, changes: { lyricsLoading: false, syncedLyrics: result.syncedLyrics || undefined, lyrics: result.plainLyrics || undefined, lyricsSource: result.syncedLyrics ? 'synced' : 'plain', lyricsChecked: true } }));
+                patchState(
+                  store,
+                  updateEntity({
+                    id: localTrackId,
+                    changes: {
+                      lyricsLoading: false,
+                      syncedLyrics: result.syncedLyrics || undefined,
+                      lyrics: result.plainLyrics || undefined,
+                      lyricsSource: result.syncedLyrics ? 'synced' : 'plain',
+                      lyricsChecked: true,
+                      syncedLyricsStatus: result.syncedLyrics ? undefined : 'empty',
+                    },
+                  })
+                );
               } else {
-                patchState(store, updateEntity({ id: localTrackId, changes: { lyricsLoading: false, lyricsChecked: true } }));
+                patchState(store, updateEntity({ id: localTrackId, changes: { lyricsLoading: false, lyricsChecked: true, syncedLyricsStatus: 'empty' } }));
               }
             }),
             catchError(() => {
-              patchState(store, updateEntity({ id: localTrackId, changes: { lyricsLoading: false, lyricsChecked: true } }));
+              patchState(store, updateEntity({ id: localTrackId, changes: { lyricsLoading: false, lyricsChecked: true, syncedLyricsStatus: 'error' } }));
               return of();
             })
           )

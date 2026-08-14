@@ -1,6 +1,6 @@
-@if (tracksLoading() || maTracksLoading() || lyricsLoading() || lyricsExpected()) {
+@if (tracksLoading() || maTracksLoading()) {
   <div class="flex flex-col gap-4">
-    <mat-progress-bar class="w-full" [mode]="lyricsLoading() || lyricsExpected() ? 'determinate' : 'indeterminate'" [value]="lyricsLoadingProgress()" />
+    <mat-progress-bar class="w-full" mode="indeterminate" />
     <h3 class="mb-3 ml-3 text-xl text-white">Loading Lyrics</h3>
   </div>
 } @else {
@@ -20,10 +20,16 @@
     (done)="done.emit()"
   />
 
-  @if (applyingProgress() || trackTransferringProgress(); as progress) {
-    @if (progress < 100) {
-      <mat-progress-bar class="w-full" [value]="progress" mode="determinate" />
-    }
+  @if (lyricsLoading()) {
+    <mat-progress-bar class="w-full" [value]="lyricsLoadingProgress()" mode="determinate" />
+  }
+
+  @if (applying()) {
+    <mat-progress-bar class="w-full" mode="indeterminate" />
+  }
+
+  @if (trackTransferring() && trackTransferringProgress() < 100) {
+    <mat-progress-bar class="w-full" [value]="trackTransferringProgress()" mode="determinate" />
   }
 
   <mat-table [dataSource]="dataSource()" [trackBy]="trackByFn">
@@ -39,7 +45,18 @@
       <mat-cell *matCellDef="let element">
         <span>{{ element.title }}</span>
         @if (element.lyricsSource === 'synced') {
-          <span class="ml-2 rounded bg-emerald-700 px-2 py-0.5 text-xs text-white uppercase">Synced ({{ getLyricsLength(element.syncedLyrics) }})</span>
+          <span class="ml-2 rounded bg-emerald-700 px-2 py-0.5 text-xs text-white uppercase">Synced</span>
+        } @else if (element.syncedLyricsStatus) {
+          <span
+            class="ml-2 rounded px-2 py-0.5 text-xs text-white uppercase"
+            [class.bg-red-700]="element.syncedLyricsStatus === 'error'"
+            [class.bg-gray-600]="element.syncedLyricsStatus === 'empty'"
+          >
+            {{ element.syncedLyricsStatus === 'error' ? 'Sync failed' : 'No synced' }}
+          </span>
+          <button type="button" aria-label="Retry synced lyrics" title="Retry synced lyrics" (click)="retryLyrics.emit(element.id)" mat-icon-button>
+            <mat-icon>refresh</mat-icon>
+          </button>
         }
       </mat-cell>
     </ng-container>
@@ -59,7 +76,12 @@
           <mat-select [value]="element.maTrack" (selectionChange)="onSelectMaTrack(element.id, $event.value)">
             <mat-option>None</mat-option>
             @for (track of maTracks(); track track) {
-              <mat-option [value]="track">{{ track.trackNumber }} {{ track.title }} / {{ track.duration }} / {{ getLyricsLength(track.lyrics) }} </mat-option>
+              <mat-option [value]="track">
+                {{ track.trackNumber }} {{ track.title }} / {{ track.duration }}
+                @if (element.lyricsSource !== 'synced') {
+                  / {{ getLyricsLength(track.lyrics) }}
+                }
+              </mat-option>
             }
           </mat-select>
         </mat-form-field>

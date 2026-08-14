@@ -6,4 +6,5 @@ export interface ApplyLyrics extends TrackDto {
   maTrack?: MetalArchivesAlbumTrack;
   selected?: boolean;
   lyricsSource?: LyricsSource | null;
+  syncedLyricsStatus?: 'empty' | 'error';
 }
