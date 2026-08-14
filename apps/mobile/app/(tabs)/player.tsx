@@ -60,7 +60,7 @@ export default function PlayerScreen() {
   const currentIndex = state?.currentIndex ?? -1;
   const canSkipNext =
     queueLength > 0 && (repeatMode !== 'off' || currentIndex < queueLength - 1);
-  const canSkipPrev = queueLength > 0 && (repeatMode !== 'off' || currentIndex > 0);
+  const canSkipPrev = queueLength > 0;
   const theme = useArtworkTheme(current?.uri ?? null);
   const lyrics = useLyrics(current?.uri ?? null);
   const synced = useSyncedLyrics(current?.uri ?? null);
@@ -119,6 +119,15 @@ export default function PlayerScreen() {
   }, []);
 
   const togglePlay = () => (isPlaying ? void MetalP3Player.pause() : void MetalP3Player.play());
+  const skipPrevious = () => {
+    // On the first track with repeat off there is no previous track, so restart
+    // the current one from the beginning instead of leaving the button inert.
+    if (repeatMode === 'off' && currentIndex <= 0) {
+      void MetalP3Player.seekTo(0);
+    } else {
+      void MetalP3Player.skipToPrevious();
+    }
+  };
   const cycleRepeat = () => {
     const next: RepeatMode = repeatMode === 'off' ? 'all' : repeatMode === 'all' ? 'one' : 'off';
     void MetalP3Player.setRepeatMode(next);
@@ -427,7 +436,7 @@ export default function PlayerScreen() {
               icon={Shuffle}
             />
             <IconBtn
-              onPress={() => void MetalP3Player.skipToPrevious()}
+              onPress={skipPrevious}
               theme={theme}
               testID="player-prev"
               icon={SkipBack}

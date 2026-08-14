@@ -15,8 +15,12 @@ function step(label) {
   console.log(`\n=== ${label} ===`);
 }
 
+// Quote tokens with whitespace so the joined shell command stays intact
+const quote = (s) => (/\s/.test(s) ? `"${s}"` : s);
+
 function run(cmd, args, opts = {}) {
-  const result = spawnSync(cmd, args, { cwd: repoRoot, stdio: 'inherit', shell: true, ...opts });
+  const command = [cmd, ...args].map(quote).join(' ');
+  const result = spawnSync(command, { cwd: repoRoot, stdio: 'inherit', shell: true, ...opts });
   if (result.status !== 0) {
     console.error(`\nCommand failed: ${cmd} ${args.join(' ')}`);
     process.exit(result.status ?? 1);

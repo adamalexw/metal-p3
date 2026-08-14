@@ -1,6 +1,6 @@
 import { ImportedSetlist, ImportedTrack } from '@metal-p3/setlist-importer/domain';
-import { extname } from 'path';
 import { parse } from 'node-html-parser';
+import { extname } from 'path';
 
 export const SETLIST_FM_BASE = 'https://www.setlist.fm';
 
@@ -57,10 +57,17 @@ const extractSetlistId = (url: string): string => {
 export const parseSetlistHtml = (html: string, sourceUrl: string): ImportedSetlist => {
   const root = parse(html);
 
-  const artist = root.querySelector('.setlistHeadline a')?.textContent.replace(/setlist/i, '').trim()
-    ?? root.querySelector('.setlistHeadline h1')?.textContent.replace(/setlist/i, '').trim()
-    ?? root.querySelector('a[href*="/setlists/"]')?.textContent.trim()
-    ?? '';
+  const artist =
+    root
+      .querySelector('.setlistHeadline a')
+      ?.textContent.replace(/setlist/i, '')
+      .trim() ??
+    root
+      .querySelector('.setlistHeadline h1')
+      ?.textContent.replace(/setlist/i, '')
+      .trim() ??
+    root.querySelector('a[href*="/setlists/"]')?.textContent.trim() ??
+    '';
 
   const venue = root.querySelector('.setlistHeadline + p, .infoContainer .summary')?.textContent.trim() ?? root.querySelector('a.summary span')?.textContent.trim() ?? undefined;
 

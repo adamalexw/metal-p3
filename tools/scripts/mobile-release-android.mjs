@@ -26,8 +26,12 @@ function step(label) {
   console.log(`\n=== ${label} ===`);
 }
 
+// Quote tokens with whitespace so the joined shell command stays intact
+const quote = (s) => (/\s/.test(s) ? `"${s}"` : s);
+
 function run(cmd, args, opts = {}) {
-  const result = spawnSync(cmd, args, {
+  const command = [cmd, ...args].map(quote).join(' ');
+  const result = spawnSync(command, {
     cwd: repoRoot,
     stdio: 'inherit',
     shell: true,
@@ -45,7 +49,7 @@ function stopGradleDaemons() {
   }
 
   const gradleCmd = process.platform === 'win32' ? 'gradlew.bat' : './gradlew';
-  const result = spawnSync(gradleCmd, ['--stop'], {
+  const result = spawnSync(`${quote(gradleCmd)} --stop`, {
     cwd: androidDir,
     stdio: 'inherit',
     shell: true,

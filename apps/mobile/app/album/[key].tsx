@@ -60,7 +60,9 @@ export default function AlbumDetailScreen() {
 
   useEffect(() => {
     if (!group && rawKey) {
-      router.back();
+      // The album no longer exists (e.g. it was just deleted). Always return to
+      // the library rather than router.back(), which can land on a stale screen.
+      router.replace('/(tabs)' as never);
     }
   }, [group, rawKey, router]);
 
@@ -156,7 +158,8 @@ export default function AlbumDetailScreen() {
           <View style={[StyleSheet.absoluteFill, tw`bg-black/30`]} />
         </View>
       ) : null}
-      <Pressable
+
+      <Pressable
         style={[
           tw`absolute left-8 w-10 h-10 rounded-full bg-black/40 items-center justify-center z-50`,
           { top: insets.top + 20 }
@@ -172,6 +175,7 @@ export default function AlbumDetailScreen() {
         data={group.tracks}
         keyExtractor={(t) => t.id}
         contentContainerStyle={{ paddingBottom: listBottomPad }}
+        ItemSeparatorComponent={TrackSeparator}
         ListHeaderComponent={
           <View style={[tw`pb-6 items-center`, { paddingTop: insets.top + 8 }]}>
             <View
@@ -300,10 +304,7 @@ export default function AlbumDetailScreen() {
           const isPlaying = playingTrackId !== null && playingTrackId === item.id;
           const row = (
             <Pressable
-              style={[
-                tw`flex-row items-center py-3 px-4 border-b border-white/[0.08]`,
-                { borderBottomWidth: StyleSheet.hairlineWidth },
-              ]}
+              style={[tw`flex-row items-center px-4`, { height: 44 }]}
               onPress={() => void playFrom(index)}
               onLongPress={() => setLongPressedTrackId(item.id)}
               testID={`album-track-${item.id}`}
@@ -317,20 +318,35 @@ export default function AlbumDetailScreen() {
                 </View>
               ) : (
                 <Text
-                  style={[tw`text-[#bbb] text-sm w-8`, { fontVariant: ['tabular-nums'] }]}
+                  allowFontScaling={false}
+                  style={[
+                    tw`text-[#bbb] text-sm w-8`,
+                    { fontVariant: ['tabular-nums'], includeFontPadding: false, textAlignVertical: 'center' },
+                  ]}
                 >
                   {formatTrackNumber(item, index)}
                 </Text>
               )}
               <View style={tw`flex-1 px-2`}>
                 <Text
-                  style={[tw`text-white text-[15px]`, isPlaying && { color: theme.accent }]}
+                  allowFontScaling={false}
+                  style={[
+                    tw`text-white text-[15px]`,
+                    { includeFontPadding: false, textAlignVertical: 'center' },
+                    isPlaying && { color: theme.accent },
+                  ]}
                   numberOfLines={1}
                 >
                   {item.title ?? 'Unknown title'}
                 </Text>
               </View>
-              <Text style={[tw`text-[#bbb] text-[13px]`, { fontVariant: ['tabular-nums'] }]}>
+              <Text
+                allowFontScaling={false}
+                style={[
+                  tw`text-[#bbb] text-[13px]`,
+                  { fontVariant: ['tabular-nums'], includeFontPadding: false, textAlignVertical: 'center' },
+                ]}
+              >
                 {formatTrackDuration(item.durationMs)}
               </Text>
             </Pressable>
@@ -339,9 +355,16 @@ export default function AlbumDetailScreen() {
             <ReanimatedSwipeable
               ref={refForRow(item.id)}
               testID={`album-track-swipe-${item.id}`}
+              // Pin the swipeable cell to the row height. An explicit height keeps
+              // ReanimatedSwipeable's absolutely-positioned action wrappers from
+              // inflating the container (under the RN new architecture they otherwise
+              // add layout height above the row). The row is absolutely positioned via
+              // childrenContainerStyle so it fills this height instead of being pushed down.
+              containerStyle={{ height: 44 }}
+              childrenContainerStyle={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
               renderRightActions={() => (
                 <Pressable
-                  style={tw`bg-[#ff3b30] justify-center items-center px-6 min-w-[96px]`}
+                  style={[tw`bg-[#ff3b30] justify-center items-center px-6 min-w-[96px]`, { height: 44 }]}
                   onPress={() => requestDeleteTrack(item)}
                   testID={`album-track-delete-action-${item.id}`}
                   accessibilityRole="button"
@@ -381,6 +404,10 @@ export default function AlbumDetailScreen() {
       />
     </View>
   );
+}
+
+function TrackSeparator() {
+  return <View style={[tw`bg-white/[0.08]`, { height: StyleSheet.hairlineWidth }]} />;
 }
 
 function formatTrackNumber(track: Track, fallbackIndex: number): string {
