@@ -50,6 +50,7 @@ export class TracksComponent {
   readonly tracksLoading = input(false);
   readonly tracks = input<Track[]>([]);
   readonly tracksError = input<string>();
+  readonly transferEnabled = input(true);
 
   transferTrack = output<number>();
   playTrack = output<Track>();

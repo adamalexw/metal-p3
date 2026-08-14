@@ -35,6 +35,7 @@
               [coverLoading]="cover?.loading || false"
               [cover]="cover?.cover"
               [coverError]="cover?.error"
+              [transferEnabled]="transferEnabled()"
               (openAlbum)="onOpenAlbum($event)"
               (deleteAlbum)="onDeleteAlbum(album.id)"
               (transferAlbum)="onTransferAlbum(album.id, album.folder)"

@@ -9,7 +9,7 @@
         <mat-icon title="metal archives">link</mat-icon>
       </button>
     }
-    <button type="button" class="cursor-pointer" [disabled]="trackTransferring()" (click)="transfer.emit()" mat-icon-button>
+    <button type="button" class="cursor-pointer" [disabled]="trackTransferring() || !transferEnabled()" (click)="transfer.emit()" mat-icon-button>
       <mat-icon title="transfer">adb</mat-icon>
     </button>
     <h3 class="cursor-pointer" [routerLink]="['/album', albumId]">{{ folder() }}</h3>

@@ -5,6 +5,7 @@
   [activePlaylist]="playlistStore.active()"
   [playlistName]="playlistStore.activePlaylist()?.name"
   [transferring]="playlistStore.transferring()"
+  [transferEnabled]="transferEnabled()"
   (loadPlaylists)="onLoadPlaylists()"
   (createPlaylist)="onCreatePlaylist($event)"
   (updatePlaylist)="onUpdatePlaylist($event)"

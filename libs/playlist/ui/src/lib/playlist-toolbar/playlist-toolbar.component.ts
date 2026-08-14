@@ -24,6 +24,7 @@ export class PlaylistToolbarComponent {
   readonly activePlaylist = input<number>();
   readonly playlistName = model<string | undefined>();
   readonly transferring = input(false);
+  readonly transferEnabled = input(true);
 
   readonly loadPlaylists = output<void>();
   readonly updatePlaylist = output<string>();

@@ -83,6 +83,7 @@ export class AlbumComponent {
   readonly trackRenamingProgress = input(0);
   readonly trackSavingProgress = input(0);
   readonly trackTransferring = input(false);
+  readonly transferEnabled = input(true);
   readonly trackTransferringProgress = input(0);
   readonly tracks = input<Track[]>([]);
   readonly tracksError = input<string>();

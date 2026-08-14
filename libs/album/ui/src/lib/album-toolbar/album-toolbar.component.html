@@ -14,7 +14,7 @@
   <button type="button" class="hidden! lg:block!" [matBadgeHidden]="!extraFiles()" (click)="openFolder.emit()" mat-icon-button matBadge="!" matBadgeColor="warn">
     <mat-icon title="open folder">folder()</mat-icon>
   </button>
-  <button type="button" [disabled]="trackTransferring()" (click)="transfer.emit()" mat-icon-button>
+  <button type="button" [disabled]="trackTransferring() || !transferEnabled()" (click)="transfer.emit()" mat-icon-button>
     <mat-icon title="transfer">adb</mat-icon>
   </button>
   <button type="button" (click)="refresh.emit()" itemName="refresh" mat-icon-button>

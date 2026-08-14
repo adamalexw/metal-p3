@@ -26,4 +26,9 @@ export class AdbController {
   isWifiConnected(): { connected: boolean } {
     return { connected: this.adbService.isWifiConnected() };
   }
+
+  @Get('status')
+  async status(): Promise<{ wifi: boolean; device: boolean }> {
+    return { wifi: this.adbService.isWifiConnected(), device: await this.adbService.hasDevice() };
+  }
 }

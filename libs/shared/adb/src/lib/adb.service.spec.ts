@@ -109,6 +109,39 @@ describe('AdbService.transferFile', () => {
   });
 });
 
+describe('AdbService.hasDevice', () => {
+  let service: AdbService;
+
+  beforeEach(() => {
+    listDevicesMock.mockReset();
+    service = new AdbService({} as unknown as FileSystemService);
+  });
+
+  it('returns true when an online device is attached', async () => {
+    listDevicesMock.mockResolvedValue([{ id: 'device-1', type: 'device' }]);
+
+    await expect(service.hasDevice()).resolves.toBe(true);
+  });
+
+  it('returns false when no devices are attached', async () => {
+    listDevicesMock.mockResolvedValue([]);
+
+    await expect(service.hasDevice()).resolves.toBe(false);
+  });
+
+  it('returns false when the only device is offline', async () => {
+    listDevicesMock.mockResolvedValue([{ id: 'device-1', type: 'offline' }]);
+
+    await expect(service.hasDevice()).resolves.toBe(false);
+  });
+
+  it('returns false when the adb server is unavailable', async () => {
+    listDevicesMock.mockRejectedValue(new Error('failed to start daemon'));
+
+    await expect(service.hasDevice()).resolves.toBe(false);
+  });
+});
+
 describe('AdbService.transferPlaylistManifest', () => {
   let service: AdbService;
   const fileSystem = {} as unknown as FileSystemService;

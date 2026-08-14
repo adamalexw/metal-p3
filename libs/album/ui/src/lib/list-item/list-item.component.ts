@@ -26,6 +26,7 @@ export class ListItemComponent {
   readonly coverLoading = input(false);
   readonly coverError = input<string | undefined>(undefined);
   readonly cover = input<string | undefined>(undefined);
+  readonly transferEnabled = input(true);
 
   readonly openAlbum = output<number>();
   readonly deleteAlbum = output<void>();

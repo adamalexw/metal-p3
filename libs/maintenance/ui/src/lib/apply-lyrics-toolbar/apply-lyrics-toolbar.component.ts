@@ -24,6 +24,7 @@ export class ApplyLyricsToolbarComponent {
   readonly cover = input<string>();
   readonly folder = input<string>();
   readonly trackTransferring = input(false);
+  readonly transferEnabled = input(true);
   readonly showClose = input(true);
 
   readonly apply = output<void>();

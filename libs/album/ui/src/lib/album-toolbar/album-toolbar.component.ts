@@ -18,6 +18,7 @@ export class AlbumToolbarComponent {
   readonly findingUrl = input(false);
   readonly renamingFolder = input(false);
   readonly trackTransferring = input(false);
+  readonly transferEnabled = input(true);
   readonly folder = input('');
   readonly extraFiles = input<boolean | undefined>();
 

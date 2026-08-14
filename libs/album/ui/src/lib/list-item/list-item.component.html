@@ -39,7 +39,7 @@
     </button>
 
     <mat-menu #menu="matMenu">
-      <button type="button" (click)="transferAlbum.emit()" mat-menu-item>
+      <button type="button" [disabled]="!transferEnabled()" (click)="transferAlbum.emit()" mat-menu-item>
         <mat-icon>adb</mat-icon>
         <span>Transfer</span>
       </button>

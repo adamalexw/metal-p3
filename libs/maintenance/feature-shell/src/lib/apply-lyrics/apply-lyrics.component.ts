@@ -7,6 +7,7 @@ import { AlbumStore } from '@metal-p3/album/data-access';
 import { ApplyLyrics } from '@metal-p3/album/domain';
 import { CoverStore } from '@metal-p3/cover/data-access';
 import { ApplyLyricsComponent } from '@metal-p3/maintenance/ui';
+import { AdbStatusService } from '@metal-p3/shared/transfer';
 import { TrackStore } from '@metal-p3/track/data-access';
 
 @Component({
@@ -24,6 +25,7 @@ export class ApplyLyricsShellComponent {
   private readonly coverStore = inject(CoverStore);
   private readonly route = inject(ActivatedRoute);
   private readonly notificationService = inject(NotificationService);
+  protected readonly transferEnabled = inject(AdbStatusService).transferEnabled;
 
   albumId = computed(() => {
     if (this.data?.albumId) return this.data.albumId;

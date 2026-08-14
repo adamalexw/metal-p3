@@ -7,6 +7,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSnackBarRef } from '@angular/material/snack-bar';
 import { NotificationService } from '@metal-p3/shared/feedback';
+import { AdbStatusService } from '../adb-status.service';
 import { AdbService } from '../adb.service';
 
 type ConnectPhoneModel = {
@@ -20,10 +21,10 @@ type ConnectPhoneModel = {
   selector: 'app-connect-phone',
   templateUrl: './connect-phone.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  providers: [AdbService],
 })
 export class ConnectPhoneComponent implements OnInit {
   private readonly adbService = inject(AdbService);
+  private readonly adbStatusService = inject(AdbStatusService);
   private readonly notificationService = inject(NotificationService);
   snackBarRef = inject(MatSnackBarRef);
 
@@ -51,7 +52,10 @@ export class ConnectPhoneComponent implements OnInit {
   connectPhone() {
     const { host, port } = this.model();
     this.adbService.connectPhone(host, port ?? 0).subscribe({
-      next: () => this.snackBarRef.dismissWithAction(),
+      next: () => {
+        this.adbStatusService.refresh();
+        this.snackBarRef.dismissWithAction();
+      },
       error: (err) => this.notificationService.showError(`Failed to connect phone: ${JSON.stringify(err)}`, 'Connect Phone'),
     });
   }

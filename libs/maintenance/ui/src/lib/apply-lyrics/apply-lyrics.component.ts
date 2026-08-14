@@ -32,6 +32,7 @@ export class ApplyLyricsComponent {
   readonly applied = input(false);
   readonly trackTransferring = input(false);
   readonly trackTransferringProgress = input(0);
+  readonly transferEnabled = input(true);
   readonly albumUrl = input<string>();
   readonly coverLoading = input(false);
   readonly cover = input<string>();

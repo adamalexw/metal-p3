@@ -12,7 +12,7 @@ import { PlayerShellComponent } from '@metal-p3/player';
 import { PlayerService, PlayerStore } from '@metal-p3/player/data-access';
 import { PlaylistStore } from '@metal-p3/playlist/data-access';
 import { NotificationService } from '@metal-p3/shared/feedback';
-import { ConnectPhoneService } from '@metal-p3/shared/transfer';
+import { AdbStatusService, ConnectPhoneService } from '@metal-p3/shared/transfer';
 import { toChunks } from '@metal-p3/shared/utils';
 import { TrackService } from '@metal-p3/track/data-access';
 import { Track } from '@metal-p3/track/domain';
@@ -36,6 +36,7 @@ export class ListComponent implements OnInit {
   private readonly playlistStore = inject(PlaylistStore);
   private readonly notificationService = inject(NotificationService);
   private readonly connectPhoneService = inject(ConnectPhoneService);
+  protected readonly transferEnabled = inject(AdbStatusService).transferEnabled;
   private readonly service = inject(AlbumService);
   private readonly viewportRuler = inject(ViewportRuler);
   private readonly location = inject(Location);

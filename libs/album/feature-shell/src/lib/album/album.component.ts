@@ -8,6 +8,7 @@ import { BandStore } from '@metal-p3/band/data-access';
 import { CoverService, CoverStore } from '@metal-p3/cover/data-access';
 import { MaintenanceStore } from '@metal-p3/maintenance/data-access';
 import { PlayerService } from '@metal-p3/player/data-access';
+import { AdbStatusService } from '@metal-p3/shared/transfer';
 import { TrackStore } from '@metal-p3/track/data-access';
 import { Track } from '@metal-p3/track/domain';
 import { WA_WINDOW } from '@ng-web-apis/common';
@@ -26,6 +27,7 @@ export class AlbumShellComponent {
   private readonly playerService = inject(PlayerService);
   private readonly maintenanceStore = inject(MaintenanceStore);
   private readonly windowRef = inject(WA_WINDOW);
+  protected readonly transferEnabled = inject(AdbStatusService).transferEnabled;
 
   readonly albumStore = inject(AlbumStore);
   readonly coverStore = inject(CoverStore);

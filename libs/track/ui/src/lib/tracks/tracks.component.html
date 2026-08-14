@@ -47,7 +47,7 @@
           <mat-icon>more_vert</mat-icon>
         </button>
         <mat-menu #menu="matMenu" class="album-menu">
-          <button type="button" (click)="transferTrack.emit(element().value().id)" mat-menu-item>
+          <button type="button" [disabled]="!transferEnabled()" (click)="transferTrack.emit(element().value().id)" mat-menu-item>
             <mat-icon>adb</mat-icon>
             <span>Transfer</span>
           </button>

@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, inject, input, output } from '@angu
 import { PlayerStore } from '@metal-p3/player/data-access';
 import { PlaylistStore } from '@metal-p3/playlist/data-access';
 import { PlaylistToolbarComponent } from '@metal-p3/playlist/ui';
+import { AdbStatusService } from '@metal-p3/shared/transfer';
 
 @Component({
   imports: [PlaylistToolbarComponent],
@@ -12,6 +13,7 @@ import { PlaylistToolbarComponent } from '@metal-p3/playlist/ui';
 export class PlaylistShellComponent {
   readonly playlistStore = inject(PlaylistStore);
   private readonly playerStore = inject(PlayerStore);
+  protected readonly transferEnabled = inject(AdbStatusService).transferEnabled;
 
   readonly duration = input<number>();
 

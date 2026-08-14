@@ -3,7 +3,12 @@ import { inject, Injectable } from '@angular/core';
 import { API } from '@metal-p3/album/domain';
 import { map, Observable } from 'rxjs';
 
-@Injectable()
+export interface AdbStatus {
+  wifi: boolean;
+  device: boolean;
+}
+
+@Injectable({ providedIn: 'root' })
 export class AdbService {
   private readonly http = inject(HttpClient);
   private readonly api = inject(API);
@@ -20,5 +25,9 @@ export class AdbService {
 
   isWifiConnected(): Observable<boolean> {
     return this.http.get<{ connected: boolean }>(`${this.baseUrl}/wifi`).pipe(map(({ connected }) => connected));
+  }
+
+  adbStatus(): Observable<AdbStatus> {
+    return this.http.get<AdbStatus>(`${this.baseUrl}/status`);
   }
 }

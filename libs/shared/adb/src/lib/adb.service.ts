@@ -47,6 +47,16 @@ export class AdbService {
     return onlineDevices;
   }
 
+  async hasDevice(): Promise<boolean> {
+    try {
+      const devices = await this.client.listDevices();
+      return devices.some((d: Device) => ['device', 'emulator'].includes(d.type));
+    } catch (err: unknown) {
+      console.warn('Could not list devices:', err instanceof Error ? err.message : err);
+      return false;
+    }
+  }
+
   async pairDevice(host: string, port: number, code: string): Promise<string> {
     try {
       const { stdout } = await execFileAsync(this.adbPath, ['pair', `${host}:${port}`, code]);
