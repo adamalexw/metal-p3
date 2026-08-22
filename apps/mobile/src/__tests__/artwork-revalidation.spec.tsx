@@ -24,9 +24,11 @@ const mockPlayer = {
   addListener: jest.fn().mockReturnValue({ remove: jest.fn() }),
 };
 
-jest.mock('expo-modules-core', () => ({
-  requireNativeModule: (name: string) => (name === 'MetalP3Player' ? mockPlayer : mockMedia),
-}));
+// jest-expo caches expo-modules-core during its setup file, so jest.mock here is
+// too late — register mocks on the JSI registry requireNativeModule checks first.
+const expoModules = (globalThis as unknown as { expo: { modules: Record<string, unknown> } }).expo.modules;
+expoModules.MetalP3Player = mockPlayer;
+expoModules.MetalP3Media = mockMedia;
 
 jest.mock('react-native-image-colors', () => ({
   getColors: jest.fn(),
