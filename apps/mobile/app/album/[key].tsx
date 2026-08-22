@@ -5,13 +5,11 @@ import { Play, Shuffle, ChevronLeft } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
 import { FlatList, Linking, Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { MetalP3Player } from '../../modules/metalp3-player';
 import { MINI_PLAYER_HEIGHT } from '../../src/components/MiniPlayer';
 import { toFlagEmoji } from '../../src/lib/country-flag';
 import { formatAlbumDuration, formatTrackDuration } from '../../src/lib/group-tracks-by-album';
 import { useLibraryAlbumGroup } from '../../src/lib/library-cache';
-import { shuffled } from '../../src/lib/shuffle';
-import { toQueueItem } from '../../src/lib/to-queue-item';
+import { startQueue, startShuffled } from '../../src/lib/start-queue';
 import AddToPlaylistSheet from '../../src/components/AddToPlaylistSheet';
 import ConfirmDeleteSheet from '../../src/components/ConfirmDeleteSheet';
 import SwipeToDeleteRow, { useSwipeableRowRefs } from '../../src/components/SwipeToDeleteRow';
@@ -21,7 +19,7 @@ import { tw } from '../../src/lib/tw';
 import { useNowPlayingState } from '../../src/lib/useNowPlayingState';
 import { useTrackArtwork } from '../../src/lib/useTrackArtwork';
 import { useTrackExtras } from '../../src/lib/useTrackExtras';
-import { prefetchArtworkTheme, useArtworkTheme } from '../../src/theme/useArtworkTheme';
+import { useArtworkTheme } from '../../src/theme/useArtworkTheme';
 import type { Track } from '../../modules/metalp3-media/src/MetalP3Media.types';
 
 const TRACK_ROW_HEIGHT = 44;
@@ -73,27 +71,18 @@ export default function AlbumDetailScreen() {
   const meta = `${group.trackCount} ${group.trackCount === 1 ? 'song' : 'songs'} · ${formatAlbumDuration(group.totalDurationMs)}`;
 
   const playFrom = async (index: number) => {
-    prefetchArtworkTheme(group.tracks[index]?.uri);
-    try {
-      await MetalP3Player.setShuffle(false);
-      await MetalP3Player.setQueueAsync(group.tracks.map(toQueueItem), index, 0);
-      await MetalP3Player.play();
-    } catch (err) {
-      console.warn('AlbumDetailScreen: failed to start playback', err);
+    const result = await startQueue(group.tracks, index);
+    if (!result.ok) {
+      console.warn('AlbumDetailScreen: failed to start playback', result.message);
       return;
     }
     router.push('/(tabs)/player' as never);
   };
 
   const playShuffled = async () => {
-    const ordered = shuffled(group.tracks);
-    prefetchArtworkTheme(ordered[0]?.uri);
-    try {
-      await MetalP3Player.setQueueAsync(ordered.map(toQueueItem), 0, 0);
-      await MetalP3Player.setShuffle(true);
-      await MetalP3Player.play();
-    } catch (err) {
-      console.warn('AlbumDetailScreen: failed to start shuffle playback', err);
+    const result = await startShuffled(group.tracks);
+    if (!result.ok) {
+      console.warn('AlbumDetailScreen: failed to start shuffle playback', result.message);
       return;
     }
     router.push('/(tabs)/player' as never);

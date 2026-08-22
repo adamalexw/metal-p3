@@ -30,11 +30,10 @@ import {
   initializeLibraryCache,
   getLibraryTracks,
 } from '../../src/lib/library-cache';
-import { shuffled } from '../../src/lib/shuffle';
+import { startQueue, startShuffled } from '../../src/lib/start-queue';
 import { toQueueItem } from '../../src/lib/to-queue-item';
 import { tw } from '../../src/lib/tw';
 import { useNowPlayingState } from '../../src/lib/useNowPlayingState';
-import { prefetchArtworkTheme } from '../../src/theme/useArtworkTheme';
 
 const AnimatedFlashList = Animated.createAnimatedComponent(FlashList<AlbumGroup>);
 
@@ -145,13 +144,9 @@ export default function LibraryScreen() {
 
   const playAlbum = useCallback(
     async (group: AlbumGroup) => {
-      prefetchArtworkTheme(group.tracks[0]?.uri);
-      try {
-        await MetalP3Player.setShuffle(false);
-        await MetalP3Player.setQueueAsync(group.tracks.map(toQueueItem), 0, 0);
-        await MetalP3Player.play();
-      } catch (err) {
-        console.warn('LibraryScreen: failed to start playback', err);
+      const result = await startQueue(group.tracks);
+      if (!result.ok) {
+        console.warn('LibraryScreen: failed to start playback', result.message);
         return;
       }
       router.push('/(tabs)/player' as never);
@@ -161,14 +156,9 @@ export default function LibraryScreen() {
 
   const shuffleAlbum = useCallback(
     async (group: AlbumGroup) => {
-      const ordered = shuffled(group.tracks);
-      prefetchArtworkTheme(ordered[0]?.uri);
-      try {
-        await MetalP3Player.setQueueAsync(ordered.map(toQueueItem), 0, 0);
-        await MetalP3Player.setShuffle(true);
-        await MetalP3Player.play();
-      } catch (err) {
-        console.warn('LibraryScreen: failed to start shuffle playback', err);
+      const result = await startShuffled(group.tracks);
+      if (!result.ok) {
+        console.warn('LibraryScreen: failed to start shuffle playback', result.message);
         return;
       }
       router.push('/(tabs)/player' as never);

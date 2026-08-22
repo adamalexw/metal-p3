@@ -29,13 +29,13 @@ import {
   setPlaylistTracks,
   subscribe as subscribePlaylists,
 } from '../../../src/lib/playlist-store';
-import { shuffled } from '../../../src/lib/shuffle';
 import { resolvePlaylistTracks } from '../../../src/lib/start-playlist';
+import { startQueue, startShuffled } from '../../../src/lib/start-queue';
 import { toQueueItem } from '../../../src/lib/to-queue-item';
 import { tw } from '../../../src/lib/tw';
 import { useTrackArtwork } from '../../../src/lib/useTrackArtwork';
 import { useNowPlayingState } from '../../../src/lib/useNowPlayingState';
-import { prefetchArtworkTheme, useArtworkTheme } from '../../../src/theme/useArtworkTheme';
+import { useArtworkTheme } from '../../../src/theme/useArtworkTheme';
 
 // 48px artwork + py-2.5
 const PLAYLIST_ROW_HEIGHT = 68;
@@ -123,17 +123,13 @@ export default function PlaylistDetailScreen() {
 
   const playFrom = async (index: number) => {
     if (tracks.length === 0) return;
-    prefetchArtworkTheme(tracks[index]?.uri);
     setStartError(null);
-    try {
-      await MetalP3Player.setShuffle(false);
-      await MetalP3Player.setQueueAsync(tracks.map(toQueueItem), index, 0);
-      await MetalP3Player.play();
-      if (playlist) setActivePlaylistId(playlist.id);
-    } catch (err) {
-      setStartError(err instanceof Error ? err.message : String(err));
+    const result = await startQueue(tracks, index);
+    if (!result.ok) {
+      setStartError(result.message);
       return;
     }
+    if (playlist) setActivePlaylistId(playlist.id);
     router.push('/(tabs)/player' as never);
   };
 
@@ -160,18 +156,13 @@ export default function PlaylistDetailScreen() {
 
   const playShuffled = async () => {
     if (tracks.length === 0) return;
-    const ordered = shuffled(tracks);
-    prefetchArtworkTheme(ordered[0]?.uri);
     setStartError(null);
-    try {
-      await MetalP3Player.setQueueAsync(ordered.map(toQueueItem), 0, 0);
-      await MetalP3Player.setShuffle(true);
-      await MetalP3Player.play();
-      if (playlist) setActivePlaylistId(playlist.id);
-    } catch (err) {
-      setStartError(err instanceof Error ? err.message : String(err));
+    const result = await startShuffled(tracks);
+    if (!result.ok) {
+      setStartError(result.message);
       return;
     }
+    if (playlist) setActivePlaylistId(playlist.id);
     router.push('/(tabs)/player' as never);
   };
 

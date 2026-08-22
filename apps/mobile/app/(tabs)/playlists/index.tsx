@@ -26,12 +26,11 @@ import {
   loadPlaylists,
   subscribe,
 } from '../../../src/lib/playlist-store';
-import { shuffled } from '../../../src/lib/shuffle';
 import { resolvePlaylistTracks, startPlaylist } from '../../../src/lib/start-playlist';
+import { startShuffled } from '../../../src/lib/start-queue';
 import { toQueueItem } from '../../../src/lib/to-queue-item';
 import { tw } from '../../../src/lib/tw';
 import { useNowPlayingState } from '../../../src/lib/useNowPlayingState';
-import { prefetchArtworkTheme } from '../../../src/theme/useArtworkTheme';
 
 const AnimatedFlashList = Animated.createAnimatedComponent(FlashList<Playlist>);
 
@@ -117,14 +116,9 @@ export default function PlaylistsListScreen() {
       setStartError(messageForReason('empty-playlist', playlist.name));
       return;
     }
-    const ordered = shuffled(tracks);
-    prefetchArtworkTheme(ordered[0]?.uri);
-    try {
-      await MetalP3Player.setQueueAsync(ordered.map(toQueueItem), 0, 0);
-      await MetalP3Player.setShuffle(true);
-      await MetalP3Player.play();
-    } catch (err) {
-      setStartError(messageForReason('error', playlist.name, err instanceof Error ? err.message : String(err)));
+    const result = await startShuffled(tracks);
+    if (!result.ok) {
+      setStartError(messageForReason('error', playlist.name, result.message));
       return;
     }
     router.push('/(tabs)/player' as never);
