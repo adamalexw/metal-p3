@@ -1,7 +1,7 @@
 import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import Animated, { FadeIn } from 'react-native-reanimated';
-import { ChevronLeft, Play, Shuffle } from 'lucide-react-native';
+import { ChevronLeft, Play } from 'lucide-react-native';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import DraggableFlatList, {
@@ -15,6 +15,7 @@ import BlurredBackdrop from '../../../src/components/BlurredBackdrop';
 import ConfirmDeleteSheet from '../../../src/components/ConfirmDeleteSheet';
 import { MINI_PLAYER_HEIGHT } from '../../../src/components/MiniPlayer';
 import SwipeToDeleteRow, { useSwipeableRowRefs } from '../../../src/components/SwipeToDeleteRow';
+import PlayShuffleButtons from '../../../src/components/PlayShuffleButtons';
 import PlaylistMosaic from '../../../src/components/PlaylistMosaic';
 import { deleteTracksOrError } from '../../../src/lib/delete-tracks';
 import { useConfirmDelete } from '../../../src/lib/useConfirmDelete';
@@ -231,53 +232,15 @@ export default function PlaylistDetailScreen() {
                 {startError}
               </Text>
             ) : null}
-            <View style={tw`flex-row gap-3 mt-4`}>
-              <Pressable
-                style={[
-                  tw`flex-row items-center justify-center gap-2 py-2.5 px-5 rounded-full min-w-[130px]`,
-                  { backgroundColor: theme.accent, opacity: tracks.length === 0 ? 0.4 : 1 },
-                ]}
-                disabled={tracks.length === 0}
-                onPress={() => void playFrom(0)}
-                testID="playlist-detail-play"
-                accessibilityRole="button"
-                accessibilityLabel="Play playlist"
-              >
-                <Play
-                  size={20}
-                  color={theme.accentForeground}
-                  fill={theme.accentForeground}
-                  strokeWidth={2.5}
-                  strokeLinecap="square"
-                />
-                <Text
-                  style={[tw`text-sm font-bold tracking-[0.4px]`, { color: theme.accentForeground }]}
-                >
-                  Play
-                </Text>
-              </Pressable>
-              <Pressable
-                style={[
-                  tw`flex-row items-center justify-center gap-2 py-2.5 px-5 rounded-full min-w-[130px]`,
-                  {
-                    borderWidth: 1.5,
-                    backgroundColor: theme.surface,
-                    borderColor: theme.accent,
-                    opacity: tracks.length === 0 ? 0.4 : 1,
-                  },
-                ]}
-                disabled={tracks.length === 0}
-                onPress={() => void playShuffled()}
-                testID="playlist-detail-shuffle"
-                accessibilityRole="button"
-                accessibilityLabel="Shuffle playlist"
-              >
-                <Shuffle size={20} color={theme.accent} strokeWidth={2.5} strokeLinecap="square" />
-                <Text style={[tw`text-sm font-bold tracking-[0.4px]`, { color: theme.accent }]}>
-                  Shuffle
-                </Text>
-              </Pressable>
-            </View>
+            <PlayShuffleButtons
+              theme={theme}
+              disabled={tracks.length === 0}
+              onPlay={() => void playFrom(0)}
+              onShuffle={() => void playShuffled()}
+              subject="playlist"
+              testIDPrefix="playlist-detail"
+              style={tw`mt-4`}
+            />
           </View>
         }
         ListEmptyComponent={

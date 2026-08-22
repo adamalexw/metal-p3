@@ -1,7 +1,7 @@
 import { BlurView } from 'expo-blur';
 import { Image } from 'expo-image';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
-import { Play, Shuffle, ChevronLeft } from 'lucide-react-native';
+import { Play, ChevronLeft } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
 import { FlatList, Linking, Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -12,6 +12,7 @@ import { useLibraryAlbumGroup } from '../../src/lib/library-cache';
 import { startQueue, startShuffled } from '../../src/lib/start-queue';
 import AddToPlaylistSheet from '../../src/components/AddToPlaylistSheet';
 import ConfirmDeleteSheet from '../../src/components/ConfirmDeleteSheet';
+import PlayShuffleButtons from '../../src/components/PlayShuffleButtons';
 import SwipeToDeleteRow, { useSwipeableRowRefs } from '../../src/components/SwipeToDeleteRow';
 import { deleteTracksOrError } from '../../src/lib/delete-tracks';
 import { useConfirmDelete } from '../../src/lib/useConfirmDelete';
@@ -196,55 +197,15 @@ export default function AlbumDetailScreen() {
                 {meta}
               </Text>
               
-              <View style={tw`flex-row gap-3 w-full mt-5`}>
-                <Pressable
-                  style={[
-                    tw`flex-1 flex-row items-center justify-center gap-1.5 py-2 px-4 rounded-full`,
-                    { backgroundColor: theme.accent },
-                  ]}
-                  onPress={() => void playFrom(0)}
-                  testID="album-detail-play"
-                  accessibilityRole="button"
-                  accessibilityLabel="Play album"
-                >
-                  <Play
-                    size={16}
-                    color={theme.accentForeground}
-                    fill={theme.accentForeground}
-                    strokeWidth={2.5}
-                    strokeLinecap="square"
-                  />
-                  <Text
-                    style={[tw`text-sm font-bold tracking-[0.4px]`, { color: theme.accentForeground }]}
-                  >
-                    Play
-                  </Text>
-                </Pressable>
-                <Pressable
-                  style={[
-                    tw`flex-1 flex-row items-center justify-center gap-1.5 py-2 px-4 rounded-full`,
-                    {
-                      borderWidth: 1.5,
-                      backgroundColor: theme.surface,
-                      borderColor: theme.accent,
-                    },
-                  ]}
-                  onPress={() => void playShuffled()}
-                  testID="album-detail-shuffle"
-                  accessibilityRole="button"
-                  accessibilityLabel="Shuffle album"
-                >
-                  <Shuffle
-                    size={16}
-                    color={theme.accent}
-                    strokeWidth={2.5}
-                    strokeLinecap="square"
-                  />
-                  <Text style={[tw`text-sm font-bold tracking-[0.4px]`, { color: theme.accent }]}>
-                    Shuffle
-                  </Text>
-                </Pressable>
-              </View>
+              <PlayShuffleButtons
+                theme={theme}
+                compact
+                onPlay={() => void playFrom(0)}
+                onShuffle={() => void playShuffled()}
+                subject="album"
+                testIDPrefix="album-detail"
+                style={tw`w-full mt-5`}
+              />
             </View>
           </View>
         }
