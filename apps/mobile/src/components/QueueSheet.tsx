@@ -1,6 +1,6 @@
 import { BlurView } from 'expo-blur';
 import { Disc3, GripVertical, Trash2, Volume2, X } from 'lucide-react-native';
-import { createRef, memo, useMemo, useRef, useState, type RefObject } from 'react';
+import { memo, useMemo, useRef, useState } from 'react';
 import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Image } from 'expo-image';
 import DraggableFlatList, {
@@ -8,9 +8,6 @@ import DraggableFlatList, {
   ScaleDecorator,
 } from 'react-native-draggable-flatlist';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import ReanimatedSwipeable, {
-  type SwipeableMethods,
-} from 'react-native-gesture-handler/ReanimatedSwipeable';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MetalP3Player, type QueueItem } from '../../modules/metalp3-player';
@@ -20,8 +17,11 @@ import { tw } from '../lib/tw';
 import { useQueueArtwork } from '../lib/useTrackArtwork';
 import { ICON_STROKE } from '../theme/icons';
 import type { ArtworkTheme } from '../theme/types';
+import SwipeToDeleteRow, { useSwipeableRowRefs } from './SwipeToDeleteRow';
 
 const ART_SIZE = 44;
+// 44px artwork + py-2
+const QUEUE_ROW_HEIGHT = ART_SIZE + 16;
 
 interface Props {
   visible: boolean;
@@ -34,15 +34,7 @@ interface Props {
 export default function QueueSheet({ visible, onClose, queue, currentIndex, theme }: Props) {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const swipeRefs = useRef(new Map<string, RefObject<SwipeableMethods | null>>());
-
-  const refForRow = (rowKey: string) => {
-    const existing = swipeRefs.current.get(rowKey);
-    if (existing) return existing;
-    const ref = createRef<SwipeableMethods | null>();
-    swipeRefs.current.set(rowKey, ref);
-    return ref;
-  };
+  const { refForRow, closeRow } = useSwipeableRowRefs();
 
   // Resolve artwork once at the parent so each visible row can take a
   // primitive prop and skip the per-row useTrackArtwork hook + cache lookup.
@@ -75,26 +67,16 @@ export default function QueueSheet({ visible, onClose, queue, currentIndex, them
     const rowKey = `${item.id}-${index}`;
     return (
       <ScaleDecorator>
-        <ReanimatedSwipeable
+        <SwipeToDeleteRow
           ref={refForRow(rowKey)}
-          friction={2}
-          rightThreshold={48}
-          overshootRight={false}
+          rowHeight={QUEUE_ROW_HEIGHT}
           enabled={!isActive}
-          renderRightActions={() => (
-            <Pressable
-              onPress={() => {
-                swipeRefs.current.get(rowKey)?.current?.close();
-                removeIndex(index);
-              }}
-              style={tw`bg-[#ff3b30] justify-center items-center px-6 min-w-[88px]`}
-              testID={`queue-row-remove-${item.id}`}
-              accessibilityRole="button"
-              accessibilityLabel="Remove from queue"
-            >
-              <Trash2 size={22} color="#fff" strokeWidth={ICON_STROKE} strokeLinecap="square" />
-            </Pressable>
-          )}
+          onDelete={() => {
+            closeRow(rowKey);
+            removeIndex(index);
+          }}
+          deleteTestID={`queue-row-remove-${item.id}`}
+          deleteAccessibilityLabel="Remove from queue"
         >
           <QueueRow
             id={item.id}
@@ -108,7 +90,7 @@ export default function QueueSheet({ visible, onClose, queue, currentIndex, them
             drag={drag}
             onPress={() => playIndex(index)}
           />
-        </ReanimatedSwipeable>
+        </SwipeToDeleteRow>
       </ScaleDecorator>
     );
   };

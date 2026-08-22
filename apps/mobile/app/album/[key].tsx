@@ -1,12 +1,9 @@
 import { BlurView } from 'expo-blur';
 import { Image } from 'expo-image';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
-import { Play, Shuffle, Trash2, ChevronLeft } from 'lucide-react-native';
-import { createRef, useEffect, useRef, useState, type RefObject } from 'react';
+import { Play, Shuffle, ChevronLeft } from 'lucide-react-native';
+import { useEffect, useState } from 'react';
 import { FlatList, Linking, Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
-import ReanimatedSwipeable, {
-  type SwipeableMethods,
-} from 'react-native-gesture-handler/ReanimatedSwipeable';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MetalP3Player } from '../../modules/metalp3-player';
 import { MINI_PLAYER_HEIGHT } from '../../src/components/MiniPlayer';
@@ -14,10 +11,10 @@ import { toFlagEmoji } from '../../src/lib/country-flag';
 import { formatAlbumDuration, formatTrackDuration } from '../../src/lib/group-tracks-by-album';
 import { useLibraryAlbumGroup } from '../../src/lib/library-cache';
 import { shuffled } from '../../src/lib/shuffle';
-import { ICON_STROKE } from '../../src/theme/icons';
 import { toQueueItem } from '../../src/lib/to-queue-item';
 import AddToPlaylistSheet from '../../src/components/AddToPlaylistSheet';
 import ConfirmDeleteSheet from '../../src/components/ConfirmDeleteSheet';
+import SwipeToDeleteRow, { useSwipeableRowRefs } from '../../src/components/SwipeToDeleteRow';
 import { deleteTracksAndPropagate } from '../../src/lib/delete-tracks';
 import { tw } from '../../src/lib/tw';
 import { useNowPlayingState } from '../../src/lib/useNowPlayingState';
@@ -25,6 +22,8 @@ import { useTrackArtwork } from '../../src/lib/useTrackArtwork';
 import { useTrackExtras } from '../../src/lib/useTrackExtras';
 import { prefetchArtworkTheme, useArtworkTheme } from '../../src/theme/useArtworkTheme';
 import type { Track } from '../../modules/metalp3-media/src/MetalP3Media.types';
+
+const TRACK_ROW_HEIGHT = 44;
 
 export default function AlbumDetailScreen() {
   const params = useLocalSearchParams<{ key: string }>();
@@ -48,15 +47,7 @@ export default function AlbumDetailScreen() {
   const [pendingDeleteTrack, setPendingDeleteTrack] = useState<Track | null>(null);
   const [deleteBusy, setDeleteBusy] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
-  const swipeableRefs = useRef(new Map<string, RefObject<SwipeableMethods | null>>());
-
-  const refForRow = (id: string) => {
-    const existing = swipeableRefs.current.get(id);
-    if (existing) return existing;
-    const ref = createRef<SwipeableMethods | null>();
-    swipeableRefs.current.set(id, ref);
-    return ref;
-  };
+  const { refForRow, closeRow } = useSwipeableRowRefs();
 
   useEffect(() => {
     if (!group && rawKey) {
@@ -136,7 +127,7 @@ export default function AlbumDetailScreen() {
     setPendingDeleteTrack(null);
     setDeleteError(null);
     if (id) {
-      swipeableRefs.current.get(id)?.current?.close();
+      closeRow(id);
     }
   };
 
@@ -304,7 +295,7 @@ export default function AlbumDetailScreen() {
           const isPlaying = playingTrackId !== null && playingTrackId === item.id;
           const row = (
             <Pressable
-              style={[tw`flex-row items-center px-4`, { height: 44 }]}
+              style={[tw`flex-row items-center px-4`, { height: TRACK_ROW_HEIGHT }]}
               onPress={() => void playFrom(index)}
               onLongPress={() => setLongPressedTrackId(item.id)}
               testID={`album-track-${item.id}`}
@@ -352,32 +343,16 @@ export default function AlbumDetailScreen() {
             </Pressable>
           );
           return (
-            <ReanimatedSwipeable
+            <SwipeToDeleteRow
               ref={refForRow(item.id)}
               testID={`album-track-swipe-${item.id}`}
-              // Pin the swipeable cell to the row height. An explicit height keeps
-              // ReanimatedSwipeable's absolutely-positioned action wrappers from
-              // inflating the container (under the RN new architecture they otherwise
-              // add layout height above the row). The row is absolutely positioned via
-              // childrenContainerStyle so it fills this height instead of being pushed down.
-              containerStyle={{ height: 44 }}
-              childrenContainerStyle={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
-              renderRightActions={() => (
-                <Pressable
-                  style={[tw`bg-[#ff3b30] justify-center items-center px-6 min-w-[96px]`, { height: 44 }]}
-                  onPress={() => requestDeleteTrack(item)}
-                  testID={`album-track-delete-action-${item.id}`}
-                  accessibilityRole="button"
-                  accessibilityLabel={`Delete ${item.title ?? 'track'}`}
-                >
-                  <Trash2 size={22} color="#fff" strokeWidth={ICON_STROKE} strokeLinecap="square" />
-                </Pressable>
-              )}
-              rightThreshold={48}
-              overshootRight={false}
+              rowHeight={TRACK_ROW_HEIGHT}
+              onDelete={() => requestDeleteTrack(item)}
+              deleteTestID={`album-track-delete-action-${item.id}`}
+              deleteAccessibilityLabel={`Delete ${item.title ?? 'track'}`}
             >
               {row}
-            </ReanimatedSwipeable>
+            </SwipeToDeleteRow>
           );
         }}
       />

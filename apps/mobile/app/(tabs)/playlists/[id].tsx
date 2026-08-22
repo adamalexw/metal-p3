@@ -1,30 +1,20 @@
 import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import Animated, { FadeIn } from 'react-native-reanimated';
-import { ChevronLeft, Play, Shuffle, Trash2 } from 'lucide-react-native';
-import {
-  createRef,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  type RefObject,
-} from 'react';
+import { ChevronLeft, Play, Shuffle } from 'lucide-react-native';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import DraggableFlatList, {
   type RenderItemParams,
   ScaleDecorator,
 } from 'react-native-draggable-flatlist';
-import ReanimatedSwipeable, {
-  type SwipeableMethods,
-} from 'react-native-gesture-handler/ReanimatedSwipeable';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MetalP3Player } from '../../../modules/metalp3-player';
 import type { Track } from '../../../modules/metalp3-media/src/MetalP3Media.types';
 import BlurredBackdrop from '../../../src/components/BlurredBackdrop';
 import ConfirmDeleteSheet from '../../../src/components/ConfirmDeleteSheet';
 import { MINI_PLAYER_HEIGHT } from '../../../src/components/MiniPlayer';
+import SwipeToDeleteRow, { useSwipeableRowRefs } from '../../../src/components/SwipeToDeleteRow';
 import PlaylistMosaic from '../../../src/components/PlaylistMosaic';
 import { deleteTracksAndPropagate } from '../../../src/lib/delete-tracks';
 import { formatAlbumDuration, formatTrackDuration } from '../../../src/lib/group-tracks-by-album';
@@ -40,15 +30,13 @@ import {
 } from '../../../src/lib/playlist-store';
 import { shuffled } from '../../../src/lib/shuffle';
 import { resolvePlaylistTracks } from '../../../src/lib/start-playlist';
-import { ICON_STROKE } from '../../../src/theme/icons';
 import { toQueueItem } from '../../../src/lib/to-queue-item';
 import { tw } from '../../../src/lib/tw';
 import { useTrackArtwork } from '../../../src/lib/useTrackArtwork';
 import { useNowPlayingState } from '../../../src/lib/useNowPlayingState';
 import { prefetchArtworkTheme, useArtworkTheme } from '../../../src/theme/useArtworkTheme';
 
-// Row height (48px artwork + py-2.5); pins the ReanimatedSwipeable cell so its
-// absolutely-positioned action wrappers don't inflate the container.
+// 48px artwork + py-2.5
 const PLAYLIST_ROW_HEIGHT = 68;
 
 export default function PlaylistDetailScreen() {
@@ -66,15 +54,7 @@ export default function PlaylistDetailScreen() {
   const [deleteBusy, setDeleteBusy] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const lastTrackIdsRef = useRef<string>(playlist ? playlist.trackIds.join('|') : '');
-  const swipeableRefs = useRef(new Map<string, RefObject<SwipeableMethods | null>>());
-
-  const refForRow = (id: string) => {
-    const existing = swipeableRefs.current.get(id);
-    if (existing) return existing;
-    const ref = createRef<SwipeableMethods | null>();
-    swipeableRefs.current.set(id, ref);
-    return ref;
-  };
+  const { refForRow, closeRow } = useSwipeableRowRefs();
 
   const nowPlaying = useNowPlayingState();
   const playingTrackId = nowPlaying?.current?.id ?? null;
@@ -223,7 +203,7 @@ export default function PlaylistDetailScreen() {
     setPendingDeleteTrack(null);
     setDeleteError(null);
     if (id) {
-      swipeableRefs.current.get(id)?.current?.close();
+      closeRow(id);
     }
   };
 
@@ -350,24 +330,13 @@ export default function PlaylistDetailScreen() {
         }
         renderItem={({ item, drag, isActive, getIndex }: RenderItemParams<Track>) => (
           <ScaleDecorator>
-            <ReanimatedSwipeable
+            <SwipeToDeleteRow
               ref={refForRow(item.id)}
               testID={`playlist-detail-track-swipe-${item.id}`}
-              containerStyle={{ height: PLAYLIST_ROW_HEIGHT }}
-              childrenContainerStyle={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
-              renderRightActions={() => (
-                <Pressable
-                  style={[tw`bg-[#ff3b30] justify-center items-center px-6 min-w-[96px]`, { height: PLAYLIST_ROW_HEIGHT }]}
-                  onPress={() => requestDeleteTrack(item)}
-                  testID={`playlist-detail-track-delete-action-${item.id}`}
-                  accessibilityRole="button"
-                  accessibilityLabel={`Delete ${item.title ?? 'track'}`}
-                >
-                  <Trash2 size={22} color="#fff" strokeWidth={ICON_STROKE} strokeLinecap="square" />
-                </Pressable>
-              )}
-              rightThreshold={48}
-              overshootRight={false}
+              rowHeight={PLAYLIST_ROW_HEIGHT}
+              onDelete={() => requestDeleteTrack(item)}
+              deleteTestID={`playlist-detail-track-delete-action-${item.id}`}
+              deleteAccessibilityLabel={`Delete ${item.title ?? 'track'}`}
               enabled={!isActive}
             >
               <PlaylistTrackRow
@@ -381,7 +350,7 @@ export default function PlaylistDetailScreen() {
                 }}
                 onLongPress={drag}
               />
-            </ReanimatedSwipeable>
+            </SwipeToDeleteRow>
           </ScaleDecorator>
         )}
       />
