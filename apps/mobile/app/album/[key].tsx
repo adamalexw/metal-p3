@@ -15,7 +15,8 @@ import { toQueueItem } from '../../src/lib/to-queue-item';
 import AddToPlaylistSheet from '../../src/components/AddToPlaylistSheet';
 import ConfirmDeleteSheet from '../../src/components/ConfirmDeleteSheet';
 import SwipeToDeleteRow, { useSwipeableRowRefs } from '../../src/components/SwipeToDeleteRow';
-import { deleteTracksAndPropagate } from '../../src/lib/delete-tracks';
+import { deleteTracksOrError } from '../../src/lib/delete-tracks';
+import { useConfirmDelete } from '../../src/lib/useConfirmDelete';
 import { tw } from '../../src/lib/tw';
 import { useNowPlayingState } from '../../src/lib/useNowPlayingState';
 import { useTrackArtwork } from '../../src/lib/useTrackArtwork';
@@ -44,10 +45,11 @@ export default function AlbumDetailScreen() {
   const listBottomPad = hasMiniPlayer ? insets.bottom + 24 + MINI_PLAYER_HEIGHT + 16 : insets.bottom + 8;
   const artUri = useTrackArtwork(group?.representativeUri ?? null);
   const [longPressedTrackId, setLongPressedTrackId] = useState<string | null>(null);
-  const [pendingDeleteTrack, setPendingDeleteTrack] = useState<Track | null>(null);
-  const [deleteBusy, setDeleteBusy] = useState(false);
-  const [deleteError, setDeleteError] = useState<string | null>(null);
   const { refForRow, closeRow } = useSwipeableRowRefs();
+  const deleteFlow = useConfirmDelete<Track>({
+    performDelete: (track) => deleteTracksOrError([track]),
+    onCancel: (track) => closeRow(track.id),
+  });
 
   useEffect(() => {
     if (!group && rawKey) {
@@ -95,40 +97,6 @@ export default function AlbumDetailScreen() {
       return;
     }
     router.push('/(tabs)/player' as never);
-  };
-
-  const requestDeleteTrack = (track: Track) => {
-    setDeleteError(null);
-    setPendingDeleteTrack(track);
-  };
-
-  const confirmDeleteTrack = async () => {
-    if (!pendingDeleteTrack || deleteBusy) return;
-    setDeleteBusy(true);
-    setDeleteError(null);
-    try {
-      const outcome = await deleteTracksAndPropagate([pendingDeleteTrack]);
-      if (outcome.deletedIds.length === 0) {
-        setDeleteError('Delete was cancelled or failed.');
-        setDeleteBusy(false);
-        return;
-      }
-      setPendingDeleteTrack(null);
-      setDeleteBusy(false);
-    } catch (err) {
-      setDeleteError(err instanceof Error ? err.message : String(err));
-      setDeleteBusy(false);
-    }
-  };
-
-  const cancelDeleteTrack = () => {
-    if (deleteBusy) return;
-    const id = pendingDeleteTrack?.id;
-    setPendingDeleteTrack(null);
-    setDeleteError(null);
-    if (id) {
-      closeRow(id);
-    }
   };
 
   return (
@@ -347,7 +315,7 @@ export default function AlbumDetailScreen() {
               ref={refForRow(item.id)}
               testID={`album-track-swipe-${item.id}`}
               rowHeight={TRACK_ROW_HEIGHT}
-              onDelete={() => requestDeleteTrack(item)}
+              onDelete={() => deleteFlow.request(item)}
               deleteTestID={`album-track-delete-action-${item.id}`}
               deleteAccessibilityLabel={`Delete ${item.title ?? 'track'}`}
             >
@@ -364,18 +332,14 @@ export default function AlbumDetailScreen() {
       />
 
       <ConfirmDeleteSheet
-        visible={pendingDeleteTrack !== null}
+        {...deleteFlow.sheetProps}
         title="Delete track?"
         message={
-          pendingDeleteTrack
-            ? `"${pendingDeleteTrack.title ?? 'This track'}" will be permanently removed from your device.`
+          deleteFlow.pending
+            ? `"${deleteFlow.pending.title ?? 'This track'}" will be permanently removed from your device.`
             : ''
         }
         confirmLabel="Delete"
-        busy={deleteBusy}
-        error={deleteError}
-        onConfirm={() => void confirmDeleteTrack()}
-        onCancel={cancelDeleteTrack}
       />
     </View>
   );

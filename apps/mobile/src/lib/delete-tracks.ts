@@ -42,6 +42,15 @@ export async function deleteTracksAndPropagate(
   return { deletedIds, failedUris: result.failedUris };
 }
 
+/** performDelete shape for useConfirmDelete flows. */
+export async function deleteTracksOrError(
+  tracks: Track[],
+  mode: 'tracks' | 'album-folder' = 'tracks',
+): Promise<string | null> {
+  const outcome = await deleteTracksAndPropagate(tracks, mode);
+  return outcome.deletedIds.length === 0 ? 'Delete was cancelled or failed.' : null;
+}
+
 async function reconcileQueue(deletedIds: string[]): Promise<void> {
   if (deletedIds.length === 0) return;
   const removeSet = new Set(deletedIds);

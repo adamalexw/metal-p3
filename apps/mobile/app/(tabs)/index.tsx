@@ -20,7 +20,8 @@ import LibraryHeader, {
 } from '../../src/components/LibraryHeader';
 import BlurredBackdrop from '../../src/components/BlurredBackdrop';
 import { MINI_PLAYER_HEIGHT } from '../../src/components/MiniPlayer';
-import { deleteTracksAndPropagate } from '../../src/lib/delete-tracks';
+import { deleteTracksOrError } from '../../src/lib/delete-tracks';
+import { useConfirmDelete } from '../../src/lib/useConfirmDelete';
 import type { AlbumGroup } from '../../src/lib/group-tracks-by-album';
 import {
   setLibraryTracks,
@@ -50,9 +51,9 @@ export default function LibraryScreen() {
   const [albums, setAlbums] = useState<AlbumGroup[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [contextAlbum, setContextAlbum] = useState<AlbumGroup | null>(null);
-  const [pendingDeleteAlbum, setPendingDeleteAlbum] = useState<AlbumGroup | null>(null);
-  const [deleteBusy, setDeleteBusy] = useState(false);
-  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const deleteFlow = useConfirmDelete<AlbumGroup>({
+    performDelete: (group) => deleteTracksOrError(group.tracks, 'album-folder'),
+  });
 
   const scanInFlight = useRef(false);
 
@@ -183,31 +184,6 @@ export default function LibraryScreen() {
     }
   }, []);
 
-  const confirmDeleteAlbum = async () => {
-    if (!pendingDeleteAlbum || deleteBusy) return;
-    setDeleteBusy(true);
-    setDeleteError(null);
-    try {
-      const outcome = await deleteTracksAndPropagate(pendingDeleteAlbum.tracks, 'album-folder');
-      if (outcome.deletedIds.length === 0) {
-        setDeleteError('Delete was cancelled or failed.');
-        setDeleteBusy(false);
-        return;
-      }
-      setPendingDeleteAlbum(null);
-      setDeleteBusy(false);
-    } catch (err) {
-      setDeleteError(err instanceof Error ? err.message : String(err));
-      setDeleteBusy(false);
-    }
-  };
-
-  const cancelDeleteAlbum = () => {
-    if (deleteBusy) return;
-    setPendingDeleteAlbum(null);
-    setDeleteError(null);
-  };
-
   const scrollY = useSharedValue(0);
   const onScroll = useAnimatedScrollHandler((e) => {
     scrollY.value = e.contentOffset.y;
@@ -308,7 +284,7 @@ export default function LibraryScreen() {
                   label: 'Delete album',
                   icon: Trash2,
                   destructive: true,
-                  onPress: () => setPendingDeleteAlbum(contextAlbum),
+                  onPress: () => deleteFlow.request(contextAlbum),
                   testID: `album-context-delete-${contextAlbum.key}`,
                 },
               ]
@@ -317,20 +293,16 @@ export default function LibraryScreen() {
       />
 
       <ConfirmDeleteSheet
-        visible={pendingDeleteAlbum !== null}
+        {...deleteFlow.sheetProps}
         title="Delete album?"
         message={
-          pendingDeleteAlbum
-            ? `All ${pendingDeleteAlbum.trackCount} ${
-                pendingDeleteAlbum.trackCount === 1 ? 'track' : 'tracks'
-              } in "${pendingDeleteAlbum.albumName}" will be permanently removed from your device.`
+          deleteFlow.pending
+            ? `All ${deleteFlow.pending.trackCount} ${
+                deleteFlow.pending.trackCount === 1 ? 'track' : 'tracks'
+              } in "${deleteFlow.pending.albumName}" will be permanently removed from your device.`
             : ''
         }
         confirmLabel="Delete"
-        busy={deleteBusy}
-        error={deleteError}
-        onConfirm={() => void confirmDeleteAlbum()}
-        onCancel={cancelDeleteAlbum}
       />
     </View>
   );
