@@ -1,7 +1,7 @@
 import { FlashList } from '@shopify/flash-list';
 import { useRouter } from 'expo-router';
 import { ListPlus, Play, Shuffle, Trash2 } from 'lucide-react-native';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { Text, View } from 'react-native';
 import Animated, {
   FadeIn,
@@ -14,23 +14,19 @@ import ConfirmDeleteSheet from '../../../src/components/ConfirmDeleteSheet';
 import ContextMenuSheet from '../../../src/components/ContextMenuSheet';
 import LibraryHeader, { LibraryHeaderSpacer } from '../../../src/components/LibraryHeader';
 import BlurredBackdrop from '../../../src/components/BlurredBackdrop';
-import { MINI_PLAYER_HEIGHT } from '../../../src/components/MiniPlayer';
+import { listBottomPad } from '../../../src/components/MiniPlayer';
 import PlaylistTile from '../../../src/components/PlaylistTile';
 import { deleteTracksAndPropagate } from '../../../src/lib/delete-tracks';
+import { errorMessage } from '../../../src/lib/error-message';
+import { useConfirmDelete } from '../../../src/lib/useConfirmDelete';
 import { getLibraryTracks } from '../../../src/lib/library-cache';
-import {
-  Playlist,
-  deletePlaylist,
-  getPlaylists,
-  loadPlaylists,
-  subscribe,
-} from '../../../src/lib/playlist-store';
-import { shuffled } from '../../../src/lib/shuffle';
+import { Playlist, deletePlaylist } from '../../../src/lib/playlist-store';
+import { usePlaylists } from '../../../src/lib/usePlaylists';
 import { resolvePlaylistTracks, startPlaylist } from '../../../src/lib/start-playlist';
+import { startShuffled } from '../../../src/lib/start-queue';
 import { toQueueItem } from '../../../src/lib/to-queue-item';
 import { tw } from '../../../src/lib/tw';
 import { useNowPlayingState } from '../../../src/lib/useNowPlayingState';
-import { prefetchArtworkTheme } from '../../../src/theme/useArtworkTheme';
 
 const AnimatedFlashList = Animated.createAnimatedComponent(FlashList<Playlist>);
 
@@ -46,20 +42,30 @@ export default function PlaylistsListScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const nowPlaying = useNowPlayingState();
-  const miniPlayerPad = nowPlaying?.current ? MINI_PLAYER_HEIGHT + 16 : 0;
 
-  const [playlists, setPlaylists] = useState<Playlist[]>(() => getPlaylists());
+  const playlists = usePlaylists();
   const [contextPlaylist, setContextPlaylist] = useState<Playlist | null>(null);
-  const [pendingDelete, setPendingDelete] = useState<Playlist | null>(null);
-  const [pendingDeleteWithFiles, setPendingDeleteWithFiles] = useState<Playlist | null>(null);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [startError, setStartError] = useState<string | null>(null);
 
-  useEffect(() => {
-    void loadPlaylists().then((p) => setPlaylists([...p]));
-    return subscribe(() => setPlaylists([...getPlaylists()]));
-  }, []);
+  const deleteFlow = useConfirmDelete<Playlist>({
+    performDelete: async (playlist) => {
+      await deletePlaylist(playlist.id);
+      return null;
+    },
+  });
+  const deleteWithFilesFlow = useConfirmDelete<Playlist>({
+    performDelete: async (playlist) => {
+      const tracks = resolvePlaylistTracks(playlist, getLibraryTracks());
+      if (tracks.length > 0) {
+        const outcome = await deleteTracksAndPropagate(tracks, 'album-folder');
+        if (outcome.deletedIds.length === 0) {
+          return 'File deletion was cancelled or failed.';
+        }
+      }
+      await deletePlaylist(playlist.id);
+      return null;
+    },
+  });
 
   const openPlaylist = useCallback(
     (playlist: Playlist) => {
@@ -100,14 +106,9 @@ export default function PlaylistsListScreen() {
       setStartError(messageForReason('empty-playlist', playlist.name));
       return;
     }
-    const ordered = shuffled(tracks);
-    prefetchArtworkTheme(ordered[0]?.uri);
-    try {
-      await MetalP3Player.setQueueAsync(ordered.map(toQueueItem), 0, 0);
-      await MetalP3Player.setShuffle(true);
-      await MetalP3Player.play();
-    } catch (err) {
-      setStartError(messageForReason('error', playlist.name, err instanceof Error ? err.message : String(err)));
+    const result = await startShuffled(tracks);
+    if (!result.ok) {
+      setStartError(messageForReason('error', playlist.name, result.message));
       return;
     }
     router.push('/(tabs)/player' as never);
@@ -128,65 +129,15 @@ export default function PlaylistsListScreen() {
     try {
       await MetalP3Player.addToQueueAsync(tracks.map(toQueueItem));
     } catch (err) {
-      setStartError(messageForReason('error', playlist.name, err instanceof Error ? err.message : String(err)));
+      setStartError(messageForReason('error', playlist.name, errorMessage(err)));
     }
-  };
-
-  const confirmDelete = async () => {
-    if (!pendingDelete || busy) return;
-    setBusy(true);
-    setError(null);
-    try {
-      await deletePlaylist(pendingDelete.id);
-      setPendingDelete(null);
-      setBusy(false);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
-      setBusy(false);
-    }
-  };
-
-  const cancelDelete = () => {
-    if (busy) return;
-    setPendingDelete(null);
-    setError(null);
   };
 
   const askDeleteWithFiles = () => {
-    if (!pendingDelete || busy) return;
-    setPendingDeleteWithFiles(pendingDelete);
-    setPendingDelete(null);
-    setError(null);
-  };
-
-  const confirmDeleteWithFiles = async () => {
-    if (!pendingDeleteWithFiles || busy) return;
-    setBusy(true);
-    setError(null);
-    const playlist = pendingDeleteWithFiles;
-    try {
-      const tracks = resolvePlaylistTracks(playlist, getLibraryTracks());
-      if (tracks.length > 0) {
-        const outcome = await deleteTracksAndPropagate(tracks, 'album-folder');
-        if (outcome.deletedIds.length === 0) {
-          setError('File deletion was cancelled or failed.');
-          setBusy(false);
-          return;
-        }
-      }
-      await deletePlaylist(playlist.id);
-      setPendingDeleteWithFiles(null);
-      setBusy(false);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
-      setBusy(false);
-    }
-  };
-
-  const cancelDeleteWithFiles = () => {
-    if (busy) return;
-    setPendingDeleteWithFiles(null);
-    setError(null);
+    const playlist = deleteFlow.pending;
+    if (!playlist || deleteFlow.busy) return;
+    deleteFlow.cancel();
+    deleteWithFilesFlow.request(playlist);
   };
 
   const scrollY = useSharedValue(0);
@@ -238,7 +189,7 @@ export default function PlaylistsListScreen() {
             No playlists yet. Long-press a track to add it to a new playlist.
           </Text>
         }
-        contentContainerStyle={{ paddingHorizontal: 12, paddingBottom: insets.bottom + 24 + miniPlayerPad }}
+        contentContainerStyle={{ paddingHorizontal: 12, paddingBottom: listBottomPad(insets.bottom, !!nowPlaying?.current) }}
         renderItem={renderItem}
       />
 
@@ -283,7 +234,7 @@ export default function PlaylistsListScreen() {
                   label: 'Delete playlist',
                   icon: Trash2,
                   destructive: true,
-                  onPress: () => setPendingDelete(contextPlaylist),
+                  onPress: () => deleteFlow.request(contextPlaylist),
                   testID: `playlist-context-delete-${contextPlaylist.id}`,
                 },
               ]
@@ -292,18 +243,14 @@ export default function PlaylistsListScreen() {
       />
 
       <ConfirmDeleteSheet
-        visible={pendingDelete !== null}
+        {...deleteFlow.sheetProps}
         title="Delete playlist?"
         message={
-          pendingDelete
-            ? `"${pendingDelete.name}" will be removed. Choose whether to also delete the audio files in this playlist from your device.`
+          deleteFlow.pending
+            ? `"${deleteFlow.pending.name}" will be removed. Choose whether to also delete the audio files in this playlist from your device.`
             : ''
         }
         confirmLabel="Delete playlist only"
-        busy={busy}
-        error={error}
-        onConfirm={() => void confirmDelete()}
-        onCancel={cancelDelete}
         secondaryConfirm={{
           label: 'Delete playlist + files',
           onPress: askDeleteWithFiles,
@@ -312,18 +259,14 @@ export default function PlaylistsListScreen() {
       />
 
       <ConfirmDeleteSheet
-        visible={pendingDeleteWithFiles !== null}
+        {...deleteWithFilesFlow.sheetProps}
         title="Delete files too?"
         message={
-          pendingDeleteWithFiles
-            ? `Every track in "${pendingDeleteWithFiles.name}" — and every other file in those tracks' folders (artwork, lyrics, sibling tracks) — will be deleted from your device. This cannot be undone.`
+          deleteWithFilesFlow.pending
+            ? `Every track in "${deleteWithFilesFlow.pending.name}" — and every other file in those tracks' folders (artwork, lyrics, sibling tracks) — will be deleted from your device. This cannot be undone.`
             : ''
         }
         confirmLabel="Delete playlist + files"
-        busy={busy}
-        error={error}
-        onConfirm={() => void confirmDeleteWithFiles()}
-        onCancel={cancelDeleteWithFiles}
       />
     </View>
   );

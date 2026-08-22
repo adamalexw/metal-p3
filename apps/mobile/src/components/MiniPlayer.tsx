@@ -12,6 +12,10 @@ import ArtworkImage from './ArtworkImage';
 
 export const MINI_PLAYER_HEIGHT = 72;
 
+export function listBottomPad(bottomInset: number, hasMiniPlayer: boolean, basePad = 24): number {
+  return hasMiniPlayer ? bottomInset + 24 + MINI_PLAYER_HEIGHT + 16 : bottomInset + basePad;
+}
+
 export default function MiniPlayer() {
   const router = useRouter();
   const pathname = usePathname();

@@ -19,8 +19,10 @@ import LibraryHeader, {
   formatLibraryStats,
 } from '../../src/components/LibraryHeader';
 import BlurredBackdrop from '../../src/components/BlurredBackdrop';
-import { MINI_PLAYER_HEIGHT } from '../../src/components/MiniPlayer';
-import { deleteTracksAndPropagate } from '../../src/lib/delete-tracks';
+import { listBottomPad } from '../../src/components/MiniPlayer';
+import { deleteTracksOrError } from '../../src/lib/delete-tracks';
+import { errorMessage } from '../../src/lib/error-message';
+import { useConfirmDelete } from '../../src/lib/useConfirmDelete';
 import type { AlbumGroup } from '../../src/lib/group-tracks-by-album';
 import {
   setLibraryTracks,
@@ -29,11 +31,10 @@ import {
   initializeLibraryCache,
   getLibraryTracks,
 } from '../../src/lib/library-cache';
-import { shuffled } from '../../src/lib/shuffle';
+import { startQueue, startShuffled } from '../../src/lib/start-queue';
 import { toQueueItem } from '../../src/lib/to-queue-item';
 import { tw } from '../../src/lib/tw';
 import { useNowPlayingState } from '../../src/lib/useNowPlayingState';
-import { prefetchArtworkTheme } from '../../src/theme/useArtworkTheme';
 
 const AnimatedFlashList = Animated.createAnimatedComponent(FlashList<AlbumGroup>);
 
@@ -45,14 +46,13 @@ export default function LibraryScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const nowPlaying = useNowPlayingState();
-  const miniPlayerPad = nowPlaying?.current ? MINI_PLAYER_HEIGHT + 16 : 0;
   const [status, setStatus] = useState<Status>('idle');
   const [albums, setAlbums] = useState<AlbumGroup[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [contextAlbum, setContextAlbum] = useState<AlbumGroup | null>(null);
-  const [pendingDeleteAlbum, setPendingDeleteAlbum] = useState<AlbumGroup | null>(null);
-  const [deleteBusy, setDeleteBusy] = useState(false);
-  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const deleteFlow = useConfirmDelete<AlbumGroup>({
+    performDelete: (group) => deleteTracksOrError(group.tracks, 'album-folder'),
+  });
 
   const scanInFlight = useRef(false);
 
@@ -86,7 +86,7 @@ export default function LibraryScreen() {
       setStatus('ready');
     } catch (e) {
       if (getLibraryTracks().length === 0) {
-        setError(e instanceof Error ? e.message : String(e));
+        setError(errorMessage(e));
         setStatus('error');
       } else {
         console.warn('LibraryScreen: initial scan failed, showing cached library', e);
@@ -144,13 +144,9 @@ export default function LibraryScreen() {
 
   const playAlbum = useCallback(
     async (group: AlbumGroup) => {
-      prefetchArtworkTheme(group.tracks[0]?.uri);
-      try {
-        await MetalP3Player.setShuffle(false);
-        await MetalP3Player.setQueueAsync(group.tracks.map(toQueueItem), 0, 0);
-        await MetalP3Player.play();
-      } catch (err) {
-        console.warn('LibraryScreen: failed to start playback', err);
+      const result = await startQueue(group.tracks);
+      if (!result.ok) {
+        console.warn('LibraryScreen: failed to start playback', result.message);
         return;
       }
       router.push('/(tabs)/player' as never);
@@ -160,14 +156,9 @@ export default function LibraryScreen() {
 
   const shuffleAlbum = useCallback(
     async (group: AlbumGroup) => {
-      const ordered = shuffled(group.tracks);
-      prefetchArtworkTheme(ordered[0]?.uri);
-      try {
-        await MetalP3Player.setQueueAsync(ordered.map(toQueueItem), 0, 0);
-        await MetalP3Player.setShuffle(true);
-        await MetalP3Player.play();
-      } catch (err) {
-        console.warn('LibraryScreen: failed to start shuffle playback', err);
+      const result = await startShuffled(group.tracks);
+      if (!result.ok) {
+        console.warn('LibraryScreen: failed to start shuffle playback', result.message);
         return;
       }
       router.push('/(tabs)/player' as never);
@@ -182,31 +173,6 @@ export default function LibraryScreen() {
       console.warn('LibraryScreen: failed to add album to queue', err);
     }
   }, []);
-
-  const confirmDeleteAlbum = async () => {
-    if (!pendingDeleteAlbum || deleteBusy) return;
-    setDeleteBusy(true);
-    setDeleteError(null);
-    try {
-      const outcome = await deleteTracksAndPropagate(pendingDeleteAlbum.tracks, 'album-folder');
-      if (outcome.deletedIds.length === 0) {
-        setDeleteError('Delete was cancelled or failed.');
-        setDeleteBusy(false);
-        return;
-      }
-      setPendingDeleteAlbum(null);
-      setDeleteBusy(false);
-    } catch (err) {
-      setDeleteError(err instanceof Error ? err.message : String(err));
-      setDeleteBusy(false);
-    }
-  };
-
-  const cancelDeleteAlbum = () => {
-    if (deleteBusy) return;
-    setPendingDeleteAlbum(null);
-    setDeleteError(null);
-  };
 
   const scrollY = useSharedValue(0);
   const onScroll = useAnimatedScrollHandler((e) => {
@@ -262,7 +228,7 @@ export default function LibraryScreen() {
             onScroll={onScroll}
             scrollEventThrottle={16}
             ListHeaderComponent={<LibraryHeaderSpacer topInset={insets.top} />}
-            contentContainerStyle={{ paddingHorizontal: 12, paddingBottom: insets.bottom + 24 + miniPlayerPad }}
+            contentContainerStyle={{ paddingHorizontal: 12, paddingBottom: listBottomPad(insets.bottom, !!nowPlaying?.current) }}
             renderItem={renderItem}
           />
           <LibraryHeader
@@ -308,7 +274,7 @@ export default function LibraryScreen() {
                   label: 'Delete album',
                   icon: Trash2,
                   destructive: true,
-                  onPress: () => setPendingDeleteAlbum(contextAlbum),
+                  onPress: () => deleteFlow.request(contextAlbum),
                   testID: `album-context-delete-${contextAlbum.key}`,
                 },
               ]
@@ -317,20 +283,16 @@ export default function LibraryScreen() {
       />
 
       <ConfirmDeleteSheet
-        visible={pendingDeleteAlbum !== null}
+        {...deleteFlow.sheetProps}
         title="Delete album?"
         message={
-          pendingDeleteAlbum
-            ? `All ${pendingDeleteAlbum.trackCount} ${
-                pendingDeleteAlbum.trackCount === 1 ? 'track' : 'tracks'
-              } in "${pendingDeleteAlbum.albumName}" will be permanently removed from your device.`
+          deleteFlow.pending
+            ? `All ${deleteFlow.pending.trackCount} ${
+                deleteFlow.pending.trackCount === 1 ? 'track' : 'tracks'
+              } in "${deleteFlow.pending.albumName}" will be permanently removed from your device.`
             : ''
         }
         confirmLabel="Delete"
-        busy={deleteBusy}
-        error={deleteError}
-        onConfirm={() => void confirmDeleteAlbum()}
-        onCancel={cancelDeleteAlbum}
       />
     </View>
   );

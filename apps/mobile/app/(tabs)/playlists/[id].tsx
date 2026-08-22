@@ -1,32 +1,24 @@
 import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import Animated, { FadeIn } from 'react-native-reanimated';
-import { ChevronLeft, Play, Shuffle, Trash2 } from 'lucide-react-native';
-import {
-  createRef,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  type RefObject,
-} from 'react';
+import { ChevronLeft, Play } from 'lucide-react-native';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import DraggableFlatList, {
   type RenderItemParams,
   ScaleDecorator,
 } from 'react-native-draggable-flatlist';
-import ReanimatedSwipeable, {
-  type SwipeableMethods,
-} from 'react-native-gesture-handler/ReanimatedSwipeable';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MetalP3Player } from '../../../modules/metalp3-player';
 import type { Track } from '../../../modules/metalp3-media/src/MetalP3Media.types';
 import BlurredBackdrop from '../../../src/components/BlurredBackdrop';
 import ConfirmDeleteSheet from '../../../src/components/ConfirmDeleteSheet';
-import { MINI_PLAYER_HEIGHT } from '../../../src/components/MiniPlayer';
+import { listBottomPad } from '../../../src/components/MiniPlayer';
+import SwipeToDeleteRow, { useSwipeableRowRefs } from '../../../src/components/SwipeToDeleteRow';
+import PlayShuffleButtons from '../../../src/components/PlayShuffleButtons';
 import PlaylistMosaic from '../../../src/components/PlaylistMosaic';
-import { deleteTracksAndPropagate } from '../../../src/lib/delete-tracks';
+import { deleteTracksOrError } from '../../../src/lib/delete-tracks';
+import { useConfirmDelete } from '../../../src/lib/useConfirmDelete';
 import { formatAlbumDuration, formatTrackDuration } from '../../../src/lib/group-tracks-by-album';
 import { getLibraryTracks, subscribe as subscribeLibrary } from '../../../src/lib/library-cache';
 import {
@@ -38,17 +30,15 @@ import {
   setPlaylistTracks,
   subscribe as subscribePlaylists,
 } from '../../../src/lib/playlist-store';
-import { shuffled } from '../../../src/lib/shuffle';
 import { resolvePlaylistTracks } from '../../../src/lib/start-playlist';
-import { ICON_STROKE } from '../../../src/theme/icons';
+import { startQueue, startShuffled } from '../../../src/lib/start-queue';
 import { toQueueItem } from '../../../src/lib/to-queue-item';
 import { tw } from '../../../src/lib/tw';
 import { useTrackArtwork } from '../../../src/lib/useTrackArtwork';
 import { useNowPlayingState } from '../../../src/lib/useNowPlayingState';
-import { prefetchArtworkTheme, useArtworkTheme } from '../../../src/theme/useArtworkTheme';
+import { useArtworkTheme } from '../../../src/theme/useArtworkTheme';
 
-// Row height (48px artwork + py-2.5); pins the ReanimatedSwipeable cell so its
-// absolutely-positioned action wrappers don't inflate the container.
+// 48px artwork + py-2.5
 const PLAYLIST_ROW_HEIGHT = 68;
 
 export default function PlaylistDetailScreen() {
@@ -62,26 +52,16 @@ export default function PlaylistDetailScreen() {
   const [playlist, setPlaylist] = useState<Playlist | null>(() => getPlaylist(playlistId) ?? null);
   const [loading, setLoading] = useState(!playlist);
   const [startError, setStartError] = useState<string | null>(null);
-  const [pendingDeleteTrack, setPendingDeleteTrack] = useState<Track | null>(null);
-  const [deleteBusy, setDeleteBusy] = useState(false);
-  const [deleteError, setDeleteError] = useState<string | null>(null);
   const lastTrackIdsRef = useRef<string>(playlist ? playlist.trackIds.join('|') : '');
-  const swipeableRefs = useRef(new Map<string, RefObject<SwipeableMethods | null>>());
-
-  const refForRow = (id: string) => {
-    const existing = swipeableRefs.current.get(id);
-    if (existing) return existing;
-    const ref = createRef<SwipeableMethods | null>();
-    swipeableRefs.current.set(id, ref);
-    return ref;
-  };
+  const { refForRow, closeRow } = useSwipeableRowRefs();
+  const deleteFlow = useConfirmDelete<Track>({
+    performDelete: (track) => deleteTracksOrError([track]),
+    onCancel: (track) => closeRow(track.id),
+  });
 
   const nowPlaying = useNowPlayingState();
   const playingTrackId = nowPlaying?.current?.id ?? null;
   const hasMiniPlayer = !!nowPlaying?.current;
-  const listBottomPad = hasMiniPlayer
-    ? insets.bottom + 24 + MINI_PLAYER_HEIGHT + 16
-    : insets.bottom + 24;
 
   const themeSeedUri = useMemo(
     () =>
@@ -141,17 +121,13 @@ export default function PlaylistDetailScreen() {
 
   const playFrom = async (index: number) => {
     if (tracks.length === 0) return;
-    prefetchArtworkTheme(tracks[index]?.uri);
     setStartError(null);
-    try {
-      await MetalP3Player.setShuffle(false);
-      await MetalP3Player.setQueueAsync(tracks.map(toQueueItem), index, 0);
-      await MetalP3Player.play();
-      if (playlist) setActivePlaylistId(playlist.id);
-    } catch (err) {
-      setStartError(err instanceof Error ? err.message : String(err));
+    const result = await startQueue(tracks, index);
+    if (!result.ok) {
+      setStartError(result.message);
       return;
     }
+    if (playlist) setActivePlaylistId(playlist.id);
     router.push('/(tabs)/player' as never);
   };
 
@@ -178,53 +154,14 @@ export default function PlaylistDetailScreen() {
 
   const playShuffled = async () => {
     if (tracks.length === 0) return;
-    const ordered = shuffled(tracks);
-    prefetchArtworkTheme(ordered[0]?.uri);
     setStartError(null);
-    try {
-      await MetalP3Player.setQueueAsync(ordered.map(toQueueItem), 0, 0);
-      await MetalP3Player.setShuffle(true);
-      await MetalP3Player.play();
-      if (playlist) setActivePlaylistId(playlist.id);
-    } catch (err) {
-      setStartError(err instanceof Error ? err.message : String(err));
+    const result = await startShuffled(tracks);
+    if (!result.ok) {
+      setStartError(result.message);
       return;
     }
+    if (playlist) setActivePlaylistId(playlist.id);
     router.push('/(tabs)/player' as never);
-  };
-
-  const requestDeleteTrack = (track: Track) => {
-    setDeleteError(null);
-    setPendingDeleteTrack(track);
-  };
-
-  const confirmDeleteTrack = async () => {
-    if (!pendingDeleteTrack || deleteBusy) return;
-    setDeleteBusy(true);
-    setDeleteError(null);
-    try {
-      const outcome = await deleteTracksAndPropagate([pendingDeleteTrack]);
-      if (outcome.deletedIds.length === 0) {
-        setDeleteError('Delete was cancelled or failed.');
-        setDeleteBusy(false);
-        return;
-      }
-      setPendingDeleteTrack(null);
-      setDeleteBusy(false);
-    } catch (err) {
-      setDeleteError(err instanceof Error ? err.message : String(err));
-      setDeleteBusy(false);
-    }
-  };
-
-  const cancelDeleteTrack = () => {
-    if (deleteBusy) return;
-    const id = pendingDeleteTrack?.id;
-    setPendingDeleteTrack(null);
-    setDeleteError(null);
-    if (id) {
-      swipeableRefs.current.get(id)?.current?.close();
-    }
   };
 
   if (!loading && !playlist) {
@@ -267,7 +204,7 @@ export default function PlaylistDetailScreen() {
         keyExtractor={(t) => t.id}
         onDragEnd={onDragEnd}
         activationDistance={12}
-        contentContainerStyle={{ paddingBottom: listBottomPad }}
+        contentContainerStyle={{ paddingBottom: listBottomPad(insets.bottom, hasMiniPlayer) }}
         ListHeaderComponent={
           <View style={[tw`px-4 pb-6 items-center`, { paddingTop: insets.top + 72 }]}>
             <View
@@ -292,53 +229,15 @@ export default function PlaylistDetailScreen() {
                 {startError}
               </Text>
             ) : null}
-            <View style={tw`flex-row gap-3 mt-4`}>
-              <Pressable
-                style={[
-                  tw`flex-row items-center justify-center gap-2 py-2.5 px-5 rounded-full min-w-[130px]`,
-                  { backgroundColor: theme.accent, opacity: tracks.length === 0 ? 0.4 : 1 },
-                ]}
-                disabled={tracks.length === 0}
-                onPress={() => void playFrom(0)}
-                testID="playlist-detail-play"
-                accessibilityRole="button"
-                accessibilityLabel="Play playlist"
-              >
-                <Play
-                  size={20}
-                  color={theme.accentForeground}
-                  fill={theme.accentForeground}
-                  strokeWidth={2.5}
-                  strokeLinecap="square"
-                />
-                <Text
-                  style={[tw`text-sm font-bold tracking-[0.4px]`, { color: theme.accentForeground }]}
-                >
-                  Play
-                </Text>
-              </Pressable>
-              <Pressable
-                style={[
-                  tw`flex-row items-center justify-center gap-2 py-2.5 px-5 rounded-full min-w-[130px]`,
-                  {
-                    borderWidth: 1.5,
-                    backgroundColor: theme.surface,
-                    borderColor: theme.accent,
-                    opacity: tracks.length === 0 ? 0.4 : 1,
-                  },
-                ]}
-                disabled={tracks.length === 0}
-                onPress={() => void playShuffled()}
-                testID="playlist-detail-shuffle"
-                accessibilityRole="button"
-                accessibilityLabel="Shuffle playlist"
-              >
-                <Shuffle size={20} color={theme.accent} strokeWidth={2.5} strokeLinecap="square" />
-                <Text style={[tw`text-sm font-bold tracking-[0.4px]`, { color: theme.accent }]}>
-                  Shuffle
-                </Text>
-              </Pressable>
-            </View>
+            <PlayShuffleButtons
+              theme={theme}
+              disabled={tracks.length === 0}
+              onPlay={() => void playFrom(0)}
+              onShuffle={() => void playShuffled()}
+              subject="playlist"
+              testIDPrefix="playlist-detail"
+              style={tw`mt-4`}
+            />
           </View>
         }
         ListEmptyComponent={
@@ -350,24 +249,13 @@ export default function PlaylistDetailScreen() {
         }
         renderItem={({ item, drag, isActive, getIndex }: RenderItemParams<Track>) => (
           <ScaleDecorator>
-            <ReanimatedSwipeable
+            <SwipeToDeleteRow
               ref={refForRow(item.id)}
               testID={`playlist-detail-track-swipe-${item.id}`}
-              containerStyle={{ height: PLAYLIST_ROW_HEIGHT }}
-              childrenContainerStyle={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
-              renderRightActions={() => (
-                <Pressable
-                  style={[tw`bg-[#ff3b30] justify-center items-center px-6 min-w-[96px]`, { height: PLAYLIST_ROW_HEIGHT }]}
-                  onPress={() => requestDeleteTrack(item)}
-                  testID={`playlist-detail-track-delete-action-${item.id}`}
-                  accessibilityRole="button"
-                  accessibilityLabel={`Delete ${item.title ?? 'track'}`}
-                >
-                  <Trash2 size={22} color="#fff" strokeWidth={ICON_STROKE} strokeLinecap="square" />
-                </Pressable>
-              )}
-              rightThreshold={48}
-              overshootRight={false}
+              rowHeight={PLAYLIST_ROW_HEIGHT}
+              onDelete={() => deleteFlow.request(item)}
+              deleteTestID={`playlist-detail-track-delete-action-${item.id}`}
+              deleteAccessibilityLabel={`Delete ${item.title ?? 'track'}`}
               enabled={!isActive}
             >
               <PlaylistTrackRow
@@ -381,24 +269,20 @@ export default function PlaylistDetailScreen() {
                 }}
                 onLongPress={drag}
               />
-            </ReanimatedSwipeable>
+            </SwipeToDeleteRow>
           </ScaleDecorator>
         )}
       />
 
       <ConfirmDeleteSheet
-        visible={pendingDeleteTrack !== null}
+        {...deleteFlow.sheetProps}
         title="Delete track?"
         message={
-          pendingDeleteTrack
-            ? `"${pendingDeleteTrack.title ?? 'This track'}" will be permanently removed from your device.`
+          deleteFlow.pending
+            ? `"${deleteFlow.pending.title ?? 'This track'}" will be permanently removed from your device.`
             : ''
         }
         confirmLabel="Delete"
-        busy={deleteBusy}
-        error={deleteError}
-        onConfirm={() => void confirmDeleteTrack()}
-        onCancel={cancelDeleteTrack}
       />
     </View>
   );
