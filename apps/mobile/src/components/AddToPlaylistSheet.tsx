@@ -8,15 +8,13 @@ import {
   View,
 } from 'react-native';
 import BottomSheetScaffold from './BottomSheetScaffold';
+import { errorMessage } from '../lib/error-message';
 import {
   DuplicatePlaylistNameError,
-  Playlist,
   addTrackToPlaylist,
   createPlaylist,
-  getPlaylists,
-  loadPlaylists,
-  subscribe,
 } from '../lib/playlist-store';
+import { usePlaylists } from '../lib/usePlaylists';
 import { tw } from '../lib/tw';
 
 interface AddToPlaylistSheetProps {
@@ -28,16 +26,11 @@ interface AddToPlaylistSheetProps {
 type Mode = 'list' | 'create';
 
 export default function AddToPlaylistSheet({ visible, trackId, onClose }: AddToPlaylistSheetProps) {
-  const [playlists, setPlaylists] = useState<Playlist[]>(() => getPlaylists());
+  const playlists = usePlaylists();
   const [mode, setMode] = useState<Mode>('list');
   const [newName, setNewName] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-
-  useEffect(() => {
-    void loadPlaylists().then((p) => setPlaylists([...p]));
-    return subscribe(() => setPlaylists([...getPlaylists()]));
-  }, []);
 
   useEffect(() => {
     if (!visible) {
@@ -63,7 +56,7 @@ export default function AddToPlaylistSheet({ visible, trackId, onClose }: AddToP
       await addTrackToPlaylist(playlistId, trackId);
       onClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      setError(errorMessage(err));
       setBusy(false);
     }
   };
@@ -84,7 +77,7 @@ export default function AddToPlaylistSheet({ visible, trackId, onClose }: AddToP
       if (err instanceof DuplicatePlaylistNameError) {
         setError(err.message);
       } else {
-        setError(err instanceof Error ? err.message : String(err));
+        setError(errorMessage(err));
       }
       setBusy(false);
     }

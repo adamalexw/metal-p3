@@ -5,7 +5,7 @@ import { Play, ChevronLeft } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
 import { FlatList, Linking, Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { MINI_PLAYER_HEIGHT } from '../../src/components/MiniPlayer';
+import { listBottomPad } from '../../src/components/MiniPlayer';
 import { toFlagEmoji } from '../../src/lib/country-flag';
 import { formatAlbumDuration, formatTrackDuration } from '../../src/lib/group-tracks-by-album';
 import { useLibraryAlbumGroup } from '../../src/lib/library-cache';
@@ -41,7 +41,6 @@ export default function AlbumDetailScreen() {
   const flag = toFlagEmoji(extras.country);
   const playingTrackId = nowPlaying?.current?.id ?? null;
   const hasMiniPlayer = !!nowPlaying?.current;
-  const listBottomPad = hasMiniPlayer ? insets.bottom + 24 + MINI_PLAYER_HEIGHT + 16 : insets.bottom + 8;
   const artUri = useTrackArtwork(group?.representativeUri ?? null);
   const [longPressedTrackId, setLongPressedTrackId] = useState<string | null>(null);
   const { refForRow, closeRow } = useSwipeableRowRefs();
@@ -123,7 +122,7 @@ export default function AlbumDetailScreen() {
       <FlatList<Track>
         data={group.tracks}
         keyExtractor={(t) => t.id}
-        contentContainerStyle={{ paddingBottom: listBottomPad }}
+        contentContainerStyle={{ paddingBottom: listBottomPad(insets.bottom, hasMiniPlayer, 8) }}
         ItemSeparatorComponent={TrackSeparator}
         ListHeaderComponent={
           <View style={[tw`pb-6 items-center`, { paddingTop: insets.top + 8 }]}>

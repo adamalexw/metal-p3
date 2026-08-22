@@ -19,8 +19,9 @@ import LibraryHeader, {
   formatLibraryStats,
 } from '../../src/components/LibraryHeader';
 import BlurredBackdrop from '../../src/components/BlurredBackdrop';
-import { MINI_PLAYER_HEIGHT } from '../../src/components/MiniPlayer';
+import { listBottomPad } from '../../src/components/MiniPlayer';
 import { deleteTracksOrError } from '../../src/lib/delete-tracks';
+import { errorMessage } from '../../src/lib/error-message';
 import { useConfirmDelete } from '../../src/lib/useConfirmDelete';
 import type { AlbumGroup } from '../../src/lib/group-tracks-by-album';
 import {
@@ -45,7 +46,6 @@ export default function LibraryScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const nowPlaying = useNowPlayingState();
-  const miniPlayerPad = nowPlaying?.current ? MINI_PLAYER_HEIGHT + 16 : 0;
   const [status, setStatus] = useState<Status>('idle');
   const [albums, setAlbums] = useState<AlbumGroup[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -86,7 +86,7 @@ export default function LibraryScreen() {
       setStatus('ready');
     } catch (e) {
       if (getLibraryTracks().length === 0) {
-        setError(e instanceof Error ? e.message : String(e));
+        setError(errorMessage(e));
         setStatus('error');
       } else {
         console.warn('LibraryScreen: initial scan failed, showing cached library', e);
@@ -228,7 +228,7 @@ export default function LibraryScreen() {
             onScroll={onScroll}
             scrollEventThrottle={16}
             ListHeaderComponent={<LibraryHeaderSpacer topInset={insets.top} />}
-            contentContainerStyle={{ paddingHorizontal: 12, paddingBottom: insets.bottom + 24 + miniPlayerPad }}
+            contentContainerStyle={{ paddingHorizontal: 12, paddingBottom: listBottomPad(insets.bottom, !!nowPlaying?.current) }}
             renderItem={renderItem}
           />
           <LibraryHeader

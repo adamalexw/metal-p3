@@ -13,7 +13,7 @@ import { MetalP3Player } from '../../../modules/metalp3-player';
 import type { Track } from '../../../modules/metalp3-media/src/MetalP3Media.types';
 import BlurredBackdrop from '../../../src/components/BlurredBackdrop';
 import ConfirmDeleteSheet from '../../../src/components/ConfirmDeleteSheet';
-import { MINI_PLAYER_HEIGHT } from '../../../src/components/MiniPlayer';
+import { listBottomPad } from '../../../src/components/MiniPlayer';
 import SwipeToDeleteRow, { useSwipeableRowRefs } from '../../../src/components/SwipeToDeleteRow';
 import PlayShuffleButtons from '../../../src/components/PlayShuffleButtons';
 import PlaylistMosaic from '../../../src/components/PlaylistMosaic';
@@ -62,9 +62,6 @@ export default function PlaylistDetailScreen() {
   const nowPlaying = useNowPlayingState();
   const playingTrackId = nowPlaying?.current?.id ?? null;
   const hasMiniPlayer = !!nowPlaying?.current;
-  const listBottomPad = hasMiniPlayer
-    ? insets.bottom + 24 + MINI_PLAYER_HEIGHT + 16
-    : insets.bottom + 24;
 
   const themeSeedUri = useMemo(
     () =>
@@ -207,7 +204,7 @@ export default function PlaylistDetailScreen() {
         keyExtractor={(t) => t.id}
         onDragEnd={onDragEnd}
         activationDistance={12}
-        contentContainerStyle={{ paddingBottom: listBottomPad }}
+        contentContainerStyle={{ paddingBottom: listBottomPad(insets.bottom, hasMiniPlayer) }}
         ListHeaderComponent={
           <View style={[tw`px-4 pb-6 items-center`, { paddingTop: insets.top + 72 }]}>
             <View

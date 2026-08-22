@@ -8,6 +8,7 @@ import {
   setActivePlaylistId,
   type Playlist,
 } from './playlist-store';
+import { errorMessage } from './error-message';
 import { toQueueItem } from './to-queue-item';
 
 export type StartPlaylistFailure =
@@ -59,6 +60,6 @@ export async function startPlaylist(playlistId: string): Promise<StartPlaylistRe
     setActivePlaylistId(playlist.id);
     return { ok: true, playlist };
   } catch (err) {
-    return { ok: false, reason: 'error', message: err instanceof Error ? err.message : String(err) };
+    return { ok: false, reason: 'error', message: errorMessage(err) };
   }
 }

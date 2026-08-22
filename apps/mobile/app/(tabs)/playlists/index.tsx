@@ -1,7 +1,7 @@
 import { FlashList } from '@shopify/flash-list';
 import { useRouter } from 'expo-router';
 import { ListPlus, Play, Shuffle, Trash2 } from 'lucide-react-native';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { Text, View } from 'react-native';
 import Animated, {
   FadeIn,
@@ -14,18 +14,14 @@ import ConfirmDeleteSheet from '../../../src/components/ConfirmDeleteSheet';
 import ContextMenuSheet from '../../../src/components/ContextMenuSheet';
 import LibraryHeader, { LibraryHeaderSpacer } from '../../../src/components/LibraryHeader';
 import BlurredBackdrop from '../../../src/components/BlurredBackdrop';
-import { MINI_PLAYER_HEIGHT } from '../../../src/components/MiniPlayer';
+import { listBottomPad } from '../../../src/components/MiniPlayer';
 import PlaylistTile from '../../../src/components/PlaylistTile';
 import { deleteTracksAndPropagate } from '../../../src/lib/delete-tracks';
+import { errorMessage } from '../../../src/lib/error-message';
 import { useConfirmDelete } from '../../../src/lib/useConfirmDelete';
 import { getLibraryTracks } from '../../../src/lib/library-cache';
-import {
-  Playlist,
-  deletePlaylist,
-  getPlaylists,
-  loadPlaylists,
-  subscribe,
-} from '../../../src/lib/playlist-store';
+import { Playlist, deletePlaylist } from '../../../src/lib/playlist-store';
+import { usePlaylists } from '../../../src/lib/usePlaylists';
 import { resolvePlaylistTracks, startPlaylist } from '../../../src/lib/start-playlist';
 import { startShuffled } from '../../../src/lib/start-queue';
 import { toQueueItem } from '../../../src/lib/to-queue-item';
@@ -46,9 +42,8 @@ export default function PlaylistsListScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const nowPlaying = useNowPlayingState();
-  const miniPlayerPad = nowPlaying?.current ? MINI_PLAYER_HEIGHT + 16 : 0;
 
-  const [playlists, setPlaylists] = useState<Playlist[]>(() => getPlaylists());
+  const playlists = usePlaylists();
   const [contextPlaylist, setContextPlaylist] = useState<Playlist | null>(null);
   const [startError, setStartError] = useState<string | null>(null);
 
@@ -71,11 +66,6 @@ export default function PlaylistsListScreen() {
       return null;
     },
   });
-
-  useEffect(() => {
-    void loadPlaylists().then((p) => setPlaylists([...p]));
-    return subscribe(() => setPlaylists([...getPlaylists()]));
-  }, []);
 
   const openPlaylist = useCallback(
     (playlist: Playlist) => {
@@ -139,7 +129,7 @@ export default function PlaylistsListScreen() {
     try {
       await MetalP3Player.addToQueueAsync(tracks.map(toQueueItem));
     } catch (err) {
-      setStartError(messageForReason('error', playlist.name, err instanceof Error ? err.message : String(err)));
+      setStartError(messageForReason('error', playlist.name, errorMessage(err)));
     }
   };
 
@@ -199,7 +189,7 @@ export default function PlaylistsListScreen() {
             No playlists yet. Long-press a track to add it to a new playlist.
           </Text>
         }
-        contentContainerStyle={{ paddingHorizontal: 12, paddingBottom: insets.bottom + 24 + miniPlayerPad }}
+        contentContainerStyle={{ paddingHorizontal: 12, paddingBottom: listBottomPad(insets.bottom, !!nowPlaying?.current) }}
         renderItem={renderItem}
       />
 
