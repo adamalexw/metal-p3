@@ -8,6 +8,17 @@ export class CoverController {
 
   @Get()
   get(@Query('location') location: string, @Res() res: Response): void {
+    const coverPath = this.coverService.getCoverPath(location);
+
+    if (coverPath) {
+      // no-cache still permits 304s via sendFile's validators, so a replaced cover shows on the next load
+      res.set('Cache-Control', 'private, no-cache');
+      res.sendFile(coverPath, (error) => {
+        if (error && !res.headersSent) res.status(204).send();
+      });
+      return;
+    }
+
     this.coverService.getCover(location).subscribe({
       next: (buffer) => res.set('Content-Type', 'image/jpeg').send(buffer),
       error: () => {

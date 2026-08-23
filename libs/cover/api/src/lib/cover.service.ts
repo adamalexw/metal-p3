@@ -7,7 +7,7 @@ import { Inject, Injectable, Logger } from '@nestjs/common';
 import * as fs from 'fs';
 import { selectCover } from 'music-metadata';
 import * as path from 'path';
-import { catchError, EMPTY, filter, from, map, Observable, of, switchMap } from 'rxjs';
+import { catchError, EMPTY, filter, from, map, Observable, of, switchMap, tap } from 'rxjs';
 import sharpFn from 'sharp';
 
 const coverPattern = /^Cover\.jpg$/i;
@@ -23,6 +23,15 @@ export class CoverService {
     private readonly metalArchivesService: MetalArchivesService,
     @Inject(BASE_PATH_TOKEN) private readonly basePath: string,
   ) {}
+
+  getCoverPath(location: string): string | null {
+    if (!location || path.extname(location) === '.mp3') {
+      return null;
+    }
+
+    const coverPath = path.join(location, this.cover);
+    return fs.existsSync(coverPath) ? coverPath : null;
+  }
 
   getCover(location: string): Observable<Buffer> {
     if (!location) {
@@ -57,12 +66,14 @@ export class CoverService {
     }
 
     try {
+      const folder = location;
       const files = this.fileSystemService.getFiles(location);
       const audioFile = files?.filter((f) => path.extname(f) == '.mp3')?.[0];
 
       if (audioFile) {
         location = path.join(location, audioFile);
         return this.getCoverFromAudioFile(location).pipe(
+          tap((cover) => this.persistExtractedCover(folder, cover)),
           catchError((error) => {
             Logger.error(`Failed to extract cover from audio file "${location}": ${error}`);
             return EMPTY;
@@ -74,6 +85,15 @@ export class CoverService {
     }
 
     return EMPTY;
+  }
+
+  // Writing the extracted art to Cover.jpg lets subsequent requests skip the mp3 parse
+  private persistExtractedCover(folder: string, cover: Buffer): void {
+    const location = path.join(folder, this.cover);
+    sharpFn(cover)
+      .resize({ height: 500, width: 500 })
+      .toFile(location)
+      .catch((error) => Logger.warn(`Failed to persist extracted cover to "${location}": ${error}`));
   }
 
   private getCoverFromAudioFile(location: string): Observable<Buffer> {

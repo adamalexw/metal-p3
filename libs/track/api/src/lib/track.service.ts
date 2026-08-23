@@ -2,13 +2,14 @@ import { RenameTrack, TrackDto, TransferPlaylistRequest } from '@metal-p3/api-in
 import { AdbService } from '@metal-p3/shared/adb';
 import { FileSystemService } from '@metal-p3/shared/file-system';
 import { Injectable, Logger } from '@nestjs/common';
-import { createReadStream, existsSync, readFileSync, unlinkSync, writeFileSync } from 'fs';
+import { existsSync, readFileSync, unlinkSync, writeFileSync } from 'fs';
 import { IAudioMetadata, IOptions, parseFile } from 'music-metadata';
 import * as NodeID3 from 'node-id3';
-import { ReadStream } from 'node:fs';
 import { basename, dirname, extname, join } from 'path';
-import { EMPTY, Observable, catchError, concatAll, from, map, toArray } from 'rxjs';
+import { EMPTY, Observable, catchError, from, map, mergeAll, toArray } from 'rxjs';
 import sharpFn from 'sharp';
+
+const metadataParseConcurrency = 4;
 
 @Injectable()
 export class TrackService {
@@ -21,7 +22,11 @@ export class TrackService {
     if (files.length) {
       const tags = files.map((file, index) => this.trackDetails(file, index));
 
-      return from(tags).pipe(concatAll(), toArray());
+      return from(tags).pipe(
+        mergeAll(metadataParseConcurrency),
+        toArray(),
+        map((tracks) => tracks.sort((a, b) => a.id - b.id)),
+      );
     }
 
     return EMPTY;
@@ -259,9 +264,5 @@ export class TrackService {
       transferredAt: Date.now(),
       tracks,
     });
-  }
-
-  playTrack(file: string): ReadStream {
-    return createReadStream(file);
   }
 }

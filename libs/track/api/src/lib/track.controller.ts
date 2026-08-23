@@ -58,12 +58,11 @@ export class TrackController {
 
   @Get('playTrack')
   playTrack(@Query('file') file: string, @Res() res: Response) {
-    const stats = this.fileSystemService.getFileStats(file);
-    res.writeHead(200, {
-      'Content-Type': 'audio/mpeg',
-      'Content-Length': stats.size,
+    res.sendFile(file, (error) => {
+      if (error && !res.headersSent) {
+        res.status(HttpStatus.NOT_FOUND).send();
+      }
     });
-    this.trackService.playTrack(file).pipe(res);
   }
 
   @Delete()
