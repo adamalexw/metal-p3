@@ -1,5 +1,5 @@
 import { Trash2 } from 'lucide-react-native';
-import { createRef, useRef, type ReactNode, type RefObject } from 'react';
+import { createRef, useCallback, useRef, type ReactNode, type RefObject } from 'react';
 import { Pressable } from 'react-native';
 import ReanimatedSwipeable, {
   type SwipeableMethods,
@@ -64,17 +64,18 @@ export type { SwipeableMethods };
 export function useSwipeableRowRefs() {
   const refs = useRef(new Map<string, RefObject<SwipeableMethods | null>>());
 
-  const refForRow = (id: string) => {
+  // Stable identities so memoized rows that receive these don't re-render.
+  const refForRow = useCallback((id: string) => {
     const existing = refs.current.get(id);
     if (existing) return existing;
     const ref = createRef<SwipeableMethods | null>();
     refs.current.set(id, ref);
     return ref;
-  };
+  }, []);
 
-  const closeRow = (id: string) => {
+  const closeRow = useCallback((id: string) => {
     refs.current.get(id)?.current?.close();
-  };
+  }, []);
 
   return { refForRow, closeRow };
 }

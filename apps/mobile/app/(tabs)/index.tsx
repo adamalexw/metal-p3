@@ -34,7 +34,7 @@ import {
 import { startQueue, startShuffled } from '../../src/lib/start-queue';
 import { toQueueItem } from '../../src/lib/to-queue-item';
 import { tw } from '../../src/lib/tw';
-import { useNowPlayingState } from '../../src/lib/useNowPlayingState';
+import { useHasCurrentTrack } from '../../src/lib/useNowPlayingState';
 
 const AnimatedFlashList = Animated.createAnimatedComponent(FlashList<AlbumGroup>);
 
@@ -45,7 +45,7 @@ type Status = 'idle' | 'checking' | 'denied' | 'loading' | 'ready' | 'error';
 export default function LibraryScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const nowPlaying = useNowPlayingState();
+  const hasCurrentTrack = useHasCurrentTrack();
   const [status, setStatus] = useState<Status>('idle');
   const [albums, setAlbums] = useState<AlbumGroup[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -228,7 +228,7 @@ export default function LibraryScreen() {
             onScroll={onScroll}
             scrollEventThrottle={16}
             ListHeaderComponent={<LibraryHeaderSpacer topInset={insets.top} />}
-            contentContainerStyle={{ paddingHorizontal: 12, paddingBottom: listBottomPad(insets.bottom, !!nowPlaying?.current) }}
+            contentContainerStyle={{ paddingHorizontal: 12, paddingBottom: listBottomPad(insets.bottom, hasCurrentTrack) }}
             renderItem={renderItem}
           />
           <LibraryHeader

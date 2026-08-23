@@ -1,8 +1,7 @@
 import { BlurView } from 'expo-blur';
 import { Disc3, GripVertical, Trash2, Volume2, X } from 'lucide-react-native';
-import { memo, useMemo, useRef, useState } from 'react';
+import { memo, useMemo } from 'react';
 import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
-import { Image } from 'expo-image';
 import DraggableFlatList, {
   type RenderItemParams,
   ScaleDecorator,
@@ -17,6 +16,7 @@ import { tw } from '../lib/tw';
 import { useQueueArtwork } from '../lib/useTrackArtwork';
 import { ICON_STROKE } from '../theme/icons';
 import type { ArtworkTheme } from '../theme/types';
+import RetryingArtwork from './RetryingArtwork';
 import SwipeToDeleteRow, { useSwipeableRowRefs } from './SwipeToDeleteRow';
 
 const ART_SIZE = 44;
@@ -38,7 +38,9 @@ export default function QueueSheet({ visible, onClose, queue, currentIndex, them
 
   // Resolve artwork once at the parent so each visible row can take a
   // primitive prop and skip the per-row useTrackArtwork hook + cache lookup.
-  const queueUris = useMemo(() => queue.map((q) => q.uri), [queue]);
+  // Only while the sheet is open — the batch loads every uncached uri, which
+  // for a large shuffled queue is one native extraction per track.
+  const queueUris = useMemo(() => (visible ? queue.map((q) => q.uri) : []), [visible, queue]);
   const artwork = useQueueArtwork(queueUris);
 
   const onDragEnd = ({ from, to }: { from: number; to: number }) => {
@@ -210,15 +212,6 @@ const QueueRow = memo(function QueueRow({
   drag,
   onPress,
 }: QueueRowProps) {
-  // Bump `retry` to remount this row's <Image> after a transient decode
-  // failure (re-attempts the same uri); reset when the row recycles a new uri.
-  const [retry, setRetry] = useState(0);
-  const lastUri = useRef(artUri);
-  if (lastUri.current !== artUri) {
-    lastUri.current = artUri;
-    if (retry !== 0) setRetry(0);
-  }
-
   const titleColor = isCurrent ? theme.accent : theme.foreground;
   const subColor = isCurrent ? theme.accent : theme.mutedForeground;
   const rowBg = isActive
@@ -255,16 +248,7 @@ const QueueRow = memo(function QueueRow({
         testID={`queue-row-art-${id}`}
       >
         {artUri ? (
-          <Image
-            key={`${artUri}:${retry}`}
-            source={{ uri: artUri }}
-            style={tw`w-full h-full`}
-            contentFit="cover"
-            cachePolicy="memory-disk"
-            recyclingKey={artUri}
-            transition={120}
-            onError={() => setRetry((r) => (r < 2 ? r + 1 : r))}
-          />
+          <RetryingArtwork uri={artUri} style={tw`w-full h-full`} />
         ) : (
           <Disc3
             size={22}

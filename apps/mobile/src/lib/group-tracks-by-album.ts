@@ -22,8 +22,13 @@ function albumFromTrack(track: Track): string {
   return track.album ?? UNKNOWN_ALBUM;
 }
 
+/** Canonical album identity — the AlbumGroup key format used across the app. */
+export function albumKey(band: string, album: string): string {
+  return `${band.toLowerCase().trim()}|${album.toLowerCase().trim()}`;
+}
+
 function groupKey(track: Track): string {
-  return `${bandFromTrack(track).toLowerCase().trim()}|${albumFromTrack(track).toLowerCase().trim()}`;
+  return albumKey(bandFromTrack(track), albumFromTrack(track));
 }
 
 function compareTracks(a: Track, b: Track): number {

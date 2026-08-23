@@ -20,7 +20,7 @@ import PlaylistMosaic from '../../../src/components/PlaylistMosaic';
 import { deleteTracksOrError } from '../../../src/lib/delete-tracks';
 import { useConfirmDelete } from '../../../src/lib/useConfirmDelete';
 import { formatAlbumDuration, formatTrackDuration } from '../../../src/lib/group-tracks-by-album';
-import { getLibraryTracks, subscribe as subscribeLibrary } from '../../../src/lib/library-cache';
+import { getLibraryTracks, useLibraryTracks } from '../../../src/lib/library-cache';
 import {
   Playlist,
   getActivePlaylistId,
@@ -35,7 +35,7 @@ import { startQueue, startShuffled } from '../../../src/lib/start-queue';
 import { toQueueItem } from '../../../src/lib/to-queue-item';
 import { tw } from '../../../src/lib/tw';
 import { useTrackArtwork } from '../../../src/lib/useTrackArtwork';
-import { useNowPlayingState } from '../../../src/lib/useNowPlayingState';
+import { useCurrentTrackId, useHasCurrentTrack } from '../../../src/lib/useNowPlayingState';
 import { useArtworkTheme } from '../../../src/theme/useArtworkTheme';
 
 // 48px artwork + py-2.5
@@ -48,7 +48,6 @@ export default function PlaylistDetailScreen() {
   const rawId = typeof params.id === 'string' ? params.id : '';
   const playlistId = decodeURIComponent(rawId);
 
-  const [, forceTick] = useState(0);
   const [playlist, setPlaylist] = useState<Playlist | null>(() => getPlaylist(playlistId) ?? null);
   const [loading, setLoading] = useState(!playlist);
   const [startError, setStartError] = useState<string | null>(null);
@@ -59,18 +58,15 @@ export default function PlaylistDetailScreen() {
     onCancel: (track) => closeRow(track.id),
   });
 
-  const nowPlaying = useNowPlayingState();
-  const playingTrackId = nowPlaying?.current?.id ?? null;
-  const hasMiniPlayer = !!nowPlaying?.current;
+  const playingTrackId = useCurrentTrackId();
+  const hasMiniPlayer = useHasCurrentTrack();
 
-  const themeSeedUri = useMemo(
-    () =>
-      playlist
-        ? resolvePlaylistTracks(playlist, getLibraryTracks())[0]?.uri ?? null
-        : null,
-    [playlist],
+  const libraryTracks = useLibraryTracks();
+  const tracks = useMemo<Track[]>(
+    () => (playlist ? resolvePlaylistTracks(playlist, libraryTracks) : []),
+    [playlist, libraryTracks],
   );
-  const theme = useArtworkTheme(themeSeedUri);
+  const theme = useArtworkTheme(tracks[0]?.uri ?? null);
 
   useEffect(() => {
     let cancelled = false;
@@ -101,18 +97,11 @@ export default function PlaylistDetailScreen() {
         }
       })();
     });
-    const unsubLibrary = subscribeLibrary(() => forceTick((n) => n + 1));
     return () => {
       cancelled = true;
       unsubPlaylists();
-      unsubLibrary();
     };
   }, [playlistId]);
-
-  const tracks = useMemo<Track[]>(
-    () => (playlist ? resolvePlaylistTracks(playlist, getLibraryTracks()) : []),
-    [playlist],
-  );
 
   const totalDurationMs = useMemo(
     () => tracks.reduce((sum, t) => sum + (t.durationMs ?? 0), 0),

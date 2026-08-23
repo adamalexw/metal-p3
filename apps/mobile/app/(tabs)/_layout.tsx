@@ -4,7 +4,7 @@ import { Disc3, ListMusic, Music4 } from 'lucide-react-native';
 import { Image } from 'expo-image';
 import { StyleSheet, View } from 'react-native';
 import { tw } from '../../src/lib/tw';
-import { useNowPlayingState } from '../../src/lib/useNowPlayingState';
+import { useHasQueue } from '../../src/lib/useNowPlayingState';
 
 function DrawerContent(props: any) {
   return (
@@ -26,8 +26,7 @@ function DrawerContent(props: any) {
 }
 
 export default function TabsLayout() {
-  const state = useNowPlayingState();
-  const hasQueue = (state?.queue?.length ?? 0) > 0;
+  const hasQueue = useHasQueue();
 
   return (
     <Drawer

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { errorMessage } from './error-message';
 
 interface ConfirmDeleteOptions<T> {
@@ -32,10 +32,11 @@ export function useConfirmDelete<T>({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const request = (item: T) => {
+  // Stable so memoized list rows can take it as a prop.
+  const request = useCallback((item: T) => {
     setError(null);
     setPending(item);
-  };
+  }, []);
 
   const confirm = () => {
     if (pending === null || busy) return;

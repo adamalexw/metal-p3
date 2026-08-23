@@ -2,8 +2,10 @@ import { Image } from 'expo-image';
 import { ListMusic } from 'lucide-react-native';
 import { useEffect, useMemo, useState } from 'react';
 import { View } from 'react-native';
-import { getLibraryTracks } from '../lib/library-cache';
+import { useLibraryTracks } from '../lib/library-cache';
+import type { Track } from '../../modules/metalp3-media/src/MetalP3Media.types';
 import type { Playlist } from '../lib/playlist-store';
+import { albumKey } from '../lib/group-tracks-by-album';
 import { resolvePlaylistTracks } from '../lib/start-playlist';
 import { tw } from '../lib/tw';
 import { getCachedTrackArtwork, loadTrackArtwork } from '../lib/useTrackArtwork';
@@ -13,17 +15,16 @@ import { getCachedTrackArtwork, loadTrackArtwork } from '../lib/useTrackArtwork'
  * and keeping one per album. Falls back to the first N tracks if there aren't
  * four distinct albums.
  */
-export function pickRepresentativeUris(playlist: Playlist): string[] {
-  const library = getLibraryTracks();
+export function pickRepresentativeUris(playlist: Playlist, library: Track[]): string[] {
   if (library.length === 0) return [];
   const tracks = resolvePlaylistTracks(playlist, library);
   if (tracks.length === 0) return [];
   const seenAlbums = new Set<string>();
   const uris: string[] = [];
   for (const t of tracks) {
-    const albumKey = `${(t.albumArtist ?? t.artist ?? '').toLowerCase()}|${(t.album ?? '').toLowerCase()}`;
-    if (!seenAlbums.has(albumKey)) {
-      seenAlbums.add(albumKey);
+    const key = albumKey(t.albumArtist ?? t.artist ?? '', t.album ?? '');
+    if (!seenAlbums.has(key)) {
+      seenAlbums.add(key);
       uris.push(t.uri);
       if (uris.length === 4) break;
     }
@@ -52,7 +53,8 @@ interface PlaylistMosaicProps {
  * the parent controls dimensions and rounding.
  */
 export default function PlaylistMosaic({ playlist, emptyIconSize = 42 }: PlaylistMosaicProps) {
-  const uris = useMemo(() => pickRepresentativeUris(playlist), [playlist]);
+  const library = useLibraryTracks();
+  const uris = useMemo(() => pickRepresentativeUris(playlist, library), [playlist, library]);
   const [artUris, setArtUris] = useState<(string | null)[]>(() =>
     uris.map((u) => getCachedTrackArtwork(u)),
   );

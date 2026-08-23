@@ -26,7 +26,7 @@ import { resolvePlaylistTracks, startPlaylist } from '../../../src/lib/start-pla
 import { startShuffled } from '../../../src/lib/start-queue';
 import { toQueueItem } from '../../../src/lib/to-queue-item';
 import { tw } from '../../../src/lib/tw';
-import { useNowPlayingState } from '../../../src/lib/useNowPlayingState';
+import { useHasCurrentTrack } from '../../../src/lib/useNowPlayingState';
 
 const AnimatedFlashList = Animated.createAnimatedComponent(FlashList<Playlist>);
 
@@ -41,7 +41,7 @@ function formatPlaylistStats(playlists: Playlist[]): string | null {
 export default function PlaylistsListScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const nowPlaying = useNowPlayingState();
+  const hasCurrentTrack = useHasCurrentTrack();
 
   const playlists = usePlaylists();
   const [contextPlaylist, setContextPlaylist] = useState<Playlist | null>(null);
@@ -189,7 +189,7 @@ export default function PlaylistsListScreen() {
             No playlists yet. Long-press a track to add it to a new playlist.
           </Text>
         }
-        contentContainerStyle={{ paddingHorizontal: 12, paddingBottom: listBottomPad(insets.bottom, !!nowPlaying?.current) }}
+        contentContainerStyle={{ paddingHorizontal: 12, paddingBottom: listBottomPad(insets.bottom, hasCurrentTrack) }}
         renderItem={renderItem}
       />
 

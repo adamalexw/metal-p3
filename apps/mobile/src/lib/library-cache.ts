@@ -8,6 +8,10 @@ import { getPlaylists, subscribe as subscribePlaylists } from './playlist-store'
 type Listener = () => void;
 
 let cachedTracks: Track[] = [];
+// Serialized form of cachedTracks. Doubles as a cheap change signature so a
+// foreground rescan that finds nothing new skips the regroup, the AsyncStorage
+// rewrite, and the notify (which would re-render every subscribed screen).
+let cachedTracksJson = '';
 let cachedGroups: AlbumGroup[] = [];
 let filteredCachedGroups: AlbumGroup[] = [];
 const listeners = new Set<Listener>();
@@ -48,6 +52,7 @@ export async function initializeLibraryCache(): Promise<void> {
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed) && parsed.length > 0) {
         cachedTracks = parsed;
+        cachedTracksJson = raw;
         cachedGroups = groupTracksByAlbum(parsed);
         rebuildFilteredGroups();
         notify();
@@ -90,10 +95,14 @@ export function setLibraryTracks(tracks: Track[]): AlbumGroup[] {
     return filteredCachedGroups;
   }
 
+  const json = JSON.stringify(tracks);
+  if (json === cachedTracksJson) return filteredCachedGroups;
+
   cachedTracks = tracks;
+  cachedTracksJson = json;
   cachedGroups = groupTracksByAlbum(tracks);
   rebuildFilteredGroups();
-  void AsyncStorage.setItem('metalp3:library_tracks:v1', JSON.stringify(tracks)).catch((err) => {
+  void AsyncStorage.setItem('metalp3:library_tracks:v1', json).catch((err) => {
     console.warn('library-cache: failed to persist tracks', err);
   });
   notify();
@@ -114,6 +123,7 @@ export function findAlbumGroup(key: string): AlbumGroup | undefined {
 
 export function clearLibraryCache(): void {
   cachedTracks = [];
+  cachedTracksJson = '';
   cachedGroups = [];
   filteredCachedGroups = [];
   void AsyncStorage.removeItem('metalp3:library_tracks:v1').catch((err) => {
@@ -135,6 +145,9 @@ export function removeTracksByIds(ids: string[]): AlbumGroup[] {
   const next = cachedTracks.filter((t) => !removeSet.has(t.id));
   if (next.length === cachedTracks.length) return cachedGroups;
   cachedTracks = next;
+  // Deliberately stale: the delete isn't persisted here, so the next rescan
+  // must not be mistaken for a no-change and skip its persist.
+  cachedTracksJson = '';
   cachedGroups = groupTracksByAlbum(next);
   rebuildFilteredGroups();
   notify();

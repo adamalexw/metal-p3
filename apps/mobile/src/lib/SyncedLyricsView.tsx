@@ -1,10 +1,26 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { ScrollView, Text, View } from 'react-native';
 import type { SyncedLyricsLine } from '../../modules/metalp3-media';
 import { tw } from './tw';
 
 const TICK_MS = 80;
 const LINE_HEIGHT = 32;
+
+function findActiveIndex(lines: SyncedLyricsLine[], targetMs: number): number {
+  let lo = 0;
+  let hi = lines.length - 1;
+  let answer = -1;
+  while (lo <= hi) {
+    const mid = (lo + hi) >> 1;
+    if (lines[mid].startMs <= targetMs) {
+      answer = mid;
+      lo = mid + 1;
+    } else {
+      hi = mid - 1;
+    }
+  }
+  return answer;
+}
 
 export function SyncedLyricsView({
   lines,
@@ -28,40 +44,26 @@ export function SyncedLyricsView({
   // The native player only emits stateChanged on discrete events (play/pause/
   // seek/track-change), so positionMs doesn't advance during normal playback.
   // Interpolate locally with wall-clock so the active line keeps tracking.
-  const [tickedMs, setTickedMs] = useState<number | null>(positionMs ?? null);
+  // Only the resolved line index is state — setting the interpolated position
+  // itself would re-render every line at the tick rate.
+  const [activeIndex, setActiveIndex] = useState(() =>
+    positionMs == null ? -1 : findActiveIndex(lines, positionMs + offsetMs),
+  );
 
   useEffect(() => {
     if (positionMs == null) {
-      setTickedMs(null);
+      setActiveIndex(-1);
       return;
     }
-    setTickedMs(positionMs);
+    const update = (ms: number) => setActiveIndex(findActiveIndex(lines, ms + offsetMs));
+    update(positionMs);
     if (!isPlaying) return;
     const startedAt = Date.now();
-    const baseMs = positionMs;
     const id = setInterval(() => {
-      setTickedMs(baseMs + (Date.now() - startedAt));
+      update(positionMs + (Date.now() - startedAt));
     }, TICK_MS);
     return () => clearInterval(id);
-  }, [positionMs, isPlaying]);
-
-  const activeIndex = useMemo(() => {
-    if (tickedMs == null) return -1;
-    const target = tickedMs + offsetMs;
-    let lo = 0;
-    let hi = lines.length - 1;
-    let answer = -1;
-    while (lo <= hi) {
-      const mid = (lo + hi) >> 1;
-      if (lines[mid].startMs <= target) {
-        answer = mid;
-        lo = mid + 1;
-      } else {
-        hi = mid - 1;
-      }
-    }
-    return answer;
-  }, [tickedMs, lines, offsetMs]);
+  }, [positionMs, isPlaying, lines, offsetMs]);
 
   useEffect(() => {
     if (activeIndex < 0) return;
@@ -70,6 +72,14 @@ export function SyncedLyricsView({
     const offset = Math.max(0, targetY - LINE_HEIGHT * 3);
     scrollRef.current?.scrollTo({ y: offset, animated: true });
   }, [activeIndex, layoutVersion]);
+
+  const onLineLayout = useCallback((idx: number, y: number, height: number) => {
+    const prev = lineLayoutsRef.current[idx];
+    if (!prev || Math.abs(prev.y - y) > 0.5 || Math.abs(prev.height - height) > 0.5) {
+      lineLayoutsRef.current[idx] = { y, height };
+      setLayoutVersion((v) => v + 1);
+    }
+  }, []);
 
   return (
     <View style={tw`flex-1 items-stretch`} testID={testID}>
@@ -86,37 +96,48 @@ export function SyncedLyricsView({
         ]}
         showsVerticalScrollIndicator={false}
       >
-        {lines.map((line, idx) => {
-          const isActive = idx === activeIndex;
-          return (
-            <Text
-              key={`${idx}-${line.startMs}`}
-              onLayout={(event) => {
-                const { y, height } = event.nativeEvent.layout;
-                const prev = lineLayoutsRef.current[idx];
-                if (!prev || Math.abs(prev.y - y) > 0.5 || Math.abs(prev.height - height) > 0.5) {
-                  lineLayoutsRef.current[idx] = { y, height };
-                  setLayoutVersion((v) => v + 1);
-                }
-              }}
-              style={[
-                tw`text-center text-lg`,
-                {
-                  lineHeight: LINE_HEIGHT,
-                  color: '#ffffff',
-                  opacity: isActive ? 1.0 : 0.5,
-                  fontWeight: isActive ? '700' : '400',
-                  textShadowColor: 'rgba(0,0,0,0.7)',
-                  textShadowOffset: { width: 0, height: 1 },
-                  textShadowRadius: 4,
-                },
-              ]}
-            >
-              {line.text || ' '}
-            </Text>
-          );
-        })}
+        {lines.map((line, idx) => (
+          <LyricLine
+            key={`${idx}-${line.startMs}`}
+            index={idx}
+            text={line.text}
+            isActive={idx === activeIndex}
+            onLineLayout={onLineLayout}
+          />
+        ))}
       </ScrollView>
     </View>
   );
 }
+
+interface LyricLineProps {
+  index: number;
+  text: string;
+  isActive: boolean;
+  onLineLayout: (index: number, y: number, height: number) => void;
+}
+
+const LyricLine = memo(function LyricLine({ index, text, isActive, onLineLayout }: LyricLineProps) {
+  return (
+    <Text
+      onLayout={(event) => {
+        const { y, height } = event.nativeEvent.layout;
+        onLineLayout(index, y, height);
+      }}
+      style={[
+        tw`text-center text-lg`,
+        {
+          lineHeight: LINE_HEIGHT,
+          color: '#ffffff',
+          opacity: isActive ? 1.0 : 0.5,
+          fontWeight: isActive ? '700' : '400',
+          textShadowColor: 'rgba(0,0,0,0.7)',
+          textShadowOffset: { width: 0, height: 1 },
+          textShadowRadius: 4,
+        },
+      ]}
+    >
+      {text || ' '}
+    </Text>
+  );
+});

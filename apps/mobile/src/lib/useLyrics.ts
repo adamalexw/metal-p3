@@ -1,45 +1,19 @@
-import { useEffect, useState } from 'react';
 import { MetalP3Media } from '../../modules/metalp3-media';
+import { createAsyncCache } from './async-cache';
 
 interface LyricsState {
   text: string | null;
   loading: boolean;
 }
 
-const CACHE = new Map<string, string | null>();
+const lyricsCache = createAsyncCache<string | null>(
+  (uri) => MetalP3Media.getLyricsAsync(uri).then((result) => result?.text ?? null),
+  null,
+);
 
 export function useLyrics(trackUri: string | null | undefined): LyricsState {
-  const [state, setState] = useState<LyricsState>({ text: null, loading: false });
-
-  useEffect(() => {
-    if (!trackUri) {
-      setState({ text: null, loading: false });
-      return;
-    }
-
-    if (CACHE.has(trackUri)) {
-      setState({ text: CACHE.get(trackUri) ?? null, loading: false });
-      return;
-    }
-
-    let cancelled = false;
-    setState({ text: null, loading: true });
-
-    MetalP3Media.getLyricsAsync(trackUri)
-      .then((result) => {
-        const text = result?.text ?? null;
-        CACHE.set(trackUri, text);
-        if (!cancelled) setState({ text, loading: false });
-      })
-      .catch(() => {
-        CACHE.set(trackUri, null);
-        if (!cancelled) setState({ text: null, loading: false });
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [trackUri]);
-
-  return state;
+  const { value, loading } = lyricsCache.useValue(trackUri);
+  return { text: value, loading };
 }
+
+export const _resetForTests = lyricsCache._resetForTests;

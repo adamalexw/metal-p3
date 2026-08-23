@@ -17,7 +17,7 @@ import {
   Skull,
 } from 'lucide-react-native';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Dimensions, Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Linking, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MetalP3Player, type RepeatMode } from '../../modules/metalp3-player';
 import ArtworkImage from '../../src/components/ArtworkImage';
@@ -25,6 +25,7 @@ import { PlayerProgressBar } from '../../src/components/PlayerProgressBar';
 import QueueSheet from '../../src/components/QueueSheet';
 import { withAlpha } from '../../src/lib/color';
 import { toFlagEmoji } from '../../src/lib/country-flag';
+import { albumKey as makeAlbumKey } from '../../src/lib/group-tracks-by-album';
 import { useLibraryAlbumGroup, useLibraryTracks } from '../../src/lib/library-cache';
 import { shuffled } from '../../src/lib/shuffle';
 import { useLyrics } from '../../src/lib/useLyrics';
@@ -75,10 +76,10 @@ export default function PlayerScreen() {
   const subtitleSeparator = artistText && albumText ? ' — ' : '';
 
   const albumKey = useMemo(() => {
-    const band = (current?.albumArtist ?? current?.artist ?? '').toLowerCase().trim();
-    const album = (current?.album ?? '').toLowerCase().trim();
+    const band = (current?.albumArtist ?? current?.artist ?? '').trim();
+    const album = (current?.album ?? '').trim();
     if (!band || !album) return null;
-    return `${band}|${album}`;
+    return makeAlbumKey(band, album);
   }, [current?.albumArtist, current?.artist, current?.album]);
 
   const albumGroup = useLibraryAlbumGroup(albumKey);
@@ -113,10 +114,8 @@ export default function PlayerScreen() {
 
   const titleShown = showLyrics && hasLyrics;
 
-  const artSize = useMemo(() => {
-    const w = Dimensions.get('window').width - 48;
-    return Math.max(160, Math.min(w, 480));
-  }, []);
+  const { width: windowWidth } = useWindowDimensions();
+  const artSize = Math.max(160, Math.min(windowWidth - 48, 480));
 
   const togglePlay = () => (isPlaying ? void MetalP3Player.pause() : void MetalP3Player.play());
   const skipPrevious = () => {
