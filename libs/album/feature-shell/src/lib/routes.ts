@@ -1,10 +1,9 @@
 import { Routes } from '@angular/router';
-import { AlbumShellComponent } from './album/album.component';
 
 export const routes: Routes = [
   {
     path: 'album/:id',
-    component: AlbumShellComponent,
+    loadComponent: () => import('./album/album.component').then((m) => m.AlbumShellComponent),
   },
   {
     path: 'maintenance',

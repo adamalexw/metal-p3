@@ -5,7 +5,7 @@ import { shuffleArray } from '@metal-p3/player/util';
 import { ErrorService } from '@metal-p3/shared/error';
 import { BLANK_COVER } from '@metal-p3/shared/utils';
 import { patchState, signalStore, withComputed, withMethods, withState } from '@ngrx/signals';
-import { addEntities, addEntity, removeAllEntities, removeEntity, updateAllEntities, updateEntity, withEntities } from '@ngrx/signals/entities';
+import { addEntities, addEntity, removeAllEntities, removeEntity, updateEntity, withEntities } from '@ngrx/signals/entities';
 import { rxMethod } from '@ngrx/signals/rxjs-interop';
 import { EMPTY, catchError, mergeMap, pipe, tap } from 'rxjs';
 
@@ -41,12 +41,13 @@ export const PlayerStore = signalStore(
       const item = id ? store.entityMap()[id] : undefined;
       return item?.cover ?? BLANK_COVER;
     }),
+    playlistDuration: computed(() => store.entities().reduce((acc, curr) => acc + (curr.duration || 0), 0)),
+  })),
+  withComputed((store) => ({
     activeItemIndex: computed(() => {
       const id = store.activeTrack();
-      const pl = [...store.entities()].sort((a, b) => a.index - b.index);
-      return pl.findIndex((item) => item.id === id);
+      return store.playlist().findIndex((item) => item.id === id);
     }),
-    playlistDuration: computed(() => store.entities().reduce((acc, curr) => acc + (curr.duration || 0), 0)),
   })),
   withComputed((store) => ({
     isFirstItemPlaying: computed(() => store.activeItemIndex() === 0),
@@ -86,11 +87,22 @@ export const PlayerStore = signalStore(
       patchState(store, ...updaters);
     },
     play(id: string) {
-      patchState(
-        store,
-        { activeTrack: id },
-        updateAllEntities((item) => ({ ...item, playing: item.id === id, paused: false })),
-      );
+      const previousId = store.activeTrack();
+
+      if (previousId && previousId !== id) {
+        const previous = store.entityMap()[previousId];
+        if (previous) {
+          const changes: Partial<PlaylistItem> = { playing: false, paused: false };
+          // release the finished track's audio blob; replaying it re-fetches
+          if (typeof previous.url === 'string' && previous.url.startsWith('blob:')) {
+            URL.revokeObjectURL(previous.url);
+            changes.url = undefined;
+          }
+          patchState(store, updateEntity({ id: previousId, changes }));
+        }
+      }
+
+      patchState(store, { activeTrack: id }, updateEntity({ id, changes: { playing: true, paused: false } }));
     },
     pause() {
       const active = store.activePlaylistItem();

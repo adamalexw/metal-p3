@@ -205,7 +205,8 @@ export class PlayerShellComponent {
 
     fromEvent(this.audio().nativeElement, 'timeupdate')
       .pipe(
-        tap(() => this.elapsedTime.set((this.audio().nativeElement as HTMLAudioElement).currentTime)),
+        // whole seconds only — the signal's equality check then skips the ~4 sub-second renders per second
+        tap(() => this.elapsedTime.set(Math.floor((this.audio().nativeElement as HTMLAudioElement).currentTime))),
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe();

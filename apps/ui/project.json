@@ -24,7 +24,7 @@
           "apps/ui/src/site.webmanifest",
           "apps/ui/src/assets"
         ],
-        "styles": ["apps/ui/src/styles.scss"],
+        "styles": ["node_modules/flag-icons/css/flag-icons.min.css", "apps/ui/src/styles.scss"],
         "stylePreprocessorOptions": {
           "includePaths": ["apps/ui/src"]
         },
@@ -54,8 +54,8 @@
           "budgets": [
             {
               "type": "initial",
-              "maximumWarning": "2mb",
-              "maximumError": "10mb"
+              "maximumWarning": "1.5mb",
+              "maximumError": "2mb"
             },
             {
               "type": "anyComponentStyle",
