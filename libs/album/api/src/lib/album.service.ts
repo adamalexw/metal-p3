@@ -229,9 +229,9 @@ export class AlbumService {
       let lastSnapshot = '';
       let stableSince: number | null = null;
 
-      const check = () => {
+      const check = async () => {
         try {
-          const snapshot = this.getFolderSnapshot(folderPath);
+          const snapshot = await this.getFolderSnapshot(folderPath);
 
           if (snapshot === lastSnapshot) {
             if (!stableSince) {
@@ -256,33 +256,36 @@ export class AlbumService {
     });
   }
 
-  private getFolderSnapshot(folderPath: string): string {
+  private async getFolderSnapshot(folderPath: string): Promise<string> {
     let fileCount = 0;
     let totalSize = 0;
 
-    const walk = (dir: string) => {
+    const walk = async (dir: string) => {
+      let entries: fs.Dirent[];
       try {
-        const entries = fs.readdirSync(dir);
-        for (const entry of entries) {
-          const fullPath = path.join(dir, entry);
+        entries = await fs.promises.readdir(dir, { withFileTypes: true });
+      } catch {
+        // directory may not be readable yet
+        return;
+      }
+
+      for (const entry of entries) {
+        const fullPath = path.join(dir, entry.name);
+        if (entry.isDirectory()) {
+          await walk(fullPath);
+        } else {
           try {
-            const stat = fs.statSync(fullPath);
-            if (stat.isDirectory()) {
-              walk(fullPath);
-            } else {
-              fileCount++;
-              totalSize += stat.size;
-            }
+            const stat = await fs.promises.stat(fullPath);
+            fileCount++;
+            totalSize += stat.size;
           } catch {
             // file may be in-flight, ignore
           }
         }
-      } catch {
-        // directory may not be readable yet
       }
     };
 
-    walk(folderPath);
+    await walk(folderPath);
     return `${fileCount}:${totalSize}`;
   }
 

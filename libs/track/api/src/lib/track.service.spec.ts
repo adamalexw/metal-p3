@@ -2,9 +2,11 @@ import { TrackDto } from '@metal-p3/api-interfaces';
 import { AdbService } from '@metal-p3/shared/adb';
 import { FileSystemService } from '@metal-p3/shared/file-system';
 import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'fs';
+import { parseFile } from 'music-metadata';
 import * as NodeID3 from 'node-id3';
 import { tmpdir } from 'os';
-import { join } from 'path';
+import { basename, join } from 'path';
+import { firstValueFrom } from 'rxjs';
 import { TrackService } from './track.service';
 
 jest.mock('node-id3', () => ({
@@ -12,6 +14,10 @@ jest.mock('node-id3', () => ({
     update: jest.fn().mockResolvedValue(true),
   },
   read: jest.fn(),
+}));
+
+jest.mock('music-metadata', () => ({
+  parseFile: jest.fn(),
 }));
 
 describe('TrackService.saveTrack tag building', () => {
@@ -71,6 +77,32 @@ describe('TrackService.saveTrack tag building', () => {
     const tags = updateSpy.mock.calls[0][0];
     expect(tags.userDefinedText).toBeUndefined();
     expect(tags.comment).toBeUndefined();
+  });
+});
+
+describe('TrackService.getTracks', () => {
+  let service: TrackService;
+
+  beforeEach(() => {
+    const fileSystem = { setReadAndWritePermission: jest.fn() } as unknown as FileSystemService;
+    const adb = {} as AdbService;
+    service = new TrackService(fileSystem, adb);
+  });
+
+  it('should preserve file order when metadata resolves out of order', async () => {
+    (parseFile as jest.Mock).mockImplementation((file: string) => {
+      const trackNo = Number(basename(file, '.mp3'));
+      const delay = trackNo === 1 ? 30 : 1;
+      return new Promise((resolve) =>
+        setTimeout(() => resolve({ common: { title: `Track ${trackNo}`, track: { no: trackNo, of: null } }, format: {}, native: {} }), delay),
+      );
+    });
+
+    const files = ['/music/1.mp3', '/music/2.mp3', '/music/3.mp3', '/music/4.mp3', '/music/5.mp3'];
+    const tracks = await firstValueFrom(service.getTracks(files));
+
+    expect(tracks.map((t) => t.id)).toEqual([1, 2, 3, 4, 5]);
+    expect(tracks.map((t) => t.title)).toEqual(['Track 1', 'Track 2', 'Track 3', 'Track 4', 'Track 5']);
   });
 });
 

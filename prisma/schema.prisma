@@ -25,6 +25,10 @@ model Album {
   Band                Band?           @relation(fields: [BandId], references: [BandId], onDelete: Cascade)
   LyricsError         LyricsError[]
   LyricsHistory       LyricsHistory[]
+
+  @@index([BandId])
+  @@index([Folder])
+  @@index([Created])
 }
 
 model Band {
@@ -45,6 +49,8 @@ model LyricsError {
   Url           String?
   Error         String?
   Album         Album   @relation(fields: [AlbumId], references: [AlbumId], onDelete: Cascade)
+
+  @@index([AlbumId])
 }
 
 model LyricsHistory {
@@ -56,6 +62,8 @@ model LyricsHistory {
   Checked          Boolean?
   Priority         Boolean?
   Album            Album    @relation(fields: [AlbumId], references: [AlbumId], onDelete: Cascade)
+
+  @@index([AlbumId])
 }
 
 model NewAlbum {
@@ -65,6 +73,8 @@ model NewAlbum {
   Year            Int?
   MetalArchiveUrl String?
   Band            Band    @relation(fields: [BandId], references: [BandId], onDelete: Cascade)
+
+  @@index([BandId])
 }
 
 model NewAlbumError {
@@ -72,6 +82,8 @@ model NewAlbumError {
   BandId          Int
   Error           String?
   Band            Band    @relation(fields: [BandId], references: [BandId], onDelete: Cascade)
+
+  @@index([BandId])
 }
 
 model Playlist {
@@ -86,4 +98,6 @@ model PlaylistItem {
   ItemPath       String
   ItemIndex      Int
   Playlist       Playlist @relation(fields: [PlaylistId], references: [PlaylistId], onDelete: Cascade)
+
+  @@index([PlaylistId])
 }

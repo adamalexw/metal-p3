@@ -1,14 +1,22 @@
 import type { BandProps, MetalArchivesAlbumTrack, MetalArchivesSearchResponse } from '@metal-p3/api-interfaces';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
 import { parse } from 'node-html-parser';
+import type { Browser } from 'puppeteer';
 import puppeteer from 'puppeteer-extra';
 // import createPuppeteerStealth from 'puppeteer-extra-plugin-stealth';
 import { Observable, catchError, from, map, of } from 'rxjs';
 import { extractBandProps, extractTracks, mapSearchResults } from './metal-archives-helpers';
 
+const idleCloseMs = 60_000;
+
 @Injectable()
-export class MetalArchivesService {
+export class MetalArchivesService implements OnModuleDestroy {
   readonly baseUrl = 'https://www.metal-archives.com/';
+
+  private browserPromise: Promise<Browser> | null = null;
+  private queue: Promise<unknown> = Promise.resolve();
+  private idleTimer?: NodeJS.Timeout;
+  private stealthRegistered = false;
 
   findUrl(artist: string, album: string): Observable<MetalArchivesSearchResponse> {
     return this.getApiResponse<MetalArchivesSearchResponse>(
@@ -68,43 +76,110 @@ export class MetalArchivesService {
     );
   }
 
-  private async getPageContents<T>(url: string, waitFor: 'page' | 'url', waitItem: string, isJson = false): Promise<T> {
-    const StealthPlugin = require('puppeteer-extra-plugin-stealth');
-    const puppeteerStealth = StealthPlugin();
+  onModuleDestroy(): Promise<void> {
+    return this.closeBrowser();
+  }
 
-    // const puppeteerStealth = createPuppeteerStealth();
-    puppeteerStealth.enabledEvasions.delete('user-agent-override');
-    puppeteer.use(puppeteerStealth);
+  // All calls share one browser and its default page, so they run one at a time
+  private enqueue<T>(task: () => Promise<T>): Promise<T> {
+    const run = this.queue.then(task);
+    this.queue = run.catch(() => undefined);
+    return run;
+  }
 
-    const browser = await puppeteer.launch({
+  private async getBrowser(): Promise<Browser> {
+    if (this.browserPromise) {
+      try {
+        const existing = await this.browserPromise;
+        if (existing.connected) {
+          return existing;
+        }
+      } catch {
+        // relaunch below
+      }
+    }
+
+    if (!this.stealthRegistered) {
+      const StealthPlugin = require('puppeteer-extra-plugin-stealth');
+      const puppeteerStealth = StealthPlugin();
+
+      // const puppeteerStealth = createPuppeteerStealth();
+      puppeteerStealth.enabledEvasions.delete('user-agent-override');
+      puppeteer.use(puppeteerStealth);
+      this.stealthRegistered = true;
+    }
+
+    this.browserPromise = puppeteer.launch({
       headless: false,
       targetFilter: (target) => target.type() !== 'other',
       args: ['--window-position=-32000,-32000', '--window-size=800,600'],
     });
-    const defaultPage = (await browser.pages())[0]; // <-- bypasses Cloudflare
 
-    await defaultPage.goto(url);
+    return this.browserPromise;
+  }
 
-    if (waitFor === 'url') {
-      await defaultPage.waitForFunction(`document.querySelector("body").innerHTML.includes("${waitItem}")`);
-      const content = await defaultPage.content();
+  private scheduleIdleClose(): void {
+    if (this.idleTimer) {
+      clearTimeout(this.idleTimer);
+    }
+    this.idleTimer = setTimeout(() => void this.closeBrowser(), idleCloseMs);
+    this.idleTimer.unref?.();
+  }
 
-      if (!isJson) {
-        await browser.close();
-        return content as T;
-      }
-
-      const apiResponse = this.extractApiResponse(content);
-      await browser.close();
-
-      return (await JSON.parse(apiResponse)) as T;
+  private async closeBrowser(): Promise<void> {
+    if (this.idleTimer) {
+      clearTimeout(this.idleTimer);
+      this.idleTimer = undefined;
     }
 
-    await defaultPage.waitForSelector(waitItem, { timeout: 10000 }).catch((error) => console.error(error));
-    const content = await defaultPage.content();
+    const pending = this.browserPromise;
+    this.browserPromise = null;
 
-    await browser.close();
-    return content as T;
+    if (!pending) {
+      return;
+    }
+
+    try {
+      const browser = await pending;
+      await browser.close();
+    } catch (error) {
+      Logger.warn(`Failed to close browser: ${error}`);
+    }
+  }
+
+  private getPageContents<T>(url: string, waitFor: 'page' | 'url', waitItem: string, isJson = false): Promise<T> {
+    return this.enqueue(async () => {
+      if (this.idleTimer) {
+        clearTimeout(this.idleTimer);
+      }
+
+      try {
+        const browser = await this.getBrowser();
+        const defaultPage = (await browser.pages())[0]; // <-- bypasses Cloudflare
+
+        await defaultPage.goto(url);
+
+        if (waitFor === 'url') {
+          await defaultPage.waitForFunction(`document.querySelector("body").innerHTML.includes("${waitItem}")`);
+          const content = await defaultPage.content();
+
+          if (!isJson) {
+            return content as T;
+          }
+
+          return JSON.parse(this.extractApiResponse(content)) as T;
+        }
+
+        await defaultPage.waitForSelector(waitItem, { timeout: 10000 }).catch((error) => console.error(error));
+        return (await defaultPage.content()) as T;
+      } catch (error) {
+        // a failed navigation can leave the shared page in an unknown state — start clean next call
+        await this.closeBrowser();
+        throw error;
+      } finally {
+        this.scheduleIdleClose();
+      }
+    });
   }
 
   private extractApiResponse(content: string) {
