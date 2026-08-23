@@ -4,7 +4,6 @@ import { ChangeDetectionStrategy, Component, input, output } from '@angular/core
 import { MatIconModule } from '@angular/material/icon';
 import { MatTableModule } from '@angular/material/table';
 import { PlaylistItem } from '@metal-p3/player/domain';
-import { cloneDeep } from 'lodash-es';
 
 import { CoverComponent } from '@metal-p3/cover/ui';
 import { TimePipe } from '@metal-p3/track/util';
@@ -29,11 +28,15 @@ export class PlaylistComponent {
 
   displayedColumns = ['action', 'trackNumber', 'title', 'artist', 'duration'];
 
+  trackById(_index: number, item: PlaylistItem): string {
+    return item.id;
+  }
+
   drop(event: CdkDragDrop<string[]>) {
     const playlist = this.playlist();
 
     if (playlist) {
-      const newOrder = cloneDeep(playlist);
+      const newOrder = [...playlist];
       moveItemInArray(newOrder, event.previousIndex, event.currentIndex);
       this.reorder.emit(newOrder);
     }

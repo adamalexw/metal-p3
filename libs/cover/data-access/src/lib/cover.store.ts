@@ -6,7 +6,7 @@ import { BLANK_COVER } from '@metal-p3/shared/utils';
 import { patchState, signalStore, withMethods } from '@ngrx/signals';
 import { addEntities, addEntity, removeAllEntities, updateEntity, withEntities } from '@ngrx/signals/entities';
 import { rxMethod } from '@ngrx/signals/rxjs-interop';
-import { catchError, concat, forkJoin, map, mergeMap, Observable, of, pipe, switchMap, tap } from 'rxjs';
+import { catchError, concat, forkJoin, map, mergeMap, Observable, of, pipe, tap } from 'rxjs';
 import { CoverService } from './cover.service';
 
 export interface CoverState {
@@ -37,6 +37,14 @@ export const CoverStore = signalStore(
       patchState(store, removeAllEntities());
     };
 
+    const _setCover = (id: string | number, cover: string) => {
+      const previous = store.entityMap()[id]?.cover;
+      if (typeof previous === 'string' && previous.startsWith('blob:') && previous !== cover) {
+        URL.revokeObjectURL(previous);
+      }
+      patchState(store, updateEntity({ id, changes: { cover, loading: false, error: undefined } }));
+    };
+
     return {
       _clearAll,
       getCover: rxMethod<{ id: number; folder: string }>(
@@ -52,7 +60,7 @@ export const CoverStore = signalStore(
           mergeMap(({ id, folder }) =>
             service.getCover(`${basePath}/${folder}`).pipe(
               map((cover) => {
-                patchState(store, updateEntity({ id, changes: { cover, loading: false, error: undefined } }));
+                _setCover(id, cover);
               }),
               catchError((error) => {
                 const errorMessage = errorService.getError(error);
@@ -119,7 +127,7 @@ export const CoverStore = signalStore(
           mergeMap(({ id, url }) =>
             service.downloadCover(url).pipe(
               map((cover) => {
-                patchState(store, updateEntity({ id, changes: { cover, loading: false, error: undefined } }));
+                _setCover(id, cover);
               }),
               catchError((error) => {
                 const errorMessage = errorService.getError(error);
@@ -146,7 +154,7 @@ export const CoverStore = signalStore(
             service.getCoverFromMetalArchives(url).pipe(
               map((cover) => {
                 if (cover) {
-                  patchState(store, updateEntity({ id, changes: { cover, loading: false, error: undefined } }));
+                  _setCover(id, cover);
                   notificationService.showComplete('Found cover on Metal Archives', 'Cover');
                 } else {
                   patchState(store, updateEntity({ id, changes: { loading: false, error: undefined } }));

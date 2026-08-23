@@ -1,17 +1,17 @@
 <mat-toolbar class="bg-transparent! text-white">
   <mat-toolbar-row>
     <ng-container>
-      <button [matMenuTriggerFor]="menu" (click)="onLoadPlaylists()" mat-icon-button><mat-icon title="load">queue_music</mat-icon></button>
+      <button type="button" [matMenuTriggerFor]="menu" (click)="onLoadPlaylists()" mat-icon-button><mat-icon title="load">queue_music</mat-icon></button>
       <mat-menu #menu="matMenu" yPosition="above">
         @for (playlist of playlists(); track playlist.id) {
-          <button (click)="loadPlaylist.emit(playlist.id)" mat-menu-item>{{ playlist.name }}</button>
+          <button type="button" (click)="loadPlaylist.emit(playlist.id)" mat-menu-item>{{ playlist.name }}</button>
         }
       </mat-menu>
     </ng-container>
 
     @if (activePlaylist()) {
       <input class="w-auto" [(ngModel)]="playlistName" matInput placeholder="playlist name" required />
-      <button (click)="updatePlaylist.emit(playlistName() || '')" mat-icon-button>
+      <button type="button" (click)="updatePlaylist.emit(playlistName() || '')" mat-icon-button>
         <mat-icon title="save">save</mat-icon>
       </button>
       <button type="button" [itemName]="'playlist'" (confirmResult)="onDelete($event)" mat-icon-button appConfirmDelete>
@@ -22,16 +22,16 @@
         <input class="w-auto" [(ngModel)]="playlistName" matInput placeholder="playlist name" required />
       }
       @if ((duration() ?? 0) > 0) {
-        <button [disabled]="saving() && !playlistName()" (click)="onCreate()" mat-icon-button><mat-icon title="create">playlist_add</mat-icon></button>
+        <button type="button" [disabled]="saving() && !playlistName()" (click)="onCreate()" mat-icon-button><mat-icon title="create">playlist_add</mat-icon></button>
       }
     }
 
     @if ((playlistSize() ?? 0) > 1) {
-      <button (click)="shuffle.emit()" mat-icon-button>
+      <button type="button" (click)="shuffle.emit()" mat-icon-button>
         <mat-icon>shuffle</mat-icon>
       </button>
 
-      <button (click)="clearPlaylist.emit()" mat-icon-button>
+      <button type="button" (click)="clearPlaylist.emit()" mat-icon-button>
         <mat-icon title="clear">clear_all</mat-icon>
       </button>
 
@@ -41,7 +41,7 @@
     }
 
     <div class="flex w-full flex-row-reverse items-center">
-      <button (click)="closePlaylist.emit()" mat-icon-button>
+      <button type="button" (click)="closePlaylist.emit()" mat-icon-button>
         <mat-icon>close</mat-icon>
       </button>
       <div class="mr-1 ml-1">{{ duration() | time }}</div>

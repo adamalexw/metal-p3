@@ -28,8 +28,9 @@ const initialState: AlbumState = {
   selectedAlbumId: undefined,
 };
 
+// ISO date strings sort correctly with plain comparison; localeCompare is much slower
 function sortByDateCreated(a: Album, b: Album): number {
-  return b.dateCreated.localeCompare(a.dateCreated);
+  return a.dateCreated < b.dateCreated ? 1 : a.dateCreated > b.dateCreated ? -1 : 0;
 }
 
 export const AlbumStore = signalStore(
