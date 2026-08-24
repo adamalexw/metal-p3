@@ -102,6 +102,8 @@ export default function PlayerScreen() {
   }, [current?.artist, current?.albumArtist, current?.album]);
 
   const headerTitleText = current?.title ?? 'Now Playing';
+  const headerTrackPosition =
+    queueLength > 0 && currentIndex >= 0 ? `Track ${currentIndex + 1} of ${queueLength}` : '';
 
   const openAlbum = useCallback(() => {
     if (!albumKey) return;
@@ -199,7 +201,18 @@ export default function PlayerScreen() {
             >
               {headerTitleText}
             </Text>
-            {headerSubtitle ? (
+            {headerTrackPosition ? (
+              <Text
+                style={[
+                  tw`text-xs text-center`,
+                  { color: theme.mutedForeground, fontVariant: ['tabular-nums'] },
+                ]}
+                numberOfLines={1}
+                testID="player-header-track-position"
+              >
+                {headerTrackPosition}
+              </Text>
+            ) : headerSubtitle ? (
               <Text
                 style={[tw`text-xs text-center`, { color: theme.mutedForeground }]}
                 numberOfLines={1}
