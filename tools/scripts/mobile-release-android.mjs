@@ -10,6 +10,52 @@ import { resolve } from 'node:path';
 
 const repoRoot = resolve(import.meta.dirname, '..', '..');
 
+// Ninja fails with "Filename longer than 260 characters" (MAX_PATH) when the
+// repo path is long — git worktrees under C:\source\wt\ — because codegen
+// object paths embed the repo path twice. Re-exec from a subst drive so the
+// root shrinks to three characters.
+if (process.platform === 'win32' && repoRoot.length > 25) {
+  const drive = substDriveFor(repoRoot);
+  if (drive) {
+    console.log(`Repo path too long for the native build; re-running from ${drive.letter}:\\ (subst of ${repoRoot})`);
+    const result = spawnSync(
+      process.execPath,
+      [resolve(`${drive.letter}:\\`, 'tools', 'scripts', 'mobile-release-android.mjs'), ...process.argv.slice(2)],
+      { cwd: `${drive.letter}:\\`, stdio: 'inherit' },
+    );
+    if (drive.created) {
+      try {
+        execSync(`subst ${drive.letter}: /D`);
+      } catch {
+        // leaving the mapping behind is harmless
+      }
+    }
+    process.exit(result.status ?? 1);
+  }
+  console.warn('No free drive letter to subst; the native build may fail with MAX_PATH errors.');
+}
+
+function substDriveFor(target) {
+  const mappings = execSync('subst', { encoding: 'utf8' })
+    .split(/\r?\n/)
+    .map((line) => /^([A-Za-z]):\\: => (.+)$/.exec(line.trim()))
+    .filter(Boolean);
+  const normalize = (p) => resolve(p).replace(/[\\/]+$/, '').toLowerCase();
+  const existing = mappings.find((m) => normalize(m[2]) === normalize(target));
+  if (existing) {
+    return { letter: existing[1].toUpperCase(), created: false };
+  }
+  const taken = new Set(mappings.map((m) => m[1].toUpperCase()));
+  for (const letter of 'ZYXWVUTSRQPONMLKJIHG') {
+    if (taken.has(letter) || existsSync(`${letter}:\\`)) {
+      continue;
+    }
+    execSync(`subst ${letter}: "${target}"`);
+    return { letter, created: true };
+  }
+  return null;
+}
+
 // Prevent OOM errors in spawned Node/Metro bundler processes by raising memory limits
 process.env.NODE_OPTIONS = process.env.NODE_OPTIONS || '--max-old-space-size=4096';
 // Prevent Clang frontend crashes on Windows due to OOM during React Native C++ builds

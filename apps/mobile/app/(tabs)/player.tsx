@@ -17,7 +17,7 @@ import {
   Skull,
 } from 'lucide-react-native';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Linking, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { Linking, Pressable, ScrollView, StyleSheet, type StyleProp, Text, useWindowDimensions, View, type ViewStyle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MetalP3Player, type RepeatMode } from '../../modules/metalp3-player';
 import ArtworkImage from '../../src/components/ArtworkImage';
@@ -102,6 +102,7 @@ export default function PlayerScreen() {
   }, [current?.artist, current?.albumArtist, current?.album]);
 
   const headerTitleText = current?.title ?? 'Now Playing';
+  const hasTrackPosition = queueLength > 0 && currentIndex >= 0;
 
   const openAlbum = useCallback(() => {
     if (!albumKey) return;
@@ -199,7 +200,15 @@ export default function PlayerScreen() {
             >
               {headerTitleText}
             </Text>
-            {headerSubtitle ? (
+            {hasTrackPosition ? (
+              <TrackPositionPill
+                position={currentIndex + 1}
+                total={queueLength}
+                theme={theme}
+                style={tw`mt-1`}
+                testID="player-header-track-position"
+              />
+            ) : headerSubtitle ? (
               <Text
                 style={[tw`text-xs text-center`, { color: theme.mutedForeground }]}
                 numberOfLines={1}
@@ -380,29 +389,14 @@ export default function PlayerScreen() {
                   {genre ?? ''}
                 </Text>
               ) : null}
-              {queueLength > 0 && currentIndex >= 0 ? (
-                <View
-                  style={[
-                    tw`mt-2 px-3 py-0.5 rounded-full border`,
-                    {
-                      backgroundColor: theme.surface,
-                      borderColor: withAlpha(theme.foreground, 0.1),
-                    },
-                  ]}
+              {hasTrackPosition ? (
+                <TrackPositionPill
+                  position={currentIndex + 1}
+                  total={queueLength}
+                  theme={theme}
+                  style={tw`mt-2`}
                   testID="player-track-indicator"
-                >
-                  <Text
-                    style={[
-                      tw`text-xs font-semibold`,
-                      {
-                        color: theme.accent,
-                        fontVariant: ['tabular-nums'],
-                      },
-                    ]}
-                  >
-                    {currentIndex + 1} / {queueLength}
-                  </Text>
-                </View>
+                />
               ) : null}
             </View>
           </View>
@@ -485,6 +479,42 @@ interface BtnTheme {
   accent: string;
   accentForeground: string;
   surface: string;
+}
+
+function TrackPositionPill({
+  position, total, theme, style, testID,
+}: {
+  position: number;
+  total: number;
+  theme: BtnTheme;
+  style?: StyleProp<ViewStyle>;
+  testID?: string;
+}) {
+  return (
+    <View
+      style={[
+        tw`px-3 py-0.5 rounded-full border`,
+        {
+          backgroundColor: theme.surface,
+          borderColor: withAlpha(theme.foreground, 0.1),
+        },
+        style,
+      ]}
+      testID={testID}
+    >
+      <Text
+        style={[
+          tw`text-xs font-semibold`,
+          {
+            color: theme.accent,
+            fontVariant: ['tabular-nums'],
+          },
+        ]}
+      >
+        {position} / {total}
+      </Text>
+    </View>
+  );
 }
 
 function PrimaryBtn({
