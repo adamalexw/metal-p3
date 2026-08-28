@@ -38,18 +38,44 @@ export class FileSystemService {
   }
 
   rename(path: string, newPath: string, retry = 0) {
-    try {
-      if (retry >= 3) {
-        return;
-      }
-      renameSync(path, newPath);
-    } catch (error) {
-      if (retry == 0) {
-        this.setReadAndWritePermission(path);
-      }
-      Logger.error(`Rename file ${path} - ${newPath}`, error);
+    if (retry >= 3) {
+      return;
+    }
+
+    if (!this.tryRename(path, newPath, retry + 1)) {
       setTimeout(() => this.rename(path, newPath, retry + 1), 3000);
     }
+  }
+
+  async renameWithRetry(path: string, newPath: string, attempts = 3, delayMs = 3000): Promise<void> {
+    for (let attempt = 1; attempt <= attempts; attempt++) {
+      if (this.tryRename(path, newPath, attempt)) {
+        return;
+      }
+
+      if (attempt < attempts) {
+        await this.delay(delayMs);
+      }
+    }
+
+    throw new Error(`Failed to rename ${path} to ${newPath} after ${attempts} attempts`);
+  }
+
+  private tryRename(path: string, newPath: string, attempt: number): boolean {
+    try {
+      renameSync(path, newPath);
+      return true;
+    } catch (error) {
+      if (attempt === 1) {
+        this.setReadAndWritePermission(path);
+      }
+      Logger.error(`Rename file ${path} - ${newPath} (attempt ${attempt})`, error);
+      return false;
+    }
+  }
+
+  private delay(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   deleteFile(path: string) {
@@ -93,34 +119,44 @@ export class FileSystemService {
     }
   }
 
-  moveFilesToTheRoot(folder: string, rootFolder: string, retry = 0) {
-    if (retry >= 3) {
-      return;
-    }
+  async moveFilesToTheRoot(folder: string, rootFolder: string, attempts = 3, delayMs = 3000): Promise<void> {
+    let failedAttempts = 0;
 
-    const folders = this.getFiles(folder);
+    while (failedAttempts < attempts) {
+      const subFolders = this.getFiles(folder)
+        .map((item) => join(folder, item))
+        .filter((itemPath) => this.isFolder(itemPath));
 
-    for (let index = 0; index < folders.length; index++) {
-      const item = folders[index];
-      const itemPath = join(folder, item);
+      if (!subFolders.length) {
+        return;
+      }
 
-      if (this.isFolder(itemPath)) {
-        const files = this.getFiles(itemPath);
+      const moves = subFolders.flatMap((subFolder) => this.getFiles(subFolder).map((file) => ({ from: join(subFolder, file), to: join(rootFolder, file) })));
 
-        for (let i = 0; i < files.length; i++) {
-          const file = files[i];
-          this.rename(join(itemPath, file), join(rootFolder, file));
+      if (!moves.length) {
+        this.cleanEmptyFolders(folder);
+        return;
+      }
+
+      let moved = 0;
+      for (const { from, to } of moves) {
+        if (this.tryRename(from, to, failedAttempts + 1)) {
+          moved++;
         }
+      }
 
-        if (this.getFiles(itemPath).length > 0) {
-          setTimeout(() => {
-            this.moveFilesToTheRoot(folder, rootFolder, retry + 1);
-          }, 3000);
-        } else {
-          this.cleanEmptyFolders(folder);
+      this.cleanEmptyFolders(folder);
+
+      if (moved === 0) {
+        failedAttempts++;
+
+        if (failedAttempts < attempts) {
+          await this.delay(delayMs);
         }
       }
     }
+
+    throw new Error(`Failed to move files to the root of ${rootFolder} after ${attempts} attempts`);
   }
 
   cleanEmptyFolders(folder: string) {
