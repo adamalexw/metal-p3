@@ -67,9 +67,6 @@ export const AlbumStore = signalStore(
       _clearAlbums() {
         patchState(store, { selectedAlbumId: undefined }, removeAllEntities());
       },
-      addAlbum(album: Album) {
-        patchState(store, addEntity(album));
-      },
       setAlbum(album: Album) {
         // use updateEntity or addEntity? Upsert is not built-in, but we can update if it exists
         if (store.entityMap()[album.id]) {

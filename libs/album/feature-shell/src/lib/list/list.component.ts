@@ -16,7 +16,7 @@ import { AdbStatusService, ConnectPhoneService } from '@metal-p3/shared/transfer
 import { toChunks } from '@metal-p3/shared/utils';
 import { TrackService } from '@metal-p3/track/data-access';
 import { Track } from '@metal-p3/track/domain';
-import { Observable, debounceTime, filter, from, map, mergeMap, take, tap } from 'rxjs';
+import { Observable, debounceTime, filter, map, take, tap } from 'rxjs';
 import { AddAlbumDirective } from './add-album.directive';
 
 @Component({
@@ -199,16 +199,11 @@ export class ListComponent implements OnInit {
 
   onAlbumAdded(albumDto: AlbumDto) {
     const album: Album = { ...albumDto };
-    this.store.addAlbum(album);
+    this.store.setAlbum(album);
   }
 
   onFoldersDropped(folders: string[]) {
-    from(folders)
-      .pipe(
-        mergeMap((folder) => this.service.addNewAlbum(folder)),
-        tap((albumDto) => this.onAlbumAdded(albumDto)),
-      )
-      .subscribe();
+    folders.forEach((folder) => this.store.addNewAlbum(folder));
   }
 
   onShowPlaylists() {

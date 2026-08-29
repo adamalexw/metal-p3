@@ -9,7 +9,7 @@ import chokidar from 'chokidar';
 import * as fs from 'fs';
 import * as NodeID3 from 'node-id3';
 import * as path from 'path';
-import { Observable, catchError, concatMap, from, map, of } from 'rxjs';
+import { Observable, catchError, concatMap, firstValueFrom, from, map, of } from 'rxjs';
 import { AlbumGateway } from './album-gateway.service';
 
 @Injectable()
@@ -170,7 +170,11 @@ export class AlbumService {
   private addFileWatcher(basePath: string) {
     const watcher = chokidar.watch(basePath, {
       depth: 0,
-      ignored: (p) => {
+      ignored: (p, stats) => {
+        if (stats) {
+          return !stats.isDirectory();
+        }
+
         try {
           return !fs.lstatSync(p).isDirectory();
         } catch {
@@ -181,84 +185,78 @@ export class AlbumService {
     });
 
     watcher.on('ready', () => console.log('Initial scan complete. Ready for changes', new Date().toLocaleString()));
-
-    watcher.on('addDir', (dirPath) => {
-      const folder = this.fileSystemService.getFilename(dirPath);
-
-      // Guard synchronously before any async work — prevents duplicate processing
-      // when chokidar fires multiple addDir events for the same directory.
-      if (this.pendingFolders.has(folder)) {
-        return;
-      }
-      this.pendingFolders.add(folder);
-
-      // ensure we aren't renaming an existing folder
-      this.dbService
-        .albums({ take: 1, where: { Folder: folder } })
-        .then((album) => {
-          if (!album.length) {
-            this.waitForFolderStable(dirPath)
-              .then(() => {
-                this.addAlbum(dirPath).subscribe({
-                  next: (albumDto) => this.albumGateway.albumAddedMessage(albumDto),
-                  error: (error) => Logger.error(`Failed to add album from watcher: ${error}`),
-                  complete: () => this.pendingFolders.delete(folder),
-                });
-              })
-              .catch((error) => Logger.error(error))
-              .finally(() => this.pendingFolders.delete(folder));
-          } else {
-            this.pendingFolders.delete(folder);
-          }
-        })
-        .catch((error) => {
-          Logger.error(error);
-          this.pendingFolders.delete(folder);
-        });
-    });
-
+    watcher.on('addDir', (dirPath) => this.onFolderAdded(dirPath));
     watcher.on('error', (error) => Logger.error(`Watcher error: ${error}`));
   }
 
-  /**
-   * Polls a folder until its total size and file count stop changing,
-   * indicating that an unzip or copy operation has completed.
-   */
-  private waitForFolderStable(folderPath: string, stabilityThreshold = 5000, pollInterval = 1000): Promise<void> {
-    return new Promise((resolve) => {
-      let lastSnapshot = '';
-      let stableSince: number | null = null;
+  private onFolderAdded(dirPath: string) {
+    const folder = this.fileSystemService.getFilename(dirPath);
 
-      const check = async () => {
-        try {
-          const snapshot = await this.getFolderSnapshot(folderPath);
+    if (this.pendingFolders.has(folder)) {
+      return;
+    }
+    this.pendingFolders.add(folder);
 
-          if (snapshot === lastSnapshot) {
-            if (!stableSince) {
-              stableSince = Date.now();
-            } else if (Date.now() - stableSince >= stabilityThreshold) {
-              resolve();
-              return;
-            }
-          } else {
-            lastSnapshot = snapshot;
-            stableSince = null;
-          }
-        } catch (error) {
-          Logger.error(`Error checking folder stability: ${error}`);
-        }
-
-        setTimeout(check, pollInterval);
-      };
-
-      // initial delay to let the OS create the first files
-      setTimeout(check, pollInterval);
-    });
+    this.addAlbumWhenReady(dirPath, folder)
+      .catch((error) => Logger.error(`Failed to add album from watcher for "${dirPath}": ${error}`))
+      .finally(() => this.pendingFolders.delete(folder));
   }
 
-  private async getFolderSnapshot(folderPath: string): Promise<string> {
-    let fileCount = 0;
-    let totalSize = 0;
+  private async addAlbumWhenReady(dirPath: string, folder: string): Promise<void> {
+    if (!(await this.waitForFolderReady(dirPath))) {
+      return;
+    }
+
+    // The app's own renames emit addDir before the database row is updated, so only check the database once the folder has settled.
+    const existing = await this.dbService.albums({ take: 1, where: { Folder: folder } });
+    if (existing.length) {
+      return;
+    }
+
+    const albumDto = await firstValueFrom(this.addAlbum(dirPath));
+    this.albumGateway.albumAddedMessage(albumDto);
+  }
+
+  /**
+   * Polls a folder until it contains an mp3 and its contents have stopped changing, indicating that
+   * a copy or unzip has completed. Resolves false if the folder disappears or never receives an mp3.
+   */
+  private async waitForFolderReady(folderPath: string, stabilityThreshold = 5000, pollInterval = 1000, timeout = 30 * 60 * 1000): Promise<boolean> {
+    const startedAt = Date.now();
+    let lastSnapshot = '';
+    let lastChange = startedAt;
+
+    while (Date.now() - startedAt < timeout) {
+      await this.delay(pollInterval);
+
+      if (!fs.existsSync(folderPath)) {
+        Logger.log(`Folder "${folderPath}" disappeared before it could be added`);
+        return false;
+      }
+
+      const snapshot = await this.getFolderSnapshot(folderPath);
+
+      if (!snapshot.hasMp3) {
+        lastSnapshot = '';
+        continue;
+      }
+
+      const key = `${snapshot.fileCount}:${snapshot.totalSize}:${snapshot.lastModified}`;
+
+      if (key !== lastSnapshot) {
+        lastSnapshot = key;
+        lastChange = Date.now();
+      } else if (Date.now() - lastChange >= stabilityThreshold) {
+        return true;
+      }
+    }
+
+    Logger.error(`Gave up waiting for "${folderPath}" to receive mp3 files`);
+    return false;
+  }
+
+  private async getFolderSnapshot(folderPath: string): Promise<{ fileCount: number; totalSize: number; lastModified: number; hasMp3: boolean }> {
+    const snapshot = { fileCount: 0, totalSize: 0, lastModified: 0, hasMp3: false };
 
     const walk = async (dir: string) => {
       let entries: fs.Dirent[];
@@ -273,20 +271,29 @@ export class AlbumService {
         const fullPath = path.join(dir, entry.name);
         if (entry.isDirectory()) {
           await walk(fullPath);
-        } else {
-          try {
-            const stat = await fs.promises.stat(fullPath);
-            fileCount++;
-            totalSize += stat.size;
-          } catch {
-            // file may be in-flight, ignore
+          continue;
+        }
+
+        try {
+          const stat = await fs.promises.stat(fullPath);
+          snapshot.fileCount++;
+          snapshot.totalSize += stat.size;
+          snapshot.lastModified = Math.max(snapshot.lastModified, stat.mtimeMs);
+          if (path.extname(entry.name).toLowerCase() === '.mp3') {
+            snapshot.hasMp3 = true;
           }
+        } catch {
+          // file may be in-flight, ignore
         }
       }
     };
 
     await walk(folderPath);
-    return `${fileCount}:${totalSize}`;
+    return snapshot;
+  }
+
+  private delay(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   addAlbum(folder: string): Observable<AlbumDto> {
@@ -352,9 +359,9 @@ export class AlbumService {
           throw new Error('folder already exists');
         }
       }),
-      map(() => {
+      concatMap(async () => {
         // Flatten any sub-folders so all files are accessible at the root level.
-        this.fileSystemService.moveFilesToTheRoot(folder, folder);
+        await this.fileSystemService.moveFilesToTheRoot(folder, folder);
 
         const mp3 = this.fileSystemService.getFiles(folder).find((f) => path.extname(f) === '.mp3');
 
@@ -383,6 +390,30 @@ export class AlbumService {
   }
 
   private searchAndCreateAlbum(folder: string, tags: NodeID3.Tags, band: Band): Observable<AlbumDto> {
+    return from(this.findMovedAlbum(folder, tags, band)).pipe(concatMap((movedAlbum) => (movedAlbum ? of(movedAlbum) : this.createAlbumWithMetalArchivesUrls(folder, tags, band))));
+  }
+
+  // An album that is in the database but whose folder is gone from disk was renamed outside the app.
+  private async findMovedAlbum(folder: string, tags: NodeID3.Tags, band: Band): Promise<AlbumDto | undefined> {
+    if (!tags.album) {
+      return undefined;
+    }
+
+    const candidates = await this.dbService.albums({ where: { BandId: band.BandId, Name: tags.album } });
+    const movedAlbum = candidates.find((album) => !fs.existsSync(path.join(this.basePath, album.Folder)));
+
+    if (!movedAlbum) {
+      return undefined;
+    }
+
+    const newFolder = path.basename(folder);
+    await this.dbService.updateAlbum({ where: { AlbumId: movedAlbum.AlbumId }, data: { Folder: newFolder } });
+    Logger.log(`Album ${movedAlbum.AlbumId} moved from "${movedAlbum.Folder}" to "${newFolder}"`);
+
+    return this.mapAlbumToAlbumDto({ ...movedAlbum, Folder: newFolder });
+  }
+
+  private createAlbumWithMetalArchivesUrls(folder: string, tags: NodeID3.Tags, band: Band): Observable<AlbumDto> {
     const artist = tags.artist;
     const album = tags.album;
 
@@ -595,7 +626,7 @@ export class AlbumService {
     const fullPath = `${this.basePath}/${folder}`;
 
     try {
-      this.fileSystemService.rename(src, fullPath);
+      await this.fileSystemService.renameWithRetry(src, fullPath);
     } catch (error) {
       Logger.error(`Failed to rename folder from "${src}" to "${fullPath}": ${error}`);
       throw new Error(`Failed to rename folder: ${error}`);
@@ -608,7 +639,7 @@ export class AlbumService {
 
       // attempt to revert the filesystem rename
       try {
-        this.fileSystemService.rename(fullPath, src);
+        await this.fileSystemService.renameWithRetry(fullPath, src);
       } catch (revertError) {
         Logger.error(`Failed to revert folder rename from "${fullPath}" to "${src}": ${revertError}`);
       }
