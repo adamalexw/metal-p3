@@ -7,7 +7,7 @@ import Fuse from 'fuse.js';
 import { extname, join } from 'path';
 import type { Browser } from 'puppeteer';
 import puppeteer from 'puppeteer-extra';
-import { ALBUM_FUSE_THRESHOLD, AlbumCandidate, FILE_FUSE_THRESHOLD, normalizeForMatch, parseSetlistHtml, tokenizeFilename, trackKey } from './setlist-importer-helpers';
+import { ALBUM_FUSE_THRESHOLD, AlbumCandidate, FILE_FUSE_THRESHOLD, normalizeForMatch, parseSetlistHtml, parseSongReleaseHtml, tokenizeFilename, trackKey } from './setlist-importer-helpers';
 
 @Injectable()
 export class SetlistImporterService {
@@ -25,12 +25,15 @@ export class SetlistImporterService {
     // setlist.fm sits behind an AWS WAF JavaScript challenge, so a plain HTTP GET only
     // ever gets the challenge page. Drive a stealth browser so the challenge resolves.
     const browser = await this.launchBrowser();
+    const releaseBySongUrl = new Map<string, string | undefined>();
 
     try {
       for (const url of request.urls) {
         try {
           const html = await this.downloadPage(browser, url);
-          out.push(parseSetlistHtml(html, url));
+          const setlist = parseSetlistHtml(html, url);
+          setlist.tracks = await this.hintAlbumsFromSongPages(browser, setlist.tracks, releaseBySongUrl);
+          out.push(setlist);
         } catch (error) {
           this.logger.error(`Failed to scrape setlist ${url}: ${error}`);
           out.push({ id: url, url, artist: '', tracks: [], error: error instanceof Error ? error.message : String(error) });
@@ -62,6 +65,38 @@ export class SetlistImporterService {
     await page.goto(url).catch((error) => this.logger.warn(`Navigation issue on ${url}: ${error}`));
     await page.waitForSelector('.setlistHeadline, ol.songsList', { timeout: 30000 }).catch((error) => this.logger.warn(`Timed out waiting for setlist content on ${url}: ${error}`));
     return page.content();
+  }
+
+  private async hintAlbumsFromSongPages(browser: Browser, tracks: ImportedTrack[], cache: Map<string, string | undefined>): Promise<ImportedTrack[]> {
+    const out: ImportedTrack[] = [];
+
+    for (const track of tracks) {
+      if (track.hintedAlbum || !track.songPageUrl) {
+        out.push(track);
+        continue;
+      }
+
+      if (!cache.has(track.songPageUrl)) {
+        cache.set(track.songPageUrl, await this.downloadSongRelease(browser, track.songPageUrl));
+      }
+
+      out.push({ ...track, hintedAlbum: cache.get(track.songPageUrl) });
+    }
+
+    return out;
+  }
+
+  private async downloadSongRelease(browser: Browser, url: string): Promise<string | undefined> {
+    try {
+      const page = (await browser.pages())[0];
+      // The full 'load' event waits on ads/charts; the stats block is server-rendered.
+      await page.goto(url, { waitUntil: 'domcontentloaded' });
+      await page.waitForSelector('.artistSongStatistics', { timeout: 15000 });
+      return parseSongReleaseHtml(await page.content());
+    } catch (error) {
+      this.logger.warn(`Failed to read release from song page ${url}: ${error}`);
+      return undefined;
+    }
   }
 
   async match(request: MatchTracksRequest): Promise<ResolvedTrack[]> {
@@ -97,8 +132,8 @@ export class SetlistImporterService {
       if (!match) {
         for (const candidate of candidates) {
           if (albumHit && candidate.id === albumHit.id) continue;
-          match = this.matchTrackInAlbum(candidate, track.title, filesByFolder);
-          if (match) break;
+          const hit = this.matchTrackInAlbum(candidate, track.title, filesByFolder);
+          if (hit && (!match || hit.score < match.score)) match = hit;
         }
       }
 
@@ -147,6 +182,7 @@ export class SetlistImporterService {
       const albums = await this.dbService.albums({
         where: { Band: { Name: { contains: artist } } },
         orderBy: { Year: 'asc' },
+        take: Number.MAX_SAFE_INTEGER,
       });
 
       return albums.map((a) => ({ id: a.AlbumId, name: a.Name ?? '', folder: a.Folder }));

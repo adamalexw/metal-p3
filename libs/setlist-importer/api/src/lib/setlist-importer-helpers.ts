@@ -1,5 +1,5 @@
 import { ImportedSetlist, ImportedTrack } from '@metal-p3/setlist-importer/domain';
-import { parse } from 'node-html-parser';
+import { HTMLElement, parse } from 'node-html-parser';
 import { extname } from 'path';
 
 export const SETLIST_FM_BASE = 'https://www.setlist.fm';
@@ -25,11 +25,13 @@ export const stripTrackNumber = (filename: string): string => {
 
 export const trackKey = (artist: string, title: string): string => `${normalizeForMatch(artist)}|${normalizeForMatch(title)}`;
 
-const absoluteSetlistUrl = (href: string | undefined): string | undefined => {
+const absoluteSetlistUrl = (href: string | undefined, pageUrl: string): string | undefined => {
   if (!href) return undefined;
-  if (href.startsWith('http')) return href;
-  if (href.startsWith('/')) return `${SETLIST_FM_BASE}${href}`;
-  return `${SETLIST_FM_BASE}/${href}`;
+  try {
+    return new URL(href, pageUrl.startsWith('http') ? pageUrl : SETLIST_FM_BASE).toString();
+  } catch {
+    return undefined;
+  }
 };
 
 const SETLIST_ID_FROM_URL = /-([0-9a-f]+)\.html/i;
@@ -86,7 +88,7 @@ export const parseSetlistHtml = (html: string, sourceUrl: string): ImportedSetli
 
     if (!title) continue;
 
-    const songPageUrl = absoluteSetlistUrl(songAnchor?.getAttribute('href'));
+    const songPageUrl = absoluteSetlistUrl(songAnchor?.getAttribute('href'), sourceUrl);
 
     const albumAnchor = node.querySelector('.infoPart a[href*="/album/"], .infoPart a[href*="/release/"]');
     const hintedAlbum = albumAnchor?.textContent.trim() || undefined;
@@ -111,3 +113,25 @@ export interface AlbumCandidate {
 }
 
 export const tokenizeFilename = (filename: string): string => normalizeForMatch(stripTrackNumber(filename));
+
+/**
+ * Song statistics page (captured 2026-09):
+ *
+ *   <li class="labeledList">
+ *     <span>From the release</span>
+ *     <span><span>Blood in the Water</span> (<span>Album</span>)</span>
+ *   </li>
+ */
+export const parseSongReleaseHtml = (html: string): string | undefined => {
+  const root = parse(html);
+
+  for (const item of root.querySelectorAll('li.labeledList')) {
+    const [label, value] = item.childNodes.filter((child): child is HTMLElement => child instanceof HTMLElement && child.tagName === 'SPAN');
+    if (!label || !value || !/from the release/i.test(label.textContent)) continue;
+
+    const name = (value.querySelector('span')?.textContent ?? value.textContent).trim();
+    return name || undefined;
+  }
+
+  return undefined;
+};
