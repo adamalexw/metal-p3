@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { AlbumStore, AlbumService } from '@metal-p3/album/data-access';
+import { AlbumService, AlbumStore } from '@metal-p3/album/data-access';
 import { BASE_PATH } from '@metal-p3/album/domain';
 import { FileSystemMaintenanceService } from '@metal-p3/maintenance/data-access';
 import { UnmappedFoldersComponent } from '@metal-p3/maintenance/ui';
@@ -28,9 +28,7 @@ export class UnmappedFoldersShellComponent {
   }
 
   onAdd(folder: string) {
-    this.albumService.addNewAlbum(`${this.basePath}/${folder}`).subscribe(albumDto => {
-      this.albumStore.addAlbum({ ...albumDto });
-    });
+    this.albumStore.addNewAlbum(folder);
   }
 
   onDelete(path: string) {
