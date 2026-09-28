@@ -1,4 +1,4 @@
-import { normalizeForMatch, parseSetlistHtml, stripTrackNumber, tokenizeFilename, trackKey } from './setlist-importer-helpers';
+import { normalizeForMatch, parseSetlistHtml, parseSongReleaseHtml, stripTrackNumber, tokenizeFilename, trackKey } from './setlist-importer-helpers';
 
 describe('setlist-importer-helpers', () => {
   describe('normalizeForMatch', () => {
@@ -130,6 +130,49 @@ describe('setlist-importer-helpers', () => {
       const html = `<html><body><div class="setlistHeadline"><h1>Empty</h1></div></body></html>`;
       const result = parseSetlistHtml(html, sourceUrl);
       expect(result.tracks).toEqual([]);
+    });
+
+    it('resolves relative song stats links against the setlist url', () => {
+      const html = `
+        <html><body>
+          <ol class="songsList">
+            <li class="setlistParts song">
+              <div class="songPart"><a class="songLabel" href="../../../stats/songs/flotsam-and-jetsam-2bd6f476.html?songid=7bcabad8">Iron Maiden</a></div>
+            </li>
+          </ol>
+        </body></html>
+      `;
+      const result = parseSetlistHtml(html, 'https://www.setlist.fm/setlist/flotsam-and-jetsam/2026/nile-theater-mesa-az-4b708302.html');
+      expect(result.tracks[0].songPageUrl).toBe('https://www.setlist.fm/stats/songs/flotsam-and-jetsam-2bd6f476.html?songid=7bcabad8');
+    });
+  });
+
+  describe('parseSongReleaseHtml', () => {
+    it('extracts the release name', () => {
+      const html = `
+        <div class="artistSongStatistics">
+          <ul class="list-unstyled">
+            <li class="labeledList" id="id1b">
+              <span>From the release</span>
+              <span><span>Blood in the Water</span> (<span>Album</span>)</span>
+            </li>
+            <li class="labeledList">
+              <span>Total Plays</span>
+              <span><span>59 times by Flotsam and Jetsam</span></span>
+            </li>
+          </ul>
+        </div>
+      `;
+      expect(parseSongReleaseHtml(html)).toBe('Blood in the Water');
+    });
+
+    it('returns undefined when the song has no release', () => {
+      const html = `
+        <ul class="list-unstyled">
+          <li class="labeledList"><span>Total Plays</span><span><span>3 times</span></span></li>
+        </ul>
+      `;
+      expect(parseSongReleaseHtml(html)).toBeUndefined();
     });
   });
 });
