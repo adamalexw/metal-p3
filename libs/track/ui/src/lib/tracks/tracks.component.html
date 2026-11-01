@@ -36,7 +36,7 @@
     <ng-container matColumnDef="bitrate">
       <th *matHeaderCellDef class="text-primary! text-center!" mat-header-cell>Bitrate</th>
       <td *matCellDef="let element" class="text-center! bg-transparent!" mat-cell>
-        {{ element().value().bitrate | bitrate }}
+        {{ element().value().bitrate | bitrate: element().value().fullPath }}
       </td>
     </ng-container>
 

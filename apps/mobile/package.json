@@ -53,7 +53,8 @@
     "semver": "*",
     "tsconfig-paths": "*",
     "tslib": "*",
-    "twrnc": "*"
+    "twrnc": "*",
+    "@nx/cypress": "*"
   },
   "devDependencies": {}
 }

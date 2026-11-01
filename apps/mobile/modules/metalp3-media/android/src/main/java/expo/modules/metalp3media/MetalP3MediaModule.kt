@@ -871,7 +871,7 @@ class MetalP3MediaModule : Module() {
           read += n
         }
         val bytes = if (read == limit) buffer else buffer.copyOf(read)
-        parseId3v2Txxx(bytes)
+        parseId3v2Txxx(bytes) ?: parseVorbisExtras(bytes)
       }
     } catch (_: Throwable) {
       null
@@ -950,7 +950,86 @@ class MetalP3MediaModule : Module() {
    * Naive Vorbis-comment scan: search the buffer (likely FLAC or OGG header)
    * for any LYRICS=... or UNSYNCEDLYRICS=... entry. Comments are UTF-8.
    */
+  private fun readFlacVorbisComments(b: ByteArray): Map<String, String>? {
+    if (b.size < 8) return null
+    if (b[0] != 'f'.code.toByte() || b[1] != 'L'.code.toByte() || b[2] != 'a'.code.toByte() || b[3] != 'C'.code.toByte()) {
+      return null
+    }
+    var p = 4
+    while (p + 4 <= b.size) {
+      val header = b[p].toInt() and 0xFF
+      val isLast = (header and 0x80) != 0
+      val blockType = header and 0x7F
+      val blockLen = ((b[p + 1].toInt() and 0xFF) shl 16) or
+        ((b[p + 2].toInt() and 0xFF) shl 8) or
+        (b[p + 3].toInt() and 0xFF)
+      val blockStart = p + 4
+      val blockEnd = blockStart + blockLen
+      if (blockLen < 0 || blockEnd > b.size) break
+      if (blockType == 4 && blockLen >= 8) {
+        var cp = blockStart
+        val vendorLen = readInt32LE(b, cp)
+        cp += 4 + vendorLen
+        if (cp + 4 <= blockEnd) {
+          val count = readInt32LE(b, cp)
+          cp += 4
+          val out = mutableMapOf<String, String>()
+          for (i in 0 until count) {
+            if (cp + 4 > blockEnd) break
+            val len = readInt32LE(b, cp)
+            cp += 4
+            if (len < 0 || cp + len > blockEnd) break
+            val entry = String(b, cp, len, Charsets.UTF_8)
+            cp += len
+            val eq = entry.indexOf('=')
+            if (eq > 0) {
+              val key = entry.substring(0, eq).trim().uppercase()
+              val value = entry.substring(eq + 1).trim()
+              if (key.isNotEmpty() && value.isNotEmpty() && !out.containsKey(key)) {
+                out[key] = value
+              }
+            }
+          }
+          return out
+        }
+      }
+      if (isLast) break
+      p = blockEnd
+    }
+    return null
+  }
+
+  private fun readInt32LE(b: ByteArray, offset: Int): Int {
+    if (offset + 4 > b.size) return 0
+    return (b[offset].toInt() and 0xFF) or
+      ((b[offset + 1].toInt() and 0xFF) shl 8) or
+      ((b[offset + 2].toInt() and 0xFF) shl 16) or
+      ((b[offset + 3].toInt() and 0xFF) shl 24)
+  }
+
+  private fun parseVorbisExtras(b: ByteArray): Map<String, Any?>? {
+    val flacComments = readFlacVorbisComments(b)
+    if (flacComments != null) {
+      val country = flacComments["COUNTRY"]
+      val metalArchivesUrl = flacComments["METAL_ARCHIVES_URL"]
+      if (country != null || metalArchivesUrl != null) {
+        return mapOf(
+          "country" to country,
+          "metalArchivesUrl" to metalArchivesUrl,
+        )
+      }
+    }
+    return null
+  }
+
   private fun parseVorbisLyrics(b: ByteArray): Map<String, Any?>? {
+    val flacComments = readFlacVorbisComments(b)
+    if (flacComments != null) {
+      val lyrics = flacComments["UNSYNCEDLYRICS"] ?: flacComments["LYRICS"]
+      if (!lyrics.isNullOrBlank()) {
+        return mapOf("text" to lyrics.trim(), "language" to null)
+      }
+    }
     val haystack = try { String(b, Charsets.UTF_8) } catch (_: Throwable) { return null }
     val keys = listOf("UNSYNCEDLYRICS=", "LYRICS=", "unsyncedlyrics=", "lyrics=")
     for (key in keys) {

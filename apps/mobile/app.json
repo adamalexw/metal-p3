@@ -39,16 +39,10 @@
       ],
       "./plugins/withKotlinJvmTarget.js",
       "./plugins/withWindowsMemoryLimits.js",
-      "./plugins/withNxWorkspaceRoot.js",
       "./plugins/withProguardRules.js"
     ],
     "experiments": {
       "typedRoutes": true
-    },
-    "extra": {
-      "router": {
-        "root": "apps/mobile/app"
-      }
     }
   }
 }

@@ -1,15 +1,48 @@
 import { RenameTrack, TrackDto, TransferPlaylistRequest } from '@metal-p3/api-interfaces';
 import { AdbService } from '@metal-p3/shared/adb';
-import { FileSystemService } from '@metal-p3/shared/file-system';
+import { FileSystemService, isAudioFile } from '@metal-p3/shared/file-system';
 import { Injectable, Logger } from '@nestjs/common';
 import { existsSync, readFileSync, unlinkSync, writeFileSync } from 'fs';
 import { IAudioMetadata, IOptions, parseFile } from 'music-metadata';
-import * as NodeID3 from 'node-id3';
+import {
+  ByteVector,
+  Id3v2FrameClassType,
+  Id3v2Settings,
+  Id3v2Tag,
+  Id3v2UserTextInformationFrame,
+  Picture,
+  PictureType,
+  ReadStyle,
+  File as TagLibFile,
+  TagTypes,
+  XiphComment,
+} from 'node-taglib-sharp';
 import { basename, dirname, extname, join } from 'path';
 import { EMPTY, Observable, catchError, from, map, mergeAll, toArray } from 'rxjs';
 import sharpFn from 'sharp';
 
 const metadataParseConcurrency = 4;
+
+export interface AudioCoverImage {
+  mime: 'image/jpeg' | 'image/png';
+  type: { id: number; name: string };
+  description: string;
+  imageBuffer: Buffer;
+}
+
+export interface AudioTags {
+  album?: string;
+  artist?: string;
+  performerInfo?: string;
+  year?: string;
+  genre?: string;
+  trackNumber?: string;
+  title?: string;
+  unsynchronisedLyrics?: { text: string; language: string };
+  userDefinedText?: { description: string; value: string }[];
+  image?: AudioCoverImage;
+  comment?: { language: string; text: string };
+}
 
 @Injectable()
 export class TrackService {
@@ -36,12 +69,28 @@ export class TrackService {
     return from(parseFile(file, options));
   }
 
-  getTags(file: string): NodeID3.Tags {
-    return NodeID3.read(file, { exclude: ['APIC'] });
+  getTags(file: string): AudioTags {
+    const tagFile = TagLibFile.createFromPath(file, undefined, ReadStyle.None);
+    try {
+      const tag = tagFile.tag;
+      const artist = tag.performers?.[0] ?? tag.albumArtists?.[0];
+      return {
+        album: tag.album,
+        artist,
+        performerInfo: tag.albumArtists?.[0] ?? artist,
+        year: tag.year ? tag.year.toString() : undefined,
+        genre: tag.genres?.[0],
+        title: tag.title,
+        trackNumber: tag.track ? tag.track.toString().padStart(2, '0') : undefined,
+        unsynchronisedLyrics: tag.lyrics ? { language: 'eng', text: tag.lyrics } : undefined,
+      };
+    } finally {
+      tagFile.dispose();
+    }
   }
 
   trackDetails(file: string, index: number): Observable<TrackDto> {
-    if (extname(file) === '.mp3') {
+    if (isAudioFile(file)) {
       return this.getMetadata(file, { skipCovers: true }).pipe(
         map((metadata) => this.mapTrack(file, metadata, index)),
         catchError((error) => {
@@ -77,19 +126,26 @@ export class TrackService {
     if (mm.common.lyrics?.length) {
       return mm.common.lyrics[0];
     }
-    // Fall back to raw native USLT frame when common.lyrics mapping fails
+    // Fall back to raw native USLT frame (ID3v2) or Vorbis LYRICS / UNSYNCEDLYRICS comment (FLAC)
     const native = mm.native['ID3v2.4'] ?? mm.native['ID3v2.3'];
-    return native?.find((t) => t.id === 'USLT')?.value?.text;
+    const id3Lyrics = native?.find((t) => t.id === 'USLT')?.value?.text;
+    if (id3Lyrics) {
+      return id3Lyrics;
+    }
+
+    const vorbis = mm.native['vorbis'];
+    const vorbisLyrics = vorbis?.find((t) => ['LYRICS', 'UNSYNCEDLYRICS'].includes(t.id.toUpperCase()))?.value;
+    return typeof vorbisLyrics === 'string' ? vorbisLyrics : undefined;
   }
 
-  private getLrcSidecarPath(mp3Path: string): string {
-    const dir = dirname(mp3Path);
-    const stem = basename(mp3Path, extname(mp3Path));
+  private getLrcSidecarPath(audioPath: string): string {
+    const dir = dirname(audioPath);
+    const stem = basename(audioPath, extname(audioPath));
     return join(dir, `${stem}.lrc`);
   }
 
-  private readLrcSidecar(mp3Path: string): string | undefined {
-    const lrcPath = this.getLrcSidecarPath(mp3Path);
+  private readLrcSidecar(audioPath: string): string | undefined {
+    const lrcPath = this.getLrcSidecarPath(audioPath);
     if (!existsSync(lrcPath)) return undefined;
     try {
       return readFileSync(lrcPath, 'utf8');
@@ -103,8 +159,8 @@ export class TrackService {
     return track.no?.toString().padStart(2, '0') || '00';
   }
 
-  async saveTrack(track: TrackDto, coverImage?: NodeID3.Tags['image']): Promise<boolean> {
-    let baseTags: Partial<NodeID3.Tags> = {
+  async saveTrack(track: TrackDto, coverImage?: AudioCoverImage): Promise<boolean> {
+    let baseTags: Partial<AudioTags> = {
       album: track.album,
       artist: track.artist,
       performerInfo: track.artist,
@@ -112,7 +168,7 @@ export class TrackService {
       genre: track.genre,
     };
 
-    const userDefinedText: NonNullable<NodeID3.Tags['userDefinedText']> = [];
+    const userDefinedText: NonNullable<AudioTags['userDefinedText']> = [];
     if (track.country) {
       userDefinedText.push({ description: 'COUNTRY', value: track.country });
     }
@@ -168,7 +224,7 @@ export class TrackService {
 
   async saveTracks(tracks: TrackDto[]): Promise<boolean> {
     const firstWithCover = tracks.find((t) => t.cover);
-    let coverImage: NodeID3.Tags['image'] | undefined;
+    let coverImage: AudioCoverImage | undefined;
 
     if (firstWithCover?.cover) {
       coverImage = await this.buildCoverImage(firstWithCover.cover);
@@ -191,7 +247,7 @@ export class TrackService {
     return true;
   }
 
-  private async buildCoverImage(cover: string): Promise<NodeID3.Tags['image']> {
+  private async buildCoverImage(cover: string): Promise<AudioCoverImage> {
     const mimeMatch = cover.match(/^data:(image\/[^;]+);base64,/);
     const mime = (mimeMatch?.[1] ?? 'image/jpeg') as 'image/jpeg' | 'image/png';
     const base64Data = cover.replace(/^data:image\/[^;]+;base64,/, '');
@@ -208,18 +264,78 @@ export class TrackService {
     };
   }
 
-  private mapTrackToTags(track: TrackDto, baseTags: Partial<NodeID3.Tags>): NodeID3.Tags {
-    const tags = { ...baseTags, trackNumber: track.trackNumber, title: track.title } as NodeID3.Tags;
+  private mapTrackToTags(track: TrackDto, baseTags: Partial<AudioTags>): AudioTags {
+    const tags = { ...baseTags, trackNumber: track.trackNumber, title: track.title } as AudioTags;
     return tags;
   }
 
-  async updateTrack(tags: NodeID3.Tags, location: string): Promise<void> {
-    await NodeID3.Promise.update(tags, location);
+  async updateTrack(tags: AudioTags, location: string): Promise<void> {
+    Id3v2Tag.language = 'eng';
+    const file = TagLibFile.createFromPath(location, undefined, ReadStyle.None);
+    try {
+      if (tags.title !== undefined) {
+        file.tag.title = tags.title;
+      }
+      if (tags.album !== undefined) {
+        file.tag.album = tags.album;
+      }
+      if (tags.artist !== undefined) {
+        file.tag.performers = tags.artist ? [tags.artist] : [];
+      }
+      if (tags.performerInfo !== undefined) {
+        file.tag.albumArtists = tags.performerInfo ? [tags.performerInfo] : [];
+      }
+      if (tags.year !== undefined) {
+        const parsedYear = Number.parseInt(tags.year, 10);
+        file.tag.year = Number.isNaN(parsedYear) ? 0 : parsedYear;
+      }
+      if (tags.genre !== undefined) {
+        file.tag.genres = tags.genre ? [tags.genre] : [];
+      }
+      if (tags.trackNumber !== undefined) {
+        const parsedTrack = Number.parseInt(tags.trackNumber, 10);
+        file.tag.track = Number.isNaN(parsedTrack) ? 0 : parsedTrack;
+      }
+      if (tags.unsynchronisedLyrics?.text !== undefined) {
+        file.tag.lyrics = tags.unsynchronisedLyrics.text;
+      }
+      if (tags.image) {
+        const pic = Picture.fromFullData(
+          ByteVector.fromByteArray(new Uint8Array(tags.image.imageBuffer)),
+          PictureType.FrontCover,
+          tags.image.mime,
+          tags.image.description,
+        );
+        file.tag.pictures = [pic];
+      }
+      if (tags.userDefinedText?.length) {
+        const xiph = file.getTag(TagTypes.Xiph, false) as XiphComment | undefined;
+        const id3v2 = file.getTag(TagTypes.Id3v2, false) as Id3v2Tag | undefined;
+        for (const { description, value } of tags.userDefinedText) {
+          if (xiph) {
+            xiph.setFieldAsStrings(description, value);
+          }
+          if (id3v2) {
+            const frames = id3v2.getFramesByClassType<Id3v2UserTextInformationFrame>(Id3v2FrameClassType.UserTextInformationFrame);
+            let frame = Id3v2UserTextInformationFrame.findUserTextInformationFrame(frames, description, false);
+            if (!frame) {
+              frame = Id3v2UserTextInformationFrame.fromDescription(description, Id3v2Settings.defaultEncoding);
+              id3v2.addFrame(frame);
+            }
+            frame.text = [value];
+          }
+        }
+      }
+      file.save();
+    } finally {
+      file.dispose();
+    }
   }
 
   renameTrack(track: TrackDto): RenameTrack {
     if (track.title) {
-      const file = `${track.trackNumber} - ${this.fileSystemService.filenameValidator(track.title)}.mp3`;
+      const ext = extname(track.fullPath || track.file || '') || '.mp3';
+      const file = `${track.trackNumber} - ${this.fileSystemService.filenameValidator(track.title)}${ext}`;
       const fullPath = `${track.folder}/${file}`;
 
       try {
