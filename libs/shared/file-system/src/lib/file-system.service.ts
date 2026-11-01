@@ -3,8 +3,19 @@ import { exec } from 'child_process';
 import { chmodSync, existsSync, lstatSync, readdirSync, renameSync, rmdirSync, rmSync, statSync, unlinkSync } from 'fs';
 import { basename, dirname, extname, join } from 'path';
 
+export const SUPPORTED_AUDIO_EXTENSIONS = ['.mp3', '.flac'] as const;
+
+export function isAudioFile(filePath: string): boolean {
+  if (!filePath) return false;
+  return (SUPPORTED_AUDIO_EXTENSIONS as readonly string[]).includes(extname(filePath).toLowerCase());
+}
+
 @Injectable()
 export class FileSystemService {
+  isAudioFile(filePath: string): boolean {
+    return isAudioFile(filePath);
+  }
+
   getFolders(folder: string): string[] {
     if (existsSync(folder)) {
       return readdirSync(folder, {}) as string[];
@@ -190,7 +201,7 @@ export class FileSystemService {
     if (!existsSync(fullPath)) return false;
     return this.getFiles(fullPath).some((file) => {
       const ext = extname(file).toLowerCase();
-      if (ext === '.mp3') return false;
+      if (isAudioFile(file)) return false;
       if (ext === '.lrc') return false;
       if (coverPattern.test(file)) return false;
       // Treat non-ASCII jpeg filenames (e.g. Сover.jpg with Cyrillic С) as cover variants, not extra files

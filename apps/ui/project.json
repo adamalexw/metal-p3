@@ -24,7 +24,7 @@
           "apps/ui/src/site.webmanifest",
           "apps/ui/src/assets"
         ],
-        "styles": ["node_modules/flag-icons/css/flag-icons.min.css", "apps/ui/src/styles.scss"],
+        "styles": ["apps/ui/src/styles.scss"],
         "stylePreprocessorOptions": {
           "includePaths": ["apps/ui/src"]
         },

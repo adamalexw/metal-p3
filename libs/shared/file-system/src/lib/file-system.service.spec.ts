@@ -22,6 +22,7 @@ describe('FileSystemService.hasExtraFiles', () => {
 
   it('returns false when the folder contains only mp3, cover and lrc files', () => {
     writeFileSync(join(albumPath, '01 - Track.mp3'), '');
+    writeFileSync(join(albumPath, '02 - Track.flac'), '');
     writeFileSync(join(albumPath, 'cover.jpg'), '');
     writeFileSync(join(albumPath, '01 - Track.lrc'), '[00:00.00] line');
 
@@ -30,6 +31,7 @@ describe('FileSystemService.hasExtraFiles', () => {
 
   it('returns true when an unsupported file type is present alongside an lrc', () => {
     writeFileSync(join(albumPath, '01 - Track.mp3'), '');
+    writeFileSync(join(albumPath, '02 - Track.flac'), '');
     writeFileSync(join(albumPath, '01 - Track.lrc'), '[00:00.00] line');
     writeFileSync(join(albumPath, 'notes.txt'), 'hi');
 
@@ -109,10 +111,11 @@ describe('FileSystemService.moveFilesToTheRoot', () => {
   it('should resolve immediately when there are no sub-folders', async () => {
     rmSync(join(albumPath, 'disc1'), { recursive: true, force: true });
     writeFileSync(join(albumPath, '01 - Track.mp3'), '');
+    writeFileSync(join(albumPath, '02 - Track.flac'), '');
 
     await expect(service.moveFilesToTheRoot(albumPath, albumPath, 3, 0)).resolves.toBeUndefined();
 
-    expect(readdirSync(albumPath)).toEqual(['01 - Track.mp3']);
+    expect(readdirSync(albumPath)).toEqual(['01 - Track.mp3', '02 - Track.flac']);
   });
 
   it('should throw when the files cannot be moved and leave them in place', async () => {

@@ -1,10 +1,10 @@
 import { BASE_PATH_TOKEN } from '@metal-p3/api-interfaces';
 import { ImportedSetlist, ImportedTrack, MatchTracksRequest, ResolvedTrack, ScrapeSetlistsRequest } from '@metal-p3/setlist-importer/domain';
 import { DbService } from '@metal-p3/shared/database';
-import { FileSystemService } from '@metal-p3/shared/file-system';
+import { FileSystemService, isAudioFile } from '@metal-p3/shared/file-system';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import Fuse from 'fuse.js';
-import { extname, join } from 'path';
+import { join } from 'path';
 import type { Browser } from 'puppeteer';
 import puppeteer from 'puppeteer-extra';
 import { ALBUM_FUSE_THRESHOLD, AlbumCandidate, FILE_FUSE_THRESHOLD, normalizeForMatch, parseSetlistHtml, parseSongReleaseHtml, tokenizeFilename, trackKey } from './setlist-importer-helpers';
@@ -212,7 +212,7 @@ export class SetlistImporterService {
     let files = cache.get(folderPath);
     if (!files) {
       try {
-        files = this.fileSystemService.getFiles(folderPath).filter((f) => extname(f).toLowerCase() === '.mp3');
+        files = this.fileSystemService.getFiles(folderPath).filter((f) => isAudioFile(f));
       } catch {
         files = [];
       }

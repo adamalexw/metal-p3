@@ -1,13 +1,13 @@
 import { AlbumDto, BASE_PATH_TOKEN, MetalArchivesSearchResponse, RenameFolder, SearchRequest, TAKE_TOKEN } from '@metal-p3/api-interfaces';
 import { Album, Band, Prisma } from '@metal-p3/prisma/client';
 import { AlbumWithBand, DbService } from '@metal-p3/shared/database';
-import { FileSystemService } from '@metal-p3/shared/file-system';
+import { FileSystemService, isAudioFile } from '@metal-p3/shared/file-system';
 import { MetalArchivesService } from '@metal-p3/shared/metal-archives';
-import { TrackService } from '@metal-p3/track/api';
+import { AudioTags, TrackService } from '@metal-p3/track/api';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import chokidar from 'chokidar';
 import * as fs from 'fs';
-import * as NodeID3 from 'node-id3';
+
 import * as path from 'path';
 import { Observable, catchError, concatMap, firstValueFrom, from, map, of } from 'rxjs';
 import { AlbumGateway } from './album-gateway.service';
@@ -279,7 +279,7 @@ export class AlbumService {
           snapshot.fileCount++;
           snapshot.totalSize += stat.size;
           snapshot.lastModified = Math.max(snapshot.lastModified, stat.mtimeMs);
-          if (path.extname(entry.name).toLowerCase() === '.mp3') {
+          if (isAudioFile(entry.name)) {
             snapshot.hasMp3 = true;
           }
         } catch {
@@ -319,7 +319,7 @@ export class AlbumService {
     try {
       files = this.fileSystemService
         .getFiles(albumDto.fullPath)
-        .filter((f) => path.extname(f) === '.mp3')
+        .filter((f) => isAudioFile(f))
         .map((f) => path.join(albumDto.fullPath, f));
     } catch (error) {
       Logger.error(`Failed to list files for track metadata propagation in "${albumDto.fullPath}": ${error}`);
@@ -351,7 +351,7 @@ export class AlbumService {
     );
   }
 
-  private prepareTagsAndBand(folder: string, dirName: string): Observable<{ tags: NodeID3.Tags; band: Band }> {
+  private prepareTagsAndBand(folder: string, dirName: string): Observable<{ tags: AudioTags; band: Band }> {
     return this.getAlbums({ take: 1, folder: dirName, exactMatch: true }).pipe(
       // Guard against duplicate folder entries in the database.
       map((albums) => {
@@ -363,7 +363,7 @@ export class AlbumService {
         // Flatten any sub-folders so all files are accessible at the root level.
         await this.fileSystemService.moveFilesToTheRoot(folder, folder);
 
-        const mp3 = this.fileSystemService.getFiles(folder).find((f) => path.extname(f) === '.mp3');
+        const mp3 = this.fileSystemService.getFiles(folder).find((f) => isAudioFile(f));
 
         if (!mp3) {
           throw new Error('no mp3 files found in folder');
@@ -389,12 +389,12 @@ export class AlbumService {
     );
   }
 
-  private searchAndCreateAlbum(folder: string, tags: NodeID3.Tags, band: Band): Observable<AlbumDto> {
+  private searchAndCreateAlbum(folder: string, tags: AudioTags, band: Band): Observable<AlbumDto> {
     return from(this.findMovedAlbum(folder, tags, band)).pipe(concatMap((movedAlbum) => (movedAlbum ? of(movedAlbum) : this.createAlbumWithMetalArchivesUrls(folder, tags, band))));
   }
 
   // An album that is in the database but whose folder is gone from disk was renamed outside the app.
-  private async findMovedAlbum(folder: string, tags: NodeID3.Tags, band: Band): Promise<AlbumDto | undefined> {
+  private async findMovedAlbum(folder: string, tags: AudioTags, band: Band): Promise<AlbumDto | undefined> {
     if (!tags.album) {
       return undefined;
     }
@@ -413,7 +413,7 @@ export class AlbumService {
     return this.mapAlbumToAlbumDto({ ...movedAlbum, Folder: newFolder });
   }
 
-  private createAlbumWithMetalArchivesUrls(folder: string, tags: NodeID3.Tags, band: Band): Observable<AlbumDto> {
+  private createAlbumWithMetalArchivesUrls(folder: string, tags: AudioTags, band: Band): Observable<AlbumDto> {
     const artist = tags.artist;
     const album = tags.album;
 
@@ -508,7 +508,7 @@ export class AlbumService {
     try {
       files = this.fileSystemService
         .getFiles(albumDto.fullPath)
-        .filter((f) => path.extname(f) === '.mp3')
+        .filter((f) => isAudioFile(f))
         .map((f) => path.join(albumDto.fullPath, f));
     } catch (error) {
       Logger.error(`Failed to list files for track rename in "${albumDto.fullPath}": ${error}`);
@@ -554,7 +554,7 @@ export class AlbumService {
     return {};
   }
 
-  private mapTagsToAlbum(folder: string, tags: NodeID3.Tags, band: Band, albumUrl?: string): Prisma.AlbumCreateInput {
+  private mapTagsToAlbum(folder: string, tags: AudioTags, band: Band, albumUrl?: string): Prisma.AlbumCreateInput {
     const bandInput: Prisma.BandCreateNestedOneWithoutAlbumInput = {
       connect: { BandId: band.BandId },
     };
@@ -653,7 +653,7 @@ export class AlbumService {
   createAlbumFromRootFiles(basePath: string): string[] {
     const newAlbums: string[] = [];
     const files = this.fileSystemService.getFiles(basePath);
-    const mp3s = files.filter((f) => path.extname(f).toLowerCase() === '.mp3');
+    const mp3s = files.filter((f) => isAudioFile(f));
 
     if (mp3s.length) {
       for (let index = 0; index < mp3s.length; index++) {
@@ -679,7 +679,7 @@ export class AlbumService {
     const remaining = this.fileSystemService.getFiles(basePath);
     for (const file of remaining) {
       const filePath = path.join(basePath, file);
-      if (!this.fileSystemService.isFolder(filePath) && path.extname(file).toLowerCase() !== '.mp3') {
+      if (!this.fileSystemService.isFolder(filePath) && !isAudioFile(file)) {
         try {
           this.fileSystemService.deleteFile(filePath);
         } catch (error) {

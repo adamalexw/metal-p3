@@ -1,5 +1,5 @@
 import { BASE_PATH_TOKEN } from '@metal-p3/api-interfaces';
-import { FileSystemService } from '@metal-p3/shared/file-system';
+import { FileSystemService, isAudioFile } from '@metal-p3/shared/file-system';
 import { MetalArchivesService } from '@metal-p3/shared/metal-archives';
 import { TrackService } from '@metal-p3/track/api';
 import { HttpService } from '@nestjs/axios';
@@ -25,7 +25,7 @@ export class CoverService {
   ) {}
 
   getCoverPath(location: string): string | null {
-    if (!location || path.extname(location) === '.mp3') {
+    if (!location || isAudioFile(location)) {
       return null;
     }
 
@@ -55,7 +55,7 @@ export class CoverService {
       );
     }
 
-    if (path.extname(location) == '.mp3') {
+    if (isAudioFile(location)) {
       return this.getCoverFromAudioFile(location).pipe(
         filter(Boolean),
         catchError((error) => {
@@ -68,7 +68,7 @@ export class CoverService {
     try {
       const folder = location;
       const files = this.fileSystemService.getFiles(location);
-      const audioFile = files?.filter((f) => path.extname(f) == '.mp3')?.[0];
+      const audioFile = files?.filter((f) => isAudioFile(f))?.[0];
 
       if (audioFile) {
         location = path.join(location, audioFile);

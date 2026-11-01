@@ -1,4 +1,8 @@
 @use '@angular/material' as mat;
+@use 'flag-icons/sass/flag-icons' with (
+  $flag-icons-path: 'flag-icons/flags',
+  $flag-icons-use-square: false
+);
 @forward 'theme';
 @forward 'variables';
 
