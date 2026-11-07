@@ -106,7 +106,7 @@ export class FileSystemService {
       .trim();
 
     if (newName.startsWith('.')) {
-      newName = newName.substring(0);
+      newName = newName.substring(1);
       return this.filenameValidator(newName);
     }
 
