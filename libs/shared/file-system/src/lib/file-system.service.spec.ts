@@ -126,3 +126,23 @@ describe('FileSystemService.moveFilesToTheRoot', () => {
     expect(existsSync(join(albumPath, 'disc1', '01 - Track.mp3'))).toBe(true);
   });
 });
+
+describe('FileSystemService.filenameValidator', () => {
+  let service: FileSystemService;
+
+  beforeEach(() => {
+    service = new FileSystemService();
+  });
+
+  it('strips leading dots without infinite recursion', () => {
+    expect(service.filenameValidator('...and I Held Hands With Death')).toBe('and I Held Hands With Death');
+  });
+
+  it('strips trailing dots and whitespace', () => {
+    expect(service.filenameValidator('Track Title... ')).toBe('Track Title');
+  });
+
+  it('strips both leading and trailing dots with spaces between', () => {
+    expect(service.filenameValidator('. . .Track. . .')).toBe('Track');
+  });
+});
